@@ -40,7 +40,7 @@ import type * as Y from 'yjs';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { X } from 'lucide-react';
 import { ContextMenu, type ContextMenuState, type MenuQuestion } from '@eventcatalog/visualiser/studio';
-import { EditButton, Palette, COMPONENT_DRAG_TYPE } from '@eventcatalog/visualiser/studio';
+import { EditButton, Palette, COMPONENT_DRAG_TYPE, RemeasureHandles } from '@eventcatalog/visualiser/studio';
 import { useCanvasFlow } from './use-canvas-flow';
 import { bump, track } from '../analytics';
 import { type ModelCanvasContent as CanvasContent } from '@eventcatalog/visualiser/studio';
@@ -1505,6 +1505,7 @@ function Canvas({
                   proOptions={{ hideAttribution: true }}
                 >
                   <DiagramBackground />
+                  <RemeasureHandles />
                   {/* Above the selected node's top right corner: its details, to edit them */}
                   {toEdit && <EditButton nodeId={toEdit.id} locked={locked} onClick={editNode} />}
                   <Legend legend={legend} hiddenKeys={hiddenLegendKeys} onToggle={toggleLegendKey} />

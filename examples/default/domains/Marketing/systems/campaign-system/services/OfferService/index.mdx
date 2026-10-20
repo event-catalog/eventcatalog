@@ -1,0 +1,21 @@
+---
+id: offer-service
+version: 1.0.0
+name: Offer Service
+summary: |
+  Builds follow-up offers for customers after they order, priced with the Shopping domain's promotions.
+owners:
+  - shopping-platform
+receives:
+  - id: order-confirmed
+    version: 1.0.0
+sends:
+  - id: calculate-discount
+    version: 1.0.0
+---
+
+## Overview
+
+The **Offer Service** listens for [[event|order-confirmed]] from the Ordering domain and builds a follow-up offer for the customer. It prices each offer by sending [[command|calculate-discount]] to the Shopping domain.
+
+<NodeGraph />

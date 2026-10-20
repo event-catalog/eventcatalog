@@ -2,6 +2,7 @@ import { memo } from "react";
 import { type EdgeProps, getSmoothStepPath } from "@xyflow/react";
 import EdgeLabel from "./EdgeLabel";
 import { useRoute } from "./route";
+import DomainEdgeEnds from "./DomainEdgeEnds";
 import { CROSS_DOMAIN_CLASS, isCrossDomain } from "./use-cross-domain";
 
 export default memo(function MultilineEdgeLabel(props: EdgeProps) {
@@ -25,7 +26,7 @@ export default memo(function MultilineEdgeLabel(props: EdgeProps) {
     data,
   } = props;
 
-  const [edgePath, labelX, labelY, zIndex] = useRoute(
+  const [edgePath, labelX, labelY, zIndex, domainEnds] = useRoute(
     {
       data,
       source,
@@ -59,6 +60,7 @@ export default memo(function MultilineEdgeLabel(props: EdgeProps) {
         markerEnd={markerEnd}
         style={style as any}
       />
+      <DomainEdgeEnds ends={domainEnds} />
 
       <EdgeLabel
         zIndex={zIndex}

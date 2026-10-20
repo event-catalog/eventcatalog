@@ -7,6 +7,12 @@ describe("getEdgeLabel", () => {
     ["service", "command", "invokes"],
     ["agent", "query", "requests"],
     ["actor", "command", "invokes"],
+    // A domain sending or receiving messages itself, as a box or a card
+    ["domain-group", "event", "publishes \nevent"],
+    ["context-domain", "command", "invokes"],
+    ["domain-group", "query", "requests"],
+    ["event", "domain-group", "subscribed by"],
+    ["command", "context-domain", "accepts"],
     ["event", "channel", "sent to"],
     ["event", "command", "triggers"],
     ["command", "event", "triggers"],

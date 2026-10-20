@@ -1,0 +1,25 @@
+---
+id: campaign-system
+name: Campaign System
+version: 1.0.0
+summary: |
+  Internal system that runs marketing campaigns: it welcomes new customers, sends personalised offers and prices them with the Shopping domain's promotions.
+owners:
+  - shopping-platform
+services:
+  - id: campaign-service
+  - id: offer-service
+badges:
+  - content: Internal
+    backgroundColor: gray
+    textColor: gray
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Campaign System** runs Acme Inc's marketing campaigns. The [[service|campaign-service]] welcomes new customers and the [[service|offer-service]] turns confirmed orders into follow-up offers.
+
+## Resource Diagram
+
+<NodeGraph />

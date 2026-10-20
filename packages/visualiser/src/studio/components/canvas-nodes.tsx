@@ -17,6 +17,7 @@ import {
   ResizeControlVariant,
   useReactFlow,
   useStoreApi,
+  useUpdateNodeInternals,
   type NodeProps,
   type NodeTypes,
 } from "@xyflow/react";
@@ -477,6 +478,14 @@ const GroupNode = memo(function GroupNode(props: NodeProps) {
   const locked = useContext(LockedContext);
   const data = useDomainData(props);
   const store = useStoreApi();
+  // Its handles (where edges meet its sides) measured again when its size changes: resizing it (NodeResizer) sets its
+  // measured size first, so React Flow sees no change when it renders at that size and keeps the handles where the
+  // sides were. A size that eases in (fitted to what's in it, or someone else's resize) is measured again by
+  // RemeasureHandles once it's done; this one measures mid-transition, which that corrects.
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    updateNodeInternals(props.id);
+  }, [updateNodeInternals, props.id, props.width, props.height]);
   // Where what's inside has to stay (with room around it and for the header), in the container's parent's
   // coordinates: found when a resize starts, so it can't be resized smaller than what's in it
   const contents = useRef<{

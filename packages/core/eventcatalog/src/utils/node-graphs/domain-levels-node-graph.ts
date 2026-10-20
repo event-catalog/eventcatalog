@@ -2,7 +2,15 @@ import { getDomains } from '@utils/collections/domains';
 import { getNodesAndEdges as getSystemNodesAndEdges } from './systems-node-graph';
 import { getNodesAndEdges as getServiceNodesAndEdges } from './services-node-graph';
 import { getNodesAndEdgesForDomainSystems as getDomainContextNodesAndEdges } from './system-context-node-graph';
-import { createEdge, generateIdForNode } from '@utils/node-graphs/utils/utils';
+import { getServices } from '@utils/collections/services';
+import { getAgents } from '@utils/collections/agents';
+import { createTriggerMessageNode } from './message-node-graph';
+import {
+  createEdge,
+  generateIdForNode,
+  getEdgeLabelForMessageAsSource,
+  getEdgeLabelForServiceAsTarget,
+} from '@utils/node-graphs/utils/utils';
 import { layoutLevels } from '@utils/node-graphs/layout-node-graph';
 import { getMessagesLabel, hideMessageNodes, isCarrier } from '@eventcatalog/visualiser/layout';
 
@@ -26,6 +34,14 @@ const systemGroupId = (system: any) => `system-group-${system.data.id}-${system.
 const CONTEXT_EDGE_PREFIX = 'context-';
 const domainGroupId = (domain: any) => `domain-group-${domain.data.id}-${domain.data.version}`;
 const domainNodeId = (domain: any) => `domain-${domain.data.id}-${domain.data.version}`;
+
+/** Whether a node is inside a group (a domain or system), at any depth */
+const isInside = (nodes: Map<string, any>, nodeId: string, groupId: string) => {
+  for (let node = nodes.get(nodeId); node?.parentId; node = nodes.get(node.parentId)) {
+    if (node.parentId === groupId) return true;
+  }
+  return false;
+};
 
 /** A system shown as a single node (not expanded into what's inside it) */
 const createSystemNode = (system: any, parentId?: string) => ({
@@ -78,13 +94,17 @@ const createDomainCard = (domain: any, { parentId, subdomain = false }: { parent
  * receive them from. Everything inside a system collapses into the system, and
  * anything else in a (sub)domain (e.g. a service not in a system) into the
  * domain, so edges connect domains, systems and actors. A subdomain without
- * systems is shown as a card.
+ * systems is shown as a card. Messages a (sub)domain sends or receives itself
+ * (`domainMessages`: by message, the boxes drawn with it) fold into it, as a
+ * system's do into the system, when only one does (more than one, they connect
+ * through the message instead, rather than to each other).
  */
 export const collapseSystems = (
   graph: Graph,
   systems: any[],
   contextNodes: Map<string, any>,
-  subdomains: Map<string, any>
+  subdomains: Map<string, any>,
+  domainMessages: Map<string, Set<string>> = new Map()
 ): Graph => {
   const nodesById = new Map(graph.nodes.map((node) => [node.id, node]));
   const systemsByGroupId = new Map<string, any>(systems.map((system: any) => [systemGroupId(system), system]));
@@ -106,6 +126,8 @@ export const collapseSystems = (
   // The node something is shown as: its system, the card of the subdomain it's
   // in, the (sub)domain it's in, or itself
   const representative = (nodeId: string): string => {
+    const boxes = domainMessages.get(nodeId);
+    if (boxes?.size === 1) return representative([...boxes][0]);
     for (let node = nodesById.get(nodeId); node; node = node.parentId ? nodesById.get(node.parentId) : undefined) {
       const system: any = systemsByGroupId.get(node.id);
       if (system) return generateIdForNode(system);
@@ -126,13 +148,6 @@ export const collapseSystems = (
     (node) => representative(node.id) === node.id && !systemsByGroupId.has(node.id) && node.type !== 'data'
   );
   const shownNodes = new Map([...otherNodes, ...systemNodes, ...cards.values()].map((node) => [node.id, node]));
-  // Whether one shown node is inside another (e.g. a system in its domain)
-  const isInside = (nodeId: string, groupId: string) => {
-    for (let node = shownNodes.get(nodeId); node?.parentId; node = shownNodes.get(node.parentId)) {
-      if (node.parentId === groupId) return true;
-    }
-    return false;
-  };
 
   // Edges between systems / actors / domains: context relationships as they
   // are, edges to nodes kept as their first label, the rest labelled with the
@@ -148,8 +163,9 @@ export const collapseSystems = (
       source === target ||
       !shownNodes.has(source) ||
       !shownNodes.has(target) ||
-      isInside(source, target) ||
-      isInside(target, source)
+      // One shown node inside another (e.g. a system in its domain)
+      isInside(shownNodes, source, target) ||
+      isInside(shownNodes, target, source)
     )
       return;
     const key = `${source}->${target}`;
@@ -244,6 +260,8 @@ export const buildDomainGraph = ({
   looseServices,
   serviceGraphs,
   mode,
+  domains,
+  catalogServices,
 }: {
   tree: Tree;
   owners: Owners;
@@ -252,7 +270,11 @@ export const buildDomainGraph = ({
   systemGraphs: Graph[];
   looseServices: { service: any; groupId: string }[];
   serviceGraphs: Graph[];
-  mode: string;
+  mode: 'simple' | 'full';
+  /** Every domain, for the ones sending or receiving the tree's domain-level messages themselves */
+  domains: any[];
+  /** Every service and agent, for the producers and consumers of the tree's domain-level messages */
+  catalogServices: any[];
 }) => {
   const groupOfDomain = new Map(tree.map((entry) => [entry.domain.data.id, entry.groupId]));
   const groupOfSystem = new Map(systems.map(({ system, groupId }) => [systemGroupId(system), groupId]));
@@ -399,23 +421,199 @@ export const buildDomainGraph = ({
     });
   });
 
+  const { otherDomainIds, domainMessages } = addDomainMessages({
+    tree,
+    owners,
+    domains,
+    catalogServices,
+    nodes,
+    edges,
+    addOtherDomain,
+    mode,
+  });
+
   // Other domains shown as a box (around their subdomains) rather than a card
   replacedBy.forEach((nodeId, replaced) => {
     const boxId = cardBoxes.get(nodeId);
     if (boxId) replacedBy.set(replaced, boxId);
   });
 
-  const graphEdges = connectEdges(edges, replacedBy, nodes);
-  placeMessagesWithPublishers(nodes, graphEdges);
-  return { nodes, edges: graphEdges, otherDomainIds: new Set(replacedBy.values()) };
+  const graphEdges = connectEdges(edges, new Map([...cardBoxes, ...replacedBy]), nodes);
+  placeMessagesWithPublishers(nodes, graphEdges, new Set(domainMessages.keys()));
+  return {
+    nodes,
+    edges: graphEdges,
+    otherDomainIds: new Set([...replacedBy.values(), ...[...otherDomainIds].map((id) => cardBoxes.get(id) ?? id)]),
+    domainMessages,
+  };
+};
+
+/**
+ * Messages domains send or receive themselves (`sends` and `receives` in their
+ * frontmatter). The domain's (and its subdomains') are connected to its box,
+ * outside it, and joined to the other side outside it: services in other
+ * domains (shown as those domains) and services in no domain. A message one of
+ * the domain's services already sends (or receives) is left as it is. Other
+ * domains sending a message the domain receives themselves (or receiving one it
+ * sends) are connected to it, as those domains. Returns the other domains added
+ * and, by message, the (sub)domain boxes it's drawn sent from or received by.
+ */
+const addDomainMessages = ({
+  tree,
+  owners,
+  domains,
+  catalogServices,
+  nodes,
+  edges,
+  addOtherDomain,
+  mode,
+}: {
+  tree: Tree;
+  owners: Owners;
+  domains: any[];
+  catalogServices: any[];
+  nodes: Map<string, any>;
+  edges: any[];
+  addOtherDomain: (domain: any) => string;
+  mode: 'simple' | 'full';
+}) => {
+  const treeDomainIds = new Set(tree.map((entry) => entry.domain.data.id));
+  const otherDomainIds = new Set<string>();
+  const domainMessages = new Map<string, Set<string>>();
+  // The domain each agent is in (owners only has services): the tree's versions first
+  const agentOwners = new Map<string, any>();
+  [...tree.map((entry) => entry.domain), ...domains].forEach((domain) =>
+    (domain.data.agents || []).forEach((agent: any) => {
+      const agentId = generateIdForNode(agent);
+      if (!agentOwners.has(agentId)) agentOwners.set(agentId, domain);
+    })
+  );
+  // Whether a domain or service sends (or receives) the message (their messages are already looked up)
+  const lists = (resource: any, key: 'sends' | 'receives', messageId: string) =>
+    (resource.data[key] || []).some((message: any) => message.data && generateIdForNode(message) === messageId);
+  const addOther = (domain: any) => {
+    const nodeId = addOtherDomain(domain);
+    otherDomainIds.add(nodeId);
+    return nodeId;
+  };
+  // Whether a message's senders (or receivers) include something in a (sub)domain's box: a service, or the box
+  // itself, at the other end of its edges, through any channels
+  const carries = (nodeId: string) => nodes.has(nodeId) && isCarrier(nodes.get(nodeId));
+  const reaches = (messageId: string, direction: 'senders' | 'receivers', groupId: string) => {
+    const seen = new Set([messageId]);
+    for (let current = [messageId]; current.length > 0; ) {
+      const next = edges
+        .filter((edge) => current.includes(direction === 'receivers' ? edge.source : edge.target))
+        .map((edge) => (direction === 'receivers' ? edge.target : edge.source))
+        .filter((nodeId) => !seen.has(nodeId));
+      next.forEach((nodeId) => seen.add(nodeId));
+      if (next.some((nodeId) => !carries(nodeId) && (nodeId === groupId || isInside(nodes, nodeId, groupId)))) return true;
+      current = next.filter(carries);
+    }
+    return false;
+  };
+  // Whether a service in a (sub)domain's box says it sends (or receives) the message: e.g. one it sends in a
+  // message group, which its graph shows as the group rather than the message. Services only: agents in a
+  // domain aren't drawn on its diagram
+  const groupOfTreeDomain = new Map(tree.map((entry) => [entry.domain.data.id, entry.groupId]));
+  const declaredIn = (groupId: string, key: 'sends' | 'receives', messageId: string) =>
+    catalogServices.some((service) => {
+      if (!lists(service, key, messageId)) return false;
+      const ownerGroup = groupOfTreeDomain.get(owners.get(generateIdForNode(service))?.domain.data.id);
+      return !!ownerGroup && (ownerGroup === groupId || isInside(nodes, ownerGroup, groupId));
+    });
+  // The node standing for a service (or agent) on the other side, or none when it's in the domain
+  const otherSide = (service: any) => {
+    const serviceId = generateIdForNode(service);
+    const ownerDomain = owners.get(serviceId)?.domain ?? agentOwners.get(serviceId);
+    if (ownerDomain) return treeDomainIds.has(ownerDomain.data.id) ? undefined : addOther(ownerDomain);
+    if (!nodes.has(serviceId)) {
+      nodes.set(serviceId, {
+        id: serviceId,
+        type: service.collection,
+        position: { x: 0, y: 0 },
+        data: {
+          mode,
+          ...(service.collection === 'agents' ? { agent: { ...service.data } } : { service: { ...service.data } }),
+        },
+      });
+    }
+    return serviceId;
+  };
+  const sendEdge = (source: string, message: any) =>
+    createEdge({
+      id: `domain-sends-${source}-${generateIdForNode(message)}`,
+      source,
+      target: generateIdForNode(message),
+      label: getEdgeLabelForServiceAsTarget(message),
+    });
+  const receiveEdge = (message: any, target: string) =>
+    createEdge({
+      id: `domain-receives-${generateIdForNode(message)}-${target}`,
+      source: generateIdForNode(message),
+      target,
+      label: getEdgeLabelForMessageAsSource(message),
+    });
+
+  tree.forEach(({ domain, groupId }) => {
+    (['sends', 'receives'] as const).forEach((key) =>
+      (domain.data[key] || []).forEach((message: any) => {
+        if (!message.data) return;
+        const messageId = generateIdForNode(message);
+        const sends = key === 'sends';
+        if (reaches(messageId, sends ? 'senders' : 'receivers', groupId) || declaredIn(groupId, key, messageId)) return;
+        // Outside the box, as the box sends or receives it (e.g. not left in it by a service in it consuming it)
+        const node = nodes.get(messageId);
+        if (!node) nodes.set(messageId, createTriggerMessageNode(message, mode));
+        else if (isInside(nodes, messageId, groupId)) nodes.set(messageId, { ...node, parentId: undefined, extent: undefined });
+        domainMessages.set(messageId, (domainMessages.get(messageId) ?? new Set()).add(groupId));
+        edges.push(sends ? sendEdge(groupId, message) : receiveEdge(message, groupId));
+
+        // Who receives what the domain sends, and who sends what it receives
+        new Set(
+          catalogServices
+            .filter((service) => lists(service, sends ? 'receives' : 'sends', messageId))
+            .map(otherSide)
+            .filter((nodeId): nodeId is string => !!nodeId)
+        ).forEach((nodeId) => edges.push(sends ? receiveEdge(message, nodeId) : sendEdge(nodeId, message)));
+      })
+    );
+  });
+
+  // Other domains sending a message the domain receives themselves, or receiving one it sends
+  const listed = new Map<string, { message: any; sends: any[]; receives: any[] }>();
+  domains
+    .filter((domain) => !treeDomainIds.has(domain.data.id))
+    .forEach((domain) =>
+      (['sends', 'receives'] as const).forEach((key) =>
+        (domain.data[key] || []).forEach((message: any) => {
+          if (!message.data) return;
+          const messageId = generateIdForNode(message);
+          const entry = listed.get(messageId) ?? { message, sends: [], receives: [] };
+          entry[key].push(domain);
+          listed.set(messageId, entry);
+        })
+      )
+    );
+  const rootGroupId = tree[0].groupId;
+  listed.forEach(({ message, sends, receives }, messageId) => {
+    if (!MESSAGE_TYPES.has(nodes.get(messageId)?.type)) return;
+    if (sends.length && reaches(messageId, 'receivers', rootGroupId))
+      sends.forEach((domain) => edges.push(sendEdge(addOther(domain), message)));
+    if (receives.length && reaches(messageId, 'senders', rootGroupId))
+      receives.forEach((domain) => edges.push(receiveEdge(message, addOther(domain))));
+  });
+  return { otherDomainIds, domainMessages };
 };
 
 /**
  * Messages are placed in the first graph they appear in, which can be a
  * system consuming them. Moves each message into the system (or domain) of the
- * services publishing it, when they're all in the same one.
+ * services publishing it, when they're all in the same one. Messages a domain
+ * sends or receives itself (`kept`) stay outside its box, where its edge to them
+ * is drawn.
  */
-export const placeMessagesWithPublishers = (nodes: Map<string, any>, edges: any[]) => {
+export const placeMessagesWithPublishers = (nodes: Map<string, any>, edges: any[], kept: Set<string> = new Set()) => {
   const publisherGroups = new Map<string, Set<string | undefined>>();
   edges.forEach((edge) => {
     const publisher = nodes.get(edge.source);
@@ -425,6 +623,7 @@ export const placeMessagesWithPublishers = (nodes: Map<string, any>, edges: any[
     publisherGroups.set(edge.target, groups);
   });
   publisherGroups.forEach((groups, messageId) => {
+    if (kept.has(messageId)) return;
     const [parentId] = [...groups];
     const message = nodes.get(messageId);
     if (groups.size === 1 && parentId && message.parentId !== parentId) {
@@ -438,12 +637,6 @@ export const placeMessagesWithPublishers = (nodes: Map<string, any>, edges: any[
  * nowhere and ones between a domain and a subdomain in it.
  */
 export const connectEdges = (edges: any[], replacedBy: Map<string, string>, nodes: Map<string, any>) => {
-  const isInside = (nodeId: string, groupId: string) => {
-    for (let node = nodes.get(nodeId); node?.parentId; node = nodes.get(node.parentId)) {
-      if (node.parentId === groupId) return true;
-    }
-    return false;
-  };
   const seen = new Set<string>();
   return edges
     .map((edge) => ({
@@ -457,8 +650,8 @@ export const connectEdges = (edges: any[], replacedBy: Map<string, string>, node
         edge.source === edge.target ||
         !nodes.has(edge.source) ||
         !nodes.has(edge.target) ||
-        isInside(edge.source, edge.target) ||
-        isInside(edge.target, edge.source) ||
+        isInside(nodes, edge.source, edge.target) ||
+        isInside(nodes, edge.target, edge.source) ||
         seen.has(key)
       )
         return false;
@@ -577,13 +770,34 @@ export const getNodesAndEdges = (props: NodesAndEdgesProps): Promise<DomainLevel
   return levelsCache.get(key)!;
 };
 
+/**
+ * Each service and agent in the version a domain has (it can pin an older one),
+ * or its latest when no domain has it: who sends or receives a domain's own
+ * messages is matched against these.
+ */
+const inVersionsUsed = (resources: any[], domains: any[], owners: Owners) => {
+  const used = new Set([
+    ...owners.keys(),
+    ...domains.flatMap((domain) => (domain.data.agents || []).map((agent: any) => generateIdForNode(agent))),
+  ]);
+  const key = (resource: any) => `${resource.collection}:${resource.data.id}`;
+  const usedKeys = new Set(resources.filter((resource) => used.has(generateIdForNode(resource))).map(key));
+  return resources.filter((resource) =>
+    usedKeys.has(key(resource))
+      ? used.has(generateIdForNode(resource))
+      : (resource.data.latestVersion ?? resource.data.version) === resource.data.version
+  );
+};
+
 const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: NodesAndEdgesProps): Promise<DomainLevels> => {
   // Each domain with only its own services (not its subdomains'): the version
   // shown (which may be an older one), and the latest of every domain for its
   // subdomains and the other domains around it
-  const [allVersions, domains] = await Promise.all([
+  const [allVersions, domains, services, agents] = await Promise.all([
     getDomains({ getAllVersions: true, includeServicesInSubdomains: false }),
     getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
+    getServices({ getAllVersions: true }),
+    getAgents({ getAllVersions: true }),
   ]);
   const domain = allVersions.find((d) => d.data.id === id && d.data.version === version);
   if (!domain) return { nodes: [], edges: [], hiddenMessages: { nodes: [], edges: [] } };
@@ -646,7 +860,7 @@ const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: No
     ),
   ]);
 
-  const { nodes, edges, otherDomainIds } = buildDomainGraph({
+  const { nodes, edges, otherDomainIds, domainMessages } = buildDomainGraph({
     tree,
     owners,
     parentDomainOf,
@@ -655,6 +869,8 @@ const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: No
     looseServices,
     serviceGraphs,
     mode,
+    domains,
+    catalogServices: inVersionsUsed([...services, ...agents], [...domains, ...tree.map((entry) => entry.domain)], owners),
   });
   const context = addContext(contexts, systems, nodes);
   const graph = { nodes: [...nodes.values(), ...context.nodes], edges: [...edges, ...context.edges] };
@@ -671,7 +887,8 @@ const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: No
     { ...graph, edges: detailedGraph.edges },
     systems.map(({ system }) => system),
     context.contextNodesById,
-    new Map(tree.filter((entry) => entry.parentId).map((entry) => [entry.groupId, entry.domain]))
+    new Map(tree.filter((entry) => entry.parentId).map((entry) => [entry.groupId, entry.domain])),
+    domainMessages
   );
   const overview = hideMessageNodes(collapsed.nodes, collapsed.edges);
 

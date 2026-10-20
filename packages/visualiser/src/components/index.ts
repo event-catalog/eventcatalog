@@ -10,6 +10,7 @@ export type {
 } from "./NodeGraph";
 export { default as MermaidView } from "./MermaidView";
 export { default as DiagramBackground } from "./DiagramBackground";
+export { default as DiagramMiniMap } from "./DiagramMiniMap";
 export { getLegend, LegendPanel } from "./Legend";
 export type { LegendEntry } from "./Legend";
 export {

@@ -2,6 +2,7 @@ import { BaseEdge, getBezierPath, type EdgeProps } from "@xyflow/react";
 import { memo, type CSSProperties } from "react";
 import EdgeLabel from "./EdgeLabel";
 import { getStepPath, useRoute } from "./route";
+import DomainEdgeEnds from "./DomainEdgeEnds";
 import { CROSS_DOMAIN_CLASS, isCrossDomain } from "./use-cross-domain";
 
 type PathType = "bezier" | "smoothstep" | "step";
@@ -38,7 +39,7 @@ function LabelledEdge({
     sourcePosition,
     targetPosition,
   };
-  const [edgePath, labelX, labelY, zIndex] = useRoute(
+  const [edgePath, labelX, labelY, zIndex, domainEnds] = useRoute(
     {
       data,
       source,
@@ -70,6 +71,7 @@ function LabelledEdge({
         style={style}
         className={crossDomain ? CROSS_DOMAIN_CLASS : undefined}
       />
+      <DomainEdgeEnds ends={domainEnds} />
       <EdgeLabel
         zIndex={zIndex}
         crossDomain={crossDomain}

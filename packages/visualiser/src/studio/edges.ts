@@ -17,7 +17,18 @@ export const EDGE_MARKER: EdgeMarker = {
   height: 18,
 };
 
-const PRODUCERS = ["service", "agent", "actor", "externalSystem", "view"];
+const PRODUCERS = [
+  "service",
+  "agent",
+  "actor",
+  "externalSystem",
+  "view",
+  // Domains send messages themselves too (`sends` in a domain's frontmatter), as a box or a card. Studio on the
+  // web's model only has services sending and receiving (model-canvas.ts), so these edges are labelled but not
+  // kept as relations there
+  "domain-group",
+  "context-domain",
+];
 const PRODUCER_LABELS: Record<string, string> = {
   commands: "invokes",
   events: "publishes \nevent",
