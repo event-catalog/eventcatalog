@@ -34,6 +34,11 @@ const notifications = entry('domains', 'Notifications', { systems: [], services:
 // Shipping's Tracking subdomain, with a service outside a system
 const trackingService = entry('services', 'TrackingService');
 const tracking = entry('domains', 'Tracking', { systems: [], services: [trackingService] });
+// Promo sends PromoStarted itself. The Pinned domain has an older version of the
+// Legacy service, which receives it (the latest version doesn't)
+const promoStarted = entry('events', 'PromoStarted');
+const legacyPinned = entry('services', 'Legacy', { version: '0.9.0', receives: [promoStarted] });
+const legacyLatest = entry('services', 'Legacy', { version: '1.0.0', receives: [] });
 const domains = [
   entry('domains', 'Orders', { systems: [checkout, returns], services: [] }),
   entry('domains', 'Shipping', { systems: [delivery], services: [], domains: [tracking] }),
@@ -46,10 +51,19 @@ const domains = [
   entry('domains', 'Shared', { systems: [], services: [checkoutService] }),
   // An older version of the Orders domain, before it had any systems
   entry('domains', 'Orders', { version: '0.0.1', systems: [], services: [] }),
+  entry('domains', 'Promo', { systems: [], services: [], sends: [promoStarted] }),
+  entry('domains', 'Pinned', { systems: [], services: [legacyPinned] }),
 ];
 
 vi.mock('@utils/collections/domains', () => ({
   getDomains: vi.fn(() => Promise.resolve(domains)),
+}));
+
+vi.mock('@utils/collections/services', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@utils/collections/services')>()),
+  getServices: vi.fn(({ getAllVersions }: { getAllVersions: boolean }) =>
+    Promise.resolve(getAllVersions ? [legacyPinned, legacyLatest] : [legacyLatest])
+  ),
 }));
 
 // Checkout's resource diagram: its service publishes OrderPlaced, which the
@@ -195,6 +209,12 @@ describe('Domain Levels NodeGraph', () => {
     expect(byId.get('OrderShipped-1.0.0')).toMatchObject({ parentId: undefined, data: { otherDomain: true } });
     // Messages this domain sends stay in the system sending them
     expect(byId.get('OrderPlaced-1.0.0')?.parentId).toBe('system-group-Checkout-1.0.0');
+  });
+
+  it("finds the version of a service another domain has for the domain's own messages, not only the latest", async () => {
+    const { edges } = await getNodesAndEdges({ id: 'Promo', version: '1.0.0' });
+
+    expect(edges.map((edge: any) => `${edge.source}->${edge.target}`)).toContain('PromoStarted-1.0.0->domain-Pinned-1.0.0');
   });
 
   it('lays out each node in its own place', async () => {

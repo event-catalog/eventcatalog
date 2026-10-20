@@ -760,6 +760,25 @@ export const getNodesAndEdges = (props: NodesAndEdgesProps): Promise<DomainLevel
   return levelsCache.get(key)!;
 };
 
+/**
+ * Each service and agent in the version a domain has (it can pin an older one),
+ * or its latest when no domain has it: who sends or receives a domain's own
+ * messages is matched against these.
+ */
+const inVersionsUsed = (resources: any[], domains: any[], owners: Owners) => {
+  const used = new Set([
+    ...owners.keys(),
+    ...domains.flatMap((domain) => (domain.data.agents || []).map((agent: any) => generateIdForNode(agent))),
+  ]);
+  const key = (resource: any) => `${resource.collection}:${resource.data.id}`;
+  const usedKeys = new Set(resources.filter((resource) => used.has(generateIdForNode(resource))).map(key));
+  return resources.filter((resource) =>
+    usedKeys.has(key(resource))
+      ? used.has(generateIdForNode(resource))
+      : (resource.data.latestVersion ?? resource.data.version) === resource.data.version
+  );
+};
+
 const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: NodesAndEdgesProps): Promise<DomainLevels> => {
   // Each domain with only its own services (not its subdomains'): the version
   // shown (which may be an older one), and the latest of every domain for its
@@ -767,8 +786,8 @@ const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: No
   const [allVersions, domains, services, agents] = await Promise.all([
     getDomains({ getAllVersions: true, includeServicesInSubdomains: false }),
     getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
-    getServices({ getAllVersions: false }),
-    getAgents({ getAllVersions: false }),
+    getServices({ getAllVersions: true }),
+    getAgents({ getAllVersions: true }),
   ]);
   const domain = allVersions.find((d) => d.data.id === id && d.data.version === version);
   if (!domain) return { nodes: [], edges: [], hiddenMessages: { nodes: [], edges: [] } };
@@ -841,7 +860,7 @@ const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: No
     serviceGraphs,
     mode,
     domains,
-    catalogServices: [...services, ...agents],
+    catalogServices: inVersionsUsed([...services, ...agents], [...domains, ...tree.map((entry) => entry.domain)], owners),
   });
   const context = addContext(contexts, systems, nodes);
   const graph = { nodes: [...nodes.values(), ...context.nodes], edges: [...edges, ...context.edges] };
