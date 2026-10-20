@@ -338,6 +338,20 @@ describe('MCP tool metadata', () => {
           },
         });
       });
+
+      it('opens the viewer at the level the model asked for, as the Mermaid it gets is', async () => {
+        await createGlobalServer();
+
+        const result = await getTool('showResource')!.handler({
+          view: 'architecture',
+          resourceId: 'payments',
+          resourceCollection: 'domains',
+          detail: 'services',
+        });
+
+        expect(JSON.parse(result.content[0].text)).toEqual(expect.objectContaining({ detail: 'services' }));
+        expect(result._meta['eventcatalog/view'].diagram.detail).toBe('services');
+      });
     });
 
     describe('schema view', () => {

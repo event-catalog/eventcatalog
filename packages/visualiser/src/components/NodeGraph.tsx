@@ -429,6 +429,8 @@ interface Props {
   /** Group a flow's steps to start with (the `group` URL parameter wins) */
   swimlanes?: FlowGroupBy;
   onHiddenLegendKeysChange?: (keys: string[]) => void;
+  /** The level of detail to open at (2 or 3), rather than the URL's or the saved one */
+  initialLevel?: 2 | 3;
   /** Show the Mermaid view to start with (kept when switching graphs, e.g. to level 1) */
   initialMermaidView?: boolean;
   onMermaidViewChange?: (isMermaidView: boolean) => void;
@@ -656,6 +658,7 @@ const NodeGraphBuilder = ({
   onHiddenLegendKeysChange,
   initialMermaidView = false,
   onMermaidViewChange,
+  initialLevel,
   preferenceScope,
   swimlanes: initialSwimlanes,
   focusNodeId,
@@ -1027,6 +1030,7 @@ const NodeGraphBuilder = ({
     // e.g. "services" from "services/OrderService/1.0.0"
     preferenceScope: preferenceScope ?? resourceKey?.split("/")[0],
     ignoreSavedLevel: isFlowGraph,
+    initialLevel,
     beforeLayout,
     afterLayout,
   });
@@ -2992,6 +2996,11 @@ interface NodeGraphProps {
    * or other apps, which can share a page (or an iframe) with others.
    */
   syncRenderModeWithUrl?: boolean;
+  /**
+   * The level of detail to open at (1, 2 or 3), rather than the URL's or the
+   * saved one, e.g. the level an MCP client asked for
+   */
+  initialLevel?: 1 | 2 | 3;
   title?: string;
   href?: string;
   hrefLabel?: string;
@@ -3082,6 +3091,7 @@ const NodeGraph = ({
   linksToVisualiser = false,
   links = [],
   syncRenderModeWithUrl = false,
+  initialLevel,
   mode = "full",
   portalId,
   showFlowWalkthrough = true,
@@ -3159,6 +3169,7 @@ const NodeGraph = ({
   // opens at it, unless the URL asks for another level (`?level=2|3`).
   const [showOverview, setShowOverview] = useState(() => {
     if (!overviewGraph) return false;
+    if (initialLevel) return initialLevel === 1;
     const level = new URLSearchParams(window.location.search).get("level");
     return level === null || level === "1";
   });
@@ -3245,6 +3256,7 @@ const NodeGraph = ({
             swimlanes={overview ? undefined : swimlanes}
             onHiddenLegendKeysChange={handleHiddenLegendKeysChange}
             initialMermaidView={isMermaidView.current ?? false}
+            initialLevel={initialLevel === 1 ? undefined : initialLevel}
             onMermaidViewChange={handleMermaidViewChange}
             focusNodeId={focusNodeId}
             focusRequestId={focusRequestId}

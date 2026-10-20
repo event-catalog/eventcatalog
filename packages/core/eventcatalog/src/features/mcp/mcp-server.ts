@@ -390,6 +390,7 @@ function createMcpServer(
     resourceId: string;
     resourceVersion: string;
     visualiserUrl: string;
+    detail?: ArchitectureDiagramDetail;
   }): Promise<ArchitectureDiagramPayload> => ({
     resource: {
       collection: diagram.resourceCollection,
@@ -406,6 +407,7 @@ function createMcpServer(
         version: diagram.resourceVersion,
       })
     ),
+    ...(diagram.detail ? { detail: diagram.detail } : {}),
   });
 
   // The resource's schemas, parsed for the view's JSON Schema, Avro and Protobuf viewers
@@ -471,7 +473,8 @@ function createMcpServer(
       label: `the architecture diagram for ${result.resourceCollection}/${result.resourceId}`,
       getPayload: async (): Promise<ViewerPayload> => ({
         view: 'architecture',
-        diagram: await getArchitectureDiagramPayload(result),
+        // Opens at the level asked for, as the Mermaid the model gets is; without one, at the diagram's default
+        diagram: await getArchitectureDiagramPayload({ ...result, detail: params.detail }),
       }),
     };
   };

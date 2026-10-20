@@ -72,6 +72,11 @@ interface NodeVisibilityProps {
    */
   ignoreSavedLevel?: boolean;
   /**
+   * The level to open at (2 or 3; level 1 is an overview graph shown instead),
+   * rather than the URL's or the saved one, e.g. the level an MCP client asked for
+   */
+  initialLevel?: 2 | 3;
+  /**
    * Called on a graph before it's laid out again (e.g. taking it out of
    * swimlanes, which the layout doesn't know about), and on each graph before
    * it's shown (e.g. putting it back in them)
@@ -158,6 +163,7 @@ export const useNodeVisibility = ({
   onHiddenLegendKeysChange,
   preferenceScope,
   ignoreSavedLevel = false,
+  initialLevel,
   beforeLayout = identity,
   afterLayout = identity,
 }: NodeVisibilityProps) => {
@@ -168,6 +174,7 @@ export const useNodeVisibility = ({
   // graph shown instead of this one, so without one this graph opens at level 2.
   const [urlLevel] = useState(() => {
     if (ignoreSavedLevel) return 3;
+    if (initialLevel) return initialLevel;
     const level = Number(
       new URLSearchParams(window.location.search).get("level"),
     );
