@@ -495,10 +495,15 @@ describe('domain-level messages', () => {
   const allDomains = [payments, orders, ledger, accounts];
   const catalogServices = [orderService, auditService, accountsService];
 
-  const build = (domain: any, serviceGraphs: { service: any; graph: any }[] = []) => {
-    const tree = buildDomainTree(domain, (id) => allDomains.find((d) => d.data.id === id));
+  const build = (
+    domain: any,
+    serviceGraphs: { service: any; graph: any }[] = [],
+    catalog: { domains?: any[]; catalogServices?: any[] } = {}
+  ) => {
     // The domain given (e.g. Payments with a service) in place of the one with its id
-    const { owners, parentDomainOf } = collectOwners(allDomains.map((d) => (d.data.id === domain.data.id ? domain : d)));
+    const domains = (catalog.domains ?? allDomains).map((d) => (d.data.id === domain.data.id ? domain : d));
+    const tree = buildDomainTree(domain, (id) => domains.find((d) => d.data.id === id));
+    const { owners, parentDomainOf } = collectOwners(domains);
     const { nodes, edges, otherDomainIds, domainMessages } = buildDomainGraph({
       tree,
       owners,
@@ -508,8 +513,8 @@ describe('domain-level messages', () => {
       looseServices: serviceGraphs.map(({ service }) => ({ service, groupId: tree[0].groupId })),
       serviceGraphs: serviceGraphs.map(({ graph }) => graph),
       mode: 'full',
-      domains: allDomains,
-      catalogServices,
+      domains,
+      catalogServices: catalog.catalogServices ?? catalogServices,
     });
     return { nodes, edges: edges.map((edge: any) => `${edge.source}->${edge.target}`), otherDomainIds, domainMessages };
   };
@@ -600,7 +605,7 @@ describe('domain-level messages', () => {
     // Moved out of the box it was left in by the service consuming it
     expect(nodes.get('PaymentTaken-1.0.0').parentId).toBeUndefined();
     // Folded into the box at level 1
-    expect(domainMessages.get('PaymentTaken-1.0.0')).toBe('domain-group-Payments-1.0.0');
+    expect(domainMessages.get('PaymentTaken-1.0.0')).toEqual(new Set(['domain-group-Payments-1.0.0']));
   });
 
   it('shows the domain receiving a message one of its own services sends, outside its box', () => {
@@ -627,6 +632,43 @@ describe('domain-level messages', () => {
     expect(edges).toEqual(['RefundService-1.0.0->RefundIssued-1.0.0', 'RefundIssued-1.0.0->domain-group-Payments-1.0.0']);
     // Not moved back into the box by its publisher being in it
     expect(nodes.get('RefundIssued-1.0.0').parentId).toBeUndefined();
+  });
+
+  it('shows an agent on the other side as an agent', () => {
+    // FraudAgent (in no domain) receives PaymentTaken, which Payments sends itself
+    const fraudAgent = entry('agents', 'FraudAgent', { receives: [paymentTaken] });
+    const { nodes, edges } = build(payments, [], { catalogServices: [...catalogServices, fraudAgent] });
+
+    expect(edges).toContain('PaymentTaken-1.0.0->FraudAgent-1.0.0');
+    expect(nodes.get('FraudAgent-1.0.0')).toMatchObject({ type: 'agents', data: { agent: { name: 'FraudAgent' } } });
+  });
+
+  it("shows an agent in another domain as that domain, and leaves out one in the domain's own", () => {
+    // RiskAgent (in Risk) and PaymentAgent (in Payments) receive PaymentTaken, which Payments sends itself
+    const riskAgent = entry('agents', 'RiskAgent', { receives: [paymentTaken] });
+    const paymentAgent = entry('agents', 'PaymentAgent', { receives: [paymentTaken] });
+    const risk = entry('domains', 'Risk', { services: [], agents: [riskAgent] });
+    const withAgent = { ...payments, data: { ...payments.data, agents: [paymentAgent] } };
+    const { nodes, edges } = build(withAgent, [], {
+      domains: [...allDomains, risk],
+      catalogServices: [...catalogServices, riskAgent, paymentAgent],
+    });
+
+    expect(edges).toContain('PaymentTaken-1.0.0->domain-Risk-1.0.0');
+    expect(nodes.has('RiskAgent-1.0.0')).toBe(false);
+    expect(nodes.has('PaymentAgent-1.0.0')).toBe(false);
+  });
+
+  it('keeps every subdomain sending a message itself', () => {
+    // Two subdomains of Finance both send PaymentTaken themselves
+    const billing = entry('domains', 'Billing', { services: [], sends: [paymentTaken] });
+    const refunds = entry('domains', 'Refunds', { services: [], sends: [paymentTaken] });
+    const finance = entry('domains', 'Finance', { services: [], domains: [billing, refunds] });
+    const { domainMessages } = build(finance, [], { domains: [...allDomains, finance, billing, refunds] });
+
+    expect(domainMessages.get('PaymentTaken-1.0.0')).toEqual(
+      new Set(['domain-group-Billing-1.0.0', 'domain-group-Refunds-1.0.0'])
+    );
   });
 
   it("leaves a domain-level message as it is when one of the domain's services receives it through a channel", () => {
@@ -672,12 +714,43 @@ describe('collapseSystems', () => {
       [],
       new Map(),
       new Map(),
-      new Map([['GetProduct-1.0.0', 'domain-group-Marketing-1.0.0']])
+      new Map([['GetProduct-1.0.0', new Set(['domain-group-Marketing-1.0.0'])]])
     );
 
     expect(nodes.map((node: any) => node.id)).not.toContain('GetProduct-1.0.0');
     expect(edges).toHaveLength(1);
     expect(edges[0]).toMatchObject({ source: 'domain-group-Marketing-1.0.0', target: 'domain-Catalog-1.0.0' });
     expect(String(edges[0].label)).toContain('Get Product');
+  });
+
+  it('leaves a message more than one subdomain sends itself as it is, rather than folding it into one of them', () => {
+    const graph = {
+      nodes: [
+        { id: 'domain-group-Billing-1.0.0', type: 'domain-group', position: { x: 0, y: 0 }, data: {} },
+        { id: 'domain-group-Refunds-1.0.0', type: 'domain-group', position: { x: 0, y: 0 }, data: {} },
+        { id: 'PaymentTaken-1.0.0', type: 'events', position: { x: 0, y: 0 }, data: {} },
+        { id: 'domain-Ledger-1.0.0', type: 'context-domain', position: { x: 0, y: 0 }, data: {} },
+      ],
+      edges: [
+        { id: 'billing', source: 'domain-group-Billing-1.0.0', target: 'PaymentTaken-1.0.0' },
+        { id: 'refunds', source: 'domain-group-Refunds-1.0.0', target: 'PaymentTaken-1.0.0' },
+        { id: 'ledger', source: 'PaymentTaken-1.0.0', target: 'domain-Ledger-1.0.0' },
+      ],
+    };
+
+    const { edges } = collapseSystems(
+      graph,
+      [],
+      new Map(),
+      new Map(),
+      new Map([['PaymentTaken-1.0.0', new Set(['domain-group-Billing-1.0.0', 'domain-group-Refunds-1.0.0'])]])
+    );
+
+    // Each subdomain reaches Ledger through the message; neither is drawn sending to the other
+    expect(edges.map((edge: any) => `${edge.source}->${edge.target}`)).toEqual([
+      'domain-group-Billing-1.0.0->PaymentTaken-1.0.0',
+      'domain-group-Refunds-1.0.0->PaymentTaken-1.0.0',
+      'PaymentTaken-1.0.0->domain-Ledger-1.0.0',
+    ]);
   });
 });

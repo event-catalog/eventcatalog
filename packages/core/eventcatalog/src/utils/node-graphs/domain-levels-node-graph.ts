@@ -95,14 +95,16 @@ const createDomainCard = (domain: any, { parentId, subdomain = false }: { parent
  * anything else in a (sub)domain (e.g. a service not in a system) into the
  * domain, so edges connect domains, systems and actors. A subdomain without
  * systems is shown as a card. Messages a (sub)domain sends or receives itself
- * (`domainMessages`, by message) fold into it, as a system's do into the system.
+ * (`domainMessages`: by message, the boxes drawn with it) fold into it, as a
+ * system's do into the system, when only one does (more than one, they connect
+ * through the message instead, rather than to each other).
  */
 export const collapseSystems = (
   graph: Graph,
   systems: any[],
   contextNodes: Map<string, any>,
   subdomains: Map<string, any>,
-  domainMessages: Map<string, string> = new Map()
+  domainMessages: Map<string, Set<string>> = new Map()
 ): Graph => {
   const nodesById = new Map(graph.nodes.map((node) => [node.id, node]));
   const systemsByGroupId = new Map<string, any>(systems.map((system: any) => [systemGroupId(system), system]));
@@ -124,8 +126,8 @@ export const collapseSystems = (
   // The node something is shown as: its system, the card of the subdomain it's
   // in, the (sub)domain it's in, or itself
   const representative = (nodeId: string): string => {
-    const domainGroup = domainMessages.get(nodeId);
-    if (domainGroup) return representative(domainGroup);
+    const boxes = domainMessages.get(nodeId);
+    if (boxes?.size === 1) return representative([...boxes][0]);
     for (let node = nodesById.get(nodeId); node; node = node.parentId ? nodesById.get(node.parentId) : undefined) {
       const system: any = systemsByGroupId.get(node.id);
       if (system) return generateIdForNode(system);
@@ -454,7 +456,7 @@ export const buildDomainGraph = ({
  * the domain's services already sends (or receives) is left as it is. Other
  * domains sending a message the domain receives themselves (or receiving one it
  * sends) are connected to it, as those domains. Returns the other domains added
- * and, by message, the (sub)domain box it's drawn sent from or received by.
+ * and, by message, the (sub)domain boxes it's drawn sent from or received by.
  */
 const addDomainMessages = ({
   tree,
@@ -477,7 +479,15 @@ const addDomainMessages = ({
 }) => {
   const treeDomainIds = new Set(tree.map((entry) => entry.domain.data.id));
   const otherDomainIds = new Set<string>();
-  const domainMessages = new Map<string, string>();
+  const domainMessages = new Map<string, Set<string>>();
+  // The domain each agent is in (owners only has services): the tree's versions first
+  const agentOwners = new Map<string, any>();
+  [...tree.map((entry) => entry.domain), ...domains].forEach((domain) =>
+    (domain.data.agents || []).forEach((agent: any) => {
+      const agentId = generateIdForNode(agent);
+      if (!agentOwners.has(agentId)) agentOwners.set(agentId, domain);
+    })
+  );
   // Whether a domain or service sends (or receives) the message (their messages are already looked up)
   const lists = (resource: any, key: 'sends' | 'receives', messageId: string) =>
     (resource.data[key] || []).some((message: any) => message.data && generateIdForNode(message) === messageId);
@@ -502,17 +512,20 @@ const addDomainMessages = ({
     }
     return false;
   };
-  // The node standing for a service on the other side, or none when it's in the domain
+  // The node standing for a service (or agent) on the other side, or none when it's in the domain
   const otherSide = (service: any) => {
     const serviceId = generateIdForNode(service);
-    const owner = owners.get(serviceId);
-    if (owner) return treeDomainIds.has(owner.domain.data.id) ? undefined : addOther(owner.domain);
+    const ownerDomain = owners.get(serviceId)?.domain ?? agentOwners.get(serviceId);
+    if (ownerDomain) return treeDomainIds.has(ownerDomain.data.id) ? undefined : addOther(ownerDomain);
     if (!nodes.has(serviceId)) {
       nodes.set(serviceId, {
         id: serviceId,
         type: service.collection,
         position: { x: 0, y: 0 },
-        data: { mode, service: { ...service.data } },
+        data: {
+          mode,
+          ...(service.collection === 'agents' ? { agent: { ...service.data } } : { service: { ...service.data } }),
+        },
       });
     }
     return serviceId;
@@ -543,7 +556,7 @@ const addDomainMessages = ({
         const node = nodes.get(messageId);
         if (!node) nodes.set(messageId, createTriggerMessageNode(message, mode));
         else if (isInside(nodes, messageId, groupId)) nodes.set(messageId, { ...node, parentId: undefined, extent: undefined });
-        if (!domainMessages.has(messageId)) domainMessages.set(messageId, groupId);
+        domainMessages.set(messageId, (domainMessages.get(messageId) ?? new Set()).add(groupId));
         edges.push(sends ? sendEdge(groupId, message) : receiveEdge(message, groupId));
 
         // Who receives what the domain sends, and who sends what it receives
