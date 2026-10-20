@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 5.4.2
+
+### Patch Changes
+
+- d08a3c5: Edges in the visualiser and Studio land on their nodes again. Nodes often render shorter than the layout estimates, so edge ends sat below the node (and missed its handle); they now keep where the layout spread them along a node's side, measured from the node's middle as it renders. Diagrams opened in Studio keep the heights their nodes were laid out at, so their edges land the same way.
+- d08a3c5: A system's diagram keeps only that system's own services inside its group. Services owned by another system already on the diagram connect to that system's box, and services with no system (or whose system is not on the diagram) are drawn outside the group.
+- Updated dependencies [d08a3c5]
+  - @eventcatalog/visualiser@5.0.1
+
 ## 5.4.1
 
 ### Patch Changes
