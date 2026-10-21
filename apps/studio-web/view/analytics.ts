@@ -16,7 +16,7 @@ import { POSTHOG_HOST as HOST, POSTHOG_KEY as KEY } from '../src/lib/posthog';
 import { durationBucket } from '../src/lib/stats';
 import { parseStack, toException, type ExceptionEntry, type StackFrame } from '../src/lib/exceptions';
 
-export { durationBucket, modelMix, modelStats, sizeBucket, tourStats } from '../src/lib/stats';
+export { durationBucket, modelMix, modelStats, sizeBucket } from '../src/lib/stats';
 
 const SETTING_KEY = 'eventcatalog-studio-analytics';
 const INSTALL_ID_KEY = 'eventcatalog-studio-install-id';

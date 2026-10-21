@@ -1,7 +1,8 @@
 /**
  * The canvas being worked on in the browser, kept in this browser (as Excalidraw keeps its scene): opening the site
  * again brings it back. Nothing goes to a server, and the address bar isn't rewritten as it changes; links are made
- * when it's shared. In chats, the diagram is the agent's tool result instead (the host's frame may not have storage).
+ * when it's shared. In chats, the diagram is the agent's tool result, and what people change on it is kept by the
+ * result's stamp (below; the host's frame may not have storage, then it's as the agent drew it).
  */
 import * as Y from 'yjs';
 import { type ArchitecturePayload, type Model } from '@eventcatalog/visualiser/model';
@@ -68,3 +69,67 @@ export function saveLocalCanvas(model: Model, level?: ArchitecturePayload['level
     return false;
   }
 }
+
+// ---- Diagrams in chats ----
+// Hosts show a diagram again whenever its conversation is opened again, from the tool result: as the agent drew it.
+// The diagram as it is now (with what people and the agent changed on it since) is kept here under its diagramId, and
+// so is that it's been shown, so it opens as it was left, without the agent's build playing again.
+
+const CHAT_KEY = `${KEY}:chat`;
+const CHAT_INDEX_KEY = `${KEY}:chats`;
+// The most recent diagrams kept (a few MB at most: storage is ~5 MB an origin)
+const MAX_CHAT_VIEWS = 20;
+
+type ChatView = { version: number; savedAt: number; model?: Model };
+
+const readIndex = (): string[] => {
+  try {
+    const ids = JSON.parse(localStorage.getItem(CHAT_INDEX_KEY) ?? '[]');
+    return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+};
+
+function readChatView(id: string): ChatView | undefined {
+  try {
+    const raw = localStorage.getItem(`${CHAT_KEY}:${id}`);
+    const saved = raw ? (JSON.parse(raw) as ChatView) : undefined;
+    return saved?.version === VERSION ? saved : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Keeps a diagram from a chat (the most recent last), forgetting the oldest beyond the most kept */
+function keepChatView(id: string, view: ChatView) {
+  const ids = [...readIndex().filter((kept) => kept !== id), id];
+  const forget = ids.splice(0, Math.max(0, ids.length - MAX_CHAT_VIEWS));
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      for (const old of forget) localStorage.removeItem(`${CHAT_KEY}:${old}`);
+      localStorage.setItem(`${CHAT_KEY}:${id}`, JSON.stringify(view));
+      localStorage.setItem(CHAT_INDEX_KEY, JSON.stringify(ids));
+      return true;
+    } catch {
+      // Full: the older half goes, then once more
+      forget.push(...ids.splice(0, Math.floor((ids.length - 1) / 2)));
+    }
+  }
+  return false;
+}
+
+/** A diagram from a chat, if it's been shown here before: with the model as it was left, if it was changed */
+export function loadChatView(id: string): { model?: Model } | undefined {
+  const saved = readChatView(id);
+  if (!saved) return undefined;
+  return Array.isArray(saved.model?.resources) ? { model: saved.model } : {};
+}
+
+/** Notes that a diagram from a chat has been shown (keeping its model, if it was changed) */
+export function markChatViewShown(id: string) {
+  if (!readChatView(id)) keepChatView(id, { version: VERSION, savedAt: Date.now() });
+}
+
+/** Keeps a diagram from a chat as it is now. False when it couldn't be */
+export const saveChatView = (id: string, model: Model) => keepChatView(id, { version: VERSION, savedAt: Date.now(), model });

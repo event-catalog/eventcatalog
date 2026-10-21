@@ -6,10 +6,21 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Y from 'yjs';
+import { applyAgentCanvasToDoc, canvasIds, type AgentCanvas, type CanvasIds } from './apply-agent-canvas';
 import { applyEdgeChanges, applyNodeChanges, type Connection, type Edge, type EdgeChange, type Node, type NodeChange, type XYPosition } from '@xyflow/react';
 import { addNodes, addHotspots, setEdgeLabel as setEdgeLabelInDoc, getLock, setLock, addThreads, createHotspot as createHotspotInDoc, deleteHotspot as deleteHotspotInDoc, readHotspots, updateHotspot as updateHotspotInDoc, type Hotspot, createThread as createThreadInDoc, deleteThread as deleteThreadInDoc, moveThread as moveThreadInDoc, readThreads, replyToThread as replyToThreadInDoc, setThreadResolved as setThreadResolvedInDoc, type Author, type CommentAnchor, type Thread, buildNode, changesNodesOrEdges, connectNodes, deleteEdges, deleteNodes as deleteNodesInDoc, fitContainersAround, getCanvasMaps, getStructureKey, moveNode, placeNode, readLevelLayout, reconnectEdge, resizeNode, setEdgeRoutes, setLevelPlaces, setMeta, setNodeParents, updateNodeData as updateNodeDataInDoc, type LevelPlace, type RenderedSizes, keepDragged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, patchShared, containerFor, toRelativePosition, type NodePreview, type LayoutResult, canGoInContainer, getNodeDefinition, isGroupType } from '@eventcatalog/visualiser/studio';
 import type { Editing } from '../collab/room';
 import { type ModelCanvasContent as CanvasContent } from '@eventcatalog/visualiser/studio';
+
+/** The canvas as its document has it at one moment (readDocument), for an agent's edit */
+export type CanvasDocument = {
+  doc: Y.Doc;
+  /** How many changes the document had had */
+  changes: number;
+  locked: boolean;
+  ids: CanvasIds;
+  snapshot: { nodes: Node[]; edges: Edge[]; levelLayouts: Record<1 | 2, ReadonlyMap<string, LevelPlace>>; threads: Thread[]; hotspots: Hotspot[] };
+};
 
 /** What someone can change on a note or text live (as they write, scale and turn it) */
 const EDITED_FIELDS = ['text', 'fontSize', 'angle'] as const;
@@ -20,6 +31,8 @@ const LOCAL_ORIGIN = Symbol('canvas-local');
 const LEVEL_PLACEMENT_ORIGIN = Symbol('canvas-level-placement');
 /** The content the canvas starts from: not undone */
 const LOAD_ORIGIN = Symbol('canvas-load');
+/** The agent's changes (edit_diagram): shown to everyone, and not in the user's undo (they're not theirs to take back) */
+const AGENT_ORIGIN = Symbol('canvas-agent');
 
 const NO_LEVEL_LAYOUTS = { 1: new Map(), 2: new Map() } as const;
 
@@ -48,6 +61,10 @@ export function useCanvasFlow({
   onChange?: () => void;
 }) {
   const docRef = useRef<{ doc: Y.Doc; undoManager: Y.UndoManager } | null>(null);
+  // The content the document was made from (it's made once the content's here, in an effect)
+  const loadedFrom = useRef<CanvasContent | null>(null);
+  // How many changes the document has had (anyone's, deletions too): to tell whether it changed in the meantime
+  const changeCount = useRef(0);
   // The document itself, for what shares it (a live room): a new one each time the canvas starts again
   const [doc, setDoc] = useState<Y.Doc | null>(null);
   // Comment threads, as they are in the document (people's, and the room's)
@@ -106,6 +123,8 @@ export function useCanvasFlow({
       if (transaction.changed.size) callbacks.current.onChange?.();
     };
     doc.on('afterTransaction', afterTransaction);
+    const countChange = () => changeCount.current++;
+    doc.on('update', countChange);
 
     const undoManager = new Y.UndoManager([yNodes, yEdges, yLevelLayouts, yThreads, yHotspots], { captureTimeout: 500, trackedOrigins: new Set([null, LOCAL_ORIGIN]) });
     const updateHistory = () => setHistory({ canUndo: undoManager.undoStack.length > 0, canRedo: undoManager.redoStack.length > 0 });
@@ -114,6 +133,7 @@ export function useCanvasFlow({
     undoManager.on('stack-cleared', updateHistory);
     setHistory({ canUndo: false, canRedo: false });
     docRef.current = { doc, undoManager };
+    loadedFrom.current = content;
     setDoc(doc);
 
     // Only what changed is replaced, so React Flow re-renders just those nodes
@@ -148,6 +168,7 @@ export function useCanvasFlow({
       yLevelLayouts.unobserve(syncLevelLayouts);
       yMeta.unobserve(syncMeta);
       doc.off('afterTransaction', afterTransaction);
+      doc.off('update', countChange);
       undoManager.destroy();
       doc.destroy();
       docRef.current = null;
@@ -369,6 +390,35 @@ export function useCanvasFlow({
     []
   );
 
+  /** The agent's changes to the diagram (edit_diagram): see apply-agent-canvas.ts */
+  const applyAgentCanvas = useCallback(
+    (target: AgentCanvas, before: CanvasIds) =>
+      withDoc((doc) => applyAgentCanvasToDoc(doc, target, before, renderedSizes()), AGENT_ORIGIN) ?? { added: [], changed: [], removed: [] },
+    []
+  );
+  /**
+   * The canvas as its document has it now (not what's rendered yet), and which document and how many changes in:
+   * where an agent's edit begins, and how it tells whether the canvas changed (or was replaced) while it was laid out
+   */
+  const readDocument = useCallback((): CanvasDocument | undefined => {
+    const doc = docRef.current?.doc;
+    if (!doc) return undefined;
+    const { nodes, edges } = getCanvasMaps(doc);
+    return {
+      doc,
+      changes: changeCount.current,
+      locked: !!getLock(doc),
+      ids: canvasIds(doc),
+      snapshot: {
+        nodes: [...nodes.values()],
+        edges: [...edges.values()],
+        levelLayouts: { 1: readLevelLayout(doc, 1), 2: readLevelLayout(doc, 2) },
+        threads: readThreads(doc),
+        hotspots: readHotspots(doc),
+      },
+    };
+  }, []);
+
   // ---- Comments ----
   const createThread = useCallback((anchor: CommentAnchor, text: string, author: Author) => withDoc((doc) => createThreadInDoc(doc, anchor, text, author)), []);
   const replyToThread = useCallback((id: string, text: string, author: Author) => withDoc((doc) => replyToThreadInDoc(doc, id, text, author)), []);
@@ -385,8 +435,14 @@ export function useCanvasFlow({
   const undo = useCallback(() => docRef.current?.undoManager.undo(), []);
   const redo = useCallback(() => docRef.current?.undoManager.redo(), []);
 
+  /** Whether the canvas has `content` (its document is made from it): empty or not */
+  const hasLoaded = useCallback((content: CanvasContent) => loadedFrom.current === content, []);
+
   return {
     doc,
+    hasLoaded,
+    readDocument,
+    applyAgentCanvas,
     threads,
     createThread,
     replyToThread,

@@ -4,15 +4,19 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styles from './styles/view.css?inline';
-import { mountView, useMcpAppView } from './ported/app-view';
-import { architectureDiagramStyles, VISUALISER_BODY_CLASS } from './diagram-styles';
+import { fullscreenStyle, mountView, useMcpAppView } from './ported/app-view';
+import { architectureDiagramStyles, INLINE_HEIGHT, VISUALISER_BODY_CLASS } from './diagram-styles';
 import { Diagram } from './Diagram';
 import { parseViewFragment } from '../src/lib/encode';
 import { type ArchitecturePayload, type Level } from '@eventcatalog/visualiser/model';
-import { BLANK_PAYLOAD, hasContent, loadLocalCanvas, saveLocalCanvas } from './local-canvas';
+import { BLANK_PAYLOAD, hasContent, loadChatView, loadLocalCanvas, markChatViewShown, saveLocalCanvas } from './local-canvas';
+import { ErrorBoundary } from './ErrorBoundary';
 import { ConfirmDialog } from './ConfirmDialog';
 import { parseRoomFragment } from './collab/room';
-import { isReturningVisitor, track, trackPageView } from './analytics';
+import { isReturningVisitor, sizeBucket, track, trackPageView } from './analytics';
+import { DraftStage, useDraftDiagram } from './build/DraftStage';
+import type { StageState } from './build/choreography';
+import type { App } from '@modelcontextprotocol/ext-apps';
 
 const VIEW_META_KEY = 'eventcatalog/architecture';
 const VIEW_TOOL = 'get_architecture_view';
@@ -20,20 +24,71 @@ const VIEW_TOOL = 'get_architecture_view';
 const isPayload = (payload?: ArchitecturePayload): payload is ArchitecturePayload =>
   Array.isArray(payload?.model?.resources);
 
+const DRAFT_INLINE = { height: INLINE_HEIGHT };
+/** The chat the view is in, by name (e.g. Claude), for the agent's pointer */
+const hostName = (app?: App | null) => {
+  const host = app?.getHostVersion()?.name?.replace(/[-_].*$/, '');
+  return host ? host.replace(/^\w/, (letter) => letter.toUpperCase()) : 'Agent';
+};
+
+/**
+ * The agent's diagram as its tool result has it: with its id, for edit_diagram and read_diagram to reach it here, and
+ * the token its views wait for them with (bridge.ts)
+ */
+type ChatPayload = ArchitecturePayload & { diagramId?: string; viewToken?: string };
+
 function McpApp() {
-  const { app, payload, error, hostContext } = useMcpAppView<ArchitecturePayload>({
+  // The agent's diagram built up as it writes it, before the tool has run (hosts that stream the tool's arguments)
+  const draft = useDraftDiagram();
+  const { app, payload, error, hostContext, cancelled } = useMcpAppView<ChatPayload>({
     name: 'EventCatalog',
     metaKey: VIEW_META_KEY,
     viewTool: VIEW_TOOL,
     isPayload,
-    getViewToolArguments: ({ viewUrl }) => ({ viewUrl }),
+    getViewToolArguments: ({ viewUrl, diagramId }) => ({ viewUrl, ...(diagramId && { diagramId }) }),
     loadErrorMessage: 'The diagram could not be loaded',
+    onToolInputPartial: draft.onPartial,
   });
   useEffect(() => track('canvas_opened', { source: 'chat', returning: isReturningVisitor() }), []);
+  // Where the draft got to: the diagram's build carries on from there
+  const drafted = useRef<StageState>(undefined);
+  const onDraftPlaying = useCallback((stage: StageState) => (drafted.current = stage), []);
+  useEffect(() => {
+    if (!payload && !cancelled) return;
+    const steps = draft.stop();
+    if (steps) track('draft_played', { steps: sizeBucket(steps), finished: !!payload });
+  }, [payload, cancelled]);
+
+  // Shown before (the conversation opened again): as it was left, without the build again
+  const diagramId = payload?.diagramId;
+  const kept = useMemo(() => (diagramId ? loadChatView(diagramId) : undefined), [diagramId]);
+  useEffect(() => {
+    if (diagramId) markChatViewShown(diagramId);
+  }, [diagramId]);
+  const shown = useMemo(() => (payload && kept?.model ? { ...payload, model: kept.model } : payload), [payload, kept]);
+
   if (error) return <p className="ec-mcp-message">{error}</p>;
-  if (!payload) return <p className="ec-mcp-message">Waiting for the architecture…</p>;
-  // Results from the agent are built up in front of the user
-  return <Diagram app={app} payload={payload} hostContext={hostContext} animate />;
+  if (!shown) {
+    if (cancelled) return <p className="ec-mcp-message">The diagram was stopped before it was finished.</p>;
+    const agentName = hostName(app);
+    return draft.target ? (
+      <div className="ec-diagram" style={hostContext?.displayMode === 'fullscreen' ? fullscreenStyle(hostContext) : DRAFT_INLINE}>
+        <div className="ec-mcp-graph">
+          <DraftStage target={draft.target} agentName={agentName} onPlaying={onDraftPlaying} />
+        </div>
+      </div>
+    ) : (
+      <p className="ec-mcp-message">
+        {draft.progress ? `${agentName} is drawing ${draft.progress.title}: ${draft.progress.resources} resources so far…` : 'Waiting for the architecture…'}
+      </p>
+    );
+  }
+  // Built up in front of the user (carrying on from the draft), then changed in place as the agent edits it
+  return (
+    <ErrorBoundary>
+      <Diagram app={app} payload={shown} hostContext={hostContext} animate={!kept} diagramId={diagramId} viewToken={payload?.viewToken} builtBefore={kept ? undefined : drafted.current} />
+    </ErrorBoundary>
+  );
 }
 
 function WebPage() {
@@ -45,8 +100,8 @@ function WebPage() {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
   const linked = useMemo(() => {
-    const { model, focus, level, tour, from } = parseViewFragment(hash);
-    return model ? { model, focus, level: level as Level | undefined, tour, from } : undefined;
+    const { model, focus, level, from } = parseViewFragment(hash);
+    return model ? { model, focus, level: level as Level | undefined, from } : undefined;
   }, [hash]);
 
   // A live room's link (#room=<id>,<key>): it stays in the address bar (it's how the room's reached, and shared)
@@ -100,7 +155,9 @@ function WebPage() {
 
   return (
     <>
-      <Diagram payload={payload} fullPage reorderWhenOpened={opened} room={room} />
+      <ErrorBoundary>
+        <Diagram payload={payload} fullPage reorderWhenOpened={opened} room={room} />
+      </ErrorBoundary>
       <ConfirmDialog
         open={!!replacing}
         title="Open this diagram?"

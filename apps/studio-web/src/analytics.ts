@@ -14,6 +14,7 @@ import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getUiCapability } from '@modelcontextprotocol/ext-apps/server';
+import { CLIENT_CAPABILITIES_META_KEY, CLIENT_INFO_META_KEY, PROTOCOL_VERSION_META_KEY } from '@modelcontextprotocol/server';
 import { POSTHOG_HOST, POSTHOG_KEY } from './lib/posthog';
 import { toException, type StackFrame } from './lib/exceptions';
 
@@ -25,7 +26,7 @@ const MAX_BATCH = 100;
 const MAX_QUEUED = 2000;
 
 const setting = process.env.ANALYTICS;
-const isLocal = (url?: string) => {
+export const isLocal = (url?: string) => {
   try {
     return !url || /^(localhost|127\.\d+\.\d+\.\d+|\[::1\]|0\.0\.0\.0)$/.test(new URL(url).hostname);
   } catch {
@@ -50,9 +51,21 @@ export const userAgentFamily = (userAgent: string) =>
   (userAgent.split(/[\s/;(]/)[0] || 'unknown').toLowerCase().slice(0, 40);
 
 // Our tools: a name a client sends that isn't one of them is reported as `unknown` (it's whatever the client sent)
-const TOOLS = new Set(['render_architecture', 'get_architecture_view', 'show_on_diagram', 'read_diagram', 'get_architecture_schema']);
+const TOOLS = new Set([
+  'get_architecture_schema',
+  'render_architecture',
+  'edit_diagram',
+  'read_diagram',
+  'get_architecture_view',
+  'wait_for_diagram_requests',
+  'answer_diagram_request',
+]);
+// The open diagram's view waiting for what the agent asks of it (it calls again whenever a wait returns): not
+// counted, it's not something anyone did
+const NOT_COUNTED = new Set(['wait_for_diagram_requests']);
 
-// The client each caller said it was when it connected (initialize), for their tool calls (sent without it: stateless)
+// The client each caller said it was when it connected (initialize), for their tool calls (sent without it: stateless;
+// from 2026-07-28 every request says who's calling)
 const clients = new Map<string, { name: string; version?: string }>();
 const rememberClient = (caller: string, client: { name: string; version?: string }) => {
   clients.delete(caller);
@@ -136,24 +149,36 @@ export type McpCall = {
   details?: Properties;
 };
 
+/** Notes the client's name, protocol version and capability names (never more), from what it sent */
+function noteClient(call: McpCall, { info, protocolVersion, capabilities }: { info: unknown; protocolVersion: unknown; capabilities: unknown }) {
+  const client = info as { name?: unknown; version?: unknown } | undefined;
+  if (typeof client?.name === 'string') call.client = { name: client.name.slice(0, 60), version: typeof client.version === 'string' ? client.version.slice(0, 30) : undefined };
+  if (typeof protocolVersion === 'string') call.protocolVersion = protocolVersion.slice(0, 30);
+  if (!capabilities || typeof capabilities !== 'object') return;
+  call.appsSupported = !!getUiCapability(capabilities as Parameters<typeof getUiCapability>[0]);
+  const extensions = Object.keys(((capabilities as Record<string, unknown>).extensions as Record<string, unknown> | undefined) ?? {});
+  call.capabilities = [...Object.keys(capabilities).filter((name) => name !== 'extensions'), ...extensions]
+    .map((name) => name.slice(0, 60))
+    .sort()
+    .join(',');
+}
+
 /** Notes what a JSON-RPC message asks for (the transport's parsed message, before the server handles it) */
 export function noteMessage(call: McpCall, message: unknown) {
   if (!message || typeof message !== 'object' || !('method' in message)) return;
   const { method, params } = message as { method: string; params?: Record<string, unknown> };
   if (method.startsWith('notifications/')) return;
   call.method = method;
-  if (method === 'initialize') {
-    const info = params?.clientInfo as { name?: unknown; version?: unknown } | undefined;
-    if (typeof info?.name === 'string') call.client = { name: info.name.slice(0, 60), version: typeof info.version === 'string' ? info.version.slice(0, 30) : undefined };
-    call.protocolVersion = typeof params?.protocolVersion === 'string' ? params.protocolVersion : undefined;
-    call.appsSupported = !!getUiCapability(params?.capabilities as Parameters<typeof getUiCapability>[0]);
-    const capabilities = (params?.capabilities ?? {}) as Record<string, unknown>;
-    const extensions = Object.keys((capabilities.extensions as Record<string, unknown> | undefined) ?? {});
-    call.capabilities = [...Object.keys(capabilities).filter((name) => name !== 'extensions'), ...extensions]
-      .map((name) => name.slice(0, 60))
-      .sort()
-      .join(',');
-  } else if (method === 'tools/call' && typeof params?.name === 'string') {
+  // Who's calling and what it can do: from initialize (MCP before 2026-07-28), or from the envelope every request
+  // carries in its _meta (2026-07-28 and later, where there's no initialize: clients connect with server/discover)
+  const envelope = params?._meta as Record<string, unknown> | undefined;
+  const connecting = method === 'initialize';
+  noteClient(call, {
+    info: connecting ? params?.clientInfo : envelope?.[CLIENT_INFO_META_KEY],
+    protocolVersion: connecting ? params?.protocolVersion : envelope?.[PROTOCOL_VERSION_META_KEY],
+    capabilities: connecting ? params?.capabilities : envelope?.[CLIENT_CAPABILITIES_META_KEY],
+  });
+  if (method === 'tools/call' && typeof params?.name === 'string') {
     call.tool = TOOLS.has(params.name) ? params.name : 'unknown';
   } else if (method === 'resources/read') {
     call.viewRead = typeof params?.uri === 'string' && params.uri.startsWith('ui://eventcatalog/');
@@ -177,7 +202,7 @@ export function reportRejected(reason: 'rate_limited' | 'too_large', { ip, userA
 
 /** The request's event, once it's been answered: connecting, a tool call, or a chat loading the view */
 export function reportMcpCall(call: McpCall, { ip, userAgent, ms, status }: { ip: string; userAgent: string; ms: number; status: number }) {
-  if (!enabled || !call.method) return;
+  if (!enabled || !call.method || (call.tool && NOT_COUNTED.has(call.tool) && call.rpcError === undefined && !call.toolError)) return;
   const caller = callerId(ip, userAgent);
   if (call.client) rememberClient(caller, call.client);
   const client = call.client ?? clients.get(caller);
@@ -197,7 +222,8 @@ export function reportMcpCall(call: McpCall, { ip, userAgent, ms, status }: { ip
             : `http_${status}`));
   // Every request, by method (what clients do over the protocol: listing tools, reading the view, calling tools)
   capture('mcp_request', caller, { ...common, method: call.method, ...(call.tool && { tool: call.tool }), ok, duration_ms: ms, error_kind: errorKind });
-  if (call.method === 'initialize') {
+  // Connecting: initialize, or server/discover (2026-07-28 and later)
+  if (call.method === 'initialize' || call.method === 'server/discover') {
     capture('mcp_client_connected', caller, {
       ...common,
       protocol_version: call.protocolVersion,
@@ -205,7 +231,8 @@ export function reportMcpCall(call: McpCall, { ip, userAgent, ms, status }: { ip
       client_capabilities: call.capabilities,
     });
   } else if (call.method === 'tools/call' && call.tool) {
-    capture('mcp_tool_called', caller, { ...common, tool: call.tool, duration_ms: ms, ...call.details, ok, error_kind: errorKind });
+    // Whether the client shows MCP Apps is only known per call from 2026-07-28 (it's in every request's envelope)
+    capture('mcp_tool_called', caller, { ...common, tool: call.tool, duration_ms: ms, supports_mcp_apps: call.appsSupported, ...call.details, ok, error_kind: errorKind });
   } else if (call.method === 'resources/read' && call.viewRead) {
     capture('mcp_view_loaded', caller, common);
   }

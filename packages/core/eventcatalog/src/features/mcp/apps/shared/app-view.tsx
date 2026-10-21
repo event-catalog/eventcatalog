@@ -2,7 +2,7 @@
  * Connecting the EventCatalog viewer MCP App to the host, loading the tool result's payload, following the
  * host's theme and display mode, and mounting the view.
  */
-import { useEffect, useState, type ComponentType } from 'react';
+import { useEffect, useState, type ComponentType, type CSSProperties } from 'react';
 import { config as configureZod } from 'zod';
 import { createRoot } from 'react-dom/client';
 import type { App, McpUiHostContext } from '@modelcontextprotocol/ext-apps';
@@ -18,6 +18,24 @@ export const getToolResultPayload = <Payload,>(result: CallToolResult, metaKey: 
 
 const applyTheme = (context?: McpUiHostContext) => {
   if (context?.theme) document.documentElement.setAttribute('data-theme', context.theme);
+};
+
+/**
+ * The view full screen: the height of the frame, kept clear of what the host draws over it on phones (the notch,
+ * the home indicator, the message box), which it reports as safe area insets
+ */
+export const fullscreenStyle = (context?: McpUiHostContext): CSSProperties => {
+  const insets = context?.safeAreaInsets;
+  return {
+    height: '100vh',
+    boxSizing: 'border-box',
+    ...(insets && {
+      paddingTop: insets.top,
+      paddingRight: insets.right,
+      paddingBottom: insets.bottom,
+      paddingLeft: insets.left,
+    }),
+  };
 };
 
 type McpAppViewOptions<Payload> = {
@@ -61,8 +79,9 @@ export function useMcpAppView<Payload>(options: McpAppViewOptions<Payload>) {
     appInfo: { name: options.name, version: '1.0.0' },
     // The views fit inline and have a full screen button (the server asks hosts to open them full screen)
     capabilities: { availableDisplayModes: ['inline', 'fullscreen'] },
+    // Listeners go on before the view connects: hosts send the tool's result as soon as it has
     onAppCreated: (createdApp) => {
-      createdApp.ontoolresult = (result) => {
+      createdApp.addEventListener('toolresult', (result) => {
         if (result.isError) {
           setError(result.content?.find((item) => item.type === 'text')?.text ?? options.loadErrorMessage);
           return;
@@ -70,11 +89,11 @@ export function useMcpAppView<Payload>(options: McpAppViewOptions<Payload>) {
         loadPayload(createdApp, result, options)
           .then(setPayload)
           .catch((loadError) => setError(String(loadError?.message ?? loadError)));
-      };
-      createdApp.onhostcontextchanged = (context) => {
+      });
+      createdApp.addEventListener('hostcontextchanged', (context) => {
         applyTheme(context);
         setHostContext((previous) => ({ ...previous, ...context }));
-      };
+      });
     },
   });
 

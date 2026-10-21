@@ -144,7 +144,7 @@ Studio on the web reports how it's used to EventCatalog's PostHog project (the e
   hide: duration, `edits`, `peak_people`, `count_*`); `track()` sends an event (and is counted too). Drags, node
   opens, undo and deletes are bumps; adding things, comments, hotspots, levels, sharing, exports and files are events.
 - **Server**: `mcp_request` for every request (by method), and `mcp_client_connected` (client, capabilities, MCP
-  Apps), `mcp_tool_called` (tool, the diagram's shape and mix, a walkthrough's scenes) and `mcp_view_loaded`. Read
+  Apps), `mcp_tool_called` (tool, the diagram's shape and mix) and `mcp_view_loaded`. Read
   from the transport's parsed messages both ways (`noteMessage` in, `noteResponse` out: an error, or a tool's error
   result such as arguments that didn't validate, which never reach our handlers) and what the tools `report()`. Tool
   names outside our five are `unknown`. Refused requests: `mcp_rejected` (rate limit, size). Callers are a

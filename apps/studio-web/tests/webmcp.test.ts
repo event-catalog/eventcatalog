@@ -3,6 +3,7 @@ import { z } from 'zod';
 import fixture from './fixtures/orders-model.json';
 import { Model, type ArchitecturePayload } from '@eventcatalog/visualiser/model';
 import { createWebMcpTools, registerWebMcpTools, type ModelContext, type WebMcpCanvas } from '../view/webmcp';
+import { applyChanges, type Changes } from '../src/model/changes';
 import { createMcpServer } from '../src/mcp/server';
 import { Client, InMemoryTransport } from '@modelcontextprotocol/client';
 import { viewLink } from '../src/lib/encode';
@@ -14,10 +15,13 @@ const setUp = async (canvas: Partial<WebMcpCanvas> = {}) => {
   const registered = new Map<string, { execute: (input: unknown) => Promise<{ content: { text: string }[]; isError?: boolean }>; inputSchema?: object }>();
   const modelContext: ModelContext = { registerTool: (tool) => void registered.set(tool.name, tool) };
   const render = vi.fn(async (_payload: ArchitecturePayload) => true);
-  const showTour = vi.fn(async () => {});
+  const edit = vi.fn(async (changes: Changes) => {
+    const { model: next, results } = applyChanges(model, changes);
+    return { results, resources: next.resources.length, relations: next.relations.length };
+  });
   const count = await registerWebMcpTools(
     modelContext,
-    createWebMcpTools(() => ({ model, live: false, render, showTour, ...canvas })),
+    createWebMcpTools(() => ({ model, live: false, render, edit, ...canvas })),
     new AbortController().signal
   );
   const call = async (name: string, input: unknown = {}) => {
@@ -25,7 +29,7 @@ const setUp = async (canvas: Partial<WebMcpCanvas> = {}) => {
     const text = outcome.content[0].text;
     return { isError: !!outcome.isError, text, json: () => JSON.parse(text) };
   };
-  return { registered, count, call, render, showTour };
+  return { registered, count, call, render, edit };
 };
 
 describe('WebMCP tools', () => {
@@ -34,7 +38,9 @@ describe('WebMCP tools', () => {
     const client = new Client({ name: 'test', version: '0.0.0' });
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     await Promise.all([createMcpServer({ baseUrl: 'https://studio.example' }).connect(serverTransport), client.connect(clientTransport)]);
-    const serverTools = (await client.listTools()).tools.map((tool) => tool.name).filter((name) => name !== 'get_architecture_view');
+    // The ones the model sees (not the view's own: loading the diagram, waiting for changes to it)
+    const forModel = (tool: { _meta?: { ui?: { visibility?: string[] } } }) => tool._meta?.ui?.visibility?.includes('model') ?? true;
+    const serverTools = (await client.listTools()).tools.filter(forModel).map((tool) => tool.name);
     expect([...registered.keys()].sort()).toEqual(serverTools.sort());
     expect(count).toBe(registered.size);
     expect(registered.get('render_architecture')!.inputSchema).toMatchObject({ type: 'object', required: ['model'] });
@@ -77,17 +83,6 @@ describe('WebMCP tools', () => {
     expect(live.render).not.toHaveBeenCalled();
   });
 
-  it('plays walkthroughs of what is on the canvas', async () => {
-    const { call, showTour } = await setUp();
-    const tour = [{ focus: ['OrderPlaced'], caption: 'The event' }];
-    expect((await call('show_on_diagram', { tour })).json().scenes).toEqual(['1. The event']);
-    expect(showTour).toHaveBeenCalledWith(tour);
-
-    expect((await call('show_on_diagram', { tour: [{ focus: ['nope'] }] })).isError).toBe(true);
-    const empty = await setUp({ model: { ...model, resources: [], relations: [] } });
-    expect((await empty.call('show_on_diagram', { tour })).isError).toBe(true);
-  });
-
   it('teaches the model, for the canvas in the browser', async () => {
     const { call } = await setUp();
     const { text, isError } = await call('get_architecture_schema');
@@ -98,7 +93,7 @@ describe('WebMCP tools', () => {
 
   // Chrome's budgets for WebMCP tools (names 30, descriptions 500, parameter descriptions 150 characters)
   it('keep to the browser’s budgets', () => {
-    for (const tool of createWebMcpTools(() => ({ model, live: false, render: async () => true, showTour: async () => {} }))) {
+    for (const tool of createWebMcpTools(() => ({ model, live: false, render: async () => true, edit: async () => ({ results: [], resources: 0, relations: 0 }) }))) {
       expect(tool.name.length, tool.name).toBeLessThanOrEqual(30);
       expect(tool.description.length, tool.name).toBeLessThanOrEqual(500);
       const { properties = {} } = z.toJSONSchema(tool.input, { io: 'input', unrepresentable: 'any' }) as { properties?: Record<string, { description?: string }> };
@@ -109,8 +104,31 @@ describe('WebMCP tools', () => {
     }
   });
 
+  it('change the canvas in place with only what changes, even in a live session', async () => {
+    const { call, edit } = await setUp({ live: true });
+    const result = (
+      await call('edit_diagram', {
+        reorder: true,
+        changes: [
+          { op: 'add_resource', resource: { id: 'billing', type: 'domain', name: 'Billing' } },
+          { op: 'add_relation', relation: { from: 'nowhere', to: 'billing', kind: 'connects' } },
+        ],
+      })
+    ).json();
+    expect(edit).toHaveBeenCalledWith(expect.any(Array), { reorder: true });
+    expect(result.made).toBe(1);
+    expect(result.failed).toHaveLength(1);
+  });
+
+  it("tell the agent why the canvas couldn't take its changes (locked by the user), not fail", async () => {
+    const { call } = await setUp({ edit: async () => ({ error: 'The user has locked the diagram (the lock at the top left): ask them to unlock it.' }) });
+    const result = await call('edit_diagram', { changes: [{ op: 'set_title', title: 'Billing' }] });
+    expect(result.isError).toBe(true);
+    expect(result.json().error).toBe('The user has locked the diagram (the lock at the top left): ask them to unlock it. Nothing was changed.');
+  });
+
   it('are only read only when they change nothing the user sees', () => {
-    const tools = createWebMcpTools(() => ({ model, live: false, render: async () => true, showTour: async () => {} }));
+    const tools = createWebMcpTools(() => ({ model, live: false, render: async () => true, edit: async () => ({ results: [], resources: 0, relations: 0 }) }));
     const readOnly = tools.filter((tool) => tool.annotations?.readOnlyHint).map((tool) => tool.name);
     expect(readOnly.sort()).toEqual(['get_architecture_schema', 'read_diagram']);
   });

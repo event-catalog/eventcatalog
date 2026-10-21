@@ -44,18 +44,13 @@ describe('choreography', () => {
   });
 });
 
-describe('tours', () => {
-  it('reject scenes pointing at resources that are not in the diagram', async () => {
-    const { validateTour } = await import('@eventcatalog/visualiser/model');
-    expect(validateTour(model, [{ focus: ['orders-service'], notes: [{ resource: 'orders-service', text: 'Hi' }] }])).toEqual([]);
-    expect(validateTour(model, [{ focus: ['nope'] }, { code: [{ resource: 'missing', code: '{}' }] }])).toHaveLength(2);
-  });
-
-  it('travel in view links with the diagram', async () => {
+describe('view links', () => {
+  it('carry the diagram, and leave out the walkthroughs older links had', async () => {
     const { viewLink, parseViewFragment } = await import('../src/lib/encode');
-    const tour = [{ caption: 'Start here', focus: ['orders-service'] }];
-    const parsed = parseViewFragment(viewLink('https://mcp.eventcatalog.dev', model, { tour })!);
+    const link = viewLink('https://mcp.eventcatalog.dev', model, { focus: 'orders-service' })!;
+    const parsed = parseViewFragment(`${link}&t=N4Ig`);
     expect(parsed.model?.title).toBe(model.title);
-    expect(parsed.tour).toEqual(tour);
+    expect(parsed.focus).toBe('orders-service');
+    expect(parsed).not.toHaveProperty('tour');
   });
 });

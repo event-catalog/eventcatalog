@@ -334,8 +334,23 @@ export async function modelToCanvas(
   );
   const edges = edgesFor(model, byId);
 
+  // Places are relative to the container a node is in: one outside its container wasn't set by the view (e.g. an
+  // agent guessed where something new goes, in canvas coordinates), so it's placed as something new is
+  const lookup = new Map(nodes.map((node) => [node.id, node]));
+  const misplaced = (node: Node) => {
+    const parent = node.parentId ? lookup.get(node.parentId) : undefined;
+    if (!parent || !saved[node.id]) return false;
+    const { x, y } = node.position;
+    const slack = 20;
+    return (
+      x < -slack ||
+      y < -slack ||
+      (parent.width !== undefined && x > parent.width) ||
+      (parent.height !== undefined && y > parent.height)
+    );
+  };
   const unplaced = nodes
-    .filter((node) => !saved[node.id])
+    .filter((node) => !saved[node.id] || misplaced(node))
     .map((node) => node.id);
   const seeded =
     unplaced.length === nodes.length && seed
@@ -366,9 +381,30 @@ export async function modelToCanvas(
       target,
     }));
     const places = placeNodes(nodes, unplaced, links);
-    nodes = nodes.map((node) =>
-      places.has(node.id) ? { ...node, position: places.get(node.id)! } : node,
-    );
+    // Placed in canvas coordinates: what's in a container is positioned relative to it (a new service in a new domain
+    // was drawn as far from its domain as the domain is from the canvas's corner)
+    const byNodeId = new Map(nodes.map((node) => [node.id, node]));
+    const canvasAt = (node: Node): XYPosition => {
+      const placed = places.get(node.id);
+      if (placed) return placed;
+      const parent = node.parentId ? byNodeId.get(node.parentId) : undefined;
+      if (!parent) return node.position;
+      const parentAt = canvasAt(parent);
+      return {
+        x: parentAt.x + node.position.x,
+        y: parentAt.y + node.position.y,
+      };
+    };
+    nodes = nodes.map((node) => {
+      const placed = places.get(node.id);
+      if (!placed) return node;
+      const parent = node.parentId ? byNodeId.get(node.parentId) : undefined;
+      const parentAt = parent ? canvasAt(parent) : { x: 0, y: 0 };
+      return {
+        ...node,
+        position: { x: placed.x - parentAt.x, y: placed.y - parentAt.y },
+      };
+    });
   }
 
   return {

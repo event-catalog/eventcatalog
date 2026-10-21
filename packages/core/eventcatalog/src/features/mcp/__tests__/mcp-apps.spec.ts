@@ -11,7 +11,7 @@ const tool = (name: string) => ({ name, title: name, description: `Shows ${name}
 const registerApp = (server: McpServer, icons?: (typeof icon)[]) =>
   registerMcpApp(server, {
     loadView: async () => '<html></html>',
-    resource: { name: 'Viewer', uri: 'ui://test/viewer', description: 'A viewer' },
+    resource: { name: 'Viewer', uri: 'ui://test/viewer', description: 'A viewer', prefersBorder: false },
     metaKey: 'test/payload',
     tool: { ...tool('showThing'), ...(icons && { icons }) },
     viewTool: tool('loadThing'),
@@ -21,18 +21,20 @@ const registerApp = (server: McpServer, icons?: (typeof icon)[]) =>
   });
 
 // Through a real client, so what hosts are sent is checked (not just what is registered)
-const listTools = async (server: McpServer) => {
+const withClient = async <T>(server: McpServer, use: (client: Client) => Promise<T>) => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await server.connect(serverTransport);
   const client = new Client({ name: 'test-client', version: '1.0.0' });
   await client.connect(clientTransport);
   try {
-    return new Map((await client.listTools()).tools.map((listed) => [listed.name, listed]));
+    return await use(client);
   } finally {
     await client.close();
     await server.close();
   }
 };
+const listTools = (server: McpServer) =>
+  withClient(server, async (client) => new Map((await client.listTools()).tools.map((listed) => [listed.name, listed])));
 
 describe('registerMcpApp', () => {
   it('lists icons on the tool given them, and not on its app-only tool', async () => {
@@ -53,5 +55,14 @@ describe('registerMcpApp', () => {
 
     expect(tools.get('showThing')?.icons).toBeUndefined();
     expect(tools.get('showThing')?._meta).toMatchObject({ ui: { resourceUri: 'ui://test/viewer' } });
+  });
+
+  it("tells hosts whether to frame the view, on the view's resource", async () => {
+    const server = new McpServer({ name: 'test', version: '1.0.0' });
+    registerApp(server);
+
+    const read = await withClient(server, (client) => client.readResource({ uri: 'ui://test/viewer' }));
+
+    expect(read.contents[0]._meta).toMatchObject({ ui: { prefersBorder: false } });
   });
 });

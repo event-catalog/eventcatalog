@@ -1,6 +1,6 @@
 /**
  * The view's styles, after EventCatalog's own: Inter, its dialog cards and buttons (--ec-button-bg), neutral hovers,
- * the visualiser's type colours, the docs pages' lists and badges, and the agent's walkthrough card. The diagram
+ * the visualiser's type colours, the docs pages' lists and badges, and the agent at work. The diagram
  * itself is the visualiser's (its stylesheet first).
  * Started from event-catalog/eventcatalog@v5-beta:packages/core/eventcatalog/src/features/mcp/apps/architecture-diagram/view.tsx
  */
@@ -139,29 +139,6 @@ const styles = `
   .ec-doc-note { margin: 0 0 6px; padding: 8px 10px; border-radius: 8px; background: rgb(254 249 195); color: rgb(113 63 18); font-size: 12px; line-height: 1.5; }
   .ec-doc-note span { opacity: 0.7; }
 
-  /* The agent's walkthrough card, as the visualiser's StepWalkthrough (bottom left) */
-  .ec-walk {
-    position: absolute; left: 12px; bottom: 56px; z-index: 25; width: 360px; max-width: calc(100% - 24px); overflow: hidden;
-    border: 1px solid rgb(var(--ec-page-border)); border-radius: 10px; background: rgb(var(--ec-card-bg)); color: rgb(var(--ec-page-text));
-    box-shadow: 0 10px 24px rgb(0 0 0 / 0.12);
-  }
-  .ec-walk-header { display: flex; align-items: flex-start; gap: 8px; padding: 10px 10px 0 12px; }
-  .ec-walk-heading { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-  .ec-walk-kicker { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: rgb(var(--ec-page-text-muted)); }
-  .ec-walk-title { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ec-walk-body { display: flex; gap: 10px; padding: 10px 12px 0; }
-  .ec-walk-text { margin: 0; font-size: 13px; line-height: 1.5; }
-  .ec-walk-footer { display: flex; align-items: center; gap: 4px; padding: 10px 8px 8px 12px; }
-  .ec-walk-count { font-size: 11px; font-weight: 600; color: rgb(var(--ec-page-text-muted)); font-variant-numeric: tabular-nums; margin-right: auto; }
-  .ec-walk-dots { display: flex; gap: 3px; margin-right: 8px; }
-  .ec-walk-dots span { width: 14px; height: 3px; border-radius: 2px; background: rgb(var(--ec-page-border)); }
-  .ec-walk-dots span[data-done] { background: rgb(var(--ec-page-text-muted) / 0.6); }
-  .ec-walk-dots span[data-active] { background: rgb(var(--ec-primary-bg)); }
-  .ec-step-number {
-    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 20px; height: 20px; border-radius: 999px;
-    background: rgb(var(--ec-primary-bg)); color: rgb(var(--ec-primary-text)); font-size: 11px; font-weight: 700;
-  }
-
   /* A message's page: Overview and Schema tabs, as its page in EventCatalog has */
   .ec-doc-tabs { display: flex; gap: 16px; margin: 14px 0 -12px; border-bottom: 1px solid rgb(var(--ec-page-border)); }
   .ec-doc-tab {
@@ -182,31 +159,6 @@ const styles = `
     padding: 2px 6px; border-radius: 4px; color: white; font: 500 11px 'Inter', ui-sans-serif, system-ui, sans-serif;
   }
   .ec-agent-activity { font-weight: 400; opacity: 0.9; }
-  .ec-tour-stage { height: 100%; }
-  .ec-tour-stage .ec-agent-pointer { transition: transform 650ms cubic-bezier(0.65, 0, 0.35, 1); }
-
-  /* The agent's notes and code on the canvas */
-  .ec-tour-cards { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; gap: 12px; }
-  .ec-tour-note, .ec-tour-code { border-radius: 10px; box-shadow: 0 10px 28px rgb(0 0 0 / 0.14); font: 13px/1.5 'Inter', ui-sans-serif, system-ui, sans-serif; animation: ec-card-in 250ms ease-out; }
-  @keyframes ec-card-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
-  .ec-tour-note { padding: 10px 12px; border: 1px solid rgb(var(--ec-page-border)); background: rgb(var(--ec-card-bg)); color: rgb(var(--ec-page-text)); }
-  .ec-tour-note p { margin: 4px 0 0; white-space: pre-wrap; }
-  .ec-tour-note-meta { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: rgb(var(--ec-page-text-muted)); }
-  .ec-tour-note-meta svg { width: 13px; height: 13px; }
-  .ec-tour-keep {
-    margin-left: auto; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border: 1px solid rgb(var(--ec-page-border)); border-radius: 6px;
-    background: transparent; color: rgb(var(--ec-page-text-muted)); font: 500 11px 'Inter', sans-serif; cursor: pointer;
-  }
-  .ec-tour-keep:hover:not(:disabled) { color: rgb(var(--ec-page-text)); background: rgb(var(--ec-content-hover)); }
-  .ec-tour-keep svg { width: 12px; height: 12px; }
-  .ec-tour-caret { display: inline-block; width: 2px; height: 1em; margin-left: 1px; vertical-align: text-bottom; background: rgb(var(--ec-page-text)); animation: ec-caret 0.8s steps(1) infinite; }
-  @keyframes ec-caret { 50% { opacity: 0; } }
-  .ec-tour-code { overflow: hidden; border: 1px solid rgb(30 41 59); background: rgb(15 23 42); color: rgb(226 232 240); }
-  .ec-tour-code-header { display: flex; align-items: center; gap: 6px; padding: 6px 8px 6px 12px; border-bottom: 1px solid rgb(30 41 59); background: rgb(30 41 59 / 0.6); }
-  .ec-tour-code-title { font: 600 12px ui-monospace, SFMono-Regular, Menlo, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ec-tour-code-language { padding: 0 6px; border-radius: 4px; background: rgb(51 65 85); font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
-  .ec-tour-code .ec-tour-keep { border-color: rgb(51 65 85); color: rgb(148 163 184); }
-  .ec-tour-code pre { margin: 0; max-height: 280px; overflow: auto; padding: 10px 12px; font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre; }
 
   /* The question modal (ported node chat) */
   .ec-mcp-modal {

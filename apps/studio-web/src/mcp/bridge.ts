@@ -1,0 +1,164 @@
+/**
+ * Between the agent and the diagram the user has open. Hosts show every tool call that has a view as a new view, so
+ * the tools that change or read an open diagram (edit_diagram, read_diagram) have none: the open diagram's view
+ * waits for requests (wait_for_diagram_requests, called again whenever it returns), carries them out on what's on
+ * screen and answers (answer_diagram_request), and the tool returns the answer. As the MCP Apps pdf-server example
+ * does (interact, and its viewer polling for commands).
+ *
+ * Safe between people: a diagram is reached only by its id, 128 random bits the server makes for each diagram and
+ * hands only to that conversation (the tool's result, and its view); nothing lists, searches or logs them. Its views
+ * wait with a token the server makes for it (viewTokenFor: signed with the server's key), handed only to them, in
+ * the result's _meta (hosts don't show the model that), so requests go only to, and answers only come from, its
+ * views: another client that learned the id can't take or answer them, and nothing secret is kept in the browser
+ * (the host hands the view its result again whenever the conversation's opened). Nothing is written to disk: a
+ * request is kept in memory until the view answers it (seconds), and a diagram no view waits on is forgotten.
+ * One process (as the live sessions' rooms.ts): a view waits on the machine the agent's request comes to.
+ */
+import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+
+/** What the agent asks of the open diagram */
+export type BridgeRequest = { id: string; kind: 'edit'; changes: unknown; reorder?: boolean } | { id: string; kind: 'read' };
+type Ask = { kind: 'edit'; changes: unknown; reorder?: boolean } | { kind: 'read' };
+
+type Channel = {
+  /** When the view last waited, or stopped waiting */
+  seenAt: number;
+  /** Its waits under way (one, or a few when the diagram is open in more than one tab) */
+  waiting: Set<() => void>;
+  pending: BridgeRequest[];
+  answers: Map<string, (answer: unknown) => void>;
+};
+
+/** How long a wait is held before it returns empty (the view waits again straight away): under hosts' tool timeouts */
+export const WAIT_MS = 15_000;
+/** A view counts as open while it's waiting, or waited this recently (between two waits) */
+const OPEN_MS = WAIT_MS + 15_000;
+/** How long edit_diagram and read_diagram wait for the view to answer */
+export const ANSWER_MS = 8_000;
+/** Requests kept for a view at most; and diagrams kept at most (the longest unseen go first) */
+const MAX_PENDING = 10;
+/** Waits held for one diagram at once at most: one for each view of it (the conversation open in a few tabs) */
+const MAX_WAITERS = 4;
+const MAX_CHANNELS = 10_000;
+
+/** The id of a new diagram: 128 random bits, as hex */
+export const newDiagramId = () => randomBytes(16).toString('hex');
+export const DIAGRAM_ID = /^[0-9a-f]{32}$/;
+
+const channels = new Map<string, Channel>();
+// The key view tokens are signed with: STUDIO_VIEW_KEY (the same across restarts and deploys, so views already open
+// keep working), else one made for this process (views open before it restarts are told the diagram isn't open)
+const VIEW_KEY = process.env.STUDIO_VIEW_KEY || randomBytes(32).toString('hex');
+if (!process.env.STUDIO_VIEW_KEY && process.env.PUBLIC_URL)
+  console.warn("STUDIO_VIEW_KEY is not set: diagrams open when the server restarts will stop taking the agent's changes");
+
+/** The token a diagram's views wait and answer with (only they get it, in the tool result's _meta) */
+export const viewTokenFor = (diagramId: string) => createHmac('sha256', VIEW_KEY).update(diagramId).digest('hex');
+export const isViewToken = (diagramId: string, token: string) => {
+  const expected = Buffer.from(viewTokenFor(diagramId));
+  const given = Buffer.from(token);
+  return given.length === expected.length && timingSafeEqual(given, expected);
+};
+const isOpen = (channel: Channel) => channel.waiting.size > 0 || Date.now() - channel.seenAt < OPEN_MS;
+
+// Diagrams no view waits on any more are forgotten, with what was asked of them
+setInterval(() => channels.forEach((channel, id) => !isOpen(channel) && forget(id, channel)), 60_000).unref();
+
+function forget(id: string, channel: Channel) {
+  channel.answers.forEach((resolve) => resolve(undefined));
+  channels.delete(id);
+}
+
+/**
+ * The view showing diagram `diagramId` waiting for what the agent asks of it: returns the requests (taking them) as
+ * soon as there are any, or none after `waitMs`. Refused without the diagram's view token
+ */
+export async function waitForRequests(
+  diagramId: string,
+  token: string,
+  { waitMs = WAIT_MS, signal, maxChannels = MAX_CHANNELS }: { waitMs?: number; signal?: AbortSignal; maxChannels?: number } = {}
+): Promise<{ requests: BridgeRequest[] } | { error: string }> {
+  if (!isViewToken(diagramId, token)) return { error: "Not this diagram's view." };
+  let channel = channels.get(diagramId);
+  if (!channel) {
+    if (channels.size >= maxChannels) {
+      const oldest = [...channels].filter(([, open]) => !open.waiting.size).sort(([, a], [, b]) => a.seenAt - b.seenAt)[0];
+      // Every one has a view waiting: none to make room with, so this one waits for another time
+      if (!oldest) return { error: 'Too many diagrams are open. Try again shortly.' };
+      forget(...oldest);
+    }
+    channel = { seenAt: Date.now(), waiting: new Set(), pending: [], answers: new Map() };
+    channels.set(diagramId, channel);
+  }
+  channel.seenAt = Date.now();
+  // More waits for one diagram than it has views: each holds a connection open, so they're turned down
+  if (!channel.pending.length && channel.waiting.size >= MAX_WAITERS) return { error: 'Too many views of this diagram are waiting. Try again shortly.' };
+
+  if (!channel.pending.length) {
+    const open = channel;
+    await new Promise<void>((resolve) => {
+      const done = () => {
+        clearTimeout(timer);
+        open.waiting.delete(done);
+        signal?.removeEventListener('abort', done);
+        resolve();
+      };
+      const timer = setTimeout(done, waitMs);
+      open.waiting.add(done);
+      signal?.addEventListener('abort', done);
+    });
+  }
+  channel.seenAt = Date.now();
+  return { requests: channel.pending.splice(0) };
+}
+
+/** The view's answer to a request it took. False when it isn't that diagram's view, or nobody's waiting for it */
+export function answerRequest(diagramId: string, token: string, requestId: string, answer: unknown) {
+  const channel = channels.get(diagramId);
+  if (!channel || !isViewToken(diagramId, token)) return false;
+  const resolve = channel.answers.get(requestId);
+  channel.answers.delete(requestId);
+  resolve?.(answer);
+  return !!resolve;
+}
+
+/**
+ * Asks the open diagram for something and waits for its answer: 'answered' (with it), 'not_open' when no view of
+ * it is waiting (closed, or a client that doesn't show diagrams), 'not_taken' when one was but didn't take it in
+ * time (out of sight): the request is dropped, never left to be done later (nothing here keeps it that long), or
+ * 'not_answered' when the view took it but hasn't answered yet (it may still be done)
+ */
+export async function ask(
+  diagramId: string,
+  request: Ask,
+  { answerMs = ANSWER_MS } = {}
+): Promise<{ outcome: 'answered'; answer: unknown } | { outcome: 'not_open' } | { outcome: 'not_taken' } | { outcome: 'not_answered' } | { outcome: 'busy' }> {
+  const channel = channels.get(diagramId);
+  if (!channel || !isOpen(channel)) return { outcome: 'not_open' };
+  if (channel.pending.length >= MAX_PENDING) return { outcome: 'busy' };
+  const asked = { ...request, id: randomUUID() } as BridgeRequest;
+  channel.pending.push(asked);
+  channel.waiting.forEach((wake) => wake());
+
+  const answer = await new Promise<unknown>((resolve) => {
+    const timer = setTimeout(() => {
+      channel.answers.delete(asked.id);
+      resolve(NOT_ANSWERED);
+    }, answerMs);
+    channel.answers.set(asked.id, (value) => {
+      clearTimeout(timer);
+      resolve(value);
+    });
+  });
+  if (answer === undefined) return { outcome: 'not_open' };
+  if (answer === NOT_ANSWERED) {
+    const taken = !channel.pending.includes(asked);
+    channel.pending = channel.pending.filter((pending) => pending !== asked);
+    return { outcome: taken ? 'not_answered' : 'not_taken' };
+  }
+  return { outcome: 'answered', answer };
+}
+const NOT_ANSWERED = Symbol('not answered');
+
+/** For tests: forget every diagram */
+export const resetBridge = () => channels.clear();

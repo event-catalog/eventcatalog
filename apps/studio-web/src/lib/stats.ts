@@ -2,7 +2,7 @@
  * What analytics may say about a diagram: how big it is and what kinds of things are on it, in buckets. Never what
  * it's called, what's in it or what anything says (see view/analytics.ts and src/analytics.ts).
  */
-import { MESSAGE_TYPES, type Model, type Resource, type Scene } from '@eventcatalog/visualiser/model';
+import { MESSAGE_TYPES, type Model, type Resource } from '@eventcatalog/visualiser/model';
 
 export function sizeBucket(count: number) {
   if (count === 0) return '0';
@@ -76,16 +76,5 @@ export function modelMix(model: Model) {
     with_link: shareBucket(model.resources.filter((resource) => resource.url).length, total),
     messages_with_schema: shareBucket(messages.filter((resource) => resource.schema).length, messages.length),
     has_cards: model.resources.some((resource) => resource.card),
-  };
-}
-
-/** A walkthrough's shape: how many scenes, and how many write notes, show code or highlight */
-export function tourStats(tour: Scene[]) {
-  return {
-    tour_scenes: tour.length,
-    tour_scenes_with_notes: tour.filter((scene) => scene.notes?.length).length,
-    tour_scenes_with_code: tour.filter((scene) => scene.code?.length).length,
-    tour_scenes_with_highlight: tour.filter((scene) => scene.highlight?.length).length,
-    tour_levels: distinct(tour.map((scene) => scene.level)),
   };
 }

@@ -13,12 +13,13 @@ import { serve } from '@hono/node-server';
 import { bodyLimit } from 'hono/body-limit';
 import { compress } from 'hono/compress';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/server';
-import { createMcpServer } from './mcp/server';
+import { createMcpServer, WAIT_TOOL } from './mcp/server';
+import { isViewToken } from './mcp/bridge';
 import { attachRooms } from './rooms';
 import { DIST_DIRECTORY } from './paths';
 import type { Server as HttpServer } from 'node:http';
-import { createRateLimiter, MAX_BODY_BYTES } from './lib/limits';
-import { noteMessage, noteResponse, reportException, reportMcpCall, reportRejected, type McpCall } from './analytics';
+import { createMcpRateLimits, MAX_BODY_BYTES } from './lib/limits';
+import { noteMessage, noteResponse, reportException, reportMcpCall, reportRejected, userAgentFamily, type McpCall } from './analytics';
 import { POSTHOG_ORIGIN } from './lib/posthog';
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -30,7 +31,22 @@ const gzip = promisify(zlib.gzip);
 const brotli = promisify(zlib.brotliCompress);
 
 const app = new Hono();
-const isRateLimited = createRateLimiter();
+const isRateLimited = createMcpRateLimits();
+/**
+ * The diagram an open view is waiting for requests to, when that's what a request is, with the diagram's token
+ * (small: read without taking the body)
+ */
+async function diagramWaitedOn(request: Request) {
+  if (Number(request.headers.get('content-length') ?? Infinity) > 4096) return undefined;
+  try {
+    const message = (await request.clone().json()) as { method?: unknown; params?: { name?: unknown; arguments?: { diagramId?: unknown; token?: unknown } } };
+    const { diagramId, token } = message.params?.arguments ?? {};
+    if (message.method !== 'tools/call' || message.params?.name !== WAIT_TOOL) return undefined;
+    return typeof diagramId === 'string' && typeof token === 'string' && isViewToken(diagramId, token) ? diagramId : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 // Nothing is read as a type other than the one it's sent as
 app.use('*', async (c, next) => {
@@ -70,7 +86,7 @@ app.get('/llms.txt', (c) => {
 
 ## For AI agents
 
-- [MCP server](${base}/mcp): Streamable HTTP, no auth. Tools: get_architecture_schema (learn the model), render_architecture (draw a diagram), read_diagram (read one, or a diagram link), show_on_diagram (walk the user through it).
+- [MCP server](${base}/mcp): Streamable HTTP, no auth. Tools: get_architecture_schema (learn the model), render_architecture (draw a diagram), edit_diagram (change the diagram the user has open, in place), read_diagram (read the open diagram, or a diagram link).
 - WebMCP: the page at ${base}/ offers the same tools to agents in the browser (document.modelContext), working on the canvas the user has open. In browsers without WebMCP, turn it on in Connect agent.
 
 ## Links
@@ -90,7 +106,11 @@ const tooLarge = (c: Context) => {
 };
 
 app.post('/mcp', bodyLimit({ maxSize: MAX_BODY_BYTES, onError: tooLarge }), async (c) => {
-  const limited = isRateLimited(clientIp(c.req.raw.headers));
+  const limited = isRateLimited({
+    ip: clientIp(c.req.raw.headers),
+    client: userAgentFamily(c.req.raw.headers.get('user-agent') ?? ''),
+    waitingOn: await diagramWaitedOn(c.req.raw),
+  });
   if (limited) {
     reportRejected('rate_limited', callerOf(c.req.raw));
     return c.json(jsonRpcError(limited), 429);
@@ -99,7 +119,13 @@ app.post('/mcp', bodyLimit({ maxSize: MAX_BODY_BYTES, onError: tooLarge }), asyn
   const started = Date.now();
   // What it asks for and how it went, for analytics (the client, the tool, the diagram's size: never the model)
   const call: McpCall = {};
-  const server = createMcpServer({ baseUrl: baseUrl(c.req.raw), report: (details) => (call.details = { ...call.details, ...details }) });
+  // What the tools add to this request's log line: numbers and names, never the model
+  let logged: Record<string, unknown> = {};
+  const server = createMcpServer({
+    baseUrl: baseUrl(c.req.raw),
+    report: (details) => (call.details = { ...call.details, ...details }),
+    log: (fields) => (logged = { ...logged, ...fields }),
+  });
   const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
   let status = 500;
   try {
@@ -125,7 +151,19 @@ app.post('/mcp', bodyLimit({ maxSize: MAX_BODY_BYTES, onError: tooLarge }), asyn
   } finally {
     const ms = Date.now() - started;
     // Counts only, never the request body
-    console.log(JSON.stringify({ at: 'mcp', status: 'done', ms }));
+    console.log(
+      JSON.stringify({
+        at: 'mcp',
+        status: 'done',
+        ms,
+        method: call.method,
+        ...(call.tool && { tool: call.tool }),
+        // Which client (its user agent's first word, e.g. openai-mcp), for the limits above
+        client: userAgentFamily(c.req.raw.headers.get('user-agent') ?? ''),
+        kb: Math.round(Number(c.req.raw.headers.get('content-length') ?? 0) / 102.4) / 10,
+        ...logged,
+      })
+    );
     reportMcpCall(call, { ...callerOf(c.req.raw), ms, status });
   }
 });

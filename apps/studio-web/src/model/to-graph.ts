@@ -320,6 +320,21 @@ export function buildOverviewGraph(model: Model, detailed: Graph): Graph | undef
 
 const layout = async (graph: Graph): Promise<Graph> => (await layoutWithElk(graph as any)) as unknown as Graph;
 
+/** Level 3 only, laid out: the diagram as far as the agent has written it, shown while it's still writing it */
+export const buildDraftGraph = (model: Model) => layout(buildDetailedGraph(model));
+
+/**
+ * The canvas's level (L3) and the level a diagram opens at, laid out: one layout when it opens at L3 (the default),
+ * two otherwise, rather than all three (each is a run of the layout engine, on the page's thread)
+ */
+export async function buildOpeningGraphs(model: Model, focus: string | undefined, level: 'overview' | 'services' | 'messages') {
+  const detailed = buildDetailedGraph(model, focus);
+  const opening =
+    level === 'overview' ? buildOverviewGraph(model, detailed) : level === 'services' ? hideMessageNodes(detailed.nodes, detailed.edges) : undefined;
+  const [laidOut, laidOutOpening] = await Promise.all([layout(detailed), opening && layout(opening)]);
+  return { canvas: laidOut, opening: laidOutOpening ?? laidOut };
+}
+
 /** All three levels, laid out (as layoutLevels in layout-node-graph.ts) */
 export async function buildArchitectureGraph(model: Model, focus?: string): Promise<ArchitectureGraph> {
   const detailed = buildDetailedGraph(model, focus);

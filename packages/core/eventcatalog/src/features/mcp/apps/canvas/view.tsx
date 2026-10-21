@@ -17,7 +17,7 @@ import visualiserStyles from '@eventcatalog/visualiser/styles.css?inline';
 import StudioDesigner, { type SelectedNode } from '@features/studio/components/StudioDesigner';
 import { getAgent } from '@features/studio/agents';
 import { CANVAS_STATUS_LOOK, STATUS } from '@eventcatalog/visualiser/studio';
-import { getToolResultPayload, mountView, useMcpAppView } from '../shared/app-view';
+import { fullscreenStyle, getToolResultPayload, mountView, useMcpAppView } from '../shared/app-view';
 import {
   CANVAS_CATALOG_TOOL,
   CANVAS_META_KEY,
@@ -219,7 +219,7 @@ function CanvasApp() {
   const agentOf = (view: CanvasView) => view.agent ?? getAgent(undefined, hostName);
 
   return (
-    <div className="flex flex-col" style={{ height: fullscreen ? '100vh' : INLINE_HEIGHT }}>
+    <div className="flex flex-col" style={fullscreen ? fullscreenStyle(hostContext) : { height: INLINE_HEIGHT }}>
       <div className="flex items-center justify-between border-b px-3 py-1.5 border-[rgb(var(--ec-page-border))]">
         <span className="flex min-w-0 items-center gap-1">
           {canvas && (

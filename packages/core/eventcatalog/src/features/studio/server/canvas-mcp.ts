@@ -124,6 +124,8 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
       // The view joins the canvas over the collaboration WebSocket, and shows icons served by this EventCatalog
       csp: { connectDomains: [new URL(socketUrl).origin, catalogUrl], resourceDomains: [catalogUrl] },
       displayModes: { preferred: 'fullscreen', available: ['inline', 'fullscreen'] },
+      // The canvas has its own background: no frame around it, on the web and on phones alike
+      prefersBorder: false,
     },
     metaKey: CANVAS_META_KEY,
     tool: {

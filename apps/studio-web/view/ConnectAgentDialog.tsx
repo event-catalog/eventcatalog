@@ -143,8 +143,8 @@ export function ConnectAgentDialog({ open, mcpUrl, webMcp, onClose }: ConnectAge
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm leading-relaxed text-[rgb(var(--ec-page-text))]">
                   {webMcp.status.state === 'on'
-                    ? `This tab offers ${webMcp.status.tools} tools to AI agents in your browser (like the MCP-B extension) through WebMCP: they draw on this canvas and walk you through it.`
-                    : 'Let AI agents in your browser (like the MCP-B extension) draw on this canvas and walk you through it, through WebMCP.'}
+                    ? `This tab offers ${webMcp.status.tools} tools to AI agents in your browser (like the MCP-B extension) through WebMCP: they draw on this canvas with you.`
+                    : 'Let AI agents in your browser (like the MCP-B extension) draw on this canvas with you, through WebMCP.'}
                 </p>
                 {webMcp.status.state === 'on' ? (
                   <p className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-medium ${STATUS.success.text}`}>

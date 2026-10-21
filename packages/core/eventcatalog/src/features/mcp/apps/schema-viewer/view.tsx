@@ -12,6 +12,7 @@ import AvroSchemaViewer from '../../../../components/SchemaExplorer/AvroSchemaVi
 import ProtobufSchemaViewer from '../../../../components/SchemaExplorer/ProtobufSchemaViewer';
 import { SchemaCode } from './schema-code';
 import { RESOURCE_TYPE_LABELS } from '../shared/resource-types';
+import { fullscreenStyle } from '../shared/app-view';
 import type { SchemaViewerPayload, SchemaViewerSchema } from './shared';
 
 const INLINE_MAX_HEIGHT = '560px';
@@ -75,7 +76,7 @@ export function SchemaViewerView({ app, payload, hostContext }: SchemaViewerView
     'inline-flex h-7 items-center gap-1.5 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:border-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent))]';
 
   return (
-    <div className={`flex flex-col ${isFullscreen ? 'h-screen' : ''}`}>
+    <div className="flex flex-col" style={isFullscreen ? fullscreenStyle(hostContext) : undefined}>
       <div className="flex items-center justify-between gap-3 border-b border-[rgb(var(--ec-page-border))] px-3 py-2">
         <div className="flex min-w-0 items-center gap-2 text-[13px]">
           <span className="shrink-0 rounded bg-[rgb(var(--ec-accent-subtle))] px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-[rgb(var(--ec-accent))]">

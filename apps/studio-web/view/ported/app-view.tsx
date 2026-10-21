@@ -3,7 +3,7 @@
  * Connecting the EventCatalog viewer MCP App to the host, loading the tool result's payload, following the
  * host's theme and display mode, and mounting the view.
  */
-import { useEffect, useState, type ComponentType } from 'react';
+import { useEffect, useRef, useState, type ComponentType, type CSSProperties } from 'react';
 import { config as configureZod } from 'zod';
 import { createRoot } from 'react-dom/client';
 import type { App, McpUiHostContext } from '@modelcontextprotocol/ext-apps';
@@ -21,6 +21,24 @@ const applyTheme = (context?: McpUiHostContext) => {
   if (context?.theme) document.documentElement.setAttribute('data-theme', context.theme);
 };
 
+/**
+ * The view full screen: the height of the frame, kept clear of what the host draws over it on phones (the notch,
+ * the home indicator, the message box), which it reports as safe area insets
+ */
+export const fullscreenStyle = (context?: McpUiHostContext): CSSProperties => {
+  const insets = context?.safeAreaInsets;
+  return {
+    height: '100vh',
+    boxSizing: 'border-box',
+    ...(insets && {
+      paddingTop: insets.top,
+      paddingRight: insets.right,
+      paddingBottom: insets.bottom,
+      paddingLeft: insets.left,
+    }),
+  };
+};
+
 type McpAppViewOptions<Payload> = {
   name: string;
   /** Key of the payload in the model-facing tool result's `_meta` */
@@ -32,6 +50,11 @@ type McpAppViewOptions<Payload> = {
   /** The view tool's arguments, from the model-facing tool result's text */
   getViewToolArguments: (text: Record<string, any>) => Record<string, unknown>;
   loadErrorMessage: string;
+  /**
+   * The tool's arguments as the model writes them, before the tool runs (hosts that stream them): partial, with
+   * unfinished strings closed, so only good for a preview
+   */
+  onToolInputPartial?: (args: Record<string, unknown>) => void;
 };
 
 /** The payload from a tool result, or loaded through the app-only tool when the host doesn't pass `_meta` */
@@ -57,25 +80,35 @@ export function useMcpAppView<Payload>(options: McpAppViewOptions<Payload>) {
   const [payload, setPayload] = useState<Payload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hostContext, setHostContext] = useState<McpUiHostContext | undefined>();
+  // The tool call was cancelled (by the user or the host) before it had a result
+  const [cancelled, setCancelled] = useState(false);
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   const { app, error: connectionError } = useApp({
     appInfo: { name: options.name, version: '1.0.0' },
     // The views fit inline and have a full screen button (the server asks hosts to open them full screen)
     capabilities: { availableDisplayModes: ['inline', 'fullscreen'] },
+    // Listeners go on before the view connects: hosts send the tool's input and result as soon as it has
     onAppCreated: (createdApp) => {
-      createdApp.ontoolresult = (result) => {
+      createdApp.addEventListener('toolinputpartial', ({ arguments: args }) => {
+        if (args) optionsRef.current.onToolInputPartial?.(args);
+      });
+      createdApp.addEventListener('toolcancelled', () => setCancelled(true));
+      createdApp.addEventListener('toolresult', (result) => {
+        setCancelled(false);
         if (result.isError) {
-          setError(result.content?.find((item) => item.type === 'text')?.text ?? options.loadErrorMessage);
+          setError(result.content?.find((item) => item.type === 'text')?.text ?? optionsRef.current.loadErrorMessage);
           return;
         }
-        loadPayload(createdApp, result, options)
+        loadPayload(createdApp, result, optionsRef.current)
           .then(setPayload)
           .catch((loadError) => setError(String(loadError?.message ?? loadError)));
-      };
-      createdApp.onhostcontextchanged = (context) => {
+      });
+      createdApp.addEventListener('hostcontextchanged', (context) => {
         applyTheme(context);
         setHostContext((previous) => ({ ...previous, ...context }));
-      };
+      });
     },
   });
 
@@ -86,7 +119,14 @@ export function useMcpAppView<Payload>(options: McpAppViewOptions<Payload>) {
   }, [app]);
 
   // setPayload: views that switch what they show themselves (e.g. picking a canvas) without a new tool result
-  return { app, payload, setPayload, error: connectionError?.message ?? error, hostContext };
+  return {
+    app,
+    payload,
+    setPayload,
+    error: connectionError?.message ?? error,
+    hostContext,
+    cancelled,
+  };
 }
 
 /** Adds the view's styles and renders it */

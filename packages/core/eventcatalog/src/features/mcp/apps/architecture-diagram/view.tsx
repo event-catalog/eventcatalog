@@ -16,7 +16,7 @@ import type { ArchitectureDiagramPayload } from './shared';
 const LEVEL_OF_DETAIL = { overview: 1, services: 2, full: 3 } as const;
 import { NodeChat, describeNode, describeNodeForModel, type SelectedNode } from './node-chat';
 import { parseAskLink, parseDiagramLink, withAskMenuItem, type DiagramLink } from './links';
-import { getToolResultPayload } from '../shared/app-view';
+import { fullscreenStyle, getToolResultPayload } from '../shared/app-view';
 import { RESOURCE_TYPE_LABELS } from '../shared/resource-types';
 import { VIEWER_META_KEY, VIEWER_VIEW_TOOL, type ViewerPayload } from '../viewer/shared';
 
@@ -377,7 +377,13 @@ export function ArchitectureDiagramView({ app, payload: toolPayload, hostContext
   const graphId = `mcp-${resource.collection}-${resource.id}-${resource.version}`;
 
   return (
-    <div style={{ height: isFullscreen ? '100vh' : INLINE_HEIGHT, display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={{
+        ...(isFullscreen ? fullscreenStyle(hostContext) : { height: INLINE_HEIGHT }),
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       <div className="ec-mcp-header">
         <div className="ec-mcp-title">
           {diagrams.length > 1 && (
