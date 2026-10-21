@@ -322,3 +322,44 @@ test("a locked diagram turns the agent's edits down, and a note on something rem
   await agent.close();
 });
 
+test("what the user does while an edit is laid out stays: a rename isn't taken back, and a lock stops it", async ({ page, baseURL }) => {
+  test.setTimeout(60_000);
+  const host = await connect(baseURL!);
+  const agent = await connect(baseURL!);
+  const rendered = await agent.callTool({ name: 'render_architecture', arguments: { model } });
+  const { diagramId } = textOf(rendered);
+  const resource = await host.readResource({ uri: 'ui://eventcatalog/architecture' });
+  const { bridge, nodes } = await hostView(page, host, (resource.contents[0] as { text: string }).text);
+  await bridge.sendToolInput({ arguments: { model } });
+  await bridge.sendToolResult(rendered as Parameters<AppBridge['sendToolResult']>[0]);
+  await expect.poll(async () => (await nodes()).filter((node) => node.measured).length, { timeout: 30_000 }).toBeGreaterThanOrEqual(model.resources.length);
+  const view = page.frameLocator('#view');
+  await expect(view.locator('.ec-build-skip')).toHaveCount(0, { timeout: 60_000 });
+  const frame = page.frames().find((frame) => frame !== page.mainFrame())!;
+  type Hook = { editLayoutDelayMs?: number; updateNode: (id: string, fields: Record<string, unknown>) => void };
+  // Each edit's layout held up, so the user can act meanwhile
+  await frame.evaluate(() => ((window as unknown as { __studioTest: Hook }).__studioTest.editLayoutDelayMs = 1500));
+  const edit = (changes: unknown[]) => agent.callTool({ name: 'edit_diagram', arguments: { diagramId, changes } });
+  const service = model.resources.find((resource: { type: string }) => resource.type === 'service').id;
+
+  // The agent changes a service's summary while the user renames it: both stay
+  const summarising = edit([{ op: 'update_resource', id: service, set: { summary: 'Summarised by the agent.' } }]);
+  await page.waitForTimeout(500);
+  await frame.evaluate((id) => (window as unknown as { __studioTest: Hook }).__studioTest.updateNode(id, { name: 'Renamed by the user' }), service);
+  expect(textOf(await summarising).note).toContain('Made 1 of 1');
+  const read = textOf(await agent.callTool({ name: 'read_diagram', arguments: { diagramId } }));
+  expect(read.model.resources.find((resource: { id: string }) => resource.id === service)).toMatchObject({ name: 'Renamed by the user', summary: 'Summarised by the agent.' });
+
+  // The user locks the diagram while an edit's laid out: it isn't made
+  const adding = edit([{ op: 'add_resource', resource: { id: 'billing', type: 'domain', name: 'Billing' } }]);
+  await page.waitForTimeout(500);
+  await view.getByRole('button', { name: /Lock the canvas/ }).click();
+  const added = await adding;
+  expect(added.isError).toBe(true);
+  expect(textOf(added).error).toContain('locked');
+  await page.waitForTimeout(500);
+  expect((await nodes()).some((node) => node.id === 'billing')).toBe(false);
+
+  await host.close();
+  await agent.close();
+});

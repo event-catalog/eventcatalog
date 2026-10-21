@@ -41,7 +41,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { X } from 'lucide-react';
 import { ContextMenu, type ContextMenuState, type MenuQuestion } from '@eventcatalog/visualiser/studio';
 import { EditButton, Palette, COMPONENT_DRAG_TYPE, RemeasureHandles } from '@eventcatalog/visualiser/studio';
-import { useCanvasFlow } from './use-canvas-flow';
+import { useCanvasFlow, type CanvasDocument } from './use-canvas-flow';
 import type { AgentCanvas, CanvasIds } from './apply-agent-canvas';
 import { bump, track } from '../analytics';
 import { type ModelCanvasContent as CanvasContent } from '@eventcatalog/visualiser/studio';
@@ -156,8 +156,8 @@ export type StudioCanvasHandle = {
    * what they connect to, never closer than it is now; the selection stays as it is
    */
   showNodes: (nodeIds: string[]) => void;
-  /** What's on the canvas now (its document's): where an agent's edit begins */
-  currentIds: () => CanvasIds;
+  /** The canvas as its document has it now (not what's rendered yet): where an agent's edit begins (use-canvas-flow.ts) */
+  readDocument: () => CanvasDocument | undefined;
   /**
    * The agent's changes (edit_diagram), as the canvas they should give: only what's different is written, and only
    * what was there when the edit began (`before`) is taken off (apply-agent-canvas.ts)
@@ -1449,7 +1449,7 @@ function Canvas({
       void reorder();
       tidyCanvasWhenShown.current = levelRef.current !== 3 && !cursors;
     },
-    currentIds: () => flow.currentIds(),
+    readDocument: () => flow.readDocument(),
     applyAgentCanvas: (target, before) => flow.applyAgentCanvas(target, before),
     showNodes: (nodeIds) => {
       const shown = nodesRef.current.filter((node) => nodeIds.includes(node.id));

@@ -63,6 +63,7 @@ import { EmptyCanvas } from '@eventcatalog/visualiser/studio';
 import { ConnectAgentDialog } from './ConnectAgentDialog';
 import { isWebMcpPolyfillOn, turnOnWebMcpPolyfill, useWebMcp, type WebMcpCanvas } from './webmcp';
 import { StudioCanvas, type CanvasSnapshot, type StudioCanvasHandle } from './studio/StudioCanvas';
+import type { CanvasDocument } from './studio/use-canvas-flow';
 import type { MenuQuestion } from '@eventcatalog/visualiser/studio';
 import { canvasToModel, modelToCanvas, type ModelCanvasContent as CanvasContent } from '@eventcatalog/visualiser/studio';
 import { CommandPalette, type Command } from './CommandPalette';
@@ -79,6 +80,7 @@ import { bump, configureAnalytics, durationBucket, modelMix, modelStats as diagr
 const LEVEL_NUMBERS = { overview: 1, services: 2, messages: 3 } as const;
 // How long an agent's edit waits for a diagram still being laid out (under the server's wait for its answer)
 const CANVAS_READY_MS = 6000;
+const LOCKED = 'The user has locked the diagram (the lock at the top left): ask them to unlock it.';
 /** Waits (a tenth of a second at a time) until `ready`, or `ms` go by; whether it got there */
 async function waitUntil(ready: () => boolean, ms: number) {
   for (const until = Date.now() + ms; !ready(); ) {
@@ -206,8 +208,6 @@ export function Diagram({
   const [choosing, setChoosing] = useState(false);
   // The canvas locked: a node's details are read, not edited
   const [locked, setLocked] = useState(false);
-  const lockedRef = useRef(locked);
-  lockedRef.current = locked;
   // Save to file: naming it (where the browser can't ask), and the file saved to (to save to again)
   const [savingAs, setSavingAs] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -698,17 +698,20 @@ export function Diagram({
   latestModel.current = rootModel;
 
   // ---- The agent changing and reading this diagram where it's open (edit_diagram, read_diagram: diagram-bridge.ts) ----
-  // Its changes go on the model as the canvas has it now (with what people changed), and only what's different is
-  // written to the canvas: what's there stays where it is, what's new is placed next to what it connects to
+  // Its changes go on the model as the canvas's document has it now (with what people changed, before the page has
+  // rendered it), and only what's different is written to the canvas: what's there stays where it is, what's new is
+  // placed next to what it connects to
   const bridge = useRef<DiagramBridgeHandlers>(undefined);
-  // The model as the agent's last edit left it, until the canvas reports it (as canvasModel): edits that come one
-  // after another before the page renders build on it, not on the model from before the last one (whose changes
-  // they'd take back), and reads see it
-  const editedModel = useRef<Model>(undefined);
-  useEffect(() => {
-    editedModel.current = undefined;
-  }, [canvasModel]);
-  const modelNow = () => editedModel.current ?? latestModel.current;
+  const toolPayloadRef = useRef(toolPayload);
+  toolPayloadRef.current = toolPayload;
+  const modelOf = ({ snapshot }: CanvasDocument) => {
+    const base = titleSet.current ? { ...toolPayloadRef.current.model, title: titleSet.current } : toolPayloadRef.current.model;
+    return canvasToModel(snapshot.nodes, snapshot.edges, snapshot.levelLayouts, base, snapshot.threads, snapshot.hotspots);
+  };
+  const modelNow = () => {
+    const read = canvasRef.current?.readDocument();
+    return read ? modelOf(read) : latestModel.current;
+  };
   // An edit can come while the diagram is still being laid out (right after render_architecture): it waits for the
   // canvas to have it, else is turned down (never answered as made when it wasn't)
   const contentRef = useRef(content);
@@ -719,18 +722,32 @@ export function Diagram({
   const editing = useRef<Promise<unknown>>(Promise.resolve());
   const makeEdit: DiagramBridgeHandlers['edit'] = async (changes, { reorder } = {}) => {
     if (!(await waitUntil(canvasReady, CANVAS_READY_MS))) return { error: 'The diagram is still opening: send the changes again in a moment.' };
-    // Locked by the user (or someone in a live session): looked at, not changed, by anyone, the agent too
-    if (lockedRef.current) return { error: 'The user has locked the diagram (the lock at the top left): ask them to unlock it.' };
-    const current = modelNow();
-    // What's there as it begins: laying the changes out takes a moment, and what people add meanwhile stays
-    const before = canvasRef.current!.currentIds();
-    const { model: next, results } = applyChanges(current, changes);
-    const applied = results.filter((result) => result.ok).length;
-    if (applied && canvasRef.current) {
-      used.current = true;
+    // Laying the changes out takes a moment, and the canvas can change meanwhile: they're made again on it as it is
+    // then (a few times at most), so what people did meanwhile stays; never written on a canvas that's since been
+    // replaced (a file opened) or locked
+    for (let attempt = 0; ; attempt++) {
+      const read = canvasRef.current?.readDocument();
+      if (!read) return { error: 'The diagram is still opening: send the changes again in a moment.' };
+      // Locked by the user (or someone in a live session): looked at, not changed, by anyone, the agent too
+      if (read.locked) return { error: LOCKED };
+      const current = modelOf(read);
+      const { model: next, results } = applyChanges(current, changes);
+      const applied = results.filter((result) => result.ok).length;
+      if (!applied) return { results, resources: next.resources.length, relations: next.relations.length, reordered: false };
       const target = await agentCanvasFor(current, next);
-      const { added } = canvasRef.current?.applyAgentCanvas(target, before) ?? { added: [] };
-      editedModel.current = next;
+      // Browser tests can hold the layout up (window.__studioTest.editLayoutDelayMs), to change the canvas meanwhile
+      const testDelay = (window as { __studioTest?: { editLayoutDelayMs?: number } }).__studioTest?.editLayoutDelayMs;
+      if (testDelay) await new Promise((resolve) => setTimeout(resolve, testDelay));
+      const now = canvasRef.current?.readDocument();
+      if (now?.doc !== read.doc) return { error: 'The diagram was replaced while the changes were being made.' };
+      if (now.locked) return { error: LOCKED };
+      if (now.changes !== read.changes) {
+        if (attempt < 2) continue;
+        return { error: 'The diagram kept changing while the changes were being made: send them again in a moment.' };
+      }
+      used.current = true;
+      // (only what was there as it began can be taken off: apply-agent-canvas.ts)
+      const { added } = canvasRef.current!.applyAgentCanvas(target, read.ids);
       // Notes and the title as the changes left them (a note on something removed later in the same edit isn't put on)
       const notesBefore = new Set(current.notes ?? []);
       (next.notes ?? []).filter((note) => !notesBefore.has(note)).forEach((note) => canvasRef.current?.addNote({ nodeId: note.resource, text: note.text, author: agentName }));
@@ -743,8 +760,8 @@ export function Diagram({
       if (reorder) setTimeout(() => canvasRef.current?.tidy(), 300);
       else if (added.length) setTimeout(() => canvasRef.current?.showNodes(added), 300);
       track('diagram_edited', { changes: sizeBucket(changes.length), applied: sizeBucket(applied) });
+      return { results, resources: next.resources.length, relations: next.relations.length, reordered: !!reorder };
     }
-    return { results, resources: next.resources.length, relations: next.relations.length, reordered: !!(reorder && applied) };
   };
   bridge.current = {
     read: () => ({ model: modelNow() }),
@@ -754,10 +771,13 @@ export function Diagram({
       return made;
     },
   };
-  // Browser tests make edits straight through this (when they've set window.__studioTest up), to send them together
+  // Browser tests make edits straight through this (when they've set window.__studioTest up), to send them together,
+  // and change a node as the user does (its card), while an edit's laid out
   useEffect(() => {
     const hook = (window as { __studioTest?: Record<string, unknown> }).__studioTest;
-    if (hook) hook.edit = (changes: Changes) => bridge.current!.edit(changes);
+    if (!hook) return;
+    hook.edit = (changes: Changes) => bridge.current!.edit(changes);
+    hook.updateNode = (nodeId: string, fields: Record<string, unknown>) => canvasRef.current?.updateNode(nodeId, fields);
   }, []);
   useEffect(
     () => (app && diagramId && viewToken ? serveDiagram(app, diagramId, viewToken, () => bridge.current!) : undefined),
