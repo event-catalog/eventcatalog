@@ -39,6 +39,18 @@ describe('applyChanges', () => {
     expect(next.resources.find((resource) => resource.id === service.id)?.parent).toBe(service.parent);
   });
 
+  it('takes fields off a resource (unset), e.g. its parent, and turns down an update that changes nothing', () => {
+    const { model: next, results } = applyChanges(model, [
+      { op: 'update_resource', id: service.id, unset: ['parent', 'summary'] },
+      { op: 'update_resource', id: service.id },
+    ]);
+    expect(results.map((result) => result.ok)).toEqual([true, false]);
+    const updated = next.resources.find((resource) => resource.id === service.id)!;
+    expect(updated.parent).toBeUndefined();
+    expect('summary' in updated).toBe(false);
+    expect(Changes.safeParse([{ op: 'update_resource', id: service.id, unset: ['id'] }]).success).toBe(false);
+  });
+
   it('removes a container, keeping what was in it, and a resource with its relations', () => {
     const { model: next, results } = applyChanges(model, [
       { op: 'remove_resource', id: container.id },

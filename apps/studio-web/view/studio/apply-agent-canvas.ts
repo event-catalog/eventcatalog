@@ -7,7 +7,7 @@
  */
 import type * as Y from 'yjs';
 import type { Edge, Node } from '@xyflow/react';
-import { deleteNodes, fitContainersAround, getCanvasMaps, isGroupType, resourceTypeOf, toSharedNode, type Hotspot, type RenderedSizes } from '@eventcatalog/visualiser/studio';
+import { deleteNodes, fitContainersAround, getCanvasMaps, isGroupType, modelToCanvas, resourceTypeOf, toSharedNode, type Hotspot, type RenderedSizes } from '@eventcatalog/visualiser/studio';
 import type { Model } from '@eventcatalog/visualiser/model';
 
 /**
@@ -15,6 +15,22 @@ import type { Model } from '@eventcatalog/visualiser/model';
  * touched (changedResources: nodes are compared through the model, as the canvas fills in what the model leaves out)
  */
 export type AgentCanvas = { nodes: Node[]; edges: Edge[]; hotspots?: Hotspot[]; changed: ReadonlySet<string> };
+
+/**
+ * The canvas a changed model should give, from the model as the canvas has it now (`current`, with where things
+ * are) and after the agent's changes (`next`). What moved into another container (or out of one) is placed again:
+ * where it was is relative to the container it was in
+ */
+export async function agentCanvasFor(current: Model, next: Model): Promise<AgentCanvas> {
+  const parents = new Map(current.resources.map((resource) => [resource.id, resource.parent]));
+  const moved = new Set(next.resources.filter((resource) => parents.has(resource.id) && parents.get(resource.id) !== resource.parent).map((resource) => resource.id));
+  const places = next.layout?.messages;
+  const placed =
+    moved.size && places
+      ? { ...next, layout: { ...next.layout, messages: Object.fromEntries(Object.entries(places).filter(([id]) => !moved.has(id))) } }
+      : next;
+  return { ...(await modelToCanvas(placed)), changed: changedResources(current, next) };
+}
 
 /** The resources whose fields differ between two models */
 export function changedResources(before: Model, after: Model) {
@@ -46,7 +62,8 @@ export function applyAgentCanvasToDoc(doc: Y.Doc, target: AgentCanvas, sizes?: R
     }
     const moved = (current.parentId ?? undefined) !== (node.parentId ?? undefined);
     if (!moved && !target.changed.has(id)) continue;
-    const data = { ...current.data, ...node.data };
+    // A changed resource's node shows it as it is now, fields taken off it included
+    const data = target.changed.has(id) ? node.data : current.data;
     const { parentId: _, ...rest } = current;
     const parentId = moved ? node.parentId : current.parentId;
     nodes.set(id, { ...rest, type: node.type, data, ...(moved && { position: node.position }), ...(parentId && { parentId }) });

@@ -35,7 +35,7 @@ import { summarise } from '../src/model/to-text';
 import { outlineText } from '../src/model/outline';
 import { applyChanges, type Changes } from '../src/model/changes';
 import { serveDiagram, type DiagramBridgeHandlers } from './diagram-bridge';
-import { changedResources } from './studio/apply-agent-canvas';
+import { agentCanvasFor } from './studio/apply-agent-canvas';
 import { NodeChat, describeNodeForModel, type SelectedNode } from './ported/node-chat';
 import { resourceForNode } from './focus';
 import { DocumentModal } from './DocumentModal';
@@ -231,8 +231,12 @@ export function Diagram({
   const lastBuilt = useRef<StageState | undefined>(builtBefore);
 
   // A new diagram (from the agent, a link or a file): laid out, built up in front of the user, and put on the canvas
+  // The title the agent gave it since (edit_diagram's set_title: the canvas doesn't hold the title)
+  const titleSet = useRef<string>(undefined);
   useEffect(() => {
     let cancelled = false;
+    // A title the agent gave the last diagram isn't this one's
+    titleSet.current = undefined;
     const next = toolPayload.model;
     animateNext.current = (animate || toolPayload === agentPayload.current) && toolPayload !== openedPayload.current;
     if (toolPayload !== openedPayload.current) savedFile.current = undefined;
@@ -293,8 +297,6 @@ export function Diagram({
   }, [toolPayload]);
 
   // What's changed on the canvas goes into the model (for links, files, exports and the agent)
-  // The title the agent gave it since (edit_diagram's set_title: the canvas doesn't hold the title)
-  const titleSet = useRef<string>(undefined);
   const onCanvasChange = useCallback(
     (snapshot: CanvasSnapshot) => {
       const base = titleSet.current ? { ...toolPayload.model, title: titleSet.current } : toolPayload.model;
@@ -693,8 +695,7 @@ export function Diagram({
       const applied = results.filter((result) => result.ok).length;
       if (applied && canvasRef.current) {
         used.current = true;
-        const target = await modelToCanvas(next);
-        const { added } = canvasRef.current.applyAgentCanvas({ ...target, changed: changedResources(current, next) });
+        const { added } = canvasRef.current.applyAgentCanvas(await agentCanvasFor(current, next));
         changes.forEach((change, index) => {
           if (!results[index].ok) return;
           if (change.op === 'add_note') canvasRef.current?.addNote({ nodeId: change.note.resource, text: change.note.text, author: agentName });

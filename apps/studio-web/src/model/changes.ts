@@ -9,6 +9,8 @@ import { z } from 'zod';
 import { Hotspot, Note, Relation, RelationKind, Resource, validateModel, type Model } from '@eventcatalog/visualiser/model';
 
 const id = z.string().min(1).max(120);
+// A resource's fields that can be taken off it (all but its id, type and name)
+const OPTIONAL_FIELDS = Object.keys(Resource.shape).filter((field) => !['id', 'type', 'name'].includes(field)) as [string, ...string[]];
 
 export const Change = z.discriminatedUnion('op', [
   z.object({ op: z.literal('add_resource'), resource: Resource }).describe('Add a resource (set parent to put it in its domain or system)'),
@@ -16,9 +18,10 @@ export const Change = z.discriminatedUnion('op', [
     .object({
       op: z.literal('update_resource'),
       id,
-      set: Resource.omit({ id: true }).partial().describe('Only the fields to change'),
+      set: Resource.omit({ id: true }).partial().optional().describe('Only the fields to change'),
+      unset: z.array(z.enum(OPTIONAL_FIELDS)).optional().describe('Fields to take off it, e.g. ["parent"] to take it out of its domain or system'),
     })
-    .describe("Change a resource's fields (name, summary, parent, technology...)"),
+    .describe("Change a resource's fields (name, summary, parent, technology...), or take some off it (unset)"),
   z.object({ op: z.literal('remove_resource'), id }).describe('Remove a resource, its relations and its hotspots (what was in it stays)'),
   z.object({ op: z.literal('add_relation'), relation: Relation }),
   z
@@ -59,9 +62,16 @@ function applyOne(model: Model, change: Change): Model | string {
     case 'add_resource':
       if (has(change.resource.id)) return `"${change.resource.id}" is already on the diagram: use update_resource to change it.`;
       return { ...model, resources: [...model.resources, change.resource] };
-    case 'update_resource':
+    case 'update_resource': {
       if (!has(change.id)) return `"${change.id}" isn't on the diagram.`;
-      return { ...model, resources: model.resources.map((resource) => (resource.id === change.id ? { ...resource, ...change.set, id: resource.id } : resource)) };
+      if (!change.set && !change.unset?.length) return 'Nothing to change: give set or unset.';
+      const update = (resource: Model['resources'][number]) => {
+        const updated: Record<string, unknown> = { ...resource, ...change.set, id: resource.id };
+        change.unset?.forEach((field) => delete updated[field]);
+        return updated as Model['resources'][number];
+      };
+      return { ...model, resources: model.resources.map((resource) => (resource.id === change.id ? update(resource) : resource)) };
+    }
     case 'remove_resource':
       if (!has(change.id)) return `"${change.id}" isn't on the diagram.`;
       return {

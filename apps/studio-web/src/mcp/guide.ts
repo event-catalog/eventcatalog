@@ -76,7 +76,7 @@ Give every resource a summary when you can: one or two sentences on what it is o
 ## Changing the diagram (edit_diagram)
 A diagram stays open beside the conversation after render_architecture, and the user can change it there too. To change it, call edit_diagram with its diagramId and a list of changes, applied in order:
 - add_resource { resource }: set parent to put it in its domain or system; it's placed next to what it connects to
-- update_resource { id, set }: only the fields that change (name, summary, parent, technology...)
+- update_resource { id, set?, unset? }: set only the fields that change (name, summary, parent, technology...); unset the ones to take off, e.g. ["parent"] to take it out of its domain or system
 - remove_resource { id }: its relations and hotspots go too; what was in it stays
 - add_relation { relation } / remove_relation { from, to, kind? }
 - add_hotspot { hotspot } / remove_hotspot { id }

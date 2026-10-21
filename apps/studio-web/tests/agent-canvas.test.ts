@@ -4,7 +4,7 @@ import type { Node } from '@xyflow/react';
 import { Model } from '@eventcatalog/visualiser/model';
 import { addNodes, canvasToModel, getCanvasMaps, modelToCanvas } from '@eventcatalog/visualiser/studio';
 import { applyChanges, type Changes } from '../src/model/changes';
-import { applyAgentCanvasToDoc, changedResources } from '../view/studio/apply-agent-canvas';
+import { agentCanvasFor, applyAgentCanvasToDoc } from '../view/studio/apply-agent-canvas';
 
 const EVENTS = ['OrderPlaced', 'OrderCreated', 'OrderConfirmed'];
 const orders = Model.parse({
@@ -32,7 +32,7 @@ async function edit(doc: Y.Doc, base: Model, changes: Changes) {
   const { nodes, edges, hotspots } = getCanvasMaps(doc);
   const current = canvasToModel([...nodes.values()], [...edges.values()], { 1: new Map(), 2: new Map() }, base, [], [...hotspots.values()]);
   const { model, results } = applyChanges(current, changes);
-  const target = { ...(await modelToCanvas(model)), changed: changedResources(current, model) };
+  const target = await agentCanvasFor(current, model);
   return { results, model, ...doc.transact(() => applyAgentCanvasToDoc(doc, target)) };
 }
 
@@ -80,6 +80,21 @@ describe("the agent's changes on the canvas", () => {
     expect(node(doc, 'OrderCreated')).toBeUndefined();
     expect([...getCanvasMaps(doc).edges.values()].some((edge) => edge.target === 'OrderCreated' || edge.source === 'OrderCreated')).toBe(false);
     expect(getCanvasMaps(doc).hotspots.has('h1')).toBe(false);
+  });
+
+  it('takes a service out of its domain to where it can be seen, and drops a field taken off it from its node', async () => {
+    const doc = await canvasOf(Model.parse({ ...orders, resources: orders.resources.map((r) => (r.id === 'ordering-service' ? { ...r, summary: 'Takes orders.' } : r)) }));
+    expect(JSON.stringify(node(doc, 'ordering-service')!.data)).toContain('Takes orders.');
+    const { results, changed } = await edit(doc, orders, [{ op: 'update_resource', id: 'ordering-service', unset: ['parent', 'summary'] }]);
+    expect(results[0].ok).toBe(true);
+    expect(changed).toEqual(['ordering-service']);
+    const service = node(doc, 'ordering-service')!;
+    expect(service.parentId).toBeUndefined();
+    expect(JSON.stringify(service.data)).not.toContain('Takes orders.');
+    // Placed again on the canvas, not where it was inside the domain (that place was relative to the domain)
+    const domain = node(doc, 'order')!;
+    const inDomain = service.position.x >= domain.position.x && service.position.x < domain.position.x + (domain.width ?? 0) && service.position.y >= domain.position.y && service.position.y < domain.position.y + (domain.height ?? 0);
+    expect(inDomain).toBe(false);
   });
 
   it('writes nothing when nothing changes', async () => {
