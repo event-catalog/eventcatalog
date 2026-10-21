@@ -30,3 +30,21 @@ export function createRateLimiter({ perMinute = 60, perDay = 1000 } = {}) {
     return undefined;
   };
 }
+
+// Chat hosts call from a few shared addresses for all their users, so one address's limits would be every ChatGPT
+// (or Claude) user's together: requests from their clients are counted apart, with higher limits
+const HOST_CLIENTS = new Set(['openai-mcp', 'claude-user', 'claude-ai']);
+
+/**
+ * The MCP endpoint's limits, always per address: the user agent is the caller's to say, so changing it never gets
+ * another quota, and claiming to be a chat host only ever gets that address the host's. Open diagrams waiting for
+ * what the agent asks of them (they call again whenever a wait returns, ~15s) are counted on their own. Returns why
+ * a request is refused, or undefined
+ */
+export function createMcpRateLimits() {
+  const people = createRateLimiter();
+  const hosts = createRateLimiter({ perMinute: 600, perDay: 50_000 });
+  const waits = createRateLimiter({ perMinute: 600, perDay: 100_000 });
+  return ({ ip, client, waiting }: { ip: string; client: string; waiting: boolean }) =>
+    (waiting ? waits : HOST_CLIENTS.has(client) ? hosts : people)(ip);
+}

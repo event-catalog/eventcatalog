@@ -21,7 +21,7 @@ async function connect(baseURL: string) {
 }
 
 /** The host: the view in an iframe on `page`, its messages relayed to and from an AppBridge on `client` */
-async function hostView(page: Page, client: Client, html: string) {
+async function hostView(page: Page, client: Client, html: string, hook: Record<string, unknown> = {}) {
   await page.goto('/health');
   await page.setContent('<iframe id="view" style="width:1400px;height:900px;border:0"></iframe>');
   type Message = Parameters<NonNullable<AppBridgeTransport['onmessage']>>[0];
@@ -54,7 +54,7 @@ async function hostView(page: Page, client: Client, html: string) {
   const initialized = new Promise<void>((resolve) => (bridge.oninitialized = () => resolve()));
   await bridge.connect(transport);
   // The canvas's test hook, set up before the view loads (as the other browser tests do)
-  await page.evaluate((page) => (document.querySelector('iframe')!.srcdoc = page), html.replace('<head>', '<head><script>window.__studioTest = {}</script>'));
+  await page.evaluate((page) => (document.querySelector('iframe')!.srcdoc = page), html.replace('<head>', `<head><script>window.__studioTest = ${JSON.stringify(hook)}</script>`));
   await initialized;
   const frame = () => page.frames().find((frame) => frame !== page.mainFrame())!;
   const nodes = () => frame().evaluate(() => ((window as unknown as { __studioTest: { nodes?: () => CanvasNode[] } }).__studioTest.nodes?.() ?? []));
@@ -174,6 +174,39 @@ test('the agent changes the diagram the user has open, in place', async ({ page,
 
   // And the model's context names the diagram, to change it by
   await expect.poll(() => contexts.some((context) => context.includes(diagramId) && context.includes('edit_diagram'))).toBe(true);
+
+  await host.close();
+  await agent.close();
+});
+
+test("an edit sent while the diagram is still opening waits for it, and isn't reported as made when it wasn't", async ({ page, baseURL }) => {
+  test.setTimeout(60_000);
+  const host = await connect(baseURL!);
+  const agent = await connect(baseURL!);
+  const rendered = await agent.callTool({ name: 'render_architecture', arguments: { model } });
+  const { diagramId } = textOf(rendered);
+  const resource = await host.readResource({ uri: 'ui://eventcatalog/architecture' });
+  // Its layout held up for a moment: the edit comes while it's still being laid out
+  const { bridge, nodes } = await hostView(page, host, (resource.contents[0] as { text: string }).text, { layoutDelayMs: 1500 });
+  await bridge.sendToolInput({ arguments: { model } });
+  await bridge.sendToolResult(rendered as Parameters<AppBridge['sendToolResult']>[0]);
+
+  // Straight away, while it's still being laid out (once its view is waiting for requests)
+  const edit = async () =>
+    textOf(
+      await agent.callTool({
+        name: 'edit_diagram',
+        arguments: { diagramId, changes: [{ op: 'add_resource', resource: { id: 'billing', type: 'domain', name: 'Billing' } }] },
+      })
+    );
+  let edited = await edit();
+  // (the view may not be waiting yet: the agent's told the diagram isn't open, and tries again)
+  for (let tries = 0; edited.error?.includes("doesn't have that diagram open") && tries < 500; tries++) {
+    await page.waitForTimeout(10);
+    edited = await edit();
+  }
+  expect(edited.note).toContain('Made 1 of 1');
+  await expect.poll(async () => (await nodes()).some((node) => node.id === 'billing'), { timeout: 10_000 }).toBe(true);
 
   await host.close();
   await agent.close();

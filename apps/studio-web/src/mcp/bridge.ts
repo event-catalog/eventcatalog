@@ -110,14 +110,15 @@ export function answerRequest(diagramId: string, secret: string, requestId: stri
 
 /**
  * Asks the open diagram for something and waits for its answer: 'answered' (with it), 'not_open' when no view of
- * it is waiting (closed, or a client that doesn't show diagrams), or 'not_answered' when one was but didn't answer
- * in time (out of sight, busy): an edit stays asked of it, to be done when it's back; a read is dropped
+ * it is waiting (closed, or a client that doesn't show diagrams), 'not_taken' when one was but didn't take it in
+ * time (out of sight): the request is dropped, never left to be done later (nothing here keeps it that long), or
+ * 'not_answered' when the view took it but hasn't answered yet (it may still be done)
  */
 export async function ask(
   diagramId: string,
   request: Ask,
   { answerMs = ANSWER_MS } = {}
-): Promise<{ outcome: 'answered'; answer: unknown } | { outcome: 'not_open' } | { outcome: 'not_answered' } | { outcome: 'busy' }> {
+): Promise<{ outcome: 'answered'; answer: unknown } | { outcome: 'not_open' } | { outcome: 'not_taken' } | { outcome: 'not_answered' } | { outcome: 'busy' }> {
   const channel = channels.get(diagramId);
   if (!channel || !isOpen(channel)) return { outcome: 'not_open' };
   if (channel.pending.length >= MAX_PENDING) return { outcome: 'busy' };
@@ -135,10 +136,11 @@ export async function ask(
       resolve(value);
     });
   });
-  if (answer === NOT_ANSWERED || answer === undefined) {
-    // A read nobody took is no use later
-    if (asked.kind === 'read') channel.pending = channel.pending.filter((pending) => pending !== asked);
-    return { outcome: answer === undefined ? 'not_open' : 'not_answered' };
+  if (answer === undefined) return { outcome: 'not_open' };
+  if (answer === NOT_ANSWERED) {
+    const taken = !channel.pending.includes(asked);
+    channel.pending = channel.pending.filter((pending) => pending !== asked);
+    return { outcome: taken ? 'not_answered' : 'not_taken' };
   }
   return { outcome: 'answered', answer };
 }

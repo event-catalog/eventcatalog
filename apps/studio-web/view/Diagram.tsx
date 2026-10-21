@@ -77,6 +77,16 @@ import { bump, configureAnalytics, durationBucket, modelMix, modelStats as diagr
 
 
 const LEVEL_NUMBERS = { overview: 1, services: 2, messages: 3 } as const;
+// How long an agent's edit waits for a diagram still being laid out (under the server's wait for its answer)
+const CANVAS_READY_MS = 6000;
+/** Waits (a tenth of a second at a time) until `ready`, or `ms` go by; whether it got there */
+async function waitUntil(ready: () => boolean, ms: number) {
+  for (const until = Date.now() + ms; !ready(); ) {
+    if (Date.now() > until) return false;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  return true;
+}
 const FULL_PAGE = { height: '100vh' };
 const INLINE = { height: INLINE_HEIGHT };
 
@@ -244,7 +254,11 @@ export function Diagram({
       };
     }
     const level = toolPayload.level ?? 'messages';
-    buildOpeningGraphs(next, focus, level)
+    // Browser tests can hold the layout up (window.__studioTest.layoutDelayMs, only when they set it up), to send
+    // the agent's edits while a diagram is still opening
+    const testDelay = (window as { __studioTest?: { layoutDelayMs?: number } }).__studioTest?.layoutDelayMs ?? 0;
+    new Promise((resolve) => setTimeout(resolve, testDelay))
+      .then(() => buildOpeningGraphs(next, focus, level))
       .then(async ({ canvas: built, opening }) => {
         if (cancelled) return;
         // Arranged before (it has a layout): as it was; else where the diagram puts things, so the build ends there
@@ -665,9 +679,15 @@ export function Diagram({
   // Its changes go on the model as the canvas has it now (with what people changed), and only what's different is
   // written to the canvas: what's there stays where it is, what's new is placed next to what it connects to
   const bridge = useRef<DiagramBridgeHandlers>(undefined);
+  // An edit can come while the diagram is still being laid out (right after render_architecture): it waits for the
+  // canvas to have it, else is turned down (never answered as made when it wasn't)
+  const contentRef = useRef(content);
+  contentRef.current = content;
+  const canvasReady = () => !!canvasRef.current && contentRef.current !== null && canvasRef.current.snapshot().nodes.length > 0;
   bridge.current = {
     read: () => ({ model: latestModel.current }),
     edit: async (changes, { reorder } = {}) => {
+      if (!(await waitUntil(canvasReady, CANVAS_READY_MS))) return { error: 'The diagram is still opening.' };
       const current = latestModel.current;
       const { model: next, results } = applyChanges(current, changes);
       const applied = results.filter((result) => result.ok).length;

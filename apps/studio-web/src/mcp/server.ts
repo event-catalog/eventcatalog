@@ -170,11 +170,22 @@ export function createMcpServer({ baseUrl, report = () => {}, log = () => {} }: 
       report({ changes: sizeBucket(changes.length), outcome: result.outcome, ok: result.outcome === 'answered' });
       if (result.outcome === 'not_open') return text({ error: NOT_OPEN }, true);
       if (result.outcome === 'busy') return text({ error: 'The diagram has too many changes waiting. Try again in a moment.' }, true);
+      if (result.outcome === 'not_taken')
+        return text(
+          {
+            error:
+              "The diagram didn't take the changes: it isn't being shown right now (the user may be on another tab). Nothing was changed. Ask them to go back to it, then send the changes again.",
+          },
+          true
+        );
       if (result.outcome === 'not_answered')
         return text({
-          note: "Sent to the diagram the user has open; it hasn't confirmed it yet (it may be out of sight). It changes when they're back on it. Don't call render_architecture.",
+          note: "The diagram took the changes but hasn't confirmed them yet: they may still be made. Check with read_diagram before sending them again. Don't call render_architecture.",
           diagramId: id,
         });
+      // The diagram couldn't make them (e.g. still opening)
+      const failure = (result.answer as { error?: unknown }).error;
+      if (typeof failure === 'string') return text({ error: `${failure} Nothing was changed: send the changes again.` }, true);
       const answer = result.answer as EditAnswer;
       const failed = answer.results.filter((change) => !change.ok);
       const applied = answer.results.length - failed.length;

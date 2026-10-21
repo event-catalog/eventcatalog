@@ -17,7 +17,7 @@ import { createMcpServer, WAIT_TOOL } from './mcp/server';
 import { attachRooms } from './rooms';
 import { DIST_DIRECTORY } from './paths';
 import type { Server as HttpServer } from 'node:http';
-import { createRateLimiter, MAX_BODY_BYTES } from './lib/limits';
+import { createMcpRateLimits, MAX_BODY_BYTES } from './lib/limits';
 import { noteMessage, noteResponse, reportException, reportMcpCall, reportRejected, userAgentFamily, type McpCall } from './analytics';
 import { POSTHOG_ORIGIN } from './lib/posthog';
 
@@ -30,15 +30,7 @@ const gzip = promisify(zlib.gzip);
 const brotli = promisify(zlib.brotliCompress);
 
 const app = new Hono();
-const isRateLimited = createRateLimiter();
-// Chat hosts call from a few shared addresses for all their users, so one address's limits would be every ChatGPT
-// (or Claude) user's together: their clients get their own, much higher ones. Counted per address and client, so a
-// client calling itself one of them only gets those limits, never anyone else's
-const HOST_CLIENTS = new Set(['openai-mcp', 'claude-user', 'claude-ai']);
-const isHostRateLimited = createRateLimiter({ perMinute: 3000, perDay: 500_000 });
-// Open diagrams waiting for what the agent asks of them call again whenever a wait returns (every ~15s each, from the
-// chat's servers: many people share an address), so they're counted on their own
-const isWaitRateLimited = createRateLimiter({ perMinute: 600, perDay: 100_000 });
+const isRateLimited = createMcpRateLimits();
 /** Whether a request is an open diagram waiting for requests (small: read without taking the body) */
 async function isWaitingForRequests(request: Request) {
   if (Number(request.headers.get('content-length') ?? Infinity) > 4096) return false;
@@ -108,9 +100,11 @@ const tooLarge = (c: Context) => {
 };
 
 app.post('/mcp', bodyLimit({ maxSize: MAX_BODY_BYTES, onError: tooLarge }), async (c) => {
-  const client = userAgentFamily(c.req.raw.headers.get('user-agent') ?? '');
-  const limiter = (await isWaitingForRequests(c.req.raw)) ? isWaitRateLimited : HOST_CLIENTS.has(client) ? isHostRateLimited : isRateLimited;
-  const limited = limiter(`${clientIp(c.req.raw.headers)}|${client}`);
+  const limited = isRateLimited({
+    ip: clientIp(c.req.raw.headers),
+    client: userAgentFamily(c.req.raw.headers.get('user-agent') ?? ''),
+    waiting: await isWaitingForRequests(c.req.raw),
+  });
   if (limited) {
     reportRejected('rate_limited', callerOf(c.req.raw));
     return c.json(jsonRpcError(limited), 429);

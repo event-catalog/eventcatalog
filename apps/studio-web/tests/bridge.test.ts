@@ -55,11 +55,17 @@ describe('the bridge to the open diagram', () => {
     expect(await ask(newDiagramId(), { kind: 'read' })).toEqual({ outcome: 'not_open' });
 
     const id = newDiagramId();
-    await waitForRequests(id, SECRET, { waitMs: 1 }); // waited once, then stopped
-    expect((await ask(id, { kind: 'edit', changes: [] }, { answerMs: 50 })).outcome).toBe('not_answered');
-    // The edit stays asked of it: it's done when the view's back
+    await waitForRequests(id, SECRET, { waitMs: 1 }); // waited once, then stopped (out of sight)
+    expect((await ask(id, { kind: 'edit', changes: [] }, { answerMs: 50 })).outcome).toBe('not_taken');
+    // Not kept to be done later (nothing here keeps it that long): the agent's told it wasn't made
     const later = await waitForRequests(id, SECRET, { waitMs: 1 });
-    expect('requests' in later && later.requests.map((request) => request.kind)).toEqual(['edit']);
+    expect('requests' in later && later.requests).toEqual([]);
+
+    // Taken, but not answered in time: it may still be made
+    const taking = waitForRequests(id, SECRET, { waitMs: 1000 }); // takes it, and never answers
+    const asking = ask(id, { kind: 'edit', changes: [] }, { answerMs: 100 });
+    expect('requests' in (await taking) && (await taking as { requests: unknown[] }).requests).toHaveLength(1);
+    expect((await asking).outcome).toBe('not_answered');
   });
 
   it('keeps a diagram to the view that has it open: another secret can neither wait for its requests nor answer them', async () => {
@@ -133,6 +139,17 @@ describe('edit_diagram and read_diagram, through the open view', () => {
     const read = textOf(await client.callTool({ name: 'read_diagram', arguments: { diagramId: id } }));
     expect(read.model.resources).toHaveLength(model.resources.length);
     expect(read.model.layout).toBeUndefined();
+    view.close();
+  });
+
+  it("tells the agent when the open diagram couldn't make the changes, and that nothing was changed", async () => {
+    const client = await connect();
+    const id = newDiagramId();
+    const view = openView(id, () => ({ error: 'The diagram is still opening.' }));
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    const result = await client.callTool({ name: 'edit_diagram', arguments: { diagramId: id, changes: [{ op: 'set_title', title: 'x' }] } });
+    expect(result.isError).toBe(true);
+    expect(textOf(result).error).toContain('Nothing was changed');
     view.close();
   });
 
