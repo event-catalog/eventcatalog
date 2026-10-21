@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { ChevronRightIcon } from '@heroicons/react/20/solid';
 
 interface AvroSchemaViewerProps {
   schema: any;
@@ -124,14 +125,14 @@ const AvroField = ({ field, level, expand, showRequired }: AvroFieldProps) => {
     <div className={`avro-field-container mb-2 border-l border-[rgb(var(--ec-page-border))] ${indentClass}`}>
       <div className="flex space-x-2">
         {/* Collapse/Expand button */}
-        <div className="flex-shrink-0 w-4 pt-0.5">
+        <div className="flex-shrink-0 w-4">
           {hasNested ? (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="avro-field-toggle text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] w-4 text-center"
+              className="avro-field-toggle flex h-5 w-4 items-center justify-center text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
               aria-expanded={isExpanded}
             >
-              <span className="font-mono text-xs">{isExpanded ? '▼' : '▶'}</span>
+              <ChevronRightIcon className={`h-3.5 w-3.5 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
             </button>
           ) : null}
         </div>

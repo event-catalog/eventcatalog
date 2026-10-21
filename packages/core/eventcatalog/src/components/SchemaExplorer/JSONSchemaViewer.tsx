@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useId } from 'react';
+import { ChevronRightIcon } from '@heroicons/react/20/solid';
 
 interface JSONSchemaViewerProps {
   schema: any;
@@ -324,19 +325,18 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
             aria-expanded={isExpanded}
             aria-controls={contentId}
             onClick={() => setIsExpanded(!isExpanded)}
-            className="property-toggle text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] pt-0.5 focus:outline-hidden w-3 text-center flex-shrink-0"
+            className="property-toggle flex h-5 w-4 flex-shrink-0 items-center justify-center text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] focus:outline-hidden"
           >
-            <span className={`icon-collapsed font-mono text-xs ${isExpanded ? 'hidden' : ''}`}>&gt;</span>
-            <span className={`icon-expanded font-mono text-xs ${!isExpanded ? 'hidden' : ''}`}>v</span>
+            <ChevronRightIcon className={`h-3.5 w-3.5 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
           </button>
         ) : (
-          <div className="w-3 h-4 flex-shrink-0" />
+          <div className="w-4 h-5 flex-shrink-0" />
         )}
 
         <div className="flex-grow">
           <div className="-mx-1 rounded px-1 transition-colors hover:bg-[rgb(var(--ec-content-hover))]">
             <div className="flex justify-between items-baseline">
-              <div>
+              <div className="text-sm">
                 <span className="font-semibold text-[rgb(var(--ec-page-text))] text-sm">{name}</span>
                 <span className="ml-1.5 text-[rgb(var(--ec-accent))] font-mono text-xs">
                   {hasVariants ? (details.variantType === 'anyOf' ? 'anyOf' : 'oneOf') : formatType(details.type)}
