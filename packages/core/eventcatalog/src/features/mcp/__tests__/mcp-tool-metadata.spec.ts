@@ -271,7 +271,7 @@ describe('MCP tool metadata', () => {
       });
     });
 
-    it('stamps every result shown in the viewer, and leaves the host its own session ids', async () => {
+    it('ties every result to one viewer, so hosts update the viewer they show instead of showing another', async () => {
       await createGlobalServer();
 
       const diagram = await getTool('showResource')!.handler({
@@ -279,11 +279,27 @@ describe('MCP tool metadata', () => {
         resourceId: 'payments',
         resourceCollection: 'domains',
       });
+      const schema = await getTool('showResource')!.handler({
+        view: 'schema',
+        resourceId: 'OrderCreated',
+        resourceCollection: 'events',
+      });
 
-      // Each call shows a new view (MCP Apps): the stamp tells the views which result is newest
-      expect(diagram._meta['eventcatalog/view-instance']).toMatchObject({ id: expect.any(String) });
-      // openai/widgetSessionId is ChatGPT's, set by the host for the view it mounts
-      expect(diagram._meta['openai/widgetSessionId']).toBeUndefined();
+      expect(diagram._meta['openai/widgetSessionId']).toBe('eventcatalog');
+      expect(schema._meta['openai/widgetSessionId']).toBe('eventcatalog');
+    });
+
+    it('keeps a domain-scoped server to its own viewer', async () => {
+      const { ALL } = await import('../mcp-server');
+      await ALL({ request: initializeRequest('http://localhost:4321/docs/mcp/domains/payments') } as any);
+
+      const result = await getTool('showResource')!.handler({
+        view: 'architecture',
+        resourceId: 'payments',
+        resourceCollection: 'domains',
+      });
+
+      expect(result._meta['openai/widgetSessionId']).toBe('eventcatalog:domain:payments');
     });
 
     describe('architecture view', () => {

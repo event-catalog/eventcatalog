@@ -396,7 +396,7 @@ export const Model = z.object({
       "Hotspots: what people should know about the architecture (risks, problems, the key parts), each on a resource. Keep the ones there are when you change the diagram",
     ),
   layout: Layout.optional().describe(
-    "Where things are on the canvas (set by the view when people arrange it): copy it as it is when you change the diagram, and don't add places for what you add (new resources are placed next to what they connect to, inside their parent)",
+    "Where things are on the canvas: set by the view when people arrange it. Leave it out (new resources are placed next to what they connect to, inside their parent)",
   ),
 });
 export type Model = z.infer<typeof Model>;

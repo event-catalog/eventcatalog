@@ -2,13 +2,12 @@
  * Connecting the EventCatalog viewer MCP App to the host, loading the tool result's payload, following the
  * host's theme and display mode, and mounting the view.
  */
-import { useEffect, useRef, useState, type ComponentType, type CSSProperties } from 'react';
+import { useEffect, useState, type ComponentType, type CSSProperties } from 'react';
 import { config as configureZod } from 'zod';
 import { createRoot } from 'react-dom/client';
 import type { App, McpUiHostContext } from '@modelcontextprotocol/ext-apps';
 import { useApp } from '@modelcontextprotocol/ext-apps/react';
 import type { CallToolResult } from '@modelcontextprotocol/client';
-import { isViewInstance, VIEW_INSTANCE_META_KEY, watchViews, type ViewInstance } from './view-instance';
 
 // MCP hosts block eval in views, so stop zod (used by the MCP Apps SDK) from probing for it
 configureZod({ jitless: true });
@@ -50,11 +49,6 @@ type McpAppViewOptions<Payload> = {
   /** The view tool's arguments, from the model-facing tool result's text */
   getViewToolArguments: (text: Record<string, any>) => Record<string, unknown>;
   loadErrorMessage: string;
-  /**
-   * The tool's arguments as the model writes them, before the tool runs (hosts that stream them): partial, with
-   * unfinished strings closed, so only good for a preview
-   */
-  onToolInputPartial?: (args: Record<string, unknown>) => void;
 };
 
 /** The payload from a tool result, or loaded through the app-only tool when the host doesn't pass `_meta` */
@@ -80,33 +74,19 @@ export function useMcpAppView<Payload>(options: McpAppViewOptions<Payload>) {
   const [payload, setPayload] = useState<Payload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hostContext, setHostContext] = useState<McpUiHostContext | undefined>();
-  // Which result this view shows (stamped by the server), and whether another view shows a newer one
-  const [instance, setInstance] = useState<ViewInstance>();
-  const [superseded, setSuperseded] = useState(false);
-  // The tool call was cancelled (by the user or the host) before it had a result
-  const [cancelled, setCancelled] = useState(false);
-  const optionsRef = useRef(options);
-  optionsRef.current = options;
 
   const { app, error: connectionError } = useApp({
     appInfo: { name: options.name, version: '1.0.0' },
     // The views fit inline and have a full screen button (the server asks hosts to open them full screen)
     capabilities: { availableDisplayModes: ['inline', 'fullscreen'] },
-    // Listeners go on before the view connects: hosts send the tool's input and result as soon as it has
+    // Listeners go on before the view connects: hosts send the tool's result as soon as it has
     onAppCreated: (createdApp) => {
-      createdApp.addEventListener('toolinputpartial', ({ arguments: args }) => {
-        if (args) optionsRef.current.onToolInputPartial?.(args);
-      });
-      createdApp.addEventListener('toolcancelled', () => setCancelled(true));
       createdApp.addEventListener('toolresult', (result) => {
-        setCancelled(false);
         if (result.isError) {
-          setError(result.content?.find((item) => item.type === 'text')?.text ?? optionsRef.current.loadErrorMessage);
+          setError(result.content?.find((item) => item.type === 'text')?.text ?? options.loadErrorMessage);
           return;
         }
-        const stamp = result._meta?.[VIEW_INSTANCE_META_KEY];
-        if (isViewInstance(stamp)) setInstance(stamp);
-        loadPayload(createdApp, result, optionsRef.current)
+        loadPayload(createdApp, result, options)
           .then(setPayload)
           .catch((loadError) => setError(String(loadError?.message ?? loadError)));
       });
@@ -123,37 +103,8 @@ export function useMcpAppView<Payload>(options: McpAppViewOptions<Payload>) {
     setHostContext(context);
   }, [app]);
 
-  // Hosts keep every view in the conversation running: only one keeps the model's context up to date, the newest
-  // result's, or the one someone last used (clicked or typed in)
-  useEffect(() => {
-    if (!instance) return;
-    setSuperseded(false);
-    let active = true;
-    const views = watchViews(instance, (isActive) => {
-      active = isActive;
-      setSuperseded(!isActive);
-    });
-    const use = () => !active && views.claim();
-    document.addEventListener('pointerdown', use, true);
-    document.addEventListener('keydown', use, true);
-    return () => {
-      views.stop();
-      document.removeEventListener('pointerdown', use, true);
-      document.removeEventListener('keydown', use, true);
-    };
-  }, [instance?.id]);
-
   // setPayload: views that switch what they show themselves (e.g. picking a canvas) without a new tool result
-  return {
-    app,
-    payload,
-    setPayload,
-    error: connectionError?.message ?? error,
-    hostContext,
-    instance,
-    superseded,
-    cancelled,
-  };
+  return { app, payload, setPayload, error: connectionError?.message ?? error, hostContext };
 }
 
 /** Adds the view's styles and renders it */
