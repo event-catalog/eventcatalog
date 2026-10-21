@@ -6,7 +6,7 @@
  * agents in the browser (WebMCP).
  */
 import { z } from 'zod';
-import { Hotspot, Note, Relation, RelationKind, Resource, validateModel, type Model } from '@eventcatalog/visualiser/model';
+import { Hotspot, Model, Note, Relation, RelationKind, Resource, validateModel } from '@eventcatalog/visualiser/model';
 
 const id = z.string().min(1).max(120);
 // A resource's fields that can be taken off it (all but its id, type and name)
@@ -52,6 +52,18 @@ export type ChangeResult = { index: number; op: Change['op']; ok: boolean; error
 
 // Validation errors name relations by their index, which moves as relations come and go
 const normalised = (errors: string[]) => new Set(errors.map((error) => error.replace(/^Relation \d+ /, 'Relation ')));
+
+// What a diagram has at most of each (the model's limits): a change that takes one past it is turned down, else
+// the diagram would no longer be a model (its link wouldn't open). Only growing is checked: a canvas can be emptied
+const COLLECTIONS = ['resources', 'relations', 'notes', 'hotspots'] as const;
+function overLimit(before: Model, after: Model) {
+  for (const collection of COLLECTIONS) {
+    if ((after[collection]?.length ?? 0) <= (before[collection]?.length ?? 0)) continue;
+    const checked = Model.shape[collection].safeParse(after[collection]);
+    if (!checked.success) return `The diagram can't have more ${collection}: ${checked.error.issues[0].message}.`;
+  }
+  return undefined;
+}
 
 const without = <T,>(items: T[] | undefined, keep: (item: T) => boolean) => items?.filter(keep);
 
@@ -122,6 +134,8 @@ export function applyChanges(model: Model, changes: Changes): { model: Model; re
   const results = changes.map((change, index): ChangeResult => {
     const next = applyOne(current, change);
     if (typeof next === 'string') return { index, op: change.op, ok: false, error: next };
+    const tooMany = overLimit(current, next);
+    if (tooMany) return { index, op: change.op, ok: false, error: tooMany };
     const errors = validateModel(next).errors;
     const added = errors.filter((error) => !known.has(error.replace(/^Relation \d+ /, 'Relation ')));
     if (added.length) return { index, op: change.op, ok: false, error: added.join(' ') };

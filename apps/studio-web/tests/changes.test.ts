@@ -61,6 +61,23 @@ describe('applyChanges', () => {
     expect(next.relations.some((relation) => relation.from === event.id || relation.to === event.id)).toBe(false);
   });
 
+  it("keeps the diagram within the model's limits (so its link still opens), and can still empty it", () => {
+    const full = { ...model, resources: [...model.resources, ...Array.from({ length: 300 - model.resources.length }, (_, i) => ({ id: `extra-${i}`, type: 'domain' as const, name: `Extra ${i}` }))] };
+    const { model: next, results } = applyChanges(full, [
+      { op: 'add_resource', resource: { id: 'one-too-many', type: 'domain', name: 'One too many' } },
+      { op: 'remove_resource', id: 'extra-0' },
+      { op: 'add_resource', resource: { id: 'in-its-place', type: 'domain', name: 'In its place' } },
+    ]);
+    expect(results.map((result) => result.ok)).toEqual([false, true, true]);
+    expect(results[0].error).toMatch(/can't have more resources/);
+    expect(next.resources).toHaveLength(300);
+    expect(Model.safeParse(next).success).toBe(true);
+
+    const emptied = applyChanges(model, model.resources.map((resource) => ({ op: 'remove_resource' as const, id: resource.id })));
+    expect(emptied.results.every((result) => result.ok)).toBe(true);
+    expect(emptied.model.resources).toHaveLength(0);
+  });
+
   it('is what edit_diagram takes: hotspots get ids, unknown ops are refused', () => {
     const parsed = Changes.parse([{ op: 'add_hotspot', hotspot: { title: 'No retries', resource: service.id } }]);
     expect(parsed[0].op === 'add_hotspot' && parsed[0].hotspot.id).toBeTruthy();
