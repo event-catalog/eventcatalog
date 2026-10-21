@@ -145,6 +145,7 @@ const ProtobufFieldRow = ({ field, level, expand, showRequired, registry, packag
           <button
             type="button"
             aria-expanded={isExpanded}
+            aria-label={`Toggle ${field.name}`}
             onClick={() => setIsExpanded(!isExpanded)}
             className="proto-field-toggle flex h-5 w-4 flex-shrink-0 items-center justify-center text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] focus:outline-hidden"
           >

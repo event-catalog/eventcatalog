@@ -131,6 +131,7 @@ const AvroField = ({ field, level, expand, showRequired }: AvroFieldProps) => {
               onClick={() => setIsExpanded(!isExpanded)}
               className="avro-field-toggle flex h-5 w-4 items-center justify-center text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
               aria-expanded={isExpanded}
+              aria-label={`Toggle ${field.name}`}
             >
               <ChevronRightIcon className={`h-3.5 w-3.5 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
             </button>

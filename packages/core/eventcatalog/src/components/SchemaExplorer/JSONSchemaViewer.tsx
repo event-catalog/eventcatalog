@@ -324,6 +324,7 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
             type="button"
             aria-expanded={isExpanded}
             aria-controls={contentId}
+            aria-label={`Toggle ${name}`}
             onClick={() => setIsExpanded(!isExpanded)}
             className="property-toggle flex h-5 w-4 flex-shrink-0 items-center justify-center text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] focus:outline-hidden"
           >
