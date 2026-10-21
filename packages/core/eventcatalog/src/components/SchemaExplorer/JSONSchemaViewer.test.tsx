@@ -111,4 +111,14 @@ describe('JSONSchemaViewer variants', () => {
     expect(container.textContent).not.toContain('customerId');
     expect(container.textContent?.match(/correlationId/g)).toHaveLength(1);
   });
+
+  it('names the expand toggle of a nested property after the property', () => {
+    act(() => {
+      root.render(createElement(JSONSchemaViewer, { schema: constraintOnlyVariantSchema, expand: false, search: false }));
+    });
+
+    const toggle = container.querySelector('.property-toggle');
+    expect(toggle?.getAttribute('aria-label')).toBe('Toggle detail');
+    expect(toggle?.getAttribute('aria-expanded')).toBe('false');
+  });
 });
