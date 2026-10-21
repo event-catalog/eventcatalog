@@ -52,7 +52,7 @@ const CANVAS_ICON_SVG =
 const CANVAS_ICON = { src: `data:image/svg+xml;base64,${btoa(CANVAS_ICON_SVG)}`, mimeType: 'image/svg+xml', sizes: ['20x20'] };
 
 const text = (value: unknown, isError = false) => ({
-  content: [{ type: 'text' as const, text: typeof value === 'string' ? value : JSON.stringify(value, null, 2) }],
+  content: [{ type: 'text' as const, text: typeof value === 'string' ? value : JSON.stringify(value) }],
   ...(isError && { isError }),
 });
 

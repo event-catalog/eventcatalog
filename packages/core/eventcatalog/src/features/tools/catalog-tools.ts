@@ -4,8 +4,8 @@
  */
 import { getCollection } from 'astro:content';
 import { z } from 'zod';
-import { getSchemasFromResource, getSchemaFormatFromURL } from '@utils/collections/schemas';
-import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import { getSchemaFormatFromURL } from '@utils/collections/schemas';
+import { getItemsFromCollectionByIdAndSemverOrLatest, processSpecifications, versionMatches } from '@utils/collections/util';
 import { getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import fs from 'node:fs';
@@ -280,6 +280,74 @@ export async function getResource(params: { collection: string; id: string; vers
 
 type MessagePointer = { id: string; version?: string };
 
+type MessageEntry = { collection: string; data: { id: string; version: string } };
+
+/** Resources that send and receive messages, and the collections that hold them */
+const MESSAGING_COLLECTIONS = ['services', 'agents', 'domains'] as const;
+
+/** Old versions live in a versioned folder: what they send and receive is history, not the catalog today */
+const isLatestVersion = (entry: { filePath?: string }) => !entry.filePath?.includes('versioned');
+
+/**
+ * Whether a sends/receives pointer points at this version of a message, as on the message's pages: one without a
+ * version (or "latest") points at the latest version only; others match exactly, by semver range or by x-pattern (1.x)
+ */
+const pointsAtMessage = (pointer: MessagePointer, message: MessageEntry, latestVersion: string) => {
+  if (pointer.id !== message.data.id) return false;
+  if (!pointer.version || pointer.version === 'latest') return message.data.version === latestVersion;
+  return versionMatches(message.data.version, pointer.version);
+};
+
+/** The services, agents and domains (latest versions) that send (or receive) this version of a message */
+const getResourcesThat = async (direction: 'sends' | 'receives', message: MessageEntry) => {
+  const [latestMessage, ...collections] = await Promise.all([
+    findEntry(message.collection, message.data.id),
+    ...MESSAGING_COLLECTIONS.map((collection) => getCollection(collection)),
+  ]);
+  const latestVersion = latestMessage?.data.version ?? message.data.version;
+
+  return collections
+    .flat()
+    .filter(isLatestVersion)
+    .filter((resource) =>
+      ((resource.data as any)[direction] || []).some((pointer: MessagePointer) =>
+        pointsAtMessage(pointer, message, latestVersion)
+      )
+    );
+};
+
+/**
+ * The resources a domain or system is made of, with it: its services and agents, and for a domain its systems and
+ * subdomains (and everything inside them)
+ */
+const getResourcesInside = async (container: any) => {
+  const [domains, systems, services, agents] = await Promise.all(
+    (['domains', 'systems', 'services', 'agents'] as const).map((collection) => getCollection(collection))
+  );
+  const resolve = (entries: any[], pointers: MessagePointer[] = []) =>
+    pointers
+      .map((pointer) => getItemsFromCollectionByIdAndSemverOrLatest(entries, pointer.id, pointer.version)[0])
+      .filter(Boolean);
+
+  const found = new Map<string, any>();
+  const visit = (entry: any) => {
+    const key = `${entry.collection}/${entry.data.id}`;
+    if (found.has(key)) return;
+    found.set(key, entry);
+    if (entry.collection !== 'domains' && entry.collection !== 'systems') return;
+    [
+      ...resolve(services, entry.data.services),
+      ...resolve(agents, entry.data.agents),
+      ...(entry.collection === 'domains'
+        ? [...resolve(systems, entry.data.systems), ...resolve(domains, entry.data.domains)]
+        : []),
+    ].forEach(visit);
+  };
+  visit(container);
+
+  return [...found.values()];
+};
+
 /**
  * Resolve a sends/receives pointer to the documented message it points at
  */
@@ -321,17 +389,39 @@ export async function getMessagesProducedOrConsumedByResource(params: {
     getCollection('queries'),
   ]);
   const messages = [...events, ...commands, ...queries];
-
-  return {
-    resource: {
-      id: resource.data.id,
-      version: resource.data.version,
-      name: resource.data.name || resource.data.id,
-      collection: params.resourceCollection,
-    },
-    sends: (resource.data.sends || []).map((pointer: MessagePointer) => resolveMessagePointer(messages, pointer)),
-    receives: (resource.data.receives || []).map((pointer: MessagePointer) => resolveMessagePointer(messages, pointer)),
+  const summary = {
+    id: resource.data.id,
+    version: resource.data.version,
+    name: resource.data.name || resource.data.id,
+    collection: params.resourceCollection,
   };
+
+  if (params.resourceCollection !== 'domains' && params.resourceCollection !== 'systems') {
+    return {
+      resource: summary,
+      sends: (resource.data.sends || []).map((pointer: MessagePointer) => resolveMessagePointer(messages, pointer)),
+      receives: (resource.data.receives || []).map((pointer: MessagePointer) => resolveMessagePointer(messages, pointer)),
+    };
+  }
+
+  // A domain or system sends and receives what it and everything inside it does: `by` names who, e.g. services/orders
+  const members = await getResourcesInside(resource);
+  const collect = (direction: 'sends' | 'receives') => {
+    const found = new Map<string, ReturnType<typeof resolveMessagePointer> & { by: string[] }>();
+    for (const member of members) {
+      for (const pointer of (member.data[direction] || []) as MessagePointer[]) {
+        const message = resolveMessagePointer(messages, pointer);
+        const key = `${message.collection ?? ''}/${message.id}@${message.version}`;
+        const entry = found.get(key) ?? { ...message, by: [] };
+        const by = `${member.collection}/${member.data.id}`;
+        if (!entry.by.includes(by)) entry.by.push(by);
+        found.set(key, entry);
+      }
+    }
+    return [...found.values()];
+  };
+
+  return { resource: summary, sends: collect('sends'), receives: collect('receives') };
 }
 
 /**
@@ -367,15 +457,27 @@ export async function getSchemaForResource(params: { resourceId: string; resourc
     }
   }
 
-  const schema = await getSchemasFromResource(resource);
+  const files = [
+    ...(resource.data.schemaPath
+      ? [{ path: resource.data.schemaPath, format: getSchemaFormatFromURL(resource.data.schemaPath) }]
+      : []),
+    ...processSpecifications(resource.data.specifications).map((spec) => ({
+      name: spec.name,
+      path: spec.path,
+      format: spec.type,
+    })),
+  ];
 
-  if (schema.length > 0) {
-    return schema.map((schemaItem) => ({
-      url: schemaItem.url,
-      format: schemaItem.format,
-      code: fs.readFileSync(schemaItem.url, 'utf-8'),
-    }));
-  }
+  // Read from beside the resource's own file (paths are relative to it); files that can't be read are left out
+  const schemas = files.flatMap((file) => {
+    try {
+      return [{ ...file, code: fs.readFileSync(getAbsoluteFilePathForAstroFile(resource.filePath ?? '', file.path), 'utf-8') }];
+    } catch {
+      return [];
+    }
+  });
+
+  if (schemas.length > 0) return schemas;
 
   return { message: 'No schemas found for this resource' };
 }
@@ -431,8 +533,6 @@ export async function findResourcesByOwner(params: { ownerId: string }) {
  * Get resources that produce (send) a specific message
  */
 export async function getProducersOfMessage(params: { messageId: string; messageVersion?: string; messageCollection: string }) {
-  const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
-  const routableResources = [...services, ...agents];
   const message = await findEntry(params.messageCollection, params.messageId, params.messageVersion);
 
   if (!message) {
@@ -440,21 +540,13 @@ export async function getProducersOfMessage(params: { messageId: string; message
       error: `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
     };
   }
-  const messageVersion = message.data.version;
 
-  const producers = routableResources.filter((resource) => {
-    const sends = (resource.data as any).sends || [];
-    return sends.some((send: any) => {
-      const idMatch = send.id === params.messageId;
-      if (!send.version || send.version === 'latest') return idMatch;
-      return idMatch && send.version === messageVersion;
-    });
-  });
+  const producers = await getResourcesThat('sends', message);
 
   return {
     message: {
       id: params.messageId,
-      version: messageVersion,
+      version: message.data.version,
       collection: params.messageCollection,
     },
     producers: producers.map((s) => ({
@@ -511,8 +603,6 @@ export async function getC4Diagram(params: { viewId?: string }) {
  * Get resources that consume (receive) a specific message
  */
 export async function getConsumersOfMessage(params: { messageId: string; messageVersion?: string; messageCollection: string }) {
-  const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
-  const routableResources = [...services, ...agents];
   const message = await findEntry(params.messageCollection, params.messageId, params.messageVersion);
 
   if (!message) {
@@ -520,21 +610,13 @@ export async function getConsumersOfMessage(params: { messageId: string; message
       error: `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
     };
   }
-  const messageVersion = message.data.version;
 
-  const consumers = routableResources.filter((resource) => {
-    const receives = (resource.data as any).receives || [];
-    return receives.some((receive: any) => {
-      const idMatch = receive.id === params.messageId;
-      if (!receive.version || receive.version === 'latest') return idMatch;
-      return idMatch && receive.version === messageVersion;
-    });
-  });
+  const consumers = await getResourcesThat('receives', message);
 
   return {
     message: {
       id: params.messageId,
-      version: messageVersion,
+      version: message.data.version,
       collection: params.messageCollection,
     },
     consumers: consumers.map((s) => ({
@@ -552,8 +634,6 @@ export async function getConsumersOfMessage(params: { messageId: string; message
  * Returns all affected services (producers and consumers) and their owners
  */
 export async function analyzeChangeImpact(params: { messageId: string; messageVersion?: string; messageCollection: string }) {
-  const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
-  const routableResources = [...services, ...agents];
   const message = await findEntry(params.messageCollection, params.messageId, params.messageVersion);
 
   if (!message) {
@@ -563,17 +643,7 @@ export async function analyzeChangeImpact(params: { messageId: string; messageVe
   }
   const messageVersion = message.data.version;
 
-  // Find producers
-  const producers = routableResources.filter((resource) => {
-    const sends = (resource.data as any).sends || [];
-    return sends.some((send: any) => send.id === params.messageId);
-  });
-
-  // Find consumers
-  const consumers = routableResources.filter((resource) => {
-    const receives = (resource.data as any).receives || [];
-    return receives.some((receive: any) => receive.id === params.messageId);
-  });
+  const [producers, consumers] = await Promise.all([getResourcesThat('sends', message), getResourcesThat('receives', message)]);
 
   // Collect all affected teams/owners
   const affectedOwners = new Set<string>();
@@ -796,19 +866,10 @@ export async function findMessageBySchemaId(params: {
     const matches = getItemsFromCollectionByIdAndSemverOrLatest(collection, params.messageId, params.messageVersion);
     const resource = matches[0];
     if (resource) {
-      // Get producers and consumers
-      const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
-      const routableResources = [...services, ...agents];
-
-      const producers = routableResources.filter((resource) => {
-        const sends = (resource.data as any).sends || [];
-        return sends.some((send: any) => send.id === params.messageId);
-      });
-
-      const consumers = routableResources.filter((resource) => {
-        const receives = (resource.data as any).receives || [];
-        return receives.some((receive: any) => receive.id === params.messageId);
-      });
+      const [producers, consumers] = await Promise.all([
+        getResourcesThat('sends', resource),
+        getResourcesThat('receives', resource),
+      ]);
 
       return {
         resource: {
@@ -1265,23 +1326,23 @@ export async function getCustomDoc(params: { id: string; section?: string }) {
 
 export const toolDescriptions = {
   getResources:
-    'Use this tool to get events, agents, services, commands, queries, flows, domains, channels, entities from EventCatalog. Supports pagination via cursor and filtering by search term (searches name, id, and summary).',
+    'Use this tool to list the resources in a collection of EventCatalog (events, commands, queries, services, agents, domains, systems, flows, channels, entities, containers, data products, diagrams or ADRs). Supports pagination via cursor and filtering by search term (searches name, id, and summary).',
   getResource:
     'Use this tool to get a specific resource from EventCatalog by its id. Returns the frontmatter and markdown documentation. Omit the version to get the latest version.',
   getMessagesProducedOrConsumedByResource:
-    'Use this tool to get the messages (events, commands, queries) a service, agent or domain sends and receives. Each message is resolved to its catalog id, version, name and summary; messages that are referenced but not documented in the catalog are marked notFound. Omit the version to use the latest version of the resource.',
+    'Use this tool to get the messages (events, commands, queries) a service, agent, domain or system sends and receives. Each message is resolved to its catalog id, version, name and summary; messages that are referenced but not documented in the catalog are marked notFound. For a domain or system, this includes what the services, agents, systems and subdomains inside it send and receive, and each message lists `by`: the resources that send or receive it (e.g. services/order-service). Omit the version to use the latest version of the resource.',
   getSchemaForResource:
     'Use this tool to get the schema or specifications (openapi or asyncapi or graphql) for a resource by its id and version',
   findResourcesByOwner:
     'Use this tool to find all resources (agents, services, events, commands, etc.) owned by a specific team or user',
   getProducersOfMessage:
-    'Use this tool to find which agents or services produce (send) a specific message (event, command, or query)',
+    'Use this tool to find which services, agents or domains produce (send) a specific message (event, command, or query). Only the latest versions of those resources are included.',
   getConsumersOfMessage:
-    'Use this tool to find which agents or services consume (receive) a specific message (event, command, or query)',
+    'Use this tool to find which services, agents or domains consume (receive) a specific message (event, command, or query). Only the latest versions of those resources are included.',
   getC4Diagram:
     'Use this tool to get the C4 diagram (or likeC4) in EventCatalog. These files usually have a .c4 extension on them',
   analyzeChangeImpact:
-    'Use this tool to analyze the impact of changing a message. Returns all affected agents and services (producers and consumers), the teams that own them, and the blast radius of the change',
+    'Use this tool to analyze the impact of changing a message. Returns all affected services, agents and domains (producers and consumers), the teams that own them, and the blast radius of the change',
   explainBusinessFlow:
     'Use this tool to get detailed information about a business flow (state machine). Returns the flow definition, steps, mermaid diagram if available, and related agents and services',
   getTeams:

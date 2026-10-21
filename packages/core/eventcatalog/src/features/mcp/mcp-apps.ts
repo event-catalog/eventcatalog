@@ -93,7 +93,7 @@ export function registerMcpApp<Shape extends z.ZodRawShape, ViewShape extends z.
       if ('error' in result) return errorResult(result);
       return {
         // The model reads the text; hosts that support MCP Apps show the view from `_meta`
-        content: [{ type: 'text' as const, text: JSON.stringify(result.forModel, null, 2) }],
+        content: [{ type: 'text' as const, text: JSON.stringify(result.forModel) }],
         ...(loadView && {
           _meta: {
             [app.metaKey]: await result.getPayload(),
