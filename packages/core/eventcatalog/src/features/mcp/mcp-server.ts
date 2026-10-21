@@ -48,7 +48,8 @@ type McpServerOptions = {
 
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 
-// Helper to create consistent MCP tool handlers with error handling
+// Helper to create consistent MCP tool handlers with error handling. Results are compact JSON: indenting them costs
+// the model about a fifth more tokens for nothing
 function createToolHandler<T>(fn: (params: T) => Promise<any>, errorMessage: string) {
   return async (params: T) => {
     try {
@@ -62,7 +63,7 @@ function createToolHandler<T>(fn: (params: T) => Promise<any>, errorMessage: str
       }
 
       return {
-        content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+        content: [{ type: 'text' as const, text: JSON.stringify(result) }],
       };
     } catch (error) {
       return {
@@ -665,7 +666,7 @@ function createMcpServer(
         try {
           const result = await execute(params);
           return {
-            content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+            content: [{ type: 'text' as const, text: JSON.stringify(result) }],
           };
         } catch (error) {
           return {
@@ -840,7 +841,7 @@ function createMcpServer(
           contents: [
             {
               uri: uri.href,
-              text: JSON.stringify({ ...(scope && { scope: scope.ref }), resources: allResources }, null, 2),
+              text: JSON.stringify({ ...(scope && { scope: scope.ref }), resources: allResources }),
               mimeType: 'application/json',
             },
           ],

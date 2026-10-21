@@ -18,21 +18,22 @@ describe('toSchemaViewerSchemas', () => {
   });
 
   it('takes the format from the file extension when the schema only has a path', () => {
-    expect(toSchemaViewerSchemas([{ url: '/generated/events/OrderCreated/schema.avsc', code: avroSchema }])).toEqual([
+    expect(toSchemaViewerSchemas([{ path: 'schema.avsc', code: avroSchema }])).toEqual([
       { kind: 'avro', schema: JSON.parse(avroSchema), format: 'avsc', language: 'json', code: avroSchema },
     ]);
   });
 
   it('highlights formats without a viewer, such as XML Schema, in their own language', () => {
-    expect(toSchemaViewerSchemas([{ url: '/generated/events/OrderCreated/schema.xsd', code: '<xs:schema />' }])[0]).toMatchObject(
-      { kind: 'code', language: 'xml' }
-    );
+    expect(toSchemaViewerSchemas([{ path: 'schema.xsd', code: '<xs:schema />' }])[0]).toMatchObject({
+      kind: 'code',
+      language: 'xml',
+    });
   });
 
   it('names each schema when there is more than one, so the view can switch between them', () => {
     const schemas = toSchemaViewerSchemas([
       { name: 'OrderCreated (JSON)', format: 'jsonschema', code: jsonSchema },
-      { url: '/generated/events/OrderCreated/order-created.proto', code: protoSchema },
+      { path: 'order-created.proto', code: protoSchema },
     ]);
 
     expect(schemas.map((schema) => [schema.name, schema.kind])).toEqual([

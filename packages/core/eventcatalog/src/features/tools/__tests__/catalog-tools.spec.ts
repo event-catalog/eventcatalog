@@ -8,6 +8,16 @@ type ProducerConsumer = { id: string; version: string; name: string };
 type ResourceResult = { collection: string; id: string; version?: string; name: string };
 import { mockEvents, mockServices, mockTeams, mockUsers, mockCollections } from './catalog-tools.mocks';
 
+/** Adds fixtures to a mocked collection for one test */
+const withFixtures = async (collection: string, fixtures: any[], run: () => Promise<void>) => {
+  mockCollections[collection].push(...fixtures);
+  try {
+    await run();
+  } finally {
+    mockCollections[collection].splice(-fixtures.length);
+  }
+};
+
 // Mock astro:content
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -21,11 +31,6 @@ vi.mock('astro:content', async (importOriginal) => {
     },
   };
 });
-
-// Mock getSchemasFromResource
-vi.mock('@utils/collections/schemas', () => ({
-  getSchemasFromResource: vi.fn(),
-}));
 
 // Mock getItemsFromCollectionByIdAndSemverOrLatest
 vi.mock('@utils/collections/util', async (importOriginal) => ({
@@ -131,7 +136,6 @@ import {
   searchCustomDocs,
   getCustomDoc,
 } from '../catalog-tools';
-import { getSchemasFromResource } from '@utils/collections/schemas';
 
 beforeEach(() => {
   vi.mocked(glob).mockResolvedValue([]);
@@ -395,9 +399,8 @@ describe('getResource', () => {
 
 describe('optional versions default to the latest version', () => {
   it('getSchemaForResource resolves the latest version when no version is given', async () => {
-    vi.mocked(getSchemasFromResource).mockResolvedValue([{ url: '/path/to/schema.json', format: 'json-schema' }]);
-    const result = await getSchemaForResource({ resourceId: 'PaymentProcessed', resourceCollection: 'events' });
-    expect(Array.isArray(result)).toBe(true);
+    const result = await getSchemaForResource({ resourceId: 'OrderCreated', resourceCollection: 'events' });
+    expect(result).not.toHaveProperty('error');
   });
 
   it('getProducersOfMessage matches producers against the latest message version', async () => {
@@ -461,6 +464,62 @@ describe('getArchitectureDiagramAsMermaid', () => {
 });
 
 describe('getMessagesProducedOrConsumedByResource', () => {
+  it('for a domain, includes what it and the services, systems and subdomains inside it send and receive', async () => {
+    const domains = [
+      {
+        id: 'ShopDomain-1.0.0',
+        collection: 'domains',
+        data: {
+          id: 'ShopDomain',
+          name: 'Shop Domain',
+          version: '1.0.0',
+          sends: [{ id: 'InventoryUpdated', version: '1.0.0' }],
+          services: [{ id: 'OrderService' }],
+          // CoreSystem holds OrderService too: its messages are listed once
+          systems: [{ id: 'CoreSystem' }],
+          domains: [{ id: 'PaymentsSubdomain' }],
+        },
+      },
+      {
+        id: 'PaymentsSubdomain-1.0.0',
+        collection: 'domains',
+        data: {
+          id: 'PaymentsSubdomain',
+          version: '1.0.0',
+          services: [{ id: 'PaymentService' }],
+          // A subdomain pointing back at its parent doesn't loop
+          domains: [{ id: 'ShopDomain' }],
+        },
+      },
+    ];
+
+    await withFixtures('domains', domains, async () => {
+      const result = await getMessagesProducedOrConsumedByResource({ resourceId: 'ShopDomain', resourceCollection: 'domains' });
+      if ('error' in result) throw new Error(result.error);
+
+      const summarise = (messages: any[]) => messages.map(({ id, version, by }) => ({ id, version, by }));
+      expect(summarise(result.sends)).toEqual([
+        { id: 'InventoryUpdated', version: '1.0.0', by: ['domains/ShopDomain'] },
+        { id: 'OrderCreated', version: '1.0.0', by: ['services/OrderService'] },
+        { id: 'PaymentProcessed', version: '1.0.0', by: ['services/PaymentService'] },
+      ]);
+      expect(summarise(result.receives)).toEqual([
+        { id: 'PaymentProcessed', version: '1.0.0', by: ['services/OrderService'] },
+        { id: 'OrderCreated', version: '2.0.0', by: ['services/PaymentService'] },
+      ]);
+    });
+  });
+
+  it('for a system, includes what the services inside it send and receive', async () => {
+    const result = await getMessagesProducedOrConsumedByResource({ resourceId: 'CoreSystem', resourceCollection: 'systems' });
+    if ('error' in result) throw new Error(result.error);
+
+    expect(result.sends.map(({ id, by }: any) => ({ id, by }))).toEqual([{ id: 'OrderCreated', by: ['services/OrderService'] }]);
+    expect(result.receives.map(({ id, by }: any) => ({ id, by }))).toEqual([
+      { id: 'PaymentProcessed', by: ['services/OrderService'] },
+    ]);
+  });
+
   it('resolves the messages a service sends and receives to their catalog entries', async () => {
     const result = await getMessagesProducedOrConsumedByResource({
       resourceId: 'OrderService',
@@ -580,17 +639,55 @@ describe('getProducersOfMessage', () => {
     }
   });
 
-  it('finds services with no version specified (matches all)', async () => {
-    // PaymentService receives OrderCreated without version specified
-    const result = await getConsumersOfMessage({
-      messageId: 'OrderCreated',
-      messageVersion: '1.0.0',
-      messageCollection: 'events',
+  it('matches pointers with no version to the latest version of the message only, as the message pages do', async () => {
+    // PaymentService receives OrderCreated without a version: the latest, 2.0.0
+    const consumersOf = async (messageVersion: string) => {
+      const result = await getConsumersOfMessage({ messageId: 'OrderCreated', messageVersion, messageCollection: 'events' });
+      return 'error' in result ? [] : result.consumers.map((c: ProducerConsumer) => c.id);
+    };
+
+    expect(await consumersOf('2.0.0')).toContain('PaymentService');
+    expect(await consumersOf('1.0.0')).not.toContain('PaymentService');
+  });
+
+  it('includes domains that send the message themselves', async () => {
+    const domain = {
+      id: 'ShopDomain-1.0.0',
+      collection: 'domains',
+      data: { id: 'ShopDomain', name: 'Shop Domain', version: '1.0.0', sends: [{ id: 'InventoryUpdated', version: '1.0.0' }] },
+    };
+
+    await withFixtures('domains', [domain], async () => {
+      const result = await getProducersOfMessage({ messageId: 'InventoryUpdated', messageCollection: 'events' });
+      expect('error' in result).toBe(false);
+      if (!('error' in result)) {
+        expect(result.producers).toContainEqual({
+          id: 'ShopDomain',
+          version: '1.0.0',
+          name: 'Shop Domain',
+          collection: 'domains',
+        });
+      }
     });
-    expect('error' in result).toBe(false);
-    if (!('error' in result)) {
-      expect(result.consumers.some((c: ProducerConsumer) => c.id === 'PaymentService')).toBe(true);
-    }
+  });
+
+  it('leaves out old versions of services', async () => {
+    const retired = {
+      id: 'RetiredService-0.9.0',
+      collection: 'services',
+      filePath: 'services/RetiredService/versioned/0.9.0/index.mdx',
+      data: { id: 'RetiredService', version: '0.9.0', sends: [{ id: 'InventoryUpdated', version: '1.0.0' }] },
+    };
+
+    await withFixtures('services', [retired], async () => {
+      const result = await getProducersOfMessage({ messageId: 'InventoryUpdated', messageCollection: 'events' });
+      expect('error' in result).toBe(false);
+      if (!('error' in result)) {
+        const producers = result.producers.map((p: ProducerConsumer) => p.id);
+        expect(producers).toContain('InventoryService');
+        expect(producers).not.toContain('RetiredService');
+      }
+    });
   });
 
   it('returns correct count', async () => {
@@ -836,6 +933,59 @@ model {
   });
 });
 
+describe('matching sends and receives to a version of a message', () => {
+  const rangeService = {
+    id: 'RangeService-1.0.0',
+    collection: 'services',
+    data: {
+      id: 'RangeService',
+      name: 'Range Service',
+      version: '1.0.0',
+      sends: [{ id: 'OrderCreated', version: '^2.0.0' }],
+      receives: [{ id: 'OrderCreated', version: '1.x' }],
+    },
+  };
+
+  it('matches semver ranges and x-patterns, as the message pages do', async () => {
+    await withFixtures('services', [rangeService], async () => {
+      const producersOf = async (messageVersion: string) => {
+        const result = await getProducersOfMessage({ messageId: 'OrderCreated', messageVersion, messageCollection: 'events' });
+        return 'error' in result ? [] : result.producers.map((p: ProducerConsumer) => p.id);
+      };
+      const consumersOf = async (messageVersion: string) => {
+        const result = await getConsumersOfMessage({ messageId: 'OrderCreated', messageVersion, messageCollection: 'events' });
+        return 'error' in result ? [] : result.consumers.map((c: ProducerConsumer) => c.id);
+      };
+
+      expect(await producersOf('2.0.0')).toContain('RangeService');
+      expect(await producersOf('1.0.0')).not.toContain('RangeService');
+      expect(await consumersOf('1.0.0')).toContain('RangeService');
+      expect(await consumersOf('2.0.0')).not.toContain('RangeService');
+    });
+  });
+
+  it('analyzeChangeImpact only counts the resources that send or receive the version being changed', async () => {
+    // OrderService sends OrderCreated 1.0.0 only; PaymentService receives every version
+    const result = await analyzeChangeImpact({ messageId: 'OrderCreated', messageVersion: '2.0.0', messageCollection: 'events' });
+
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.producers.map((p) => p.id)).not.toContain('OrderService');
+      expect(result.consumers.map((c) => c.id)).toContain('PaymentService');
+    }
+  });
+
+  it('findMessageBySchemaId only returns the producers and consumers of the version found', async () => {
+    const result = await findMessageBySchemaId({ messageId: 'OrderCreated', messageVersion: '2.0.0' });
+
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.producers.map((p) => p.id)).not.toContain('OrderService');
+      expect(result.consumers.map((c) => c.id)).toContain('PaymentService');
+    }
+  });
+});
+
 describe('analyzeChangeImpact', () => {
   it('returns producers and consumers counts', async () => {
     const result = await analyzeChangeImpact({
@@ -1069,10 +1219,6 @@ describe('findMessageBySchemaId', () => {
 });
 
 describe('getSchemaForResource', () => {
-  beforeEach(() => {
-    vi.mocked(getSchemasFromResource).mockReset();
-  });
-
   it('returns message schemas from the generated schemas collection', async () => {
     const result = await getSchemaForResource({
       resourceId: 'OrderCreated',
@@ -1093,28 +1239,73 @@ describe('getSchemaForResource', () => {
         code: '{"type":"object","title":"OrderCreated"}',
       },
     ]);
-    expect(getSchemasFromResource).not.toHaveBeenCalled();
   });
 
-  it('falls back to legacy resource schema files when no generated schema entry exists', async () => {
-    vi.mocked(getSchemasFromResource).mockResolvedValue([{ url: '/path/to/schema.json', format: 'json-schema' }]);
+  it("falls back to the message's schemaPath, read from beside the message", async () => {
+    const message = {
+      id: 'LegacyEvent-1.0.0',
+      collection: 'events',
+      filePath: 'events/LegacyEvent/index.mdx',
+      data: { id: 'LegacyEvent', name: 'Legacy Event', version: '1.0.0', schemaPath: 'schema.avsc' },
+    };
 
-    const result = await getSchemaForResource({
-      resourceId: 'PaymentProcessed',
-      resourceVersion: '1.0.0',
-      resourceCollection: 'events',
+    await withFixtures('events', [message], async () => {
+      const result = await getSchemaForResource({ resourceId: 'LegacyEvent', resourceCollection: 'events' });
+
+      expect(result).toEqual([{ path: 'schema.avsc', format: 'avsc', code: '{"schema": "content"}' }]);
+      expect(String(vi.mocked(fs.readFileSync).mock.lastCall?.[0])).toMatch(/events\/LegacyEvent\/schema\.avsc$/);
     });
-    expect(Array.isArray(result)).toBe(true);
-    if (Array.isArray(result)) {
-      expect(result[0]).toHaveProperty('url');
-      expect(result[0]).toHaveProperty('format');
-      expect(result[0]).toHaveProperty('code');
-    }
+  });
+
+  it("returns a service's specifications, read from beside the service", async () => {
+    const service = {
+      id: 'SpecService-1.0.0',
+      collection: 'services',
+      filePath: 'services/SpecService/index.mdx',
+      data: {
+        id: 'SpecService',
+        name: 'Spec Service',
+        version: '1.0.0',
+        specifications: [
+          { type: 'asyncapi', path: 'asyncapi.yml', name: 'Spec Service AsyncAPI' },
+          { type: 'openapi', path: 'openapi.yml' },
+        ],
+      },
+    };
+    vi.mocked(fs.readFileSync).mockImplementation((file) => `contents of ${String(file).split('/').pop()}`);
+
+    await withFixtures('services', [service], async () => {
+      const result = await getSchemaForResource({ resourceId: 'SpecService', resourceCollection: 'services' });
+
+      expect(result).toEqual([
+        { name: 'Spec Service AsyncAPI', path: 'asyncapi.yml', format: 'asyncapi', code: 'contents of asyncapi.yml' },
+        { name: 'OpenAPI', path: 'openapi.yml', format: 'openapi', code: 'contents of openapi.yml' },
+      ]);
+    });
+  });
+
+  it('leaves out specifications that cannot be read', async () => {
+    const service = {
+      id: 'MissingSpecService-1.0.0',
+      collection: 'services',
+      filePath: 'services/MissingSpecService/index.mdx',
+      data: {
+        id: 'MissingSpecService',
+        version: '1.0.0',
+        specifications: { asyncapiPath: 'missing.yml' },
+      },
+    };
+    vi.mocked(fs.readFileSync).mockImplementation(() => {
+      throw new Error('ENOENT');
+    });
+
+    await withFixtures('services', [service], async () => {
+      const result = await getSchemaForResource({ resourceId: 'MissingSpecService', resourceCollection: 'services' });
+      expect(result).toEqual({ message: 'No schemas found for this resource' });
+    });
   });
 
   it('returns message when no schema found', async () => {
-    vi.mocked(getSchemasFromResource).mockResolvedValue([]);
-
     const result = await getSchemaForResource({
       resourceId: 'PaymentProcessed',
       resourceVersion: '1.0.0',
