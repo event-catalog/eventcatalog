@@ -63,16 +63,18 @@ function forget(id: string, channel: Channel) {
 export async function waitForRequests(
   diagramId: string,
   secret: string,
-  { waitMs = WAIT_MS, signal }: { waitMs?: number; signal?: AbortSignal } = {}
+  { waitMs = WAIT_MS, signal, maxChannels = MAX_CHANNELS }: { waitMs?: number; signal?: AbortSignal; maxChannels?: number } = {}
 ): Promise<{ requests: BridgeRequest[] } | { error: string }> {
   const mine = hash(secret);
   let channel = channels.get(diagramId);
   if (channel?.secret && !timingSafeEqual(channel.secret, mine) && isOpen(channel))
     return { error: 'This diagram is open in another view.' };
   if (!channel) {
-    if (channels.size >= MAX_CHANNELS) {
+    if (channels.size >= maxChannels) {
       const oldest = [...channels].filter(([, open]) => !open.waiting.size).sort(([, a], [, b]) => a.seenAt - b.seenAt)[0];
-      if (oldest) forget(...oldest);
+      // Every one has a view waiting: none to make room with, so this one waits for another time
+      if (!oldest) return { error: 'Too many diagrams are open. Try again shortly.' };
+      forget(...oldest);
     }
     channel = { seenAt: Date.now(), waiting: new Set(), pending: [], answers: new Map() };
     channels.set(diagramId, channel);

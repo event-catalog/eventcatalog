@@ -185,7 +185,7 @@ export function createMcpServer({ baseUrl, report = () => {}, log = () => {} }: 
         });
       // The diagram couldn't make them (e.g. still opening)
       const failure = (result.answer as { error?: unknown }).error;
-      if (typeof failure === 'string') return text({ error: `${failure} Nothing was changed: send the changes again.` }, true);
+      if (typeof failure === 'string') return text({ error: `${failure} Nothing was changed.` }, true);
       const answer = result.answer as EditAnswer;
       const failed = answer.results.filter((change) => !change.ok);
       const applied = answer.results.length - failed.length;

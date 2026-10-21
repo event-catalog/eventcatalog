@@ -203,6 +203,8 @@ export function Diagram({
   const [choosing, setChoosing] = useState(false);
   // The canvas locked: a node's details are read, not edited
   const [locked, setLocked] = useState(false);
+  const lockedRef = useRef(locked);
+  lockedRef.current = locked;
   // Save to file: naming it (where the browser can't ask), and the file saved to (to save to again)
   const [savingAs, setSavingAs] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -712,7 +714,9 @@ export function Diagram({
   // Edits are made one at a time, each on the model the last one left (agents in the browser can send several at once)
   const editing = useRef<Promise<unknown>>(Promise.resolve());
   const makeEdit: DiagramBridgeHandlers['edit'] = async (changes, { reorder } = {}) => {
-    if (!(await waitUntil(canvasReady, CANVAS_READY_MS))) return { error: 'The diagram is still opening.' };
+    if (!(await waitUntil(canvasReady, CANVAS_READY_MS))) return { error: 'The diagram is still opening: send the changes again in a moment.' };
+    // Locked by the user (or someone in a live session): looked at, not changed, by anyone, the agent too
+    if (lockedRef.current) return { error: 'The user has locked the diagram (the lock at the top left): ask them to unlock it.' };
     const current = modelNow();
     const { model: next, results } = applyChanges(current, changes);
     const applied = results.filter((result) => result.ok).length;
@@ -720,14 +724,13 @@ export function Diagram({
       used.current = true;
       const { added } = canvasRef.current.applyAgentCanvas(await agentCanvasFor(current, next));
       editedModel.current = next;
-      changes.forEach((change, index) => {
-        if (!results[index].ok) return;
-        if (change.op === 'add_note') canvasRef.current?.addNote({ nodeId: change.note.resource, text: change.note.text, author: agentName });
-        if (change.op === 'set_title') {
-          titleSet.current = change.title;
-          setCanvasModel((model) => ({ ...(model ?? current), title: change.title }));
-        }
-      });
+      // Notes and the title as the changes left them (a note on something removed later in the same edit isn't put on)
+      const notesBefore = new Set(current.notes ?? []);
+      (next.notes ?? []).filter((note) => !notesBefore.has(note)).forEach((note) => canvasRef.current?.addNote({ nodeId: note.resource, text: note.text, author: agentName }));
+      if (next.title !== current.title) {
+        titleSet.current = next.title;
+        setCanvasModel((model) => ({ ...(model ?? current), title: next.title }));
+      }
       // Laid out again when the agent asks (the end of a round of changes: as Reorder does, the level shown, and the
       // canvas too), else what's new brought into view if it's out of it. Once what's new is drawn and measured
       if (reorder) setTimeout(() => canvasRef.current?.tidy(), 300);

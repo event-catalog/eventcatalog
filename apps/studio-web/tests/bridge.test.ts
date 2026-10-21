@@ -82,6 +82,16 @@ describe('the bridge to the open diagram', () => {
     view.close();
   });
 
+  it('keeps to its cap on diagrams, even when every one has a view waiting', async () => {
+    const first = newDiagramId();
+    const waiting = waitForRequests(first, SECRET, { waitMs: 200, maxChannels: 1 });
+    // No room, and none to make room with: turned down, not added
+    expect(await waitForRequests(newDiagramId(), SECRET, { waitMs: 1, maxChannels: 1 })).toEqual({ error: 'Too many diagrams are open. Try again shortly.' });
+    await waiting;
+    // Once the first isn't waiting, it makes room
+    expect('requests' in (await waitForRequests(newDiagramId(), SECRET, { waitMs: 1, maxChannels: 1 }))).toBe(true);
+  });
+
   it('lets the diagram be opened again elsewhere once the first view stops waiting', async () => {
     const id = newDiagramId();
     await waitForRequests(id, SECRET, { waitMs: 1 });

@@ -252,3 +252,39 @@ test('edits that arrive together all stay, and a change is kept when the view go
   await host.close();
   await agent.close();
 });
+
+test("a locked diagram turns the agent's edits down, and a note on something removed in the same edit isn't put on", async ({ page, baseURL }) => {
+  test.setTimeout(60_000);
+  const host = await connect(baseURL!);
+  const agent = await connect(baseURL!);
+  const rendered = await agent.callTool({ name: 'render_architecture', arguments: { model } });
+  const { diagramId } = textOf(rendered);
+  const resource = await host.readResource({ uri: 'ui://eventcatalog/architecture' });
+  const { bridge, nodes } = await hostView(page, host, (resource.contents[0] as { text: string }).text);
+  await bridge.sendToolInput({ arguments: { model } });
+  await bridge.sendToolResult(rendered as Parameters<AppBridge['sendToolResult']>[0]);
+  await expect.poll(async () => (await nodes()).filter((node) => node.measured).length, { timeout: 30_000 }).toBeGreaterThanOrEqual(model.resources.length);
+  const view = page.frameLocator('#view');
+  await expect(view.locator('.ec-build-skip')).toHaveCount(0, { timeout: 60_000 });
+  const edit = async (changes: unknown[]) => agent.callTool({ name: 'edit_diagram', arguments: { diagramId, changes } });
+
+  // A note on a resource, and the resource removed, in one edit: neither is on the canvas after
+  const service = model.resources.find((resource: { type: string }) => resource.type === 'service').id;
+  const notesBefore = (await nodes()).filter((node) => node.type === 'note').length;
+  expect(textOf(await edit([{ op: 'add_note', note: { text: 'Gone soon', resource: service } }, { op: 'remove_resource', id: service }])).note).toContain('Made 2 of 2');
+  await page.waitForTimeout(800);
+  expect((await nodes()).some((node) => node.id === service)).toBe(false);
+  expect((await nodes()).filter((node) => node.type === 'note').length).toBe(notesBefore);
+
+  // Locked: the agent's told, and nothing changes
+  await view.getByRole('button', { name: /Lock the canvas/ }).click();
+  const locked = await edit([{ op: 'add_resource', resource: { id: 'billing', type: 'domain', name: 'Billing' } }]);
+  expect(locked.isError).toBe(true);
+  expect(textOf(locked).error).toContain('locked');
+  await page.waitForTimeout(500);
+  expect((await nodes()).some((node) => node.id === 'billing')).toBe(false);
+
+  await host.close();
+  await agent.close();
+});
+
