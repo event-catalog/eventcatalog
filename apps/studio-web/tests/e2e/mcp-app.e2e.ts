@@ -211,3 +211,44 @@ test("an edit sent while the diagram is still opening waits for it, and isn't re
   await host.close();
   await agent.close();
 });
+
+test('edits that arrive together all stay, and a change is kept when the view goes straight after', async ({ page, baseURL }) => {
+  test.setTimeout(60_000);
+  const host = await connect(baseURL!);
+  const agent = await connect(baseURL!);
+  const rendered = await agent.callTool({ name: 'render_architecture', arguments: { model } });
+  const { diagramId } = textOf(rendered);
+  const resource = await host.readResource({ uri: 'ui://eventcatalog/architecture' });
+  const { bridge, nodes } = await hostView(page, host, (resource.contents[0] as { text: string }).text);
+  await bridge.sendToolInput({ arguments: { model } });
+  await bridge.sendToolResult(rendered as Parameters<AppBridge['sendToolResult']>[0]);
+  await expect.poll(async () => (await nodes()).filter((node) => node.measured).length, { timeout: 30_000 }).toBeGreaterThanOrEqual(model.resources.length);
+
+  // Two edits at once (as an agent in the browser can send them), straight to the view: each builds on the other
+  const frame = page.frames().find((frame) => frame !== page.mainFrame())!;
+  const made = await frame.evaluate(() => {
+    const edit = (window as unknown as { __studioTest: { edit: (changes: unknown[]) => Promise<{ results: { ok: boolean }[] }> } }).__studioTest.edit;
+    const add = (id: string) => edit([{ op: 'add_resource', resource: { id, type: 'domain', name: id } }]);
+    return Promise.all([add('billing'), add('shipping')]);
+  });
+  for (const result of made) expect(result.results[0].ok).toBe(true);
+  await page.waitForTimeout(1000);
+  const ids = (await nodes()).map((node) => node.id);
+  expect(ids).toContain('billing');
+  expect(ids).toContain('shipping');
+
+  // The view goes (the chat closed or reloaded) right after a change: it's kept, not lost with the save waiting to happen
+  await agent.callTool({ name: 'edit_diagram', arguments: { diagramId, changes: [{ op: 'add_resource', resource: { id: 'returns', type: 'domain', name: 'Returns' } }] } });
+  const kept = await frame.evaluate(async (id) => {
+    // As soon as the canvas has it, the page goes
+    while (!(window as unknown as { __studioTest: { nodes: () => { id: string }[] } }).__studioTest.nodes().some((node) => node.id === 'returns'))
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    window.dispatchEvent(new Event('pagehide'));
+    return localStorage.getItem(`eventcatalog-studio-canvas:chat:${id}`) ?? '';
+  }, diagramId);
+  expect(kept).toContain('"returns"');
+
+  await host.close();
+  await agent.close();
+});

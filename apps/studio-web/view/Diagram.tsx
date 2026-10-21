@@ -571,11 +571,26 @@ export function Diagram({
       document.removeEventListener('keydown', use, true);
     };
   }, [app, diagramId]);
+  // A moment after the last change, and straight away when the page goes (closed, reloaded) or the view's taken away
+  const pendingChatSave = useRef<() => void>(undefined);
   useEffect(() => {
     if (!app || !diagramId || !canvasModel || !used.current) return;
-    const timer = setTimeout(() => saveChatView(diagramId, canvasModel), 500);
+    const save = () => {
+      pendingChatSave.current = undefined;
+      saveChatView(diagramId, canvasModel);
+    };
+    pendingChatSave.current = save;
+    const timer = setTimeout(save, 500);
     return () => clearTimeout(timer);
   }, [app, diagramId, canvasModel]);
+  useEffect(() => {
+    const flush = () => pendingChatSave.current?.();
+    window.addEventListener('pagehide', flush);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      flush();
+    };
+  }, []);
 
   // ---- A live room: this canvas's document, shared with the people in it (see collab/room.ts) ----
   const [peers, setPeers] = useState<Peer[]>([]);
@@ -681,38 +696,59 @@ export function Diagram({
   // Its changes go on the model as the canvas has it now (with what people changed), and only what's different is
   // written to the canvas: what's there stays where it is, what's new is placed next to what it connects to
   const bridge = useRef<DiagramBridgeHandlers>(undefined);
+  // The model as the agent's last edit left it, until the canvas reports it (as canvasModel): edits that come one
+  // after another before the page renders build on it, not on the model from before the last one (whose changes
+  // they'd take back), and reads see it
+  const editedModel = useRef<Model>(undefined);
+  useEffect(() => {
+    editedModel.current = undefined;
+  }, [canvasModel]);
+  const modelNow = () => editedModel.current ?? latestModel.current;
   // An edit can come while the diagram is still being laid out (right after render_architecture): it waits for the
   // canvas to have it, else is turned down (never answered as made when it wasn't)
   const contentRef = useRef(content);
   contentRef.current = content;
   const canvasReady = () => !!canvasRef.current && contentRef.current !== null && canvasRef.current.snapshot().nodes.length > 0;
+  // Edits are made one at a time, each on the model the last one left (agents in the browser can send several at once)
+  const editing = useRef<Promise<unknown>>(Promise.resolve());
+  const makeEdit: DiagramBridgeHandlers['edit'] = async (changes, { reorder } = {}) => {
+    if (!(await waitUntil(canvasReady, CANVAS_READY_MS))) return { error: 'The diagram is still opening.' };
+    const current = modelNow();
+    const { model: next, results } = applyChanges(current, changes);
+    const applied = results.filter((result) => result.ok).length;
+    if (applied && canvasRef.current) {
+      used.current = true;
+      const { added } = canvasRef.current.applyAgentCanvas(await agentCanvasFor(current, next));
+      editedModel.current = next;
+      changes.forEach((change, index) => {
+        if (!results[index].ok) return;
+        if (change.op === 'add_note') canvasRef.current?.addNote({ nodeId: change.note.resource, text: change.note.text, author: agentName });
+        if (change.op === 'set_title') {
+          titleSet.current = change.title;
+          setCanvasModel((model) => ({ ...(model ?? current), title: change.title }));
+        }
+      });
+      // Laid out again when the agent asks (the end of a round of changes: as Reorder does, the level shown, and the
+      // canvas too), else what's new brought into view if it's out of it. Once what's new is drawn and measured
+      if (reorder) setTimeout(() => canvasRef.current?.tidy(), 300);
+      else if (added.length) setTimeout(() => canvasRef.current?.showNodes(added), 300);
+      track('diagram_edited', { changes: sizeBucket(changes.length), applied: sizeBucket(applied) });
+    }
+    return { results, resources: next.resources.length, relations: next.relations.length, reordered: !!(reorder && applied) };
+  };
   bridge.current = {
-    read: () => ({ model: latestModel.current }),
-    edit: async (changes, { reorder } = {}) => {
-      if (!(await waitUntil(canvasReady, CANVAS_READY_MS))) return { error: 'The diagram is still opening.' };
-      const current = latestModel.current;
-      const { model: next, results } = applyChanges(current, changes);
-      const applied = results.filter((result) => result.ok).length;
-      if (applied && canvasRef.current) {
-        used.current = true;
-        const { added } = canvasRef.current.applyAgentCanvas(await agentCanvasFor(current, next));
-        changes.forEach((change, index) => {
-          if (!results[index].ok) return;
-          if (change.op === 'add_note') canvasRef.current?.addNote({ nodeId: change.note.resource, text: change.note.text, author: agentName });
-          if (change.op === 'set_title') {
-            titleSet.current = change.title;
-            setCanvasModel((model) => ({ ...(model ?? current), title: change.title }));
-          }
-        });
-        // Laid out again when the agent asks (the end of a round of changes: as Reorder does, the level shown, and the
-        // canvas too), else what's new brought into view if it's out of it. Once what's new is drawn and measured
-        if (reorder) setTimeout(() => canvasRef.current?.tidy(), 300);
-        else if (added.length) setTimeout(() => canvasRef.current?.showNodes(added), 300);
-        track('diagram_edited', { changes: sizeBucket(changes.length), applied: sizeBucket(applied) });
-      }
-      return { results, resources: next.resources.length, relations: next.relations.length, reordered: !!(reorder && applied) };
+    read: () => ({ model: modelNow() }),
+    edit: (changes, options) => {
+      const made = editing.current.then(() => makeEdit(changes, options));
+      editing.current = made.catch(() => {});
+      return made;
     },
   };
+  // Browser tests make edits straight through this (when they've set window.__studioTest up), to send them together
+  useEffect(() => {
+    const hook = (window as { __studioTest?: Record<string, unknown> }).__studioTest;
+    if (hook) hook.edit = (changes: Changes) => bridge.current!.edit(changes);
+  }, []);
   useEffect(() => (app && diagramId ? serveDiagram(app, diagramId, () => bridge.current!) : undefined), [app, diagramId]);
   // Its first diagram in place of work on the canvas is asked about first (as a link's is); once allowed, not again
   // while the tab's open, as they work on it together
