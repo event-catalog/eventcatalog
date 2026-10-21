@@ -667,7 +667,7 @@ export function Diagram({
   const bridge = useRef<DiagramBridgeHandlers>(undefined);
   bridge.current = {
     read: () => ({ model: latestModel.current }),
-    edit: async (changes) => {
+    edit: async (changes, { reorder } = {}) => {
       const current = latestModel.current;
       const { model: next, results } = applyChanges(current, changes);
       const applied = results.filter((result) => result.ok).length;
@@ -683,11 +683,13 @@ export function Diagram({
             setCanvasModel((model) => ({ ...(model ?? current), title: change.title }));
           }
         });
-        // What's new, brought into view if it's out of it (once it's drawn and measured)
-        if (added.length) setTimeout(() => canvasRef.current?.showNodes(added), 300);
+        // Laid out again when the agent asks (the end of a round of changes: as Reorder does, the level shown, and the
+        // canvas too), else what's new brought into view if it's out of it. Once what's new is drawn and measured
+        if (reorder) setTimeout(() => canvasRef.current?.tidy(), 300);
+        else if (added.length) setTimeout(() => canvasRef.current?.showNodes(added), 300);
         track('diagram_edited', { changes: sizeBucket(changes.length), applied: sizeBucket(applied) });
       }
-      return { results, resources: next.resources.length, relations: next.relations.length };
+      return { results, resources: next.resources.length, relations: next.relations.length, reordered: !!(reorder && applied) };
     },
   };
   useEffect(() => (app && diagramId ? serveDiagram(app, diagramId, () => bridge.current!) : undefined), [app, diagramId]);
@@ -723,7 +725,10 @@ export function Diagram({
     setWebMcpPolyfill(true);
   }, []);
   // An agent in the browser changing the canvas, as one in a chat does (edit_diagram)
-  const editForAgent = useCallback((changes: Changes) => bridge.current!.edit(changes) as ReturnType<WebMcpCanvas['edit']>, []);
+  const editForAgent = useCallback(
+    (changes: Changes, options?: { reorder?: boolean }) => bridge.current!.edit(changes, options) as ReturnType<WebMcpCanvas['edit']>,
+    []
+  );
   const webMcp = useWebMcp({
     enabled: !app,
     allowPolyfill: webMcpPolyfill,

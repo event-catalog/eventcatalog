@@ -148,6 +148,25 @@ test('the agent changes the diagram the user has open, in place', async ({ page,
   await expect(view.locator('.react-flow__node.selected')).toHaveCount(0);
   expect(await zoom()).toBeLessThanOrEqual(zoomBefore + 0.01);
 
+  // The end of a round: the agent asks for it to be laid out again (as Reorder does), and it is, tidily: nothing on
+  // top of anything else in the same container, and the service still in its domain
+  const reordered = textOf(
+    await agent.callTool({
+      name: 'edit_diagram',
+      arguments: { diagramId, reorder: true, changes: [{ op: 'update_resource', id: 'invoice-service', set: { summary: 'Invoices each order.' } }] },
+    })
+  );
+  expect(reordered.note).toContain('laid it out again');
+  await page.waitForTimeout(500);
+  await settledNodes(nodes);
+  const tidied = await nodes();
+  const byId = new Map(tidied.map((node) => [node.id, node]));
+  expect(inside(byId.get('invoice-service')!, byId.get('billing')!)).toBe(true);
+  const overlap = (a: CanvasNode, b: CanvasNode) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+  for (const a of tidied)
+    for (const b of tidied)
+      if (a.id < b.id && a.parentId === b.parentId) expect(overlap(a, b), `${a.id} on ${b.id}`).toBe(false);
+
   // The agent reads it as it is now, from the view (without where things are)
   const read = textOf(await agent.callTool({ name: 'read_diagram', arguments: { diagramId } }));
   expect(read.model.resources.some((resource: { id: string }) => resource.id === 'invoice-service')).toBe(true);

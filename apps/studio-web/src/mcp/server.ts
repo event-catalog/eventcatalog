@@ -12,7 +12,7 @@ import { SCHEMA_GUIDE, SERVER_INSTRUCTIONS } from './guide';
 import { LEVELS, Model, type ArchitecturePayload } from '@eventcatalog/visualiser/model';
 import { summarise, toMermaid } from '../model/to-text';
 import { checkPayload } from '../model/check';
-import { Changes, type ChangeResult } from '../model/changes';
+import { Changes, Reorder, type ChangeResult } from '../model/changes';
 import { outlineModel } from '../model/outline';
 import { parseViewFragment, viewLink } from '../lib/encode';
 import { POSTHOG_ORIGIN } from '../lib/posthog';
@@ -38,7 +38,7 @@ type Report = (details: Properties) => void;
 type Log = (fields: Record<string, string | number | boolean | undefined>) => void;
 
 /** What the open view answers an edit with (view/diagram-bridge.ts) */
-export type EditAnswer = { results: ChangeResult[]; resources: number; relations: number };
+export type EditAnswer = { results: ChangeResult[]; resources: number; relations: number; reordered?: boolean };
 
 const text = (value: unknown, isError = false) => ({
   content: [{ type: 'text' as const, text: JSON.stringify(value, null, 2) }],
@@ -159,14 +159,14 @@ export function createMcpServer({ baseUrl, report = () => {}, log = () => {} }: 
     {
       title: 'Change the open diagram',
       description:
-        "Changes a diagram render_architecture showed, where the user has it open: they watch your changes made on it. Use it for every change to that diagram, instead of render_architecture. Send only what changes (add_resource, update_resource, remove_resource, add_relation, remove_relation, add_hotspot, remove_hotspot, add_note, set_title), using the ids read_diagram shows: the diagram keeps everything else, including what the user changed and where things are. Returns which changes were made and why any weren't.",
-      inputSchema: z.object({ diagramId, changes: Changes }),
+        "Changes a diagram render_architecture showed, where the user has it open: they watch your changes made on it. Use it for every change to that diagram, instead of render_architecture. Send only what changes (add_resource, update_resource, remove_resource, add_relation, remove_relation, add_hotspot, remove_hotspot, add_note, set_title), using the ids read_diagram shows: the diagram keeps everything else, including what the user changed and where things are. Returns which changes were made and why any weren't. Set reorder on the last edit of a round of changes, to lay the diagram out again so it reads well (it moves everything, including what the user arranged: leave it off when they asked to keep their layout).",
+      inputSchema: z.object({ diagramId, changes: Changes, reorder: Reorder }),
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
-    async ({ diagramId: id, changes }) => {
+    async ({ diagramId: id, changes, reorder }) => {
       const started = performance.now();
-      const result = await ask(id, { kind: 'edit', changes });
-      log({ changes: changes.length, outcome: result.outcome, answer_ms: Math.round(performance.now() - started) });
+      const result = await ask(id, { kind: 'edit', changes, reorder });
+      log({ changes: changes.length, reorder: !!reorder, outcome: result.outcome, answer_ms: Math.round(performance.now() - started) });
       report({ changes: sizeBucket(changes.length), outcome: result.outcome, ok: result.outcome === 'answered' });
       if (result.outcome === 'not_open') return text({ error: NOT_OPEN }, true);
       if (result.outcome === 'busy') return text({ error: 'The diagram has too many changes waiting. Try again in a moment.' }, true);
@@ -182,7 +182,7 @@ export function createMcpServer({ baseUrl, report = () => {}, log = () => {} }: 
       return text(
         {
           note: applied
-            ? `Made ${applied} of ${answer.results.length} changes on the diagram the user has open: don't redraw it. Tell them what you changed${failed.length ? ', and fix or explain the ones that failed' : ''}.`
+            ? `Made ${applied} of ${answer.results.length} changes on the diagram the user has open${answer.reordered ? ', and laid it out again' : ''}: don't redraw it. Tell them what you changed${failed.length ? ', and fix or explain the ones that failed' : ''}.`
             : 'None of the changes could be made: fix them and call edit_diagram again.',
           diagramId: id,
           ...(failed.length && { failed: failed.map(({ index, op, error }) => ({ index, op, error })) }),

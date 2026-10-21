@@ -108,13 +108,14 @@ describe('WebMCP tools', () => {
     const { call, edit } = await setUp({ live: true });
     const result = (
       await call('edit_diagram', {
+        reorder: true,
         changes: [
           { op: 'add_resource', resource: { id: 'billing', type: 'domain', name: 'Billing' } },
           { op: 'add_relation', relation: { from: 'nowhere', to: 'billing', kind: 'connects' } },
         ],
       })
     ).json();
-    expect(edit).toHaveBeenCalledOnce();
+    expect(edit).toHaveBeenCalledWith(expect.any(Array), { reorder: true });
     expect(result.made).toBe(1);
     expect(result.failed).toHaveLength(1);
   });

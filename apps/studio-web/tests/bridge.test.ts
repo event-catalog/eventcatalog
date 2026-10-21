@@ -107,6 +107,7 @@ describe('edit_diagram and read_diagram, through the open view', () => {
       name: 'edit_diagram',
       arguments: {
         diagramId: id,
+        reorder: true,
         changes: [
           { op: 'add_resource', resource: { id: 'payments', type: 'domain', name: 'Payments' } },
           { op: 'add_relation', relation: { from: 'nope', to: 'payments', kind: 'connects' } },
@@ -118,6 +119,8 @@ describe('edit_diagram and read_diagram, through the open view', () => {
     expect(answer.note).toContain('Made 1 of 2 changes');
     expect(answer.failed).toEqual([{ index: 1, op: 'add_relation', error: '"nope" isn\'t a resource.' }]);
     expect(view.seen).toHaveLength(1);
+    // Asked to lay it out again after (the last edit of a round)
+    expect(view.seen[0]).toMatchObject({ kind: 'edit', reorder: true });
     view.close();
   });
 

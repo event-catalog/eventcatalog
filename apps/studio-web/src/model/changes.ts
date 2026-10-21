@@ -38,6 +38,12 @@ export const Changes = z
   .describe('What to change, applied in order. Use the ids read_diagram shows; new resources are placed next to what they connect to');
 export type Changes = z.infer<typeof Changes>;
 
+/** edit_diagram's option to lay the diagram out again after the changes (as the view's Reorder does) */
+export const Reorder = z
+  .boolean()
+  .optional()
+  .describe('Lay it out again after: on the last edit of a round. Moves everything: not if the user wants their layout');
+
 /** How one change went: applied, or why not */
 export type ChangeResult = { index: number; op: Change['op']; ok: boolean; error?: string };
 

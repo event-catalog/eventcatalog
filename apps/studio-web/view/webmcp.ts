@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { initializeWebMCPPolyfill } from '@mcp-b/webmcp-polyfill';
 import { LEVELS, Model, type ArchitecturePayload } from '@eventcatalog/visualiser/model';
 import { checkPayload } from '../src/model/check';
-import { Changes, type ChangeResult } from '../src/model/changes';
+import { Changes, Reorder, type ChangeResult } from '../src/model/changes';
 import { summarise } from '../src/model/to-text';
 import { parseViewFragment } from '../src/lib/encode';
 import { SCHEMA_GUIDE } from '../src/mcp/guide';
@@ -67,7 +67,7 @@ export type WebMcpCanvas = {
   /** Puts the agent's diagram on the canvas in place of what's there, built up in front of the user; false if they said no */
   render: (payload: ArchitecturePayload) => Promise<boolean>;
   /** Makes the agent's changes on the canvas (as edit_diagram does in a chat): which were made, and why any weren't */
-  edit: (changes: Changes) => Promise<{ results: ChangeResult[]; resources: number; relations: number }>;
+  edit: (changes: Changes, options?: { reorder?: boolean }) => Promise<{ results: ChangeResult[]; resources: number; relations: number; reordered?: boolean }>;
 };
 
 type WebMcpTool<Input extends z.ZodType = z.ZodType> = {
@@ -154,17 +154,19 @@ export function createWebMcpTools(get: () => WebMcpCanvas): WebMcpTool[] {
       name: 'edit_diagram',
       title: 'Change the open diagram',
       description:
-        "Changes the diagram on the user's canvas in place: they watch your changes made on it (and, in a live session, so does everyone in it). Send only what changes (add_resource, update_resource, remove_resource, add_relation, remove_relation, add_hotspot, remove_hotspot, add_note, set_title), using the ids read_diagram shows: the canvas keeps everything else, including what the user changed and where things are.",
+        "Changes the diagram on the user's canvas in place: they watch your changes made on it (and, in a live session, so does everyone in it). Send only what changes (add_resource, update_resource, remove_resource, add_relation, remove_relation, add_hotspot, remove_hotspot, add_note, set_title), using the ids read_diagram shows: the canvas keeps everything else, including what the user changed and where things are. Set reorder on the last edit of a round.",
       input: z.object({
         diagramId: z.string().optional().describe('Not needed in the browser: the canvas is the open diagram'),
         changes: Changes,
+        reorder: Reorder,
       }),
       annotations: { consequentialHint: true },
-      execute: async ({ changes }) => {
-        const { results, resources, relations } = await get().edit(changes);
+      execute: async ({ changes, reorder }) => {
+        const { results, resources, relations, reordered } = await get().edit(changes, { reorder });
         const failed = results.filter((result) => !result.ok);
         return {
           made: results.length - failed.length,
+          ...(reordered && { reordered }),
           ...(failed.length && { failed: failed.map(({ index, op, error }) => ({ index, op, error })) }),
           diagram: { resources, relations },
         };

@@ -10,7 +10,7 @@ When the user asks how something works ("help me understand how payments work", 
 3. Build the model: give every resource a summary (a sentence on what it is or does, from the code or specs: it's shown on its node), fill evidence (file:line) for everything, and set inferred: true for anything not seen directly. Don't add notes (sticky notes on the diagram) unless the user asks for them: explain in your reply, and flag what matters with hotspots.
 4. Call render_architecture. Start small: one domain or service with focus set, and expand when the user asks.
 5. Explain what the diagram shows. Don't redraw it if the client shows it interactively.
-6. The diagram stays open beside the conversation, and the user can change it there too. When they ask for a change, call edit_diagram with its diagramId and only what changes: they watch it change in place. Call render_architecture again only for a new, separate diagram.`;
+6. The diagram stays open beside the conversation, and the user can change it there too. When they ask for a change, call edit_diagram with its diagramId and only what changes: they watch it change in place. Set reorder on the last edit of a round, to lay it out again. Call render_architecture again only for a new, separate diagram.`;
 
 const EXAMPLE: z.input<typeof Model> = {
   title: 'Orders and Payments',
@@ -82,8 +82,8 @@ A diagram stays open beside the conversation after render_architecture, and the 
 - add_hotspot { hotspot } / remove_hotspot { id }
 - add_note { note: { text, resource? } }: only when the user asks for a note
 - set_title { title }
-Read it first with read_diagram { diagramId } when you need its ids or what the user changed. The result says which changes were made and why any weren't (an unknown id, a relation the types don't allow): fix those and send just them again. Never send where things go: the diagram places what's new and keeps what's there.
-Example: { "diagramId": "…", "changes": [{ "op": "add_resource", "resource": { "id": "payments", "type": "domain", "name": "Payments" } }, { "op": "add_resource", "resource": { "id": "payment-service", "type": "service", "name": "Payment Service", "parent": "payments", "summary": "Charges customers for orders." } }, { "op": "add_relation", "relation": { "from": "payment-service", "to": "OrderPlaced", "kind": "receives" } }] }
+Set "reorder": true on the last edit of a round of changes: the diagram is laid out again so it reads well (it moves everything, including what the user arranged, so leave it off when they've asked to keep their layout, and don't set it on every edit). Read it first with read_diagram { diagramId } when you need its ids or what the user changed. The result says which changes were made and why any weren't (an unknown id, a relation the types don't allow): fix those and send just them again. Never send where things go: the diagram places what's new and keeps what's there.
+Example: { "diagramId": "…", "changes": [{ "op": "add_resource", "resource": { "id": "payments", "type": "domain", "name": "Payments" } }, { "op": "add_resource", "resource": { "id": "payment-service", "type": "service", "name": "Payment Service", "parent": "payments", "summary": "Charges customers for orders." } }, { "op": "add_relation", "relation": { "from": "payment-service", "to": "OrderPlaced", "kind": "receives" } }], "reorder": true }
 
 ## Diagram links from the user
 When the user pastes a diagram link (with #m= in it, e.g. shared from EventCatalog Studio by a teammate), call read_diagram { diagram: link } to get its model. To build on it, change that model and call render_architecture with it: that shows it as a diagram they can then change with edit_diagram.

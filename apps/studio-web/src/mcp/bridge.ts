@@ -15,8 +15,8 @@
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 
 /** What the agent asks of the open diagram */
-export type BridgeRequest = { id: string; kind: 'edit'; changes: unknown } | { id: string; kind: 'read' };
-type Ask = { kind: 'edit'; changes: unknown } | { kind: 'read' };
+export type BridgeRequest = { id: string; kind: 'edit'; changes: unknown; reorder?: boolean } | { id: string; kind: 'read' };
+type Ask = { kind: 'edit'; changes: unknown; reorder?: boolean } | { kind: 'read' };
 
 type Channel = {
   /** The hash of the waiting view's secret (set by its first wait) */

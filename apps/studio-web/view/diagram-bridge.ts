@@ -10,9 +10,9 @@ import type { Changes } from '../src/model/changes';
 const WAIT_TOOL = 'wait_for_diagram_requests';
 const ANSWER_TOOL = 'answer_diagram_request';
 
-type Request = { id: string; kind: 'edit'; changes: Changes } | { id: string; kind: 'read' };
+type Request = { id: string; kind: 'edit'; changes: Changes; reorder?: boolean } | { id: string; kind: 'read' };
 export type DiagramBridgeHandlers = {
-  edit: (changes: Changes) => Promise<Record<string, unknown>>;
+  edit: (changes: Changes, options?: { reorder?: boolean }) => Promise<Record<string, unknown>>;
   read: () => Record<string, unknown>;
 };
 
@@ -54,7 +54,7 @@ export function serveDiagram(app: App, diagramId: string, handlers: () => Diagra
   const handle = async (request: Request) => {
     let answer: Record<string, unknown>;
     try {
-      answer = request.kind === 'edit' ? await handlers().edit(request.changes) : handlers().read();
+      answer = request.kind === 'edit' ? await handlers().edit(request.changes, { reorder: request.reorder }) : handlers().read();
     } catch (error) {
       answer = { error: String((error as Error)?.message ?? error) };
     }

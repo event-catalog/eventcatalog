@@ -171,6 +171,9 @@ bundles Studio's components, with the shared ones: rebuild it after changing the
   process, as the rooms). The view applies changes to the model as the canvas has it, lays it out keeping where
   things are (`modelToCanvas`), and writes only what's different (`view/studio/apply-agent-canvas.ts`), as one change
   outside the user's undo: never rebuild the canvas for an agent's change. Agents never see layout (`outlineModel`).
+  `edit_diagram`'s `reorder` lays it out again after (the canvas handle's `tidy()`): agents are told to set it on the
+  last edit of a round of changes, never on every one, and not when the user asked to keep their layout (as core's
+  `layout_canvas`).
 - **Chats keep every view they showed running, and show them again from the tool result** when the conversation's
   opened again: the diagram as it is now is kept in the browser under its `diagramId` (`saveChatView` in
   `local-canvas.ts`), once it's been used or changed, so it opens as it was left without the build playing again.
