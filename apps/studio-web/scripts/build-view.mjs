@@ -9,6 +9,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 
 const root = path.join(import.meta.dirname, '..');
 const viewDirectory = path.join(root, 'view');
@@ -93,6 +94,35 @@ const toHtml = (title, script) => `<!doctype html>
 </html>
 `;
 
+// ---- Icons: only the ones the view shows. The visualiser looks icons up by name (getIcon, and custom nodes'), which
+// keeps every one of them (~300, 480 KB of the page): the names it looks up here are its defaults (the catalog's
+// icon names never reach the view), so the icon sets are swapped for ones with just these. An import of one not
+// listed fails the build (rather than an icon going missing)
+const ICONS = {
+  '@heroicons/react/24/outline': [
+    // Named: the view's resource types, the visualiser's menus
+    'ArrowsRightLeftIcon', 'BoltIcon', 'ChatBubbleLeftIcon', 'ComputerDesktopIcon', 'CubeIcon', 'CpuChipIcon', 'GlobeAltIcon',
+    'UserIcon', 'MagnifyingGlassIcon', 'RectangleGroupIcon', 'ServerIcon', 'UserGroupIcon', 'DocumentArrowDownIcon',
+    'PresentationChartLineIcon',
+    // Looked up by name: domains', entities' and flows' defaults
+    'QueueListIcon',
+  ],
+  // Custom nodes' icons, by name (their default: custom nodes come from catalogs, not the view)
+  '@heroicons/react/24/solid': ['CubeIcon'],
+};
+const heroicons = path.dirname(createRequire(import.meta.resolve('@eventcatalog/visualiser')).resolve('@heroicons/react/package.json'));
+const onlyUsedIcons = {
+  name: 'only-used-icons',
+  enforce: 'pre',
+  resolveId: (id) => (ICONS[id] ? `\0icons:${id}` : undefined),
+  load: (id) => {
+    if (!id.startsWith('\0icons:')) return undefined;
+    const set = id.slice('\0icons:'.length);
+    const folder = path.join(heroicons, set.replace('@heroicons/react/', ''), 'esm');
+    return ICONS[set].map((name) => `export { default as ${name} } from ${JSON.stringify(path.join(folder, `${name}.js`))};`).join('\n');
+  },
+};
+
 fs.mkdirSync(outputDirectory, { recursive: true });
 // Earlier builds' scripts
 for (const file of fs.readdirSync(outputDirectory)) if (/^view-[a-z0-9]+\.js(\.map)?$/.test(file)) fs.rmSync(path.join(outputDirectory, file));
@@ -101,7 +131,7 @@ const output = await build({
   configFile: false,
   root: viewDirectory,
   logLevel: 'warn',
-  plugins: [react(), tailwindcss()],
+  plugins: [onlyUsedIcons, react(), tailwindcss()],
   // __STUDIO_BUILD__: when it was built, on analytics events (which version people are on)
   // __STUDIO_SCRIPT__: the script's name, for errors' frames
   define: {

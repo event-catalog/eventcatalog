@@ -6,6 +6,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Y from 'yjs';
+import { applyAgentCanvasToDoc, type AgentCanvas } from './apply-agent-canvas';
 import { applyEdgeChanges, applyNodeChanges, type Connection, type Edge, type EdgeChange, type Node, type NodeChange, type XYPosition } from '@xyflow/react';
 import { addNodes, addHotspots, setEdgeLabel as setEdgeLabelInDoc, getLock, setLock, addThreads, createHotspot as createHotspotInDoc, deleteHotspot as deleteHotspotInDoc, readHotspots, updateHotspot as updateHotspotInDoc, type Hotspot, createThread as createThreadInDoc, deleteThread as deleteThreadInDoc, moveThread as moveThreadInDoc, readThreads, replyToThread as replyToThreadInDoc, setThreadResolved as setThreadResolvedInDoc, type Author, type CommentAnchor, type Thread, buildNode, changesNodesOrEdges, connectNodes, deleteEdges, deleteNodes as deleteNodesInDoc, fitContainersAround, getCanvasMaps, getStructureKey, moveNode, placeNode, readLevelLayout, reconnectEdge, resizeNode, setEdgeRoutes, setLevelPlaces, setMeta, setNodeParents, updateNodeData as updateNodeDataInDoc, type LevelPlace, type RenderedSizes, keepDragged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, patchShared, containerFor, toRelativePosition, type NodePreview, type LayoutResult, canGoInContainer, getNodeDefinition, isGroupType } from '@eventcatalog/visualiser/studio';
 import type { Editing } from '../collab/room';
@@ -20,6 +21,8 @@ const LOCAL_ORIGIN = Symbol('canvas-local');
 const LEVEL_PLACEMENT_ORIGIN = Symbol('canvas-level-placement');
 /** The content the canvas starts from: not undone */
 const LOAD_ORIGIN = Symbol('canvas-load');
+/** The agent's changes (edit_diagram): shown to everyone, and not in the user's undo (they're not theirs to take back) */
+const AGENT_ORIGIN = Symbol('canvas-agent');
 
 const NO_LEVEL_LAYOUTS = { 1: new Map(), 2: new Map() } as const;
 
@@ -369,6 +372,12 @@ export function useCanvasFlow({
     []
   );
 
+  /** The agent's changes to the diagram (edit_diagram): see apply-agent-canvas.ts */
+  const applyAgentCanvas = useCallback(
+    (target: AgentCanvas) => withDoc((doc) => applyAgentCanvasToDoc(doc, target, renderedSizes()), AGENT_ORIGIN) ?? { added: [], changed: [], removed: [] },
+    []
+  );
+
   // ---- Comments ----
   const createThread = useCallback((anchor: CommentAnchor, text: string, author: Author) => withDoc((doc) => createThreadInDoc(doc, anchor, text, author)), []);
   const replyToThread = useCallback((id: string, text: string, author: Author) => withDoc((doc) => replyToThreadInDoc(doc, id, text, author)), []);
@@ -387,6 +396,7 @@ export function useCanvasFlow({
 
   return {
     doc,
+    applyAgentCanvas,
     threads,
     createThread,
     replyToThread,

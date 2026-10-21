@@ -17,7 +17,9 @@ describe('the MCP server', () => {
   it('has every tool its instructions and descriptions name', async () => {
     const client = await connect();
     const names = (await client.listTools()).tools.map((tool) => tool.name);
-    expect(names).toEqual(expect.arrayContaining(['get_architecture_schema', 'render_architecture', 'show_on_diagram', 'read_diagram']));
+    expect(names).toEqual(expect.arrayContaining(['get_architecture_schema', 'render_architecture', 'read_diagram']));
+    // Kept simple: no walkthroughs
+    expect(names).not.toContain('show_on_diagram');
     // Agents are told to call tools by name: each one named must exist
     const instructions = client.getInstructions() ?? '';
     const descriptions = (await client.listTools()).tools.map((tool) => tool.description ?? '').join('\n');
@@ -29,7 +31,10 @@ describe('the MCP server', () => {
     const client = await connect();
     const guide = textOf(await client.callTool({ name: 'get_architecture_schema', arguments: {} }));
     expect(guide).toContain('## Resource types');
-    expect(guide).toContain('## JSON schema of the model');
+    // How to change a diagram: only what changes, never where things go
+    expect(guide).toContain('## Changing the diagram (edit_diagram)');
+    // The model's JSON schema is the tool's input schema already: not repeated in the guide
+    expect(guide).not.toContain('## JSON schema of the model');
     const example = JSON.parse(guide.slice(guide.indexOf('## Example') + '## Example'.length));
     const model = Model.parse(example);
     expect(validateModel(model).errors).toEqual([]);

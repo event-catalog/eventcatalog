@@ -42,6 +42,7 @@ import { X } from 'lucide-react';
 import { ContextMenu, type ContextMenuState, type MenuQuestion } from '@eventcatalog/visualiser/studio';
 import { EditButton, Palette, COMPONENT_DRAG_TYPE, RemeasureHandles } from '@eventcatalog/visualiser/studio';
 import { useCanvasFlow } from './use-canvas-flow';
+import type { AgentCanvas } from './apply-agent-canvas';
 import { bump, track } from '../analytics';
 import { type ModelCanvasContent as CanvasContent } from '@eventcatalog/visualiser/studio';
 
@@ -148,6 +149,13 @@ export type StudioCanvasHandle = {
   tidy: () => void;
   /** Changes a node's name, version or summary (one step to undo) */
   updateNode: (nodeId: string, fields: Record<string, unknown>) => void;
+  /**
+   * Brings nodes into view (what the agent just added): only when they aren't in view already, fitting them and
+   * what they connect to, never closer than it is now; the selection stays as it is
+   */
+  showNodes: (nodeIds: string[]) => void;
+  /** The agent's changes (edit_diagram), as the canvas they should give: only what's different is written (apply-agent-canvas.ts) */
+  applyAgentCanvas: (target: AgentCanvas) => { added: string[]; changed: string[]; removed: string[] };
 };
 
 type StudioCanvasProps = {
@@ -164,7 +172,7 @@ type StudioCanvasProps = {
   questionsFor?: (node: Node) => MenuQuestion[];
   /** The palette of components (hidden e.g. inline in a chat, where there's little room) */
   showPanel?: boolean;
-  /** Drawn over the canvas: the diagram's menu, sharing, its pages and walkthroughs */
+  /** Drawn over the canvas: the diagram's menu, sharing and its pages */
   children?: ReactNode;
   /** A domain or system being added, its kind (card or container) being chosen, or done */
   onChoosingChange?: (choosing: boolean) => void;
@@ -192,7 +200,7 @@ type StudioCanvasProps = {
   onEditing?: (editing: Editing | null) => void;
   /** Bottom left, after the zoom and undo controls (e.g. made with EventCatalog) */
   footer?: ReactNode;
-  /** Bottom bar extras, e.g. replaying the agent's walkthrough */
+  /** Bottom bar extras */
   barExtras?: ReactNode;
   /** The canvas's area (where the children are drawn, and the diagram is exported from) */
   areaRef?: (element: HTMLDivElement | null) => void;
@@ -267,7 +275,7 @@ function Canvas({
   const lockedBy = flow.lockedBy;
   useEffect(() => setLocked(!!lockedBy), [lockedBy]);
   useEffect(() => onDocChange?.(flow.doc), [flow.doc]);
-  const { screenToFlowPosition, flowToScreenPosition, setCenter, fitView, getZoom } = useReactFlow();
+  const { screenToFlowPosition, flowToScreenPosition, setCenter, fitView, getZoom, getViewport, getNodesBounds } = useReactFlow();
   // Nodes pop in (scaled up from smaller, see studio.css): where their handles are is measured again once they're
   // full size, or connections to handles off their middle (an entity's properties) would end short of them
   const updateNodeInternals = useUpdateNodeInternals();
@@ -581,7 +589,7 @@ function Canvas({
   const addNoteAt = (center: XYPosition, extra: Record<string, unknown> = {}) => {
     const data = { ...getNodeDefinition('note')!.createData(), createdAt: Date.now(), ...extra };
     const id = flow.insertNode('note', levelRef.current === 3 ? data : { ...data, level: levelRef.current }, center);
-    track('note_added', { level: levelRef.current, from: extra.text ? 'walkthrough' : 'canvas' });
+    track('note_added', { level: levelRef.current, from: extra.text ? 'prefilled' : 'canvas' });
     // Written on straight away (not one that already says something, e.g. the agent's)
     if (!extra.text) setStartWriting(id);
     return id;
@@ -1432,6 +1440,25 @@ function Canvas({
     tidy: () => {
       void reorder();
       tidyCanvasWhenShown.current = levelRef.current !== 3 && !cursors;
+    },
+    applyAgentCanvas: (target) => flow.applyAgentCanvas(target),
+    showNodes: (nodeIds) => {
+      const shown = nodesRef.current.filter((node) => nodeIds.includes(node.id));
+      const area = document.querySelector('.studio-canvas .react-flow')?.getBoundingClientRect();
+      if (!shown.length || !area) return;
+      const { x, y, zoom } = getViewport();
+      const bounds = getNodesBounds(shown);
+      const inView =
+        bounds.x * zoom + x >= 0 &&
+        bounds.y * zoom + y >= 0 &&
+        (bounds.x + bounds.width) * zoom + x <= area.width &&
+        (bounds.y + bounds.height) * zoom + y <= area.height;
+      if (inView) return;
+      const ids = new Set(shown.map((node) => node.id));
+      edgesRef.current.forEach((edge) => {
+        if (ids.has(edge.source) || ids.has(edge.target)) ids.add(ids.has(edge.source) ? edge.target : edge.source);
+      });
+      void fitView({ nodes: [...ids].map((id) => ({ id })), padding: 0.2, maxZoom: zoom, duration: 450 });
     },
     updateNode: (nodeId, fields) => {
       const node = nodesRef.current.find((candidate) => candidate.id === nodeId);

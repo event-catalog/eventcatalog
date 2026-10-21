@@ -1,0 +1,79 @@
+/**
+ * The agent's changes to the diagram (edit_diagram), written into the canvas's document: from the canvas the
+ * changed model should give (modelToCanvas, laid out from where things are now), only what's different is written.
+ * Resources and connections added, changed and removed, and hotspots added and removed; notes, text and comments
+ * are left as they are. What's kept stays where it is, unless it moved into another container; containers grow
+ * around what's new in them.
+ */
+import type * as Y from 'yjs';
+import type { Edge, Node } from '@xyflow/react';
+import { deleteNodes, fitContainersAround, getCanvasMaps, isGroupType, resourceTypeOf, toSharedNode, type Hotspot, type RenderedSizes } from '@eventcatalog/visualiser/studio';
+import type { Model } from '@eventcatalog/visualiser/model';
+
+/**
+ * What the canvas should have: the changed model on the canvas (modelToCanvas), and which resources the changes
+ * touched (changedResources: nodes are compared through the model, as the canvas fills in what the model leaves out)
+ */
+export type AgentCanvas = { nodes: Node[]; edges: Edge[]; hotspots?: Hotspot[]; changed: ReadonlySet<string> };
+
+/** The resources whose fields differ between two models */
+export function changedResources(before: Model, after: Model) {
+  const was = new Map(before.resources.map((resource) => [resource.id, JSON.stringify(resource)]));
+  return new Set(after.resources.filter((resource) => was.has(resource.id) && was.get(resource.id) !== JSON.stringify(resource)).map((resource) => resource.id));
+}
+
+const isResource = (node: Node) => resourceTypeOf(node.type) !== undefined;
+// What a new container starts at before it's fitted to what's in it: its header and padding
+const NEW_CONTAINER = { width: 200, height: 140 };
+// Where an edge is drawn (its route) is the canvas's own, not something the agent changes
+const withoutRoute = (edge: Edge) => JSON.stringify({ ...edge, data: { ...edge.data, route: undefined } });
+
+/** Writes the differences (call it inside one transaction). Returns the resources added, changed and removed */
+export function applyAgentCanvasToDoc(doc: Y.Doc, target: AgentCanvas, sizes?: RenderedSizes) {
+  const { nodes, edges, hotspots } = getCanvasMaps(doc);
+  const wanted = new Map(target.nodes.filter(isResource).map((node) => [node.id, node]));
+  const added: string[] = [];
+  const changed: string[] = [];
+
+  // Containers before what's in them (the target's order), and kept and new before any goes, so nothing kept is
+  // taken away with a container that's removed
+  for (const [id, node] of wanted) {
+    const current = nodes.get(id);
+    if (!current) {
+      nodes.set(id, toSharedNode(node));
+      added.push(id);
+      continue;
+    }
+    const moved = (current.parentId ?? undefined) !== (node.parentId ?? undefined);
+    if (!moved && !target.changed.has(id)) continue;
+    const data = { ...current.data, ...node.data };
+    const { parentId: _, ...rest } = current;
+    const parentId = moved ? node.parentId : current.parentId;
+    nodes.set(id, { ...rest, type: node.type, data, ...(moved && { position: node.position }), ...(parentId && { parentId }) });
+    changed.push(id);
+  }
+  const removed = [...nodes.values()].filter((node) => isResource(node) && !wanted.has(node.id)).map((node) => node.id);
+  if (removed.length) deleteNodes(doc, removed);
+
+  const wantedEdges = new Map(target.edges.map((edge) => [edge.id, edge]));
+  wantedEdges.forEach((edge, id) => {
+    const current = edges.get(id);
+    const next = current ? { ...current, ...edge, data: { ...current.data, ...edge.data } } : edge;
+    if (!current || withoutRoute(next) !== withoutRoute(current)) edges.set(id, next);
+  });
+  edges.forEach((_, id) => !wantedEdges.has(id) && edges.delete(id));
+
+  const wantedHotspots = new Map((target.hotspots ?? []).map((hotspot) => [hotspot.id, hotspot]));
+  wantedHotspots.forEach((hotspot, id) => !hotspots.has(id) && hotspots.set(id, hotspot));
+  hotspots.forEach((_, id) => !wantedHotspots.has(id) && hotspots.delete(id));
+
+  // A new container fits what's put in it (containers only grow when fitted: from their default size, a new domain
+  // with one service in it was a big, mostly empty box)
+  for (const id of added) {
+    const node = nodes.get(id);
+    if (node && isGroupType(node.type) && [...nodes.values()].some((child) => child.parentId === id))
+      nodes.set(id, { ...node, width: NEW_CONTAINER.width, height: NEW_CONTAINER.height });
+  }
+  [...added, ...changed].forEach((id) => nodes.get(id)?.parentId && fitContainersAround(doc, id, sizes));
+  return { added, changed, removed };
+}

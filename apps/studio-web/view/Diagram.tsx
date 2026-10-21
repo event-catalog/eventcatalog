@@ -5,7 +5,6 @@
  * and apps/canvas/view.tsx (model context).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ToolbarButton } from '@eventcatalog/visualiser';
 import {
   ArrowRight,
   BookOpen,
@@ -18,22 +17,25 @@ import {
   Maximize2,
   Monitor,
   Moon,
-  Presentation,
   Share2,
   StickyNote,
   Sun,
 } from 'lucide-react';
 import type { App, McpUiHostContext } from '@modelcontextprotocol/ext-apps';
-import { hasContent, loadLocalCanvas, saveLocalCanvas, type LocalPayload } from './local-canvas';
+import { hasContent, loadLocalCanvas, saveChatView, saveLocalCanvas, type LocalPayload } from './local-canvas';
 import { ConfirmDialog } from './ConfirmDialog';
 import { JoinDialog } from './collab/JoinDialog';
 import { ProfileMenu } from './collab/ProfileMenu';
 import { hasJoinedRoom, isRoomStarter, markRoomJoined, markRoomStarted, myIdentity, newRoom, roomFragment, RoomConnection, setMyIdentity, type Editing, type Moving, type Peer, type RoomLink, type RoomStatus } from './collab/room';
 import type * as Y from 'yjs';
 import type { Node } from '@xyflow/react';
-import { MESSAGE_TYPES, type ArchitecturePayload, type Level, type Model, type Note, type Resource, type Scene } from '@eventcatalog/visualiser/model';
-import { buildArchitectureGraph, type ArchitectureGraph } from '../src/model/to-graph';
+import { MESSAGE_TYPES, type ArchitecturePayload, type Model, type Resource } from '@eventcatalog/visualiser/model';
+import { buildOpeningGraphs } from '../src/model/to-graph';
 import { summarise } from '../src/model/to-text';
+import { outlineText } from '../src/model/outline';
+import { applyChanges, type Changes } from '../src/model/changes';
+import { serveDiagram, type DiagramBridgeHandlers } from './diagram-bridge';
+import { changedResources } from './studio/apply-agent-canvas';
 import { NodeChat, describeNodeForModel, type SelectedNode } from './ported/node-chat';
 import { resourceForNode } from './focus';
 import { DocumentModal } from './DocumentModal';
@@ -59,7 +61,7 @@ import { Toast, type Notice } from './Toast';
 import { copyToClipboard } from './ported/clipboard';
 import { EmptyCanvas } from '@eventcatalog/visualiser/studio';
 import { ConnectAgentDialog } from './ConnectAgentDialog';
-import { isWebMcpPolyfillOn, turnOnWebMcpPolyfill, useWebMcp } from './webmcp';
+import { isWebMcpPolyfillOn, turnOnWebMcpPolyfill, useWebMcp, type WebMcpCanvas } from './webmcp';
 import { StudioCanvas, type CanvasSnapshot, type StudioCanvasHandle } from './studio/StudioCanvas';
 import type { MenuQuestion } from '@eventcatalog/visualiser/studio';
 import { canvasToModel, modelToCanvas, type ModelCanvasContent as CanvasContent } from '@eventcatalog/visualiser/studio';
@@ -68,13 +70,15 @@ import { ShortcutsDialog } from './ShortcutsDialog';
 import { RESOURCE_LOOK, TypeIcon } from './resource-types';
 import { viewLink } from '../src/lib/encode';
 import { INLINE_HEIGHT } from './diagram-styles';
+import { fullscreenStyle } from './ported/app-view';
 import { BuildStage } from './build/BuildStage';
-import { TourStage } from './build/TourStage';
 import { toStage, type StageState } from './build/choreography';
-import { bump, configureAnalytics, durationBucket, modelMix, modelStats as diagramStats, notePeople, sizeBucket, tourStats, track } from './analytics';
+import { bump, configureAnalytics, durationBucket, modelMix, modelStats as diagramStats, notePeople, sizeBucket, track } from './analytics';
 
 
 const LEVEL_NUMBERS = { overview: 1, services: 2, messages: 3 } as const;
+const FULL_PAGE = { height: '100vh' };
+const INLINE = { height: INLINE_HEIGHT };
 
 /** An http(s) link (what's safe to open from a diagram) */
 const isWebLink = (url: string) => {
@@ -84,10 +88,6 @@ const isWebLink = (url: string) => {
     return false;
   }
 };
-
-/** The graph the diagram opens at (the build is played on it): the level asked for, if the diagram has it */
-const openingGraph = (graph: ArchitectureGraph, level: Level) =>
-  level === 'overview' && graph.overview ? graph.overview : level === 'services' ? graph.hiddenMessages : graph;
 
 // Too much to watch being built one node at a time: shown straight away
 const MAX_ANIMATED_NODES = 120;
@@ -109,7 +109,7 @@ function promptFor(kind: PromptKind, resource: Resource, model: Model) {
     case 'explain':
       return `Explain ${subject} in the "${model.title}" architecture: what it does, and how it connects to the rest.`;
     case 'flow':
-      return `Walk me through ${subject}: who sends it, who receives it, which channels it goes through, and what happens next. Use the code to check, and walk me through it on the diagram.`;
+      return `Walk me through ${subject}: who sends it, who receives it, which channels it goes through, and what happens next. Use the code to check.`;
     case 'dependencies':
       return `What does ${subject} depend on, and what depends on it? Look at the code for anything missing from the diagram.`;
     case 'code':
@@ -128,6 +128,10 @@ type DiagramProps = {
   fullPage?: boolean;
   /** Build diagrams up in front of the user (results from the agent), rather than showing them (shared links) */
   animate?: boolean;
+  /** In a chat: the diagram's id, for the agent to change and read it here (edit_diagram, read_diagram) */
+  diagramId?: string;
+  /** What's already been built in front of the user (the agent's draft, as it wrote it): the build carries on from it */
+  builtBefore?: StageState;
   /** A payload laid out again as soon as it's open (a link opened: where it had things may be out of date) */
   reorderWhenOpened?: ArchitecturePayload;
   /** A live room this canvas is shared in (in the browser): its id and key, from the link */
@@ -136,11 +140,21 @@ type DiagramProps = {
 
 /**
  * The canvas (EventCatalog Studio's, see studio/StudioCanvas.tsx) with the diagram around it: the agent building it
- * up and walking through it, each node's page, asking the agent, files, sharing and exporting. What's on the
+ * up, each node's page, asking the agent, files, sharing and exporting. What's on the
  * canvas is the model: it starts from the agent's (or the link's, or a file's), and what people change there goes back
  * into it, for links, files, exports and the agent.
  */
-export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, animate = false, reorderWhenOpened, room }: DiagramProps) {
+export function Diagram({
+  payload: incomingPayload,
+  app,
+  hostContext,
+  fullPage,
+  animate = false,
+  diagramId,
+  builtBefore,
+  reorderWhenOpened,
+  room,
+}: DiagramProps) {
   // The diagram from the agent (or the link), until a file is opened in its place
   const [toolPayload, setToolPayload] = useState(incomingPayload);
   useEffect(() => setToolPayload(incomingPayload), [incomingPayload]);
@@ -151,22 +165,8 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
   const openedPayload = useRef<ArchitecturePayload>(undefined);
   // A diagram from the agent in this browser (WebMCP): built up in front of the user, as the agent's in a chat are
   const agentPayload = useRef<ArchitecturePayload>(undefined);
-  // Diagrams from the agent are built up in front of the user; a walkthrough from the agent goes straight to it
-  const animateNext = useRef(animate && !toolPayload.tour);
-  const [touring, setTouring] = useState<Scene[] | null>(null);
-  const [tourScene, setTourScene] = useState<number | null>(null);
-  // How far into a walkthrough they got (for analytics: do people watch them to the end)
-  const tourReached = useRef(0);
-  const onTourScene = useCallback((scene: number | null) => {
-    setTourScene(scene);
-    if (scene !== null) tourReached.current = Math.max(tourReached.current, scene + 1);
-  }, []);
-  useEffect(() => {
-    if (!touring) return;
-    tourReached.current = 0;
-    track('walkthrough_started', { scenes: touring.length, ...tourStats(touring) });
-  }, [touring]);
-  const pendingTour = useRef<Scene[] | undefined>(toolPayload.tour);
+  // Diagrams from the agent are built up in front of the user
+  const animateNext = useRef(animate);
 
   // What the canvas starts from (the model, as Studio's canvas), and the model as it is on the canvas now
   const [content, setContent] = useState<CanvasContent | null>(null);
@@ -176,8 +176,6 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
   const focus = toolPayload.focus;
   const notes = rootModel.notes ?? [];
 
-  // The diagram as the visualiser lays it out: the agent's build and walkthroughs play on it
-  const [graph, setGraph] = useState<ArchitectureGraph | null>(null);
   const [error, setError] = useState<string | null>(null);
   // A clicked node shows what it is; "Ask a question about this" (right-click) asks the agent
   const [selected, setSelected] = useState<{ nodeId: string; resourceId: string; asking?: boolean } | null>(null);
@@ -220,19 +218,16 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
     reorderAfterBuild.current = false;
     setTimeout(() => canvasRef.current?.tidy(), 150);
   }, []);
-  const lastBuilt = useRef<StageState | undefined>(undefined);
+  const lastBuilt = useRef<StageState | undefined>(builtBefore);
 
   // A new diagram (from the agent, a link or a file): laid out, built up in front of the user, and put on the canvas
   useEffect(() => {
     let cancelled = false;
     const next = toolPayload.model;
-    animateNext.current = (animate || toolPayload === agentPayload.current) && !toolPayload.tour && toolPayload !== openedPayload.current;
-    pendingTour.current = toolPayload.tour;
+    animateNext.current = (animate || toolPayload === agentPayload.current) && toolPayload !== openedPayload.current;
     if (toolPayload !== openedPayload.current) savedFile.current = undefined;
-    setTouring(null);
     setSelected(null);
     setCanvasModel(null);
-    setGraph(null);
     setError(null);
     // Nothing to lay out: only its notes, text, comments and hotspots (if it has none, the canvas welcomes them)
     // A live room's copy kept in this browser: its document, as it was (see local-canvas.ts)
@@ -240,7 +235,7 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
     if (next.resources.length || next.notes?.length || next.comments?.length || next.hotspots?.length) {
       // Where it came from: a file opened, the agent (in a chat), a link opened, a live room, or kept in this browser
       const via = toolPayload === openedPayload.current ? 'file' : toolPayload === agentPayload.current ? 'webmcp' : app ? 'agent' : reorderOpened.current === toolPayload ? 'link' : room ? 'room' : 'restored';
-      track('diagram_loaded', { via, level: toolPayload.level ?? 'messages', has_tour: !!toolPayload.tour?.length, has_focus: !!focus, ...diagramStats(next), ...modelMix(next) });
+      track('diagram_loaded', { via, level: toolPayload.level ?? 'messages', has_focus: !!focus, ...diagramStats(next), ...modelMix(next) });
     }
     if (!next.resources.length) {
       void modelToCanvas(next).then((canvas) => !cancelled && setContent(kept ? { ...canvas, doc: kept } : canvas));
@@ -249,33 +244,29 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
       };
     }
     const level = toolPayload.level ?? 'messages';
-    buildArchitectureGraph(next, focus)
-      .then(async (built) => {
+    buildOpeningGraphs(next, focus, level)
+      .then(async ({ canvas: built, opening }) => {
         if (cancelled) return;
         // Arranged before (it has a layout): as it was; else where the diagram puts things, so the build ends there
         const canvas = await modelToCanvas(next, next.layout?.messages ? undefined : built);
         if (cancelled) return;
-        const to = toStage(openingGraph(built, level));
+        const to = toStage(opening);
         const fromAgent = animateNext.current;
         const playing = fromAgent && !next.layout?.messages && to.nodes.size <= MAX_ANIMATED_NODES && !prefersReducedMotion();
         if (playing) {
           setBuilding({ from: lastBuilt.current, to });
-          track('build_played', { nodes: sizeBucket(to.nodes.size), changed: !!lastBuilt.current });
+          // From the agent's draft (built as it wrote it), or changed from its last diagram
+          const fromDraft = !!builtBefore && lastBuilt.current === builtBefore;
+          track('build_played', { nodes: sizeBucket(to.nodes.size), changed: !!lastBuilt.current && !fromDraft, from_draft: fromDraft });
         }
         if (fromAgent) lastBuilt.current = to;
         animateNext.current = false;
-        setGraph(built);
         setContent(kept ? { ...canvas, doc: kept } : canvas);
         // Tidied once it's on the canvas (the visualiser's layout, as Reorder does): a link someone opened, and what
         // the agent drew (not one it sent back with the layout people gave it). After the build, if one plays
         const tidy = reorderOpened.current === toolPayload || (fromAgent && !next.layout?.messages);
         if (tidy && playing) reorderAfterBuild.current = true;
         else if (tidy) setTimeout(() => !cancelled && canvasRef.current?.tidy(), 400);
-        // The agent's walkthrough plays once the diagram's ready
-        if (pendingTour.current) {
-          setTouring(pendingTour.current);
-          pendingTour.current = undefined;
-        }
       })
       .catch((buildError) => {
         if (cancelled) return;
@@ -288,8 +279,13 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
   }, [toolPayload]);
 
   // What's changed on the canvas goes into the model (for links, files, exports and the agent)
+  // The title the agent gave it since (edit_diagram's set_title: the canvas doesn't hold the title)
+  const titleSet = useRef<string>(undefined);
   const onCanvasChange = useCallback(
-    (snapshot: CanvasSnapshot) => setCanvasModel(canvasToModel(snapshot.nodes, snapshot.edges, snapshot.levelLayouts, toolPayload.model, snapshot.threads, snapshot.hotspots)),
+    (snapshot: CanvasSnapshot) => {
+      const base = titleSet.current ? { ...toolPayload.model, title: titleSet.current } : toolPayload.model;
+      setCanvasModel(canvasToModel(snapshot.nodes, snapshot.edges, snapshot.levelLayouts, base, snapshot.threads, snapshot.hotspots));
+    },
     [toolPayload]
   );
   // The agent's focus: centred once it's on the canvas
@@ -339,8 +335,6 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
     if (resource) canvasRef.current?.addNote({ nodeId: resource });
     else canvasRef.current?.pickNoteTool();
   }, []);
-  /** A note the agent wrote in its walkthrough, kept on the canvas */
-  const keepNote = useCallback((note: Note) => canvasRef.current?.addNote({ nodeId: note.resource, text: note.text, author: note.author }), []);
 
   // Nothing in the diagram links anywhere real (there's no catalog behind it), and changing the page's hash would
   // lose the model in the browser view: links in it are kept from navigating
@@ -363,7 +357,6 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
   // Analytics: in the browser or a chat (which), and whether this is our server or someone's local one
   useEffect(() => configureAnalytics({ host: app ? (app.getHostVersion()?.name ?? 'chat') : undefined, serverOrigin: baseUrl }), [app, baseUrl]);
   // (only in a chat, for the agent: it compresses the whole model, on every change)
-  const diagramLink = useMemo(() => (app && baseUrl ? viewLink(baseUrl, rootModel, { focus, from: 'agent' }) : undefined), [app, baseUrl, rootModel, focus]);
   const selectedResource = selected ? model.resources.find((r) => r.id === selected.resourceId) : undefined;
   const selectedForChat: SelectedNode | undefined = selectedResource && {
     nodeId: selected!.nodeId,
@@ -374,40 +367,38 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
     summary: selectedResource.summary,
   };
 
-  // Model context (replaced on each update), as the canvas app does: what's open and the notes, as
-  // background context the user doesn't see, and the selected node as an attachment they can see, titled with its name
+  // Model context (replaced on each update, a hint: hosts may drop it or send it late): which diagram is open, a
+  // compact outline of what's on it (never where things are), their notes, open comments and hotspots, as background
+  // the user doesn't see; and the selected node as an attachment they can see, titled with its name
   useEffect(() => {
     if (!app?.getHostCapabilities()?.updateModelContext) return;
-    const focused = focus && model.resources.find((r) => r.id === focus);
+    const focused = focus && rootModel.resources.find((r) => r.id === focus);
     const name = (id?: string) => (id ? (rootModel.resources.find((r) => r.id === id)?.name ?? id) : 'the whole diagram');
+    const notes = rootModel.notes ?? [];
+    const openThreads = (rootModel.comments ?? []).filter((thread) => !thread.resolved);
     const lines = [
-      `The user has the EventCatalog diagram "${rootModel.title}" open in EventCatalog Studio (${model.resources.length} resources, ${model.relations.length} relations${
+      `The user has the EventCatalog diagram "${rootModel.title}" open (${rootModel.resources.length} resources, ${rootModel.relations.length} relations${
         focused ? `, focused on the ${focused.type} "${focused.name}"` : ''
-      }). It shows the model you passed to render_architecture, as they've changed it on the canvas: call it again with the model from the link below to change or expand it (keep their notes and layout in it).`,
+      }), as they've changed it.${
+        diagramId ? ` To change it, call edit_diagram with diagramId ${diagramId} and only what changes; read_diagram with that diagramId gives you all of it.` : ''
+      }`,
+      `On it:\n${outlineText(rootModel, 4000)}`,
       notes.length ? `Their notes:\n${notes.map((note) => `- On ${name(note.resource)} (${note.author ?? 'Agent'}): ${note.text}`).join('\n')}` : '',
       // Open comment threads (Studio's comments), as conversations to answer or act on
-      (rootModel.comments ?? []).some((thread) => !thread.resolved)
-        ? `Open comments on the canvas:\n${(rootModel.comments ?? [])
-            .filter((thread) => !thread.resolved)
-            .map((thread) => `- On ${thread.nodeId ? name(thread.nodeId) : 'the canvas'}: ${thread.messages.map((message) => `${message.author.name}: ${message.text}`).join(' / ')}`)
-            .join('\n')}`
+      openThreads.length
+        ? `Open comments:\n${openThreads.map((thread) => `- On ${thread.nodeId ? name(thread.nodeId) : 'the canvas'}: ${thread.messages.map((message) => `${message.author.name}: ${message.text}`).join(' / ')}`).join('\n')}`
         : '',
       // What's flagged on it: what matters most to them about this architecture
-      rootModel.hotspots?.length
-        ? `Hotspots flagged on the diagram (most important first):\n${summarise(rootModel, []).hotspots?.map((line) => `- ${line}`).join('\n')}`
-        : '',
-      touring && tourScene !== null
-        ? `They're watching your walkthrough: scene ${tourScene + 1} of ${touring.length}${touring[tourScene]?.caption ? ` ("${touring[tourScene].caption}")` : ''}.`
-        : '',
-      // The diagram as it is now (with their changes): what to pass to show_on_diagram or build on
-      diagramLink ? `The diagram's link, to pass to show_on_diagram as diagram: ${diagramLink}` : '',
+      rootModel.hotspots?.length ? `Hotspots (most important first):\n${summarise(rootModel, []).hotspots?.map((line) => `- ${line}`).join('\n')}` : '',
     ].filter(Boolean);
     const background = { type: 'text' as const, text: lines.join('\n\n'), annotations: { audience: ['assistant' as const] } };
     const attachment = selectedForChat
       ? [{ type: 'text' as const, text: `Selected in the diagram: ${describeNodeForModel(selectedForChat)}`, _meta: { 'openai/title': selectedForChat.name } }]
       : [];
-    app.updateModelContext({ content: [background, ...attachment] }).catch(() => {});
-  }, [app, model, focus, selected, rootModel.title, notes, touring, tourScene, diagramLink]);
+    // A moment after the last change, not on each one
+    const timer = setTimeout(() => app.updateModelContext({ content: [background, ...attachment] }).catch(() => {}), 300);
+    return () => clearTimeout(timer);
+  }, [app, rootModel, focus, selected, diagramId]);
 
   const isFullscreen = hostContext?.displayMode === 'fullscreen';
   const canGoFullscreen = hostContext?.availableDisplayModes?.includes('fullscreen');
@@ -551,6 +542,24 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
     window.addEventListener('pagehide', saveNow);
     return () => window.removeEventListener('pagehide', saveNow);
   }, [app, saveNow]);
+  // In a chat, the diagram as it is now is kept under its id, so it opens as it was left. Only once they've used it
+  // (clicked or typed in it) or the agent changed it: the canvas also changes as it's loaded, built up and tidied
+  const used = useRef(false);
+  useEffect(() => {
+    if (!app || !diagramId) return;
+    const use = () => (used.current = true);
+    document.addEventListener('pointerdown', use, true);
+    document.addEventListener('keydown', use, true);
+    return () => {
+      document.removeEventListener('pointerdown', use, true);
+      document.removeEventListener('keydown', use, true);
+    };
+  }, [app, diagramId]);
+  useEffect(() => {
+    if (!app || !diagramId || !canvasModel || !used.current) return;
+    const timer = setTimeout(() => saveChatView(diagramId, canvasModel), 500);
+    return () => clearTimeout(timer);
+  }, [app, diagramId, canvasModel]);
 
   // ---- A live room: this canvas's document, shared with the people in it (see collab/room.ts) ----
   const [peers, setPeers] = useState<Peer[]>([]);
@@ -651,8 +660,37 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
   // ---- Agents in this browser (WebMCP, see webmcp.ts): the MCP server's tools, on this canvas ----
   const latestModel = useRef(rootModel);
   latestModel.current = rootModel;
-  const latestFocus = useRef(focus);
-  latestFocus.current = focus;
+
+  // ---- The agent changing and reading this diagram where it's open (edit_diagram, read_diagram: diagram-bridge.ts) ----
+  // Its changes go on the model as the canvas has it now (with what people changed), and only what's different is
+  // written to the canvas: what's there stays where it is, what's new is placed next to what it connects to
+  const bridge = useRef<DiagramBridgeHandlers>(undefined);
+  bridge.current = {
+    read: () => ({ model: latestModel.current }),
+    edit: async (changes) => {
+      const current = latestModel.current;
+      const { model: next, results } = applyChanges(current, changes);
+      const applied = results.filter((result) => result.ok).length;
+      if (applied && canvasRef.current) {
+        used.current = true;
+        const target = await modelToCanvas(next);
+        const { added } = canvasRef.current.applyAgentCanvas({ ...target, changed: changedResources(current, next) });
+        changes.forEach((change, index) => {
+          if (!results[index].ok) return;
+          if (change.op === 'add_note') canvasRef.current?.addNote({ nodeId: change.note.resource, text: change.note.text, author: agentName });
+          if (change.op === 'set_title') {
+            titleSet.current = change.title;
+            setCanvasModel((model) => ({ ...(model ?? current), title: change.title }));
+          }
+        });
+        // What's new, brought into view if it's out of it (once it's drawn and measured)
+        if (added.length) setTimeout(() => canvasRef.current?.showNodes(added), 300);
+        track('diagram_edited', { changes: sizeBucket(changes.length), applied: sizeBucket(applied) });
+      }
+      return { results, resources: next.resources.length, relations: next.relations.length };
+    },
+  };
+  useEffect(() => (app && diagramId ? serveDiagram(app, diagramId, () => bridge.current!) : undefined), [app, diagramId]);
   // Its first diagram in place of work on the canvas is asked about first (as a link's is); once allowed, not again
   // while the tab's open, as they work on it together
   const agentAllowed = useRef(false);
@@ -678,22 +716,18 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
     answerAgent.current = undefined;
     setAgentAsking(undefined);
   }, []);
-  // A walkthrough of the canvas as it is now (with their changes): played on its diagram, laid out again
-  const showTourForAgent = useCallback(async (tour: Scene[]) => {
-    const built = await buildArchitectureGraph(latestModel.current, latestFocus.current);
-    setGraph(built);
-    setTouring(tour);
-  }, []);
   const [webMcpPolyfill, setWebMcpPolyfill] = useState(isWebMcpPolyfillOn);
   const turnOnWebMcp = useCallback(() => {
     track('webmcp_turned_on');
     turnOnWebMcpPolyfill();
     setWebMcpPolyfill(true);
   }, []);
+  // An agent in the browser changing the canvas, as one in a chat does (edit_diagram)
+  const editForAgent = useCallback((changes: Changes) => bridge.current!.edit(changes) as ReturnType<WebMcpCanvas['edit']>, []);
   const webMcp = useWebMcp({
     enabled: !app,
     allowPolyfill: webMcpPolyfill,
-    canvas: { model: rootModel, focus, selected: selected?.resourceId, live: !!room, render: drawForAgent, showTour: showTourForAgent },
+    canvas: { model: rootModel, focus, selected: selected?.resourceId, live: !!room, render: drawForAgent, edit: editForAgent },
   });
 
   // The theme: chosen in the menu (remembered), else the chat's in a chat, and light in the browser
@@ -930,7 +964,7 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
   return (
     <div
       className="ec-diagram"
-      style={{ height: fullPage || isFullscreen ? '100vh' : INLINE_HEIGHT }}
+      style={fullPage ? FULL_PAGE : isFullscreen ? fullscreenStyle(hostContext) : INLINE}
       // A .eventcatalog file dropped on the canvas opens
       onDragOver={(event) => {
         if (event.dataTransfer.types.includes('Files')) event.preventDefault();
@@ -970,20 +1004,6 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
           onNodesMove={room ? moveNodes : undefined}
           onEditing={room ? editNode : undefined}
           paletteFooter={isEmpty ? undefined : exportFooter}
-          barExtras={
-            toolPayload.tour ? (
-              <ToolbarButton
-                label="Replay walkthrough"
-                hint={`Watch ${agentName} walk you through it again`}
-                onClick={() => {
-                  track('walkthrough_replayed');
-                  setTouring(toolPayload.tour!);
-                }}
-              >
-                <Presentation className="h-4 w-4" />
-              </ToolbarButton>
-            ) : undefined
-          }
         >
           {isEmpty && !hadContent.current && !placing && !choosing && !welcomeDismissed && !room && (
             <EmptyCanvas
@@ -995,27 +1015,10 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
             />
           )}
 
-          {/* The agent building the diagram up, and walking through it: over the canvas while they play */}
+          {/* The agent building the diagram up: over the canvas while it plays */}
           {building && (
             <div className="absolute inset-0 z-20 bg-[rgb(var(--ec-page-bg))]">
               <BuildStage from={building.from} to={building.to} agentName={agentName} onDone={buildDone} />
-            </div>
-          )}
-          {!building && touring && graph && (
-            <div className="ec-tour-stage absolute inset-0 z-20 bg-[rgb(var(--ec-page-bg))]">
-              <TourStage
-                graph={graph}
-                model={rootModel}
-                tour={touring}
-                agentName={agentName}
-                onExit={() => {
-                  track('walkthrough_ended', { scenes: touring.length, reached: tourReached.current, completed: tourReached.current >= touring.length });
-                  setTouring(null);
-                  setTourScene(null);
-                }}
-                onKeepNote={keepNote}
-                onScene={onTourScene}
-              />
             </div>
           )}
 

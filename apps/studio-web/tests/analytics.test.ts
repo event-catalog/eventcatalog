@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Client, InMemoryTransport } from '@modelcontextprotocol/client';
 import { createMcpServer } from '../src/mcp/server';
 import { callerId, noteMessage, noteResponse, userAgentFamily, type McpCall, type Properties } from '../src/analytics';
-import { modelMix, modelStats, tourStats } from '../src/lib/stats';
+import { modelMix, modelStats } from '../src/lib/stats';
 import { parseViewFragment, viewLink } from '../src/lib/encode';
 import { parseStack, scrubMessage, toException } from '../src/lib/exceptions';
 import type { Model } from '@eventcatalog/visualiser/model';
@@ -38,9 +38,6 @@ describe('analytics', () => {
       messages_with_schema: '0%',
     });
     expect(leaks(mix)).toEqual([]);
-    const tour = tourStats([{ caption: 'Where the Oracle ledger lives', focus: ['payments-ledger'], notes: [{ resource: 'payments-ledger', text: 'Dana owns this' }] }]);
-    expect(tour).toMatchObject({ tour_scenes: 1, tour_scenes_with_notes: 1, tour_scenes_with_code: 0 });
-    expect(leaks(tour)).toEqual([]);
   });
 
   it('reports what a tool found without the model', async () => {
@@ -90,6 +87,31 @@ describe('analytics', () => {
     expect(failing.toolError).toBe(true);
     noteResponse(failing, { jsonrpc: '2.0', id: 4, error: { code: -32602, message: 'Unknown tool' } });
     expect(failing.rpcError).toBe(-32602);
+
+    // From 2026-07-28 there's no initialize: every request says who's calling in its _meta envelope
+    const modern: McpCall = {};
+    noteMessage(modern, {
+      jsonrpc: '2.0',
+      id: 6,
+      method: 'tools/call',
+      params: {
+        name: 'render_architecture',
+        arguments: { model },
+        _meta: {
+          'io.modelcontextprotocol/protocolVersion': '2026-07-28',
+          'io.modelcontextprotocol/clientInfo': { name: 'claude-ai', version: '0.2.0' },
+          'io.modelcontextprotocol/clientCapabilities': { extensions: { 'io.modelcontextprotocol/ui': { mimeTypes: ['text/html;profile=mcp-app'] } } },
+        },
+      },
+    });
+    expect(modern).toMatchObject({
+      method: 'tools/call',
+      tool: 'render_architecture',
+      client: { name: 'claude-ai', version: '0.2.0' },
+      protocolVersion: '2026-07-28',
+      appsSupported: true,
+      capabilities: 'io.modelcontextprotocol/ui',
+    });
 
     const notifying: McpCall = {};
     noteMessage(notifying, { jsonrpc: '2.0', method: 'notifications/initialized' });

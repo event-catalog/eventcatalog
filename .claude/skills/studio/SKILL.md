@@ -62,7 +62,7 @@ rebuild the visualiser (`pnpm --filter @eventcatalog/visualiser build`) before r
 | What agents can do (shared by MCP and WebMCP) | `canvas-actions.ts`, `agent-choreography.ts` |
 | MCP tools and the server runtime | `server/canvas-mcp.ts`, `server/runtime.ts`, `server/tool-icons.ts` |
 | WebMCP (agents in the browser) | `hooks/use-canvas-webmcp.ts`, `pages/webmcp-relay.ts`, `components/ConnectAgentDialog.tsx` |
-| Views that can't open the WebSocket (chat sandboxes) | `tool-sync.ts` |
+| Views that can't open the WebSocket (chat sandboxes): polls less while nothing changes, and rarely out of sight | `tool-sync.ts` |
 | Who you are (your name, kept in this browser, and its colour; shared by the Studio page and canvases), or who you signed in as | `identity.ts`, `components/JoinForm.tsx`, `server/sign-in.ts` (pictures: the shared `Picture`) |
 | Routes | `pages/index.astro` (`/studio` lists the canvases, styled like the catalog's tables; `/studio?new=1` opens New canvas), `pages/[id].astro` (`/studio/<id>`) |
 | The Studio API (`/api/studio/canvases`: list, create, get, copy, delete) | `api/canvases-api.ts` (the Hono app), `api/canvases.ts` (its route), `api/client.ts` (used by Studio's pages) |
@@ -85,7 +85,7 @@ bundles Studio's components, with the shared ones: rebuild it after changing the
 | A model on the canvas and back (links, files, exports, the agent) | `view/studio/model-canvas.ts` |
 | Live sessions: joining, sync and presence over the relay | `view/collab/room.ts`, and `components/LiveCursors.tsx` |
 | The canvas kept in this browser (and its copy of each live session) | `view/local-canvas.ts` |
-| The agent's diagram built up in front of the user, and its walkthroughs | `view/build/` |
+| The agent's diagram built up in front of the user (as it writes it), and its changes applied in place | `view/build/`, `view/diagram-bridge.ts`, `view/studio/apply-agent-canvas.ts` |
 | Palette, context menu, legend | `view/studio/components/` |
 | Browser tests (Playwright: drags, containers, levels, the node card) | `tests/e2e/`, `pnpm test:e2e` (see [references/studio-web.md](references/studio-web.md)) |
 | Measuring | `scripts/perf/` (see [references/studio-web.md](references/studio-web.md)) |
@@ -161,6 +161,25 @@ bundles Studio's components, with the shared ones: rebuild it after changing the
   `content.doc` in `use-canvas-flow`). A copy started again from the model gave notes and text new ids, so on reload
   they merged in beside the room's (duplicated), and the copy's older values competed with the room's newer ones.
   Anything that makes a canvas again from a model inside a live session has the same problem.
+- **The agent changes the diagram where it's open.** Every tool call with a view shows a new view (hosts never send
+  a later result into one already open), so only `render_architecture` has one, once per diagram, and it returns a
+  `diagramId` (128 random bits). Every later change goes through `edit_diagram` (only what changes, never the whole
+  model or where things go: `src/model/changes.ts`) and reads through `read_diagram`, which have no view: the open
+  view waits for them (`wait_for_diagram_requests`), carries them out and answers (`answer_diagram_request`), as the
+  MCP Apps pdf-server example does (`src/mcp/bridge.ts`, `view/diagram-bridge.ts`). Only the view holding its own
+  secret for the diagram takes and answers them; the server keeps requests in memory until they're answered (one
+  process, as the rooms). The view applies changes to the model as the canvas has it, lays it out keeping where
+  things are (`modelToCanvas`), and writes only what's different (`view/studio/apply-agent-canvas.ts`), as one change
+  outside the user's undo: never rebuild the canvas for an agent's change. Agents never see layout (`outlineModel`).
+- **Chats keep every view they showed running, and show them again from the tool result** when the conversation's
+  opened again: the diagram as it is now is kept in the browser under its `diagramId` (`saveChatView` in
+  `local-canvas.ts`), once it's been used or changed, so it opens as it was left without the build playing again.
+  The model's context is a hint (hosts drop it, or send it late): a compact outline (`outlineText`) and the
+  `diagramId`, never the diagram's link.
+- **The agent's diagram is drafted as it writes it** (`view/build/draft.ts`, `DraftStage.tsx`): hosts that stream a
+  tool's arguments (`toolinputpartial`) get the finished resources and relations laid out and built up before the
+  tool runs, and the result's build carries on from there (`builtBefore`). Partial arguments are for the preview only:
+  never save them or send them to the model.
 - **Built in the monorepo, deployed on its own** (Docker from the repo root, `.dockerignore` there lists what goes in;
   see its README).
 

@@ -39,7 +39,7 @@ export const RESOURCE_LOOK: Record<ResourceType, { label: string; Icon: Icon; co
   team: { label: 'Team', Icon: UserGroupIcon, color: 'emerald' },
 };
 
-/** The type's pill, as on the visualiser's nodes and walkthrough */
+/** The type's pill, as on the visualiser's nodes */
 export function TypePill({ type }: { type: ResourceType }) {
   const look = RESOURCE_LOOK[type];
   return (
