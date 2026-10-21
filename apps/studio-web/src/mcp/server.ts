@@ -162,7 +162,8 @@ export function createMcpServer({ baseUrl, report = () => {}, log = () => {} }: 
       description:
         "Changes a diagram render_architecture showed, where the user has it open: they watch your changes made on it. Use it for every change to that diagram, instead of render_architecture. Send only what changes (add_resource, update_resource, remove_resource, add_relation, remove_relation, add_hotspot, remove_hotspot, add_note, set_title), using the ids read_diagram shows: the diagram keeps everything else, including what the user changed and where things are. Returns which changes were made and why any weren't. Set reorder on the last edit of a round of changes, to lay the diagram out again so it reads well (it moves everything, including what the user arranged: leave it off when they asked to keep their layout).",
       inputSchema: z.object({ diagramId, changes: Changes, reorder: Reorder }),
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+      // It can remove what's on the diagram (remove_resource, remove_relation, remove_hotspot), outside the user's undo
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
     },
     async ({ diagramId: id, changes, reorder }) => {
       const started = performance.now();

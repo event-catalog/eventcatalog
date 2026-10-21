@@ -102,6 +102,22 @@ describe("the agent's changes on the canvas", () => {
     expect(getCanvasMaps(doc).hotspots.has('h1')).toBe(false);
   });
 
+  it("doesn't put back what someone else deletes while the edit is laid out", async () => {
+    const doc = await canvasOf(orders);
+    const { added } = await edit(doc, orders, [{ op: 'update_resource', id: 'OrderPlaced', set: { summary: 'An order was placed.' } }, { op: 'add_resource', resource: { id: 'billing', type: 'domain', name: 'Billing' } }], () => {
+      // Someone deletes a service (with its connections) and a hotspot meanwhile
+      const { nodes, edges, hotspots } = getCanvasMaps(doc);
+      nodes.delete('ordering-service');
+      [...edges.entries()].filter(([, edge]) => edge.source === 'ordering-service' || edge.target === 'ordering-service').forEach(([id]) => edges.delete(id));
+      hotspots.delete('h1');
+    });
+    expect(added).toEqual(['billing']);
+    expect(node(doc, 'ordering-service')).toBeUndefined();
+    expect([...getCanvasMaps(doc).edges.values()].some((edge) => edge.source === 'ordering-service' || edge.target === 'ordering-service')).toBe(false);
+    expect(getCanvasMaps(doc).hotspots.has('h1')).toBe(false);
+    expect(JSON.stringify(node(doc, 'OrderPlaced')!.data)).toContain('An order was placed.');
+  });
+
   it('removes the notes about a resource with it, and keeps the others', async () => {
     const doc = await canvasOf({
       ...orders,

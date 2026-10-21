@@ -18,8 +18,9 @@ import type { Model } from '@eventcatalog/visualiser/model';
 export type AgentCanvas = { nodes: Node[]; edges: Edge[]; hotspots?: Hotspot[]; changed: ReadonlySet<string> };
 
 /**
- * What was on the canvas when the agent's edit began (canvasIds): only that can be taken off by it. Laying the edit
- * out takes a moment, and what people (or a live session) add meanwhile isn't in it, but stays
+ * What was on the canvas when the agent's edit began (canvasIds): only that can be taken off by it, and what of it
+ * is gone by the time it's written isn't put back. Laying the edit out takes a moment: what people (or a live
+ * session) add meanwhile isn't in it, but stays, and what they delete meanwhile is still in it, but stays deleted
  */
 export type CanvasIds = { nodes: ReadonlySet<string>; edges: ReadonlySet<string>; hotspots: ReadonlySet<string> };
 
@@ -72,7 +73,11 @@ export function applyAgentCanvasToDoc(doc: Y.Doc, target: AgentCanvas, before: C
   for (const [id, node] of wanted) {
     const current = nodes.get(id);
     if (!current) {
-      nodes.set(id, toSharedNode(node));
+      // Deleted by someone else since the edit began
+      if (before.nodes.has(id)) continue;
+      // (in a container someone else deleted meanwhile: where it'd be in it is on the canvas, out of it)
+      const parentId = node.parentId && nodes.has(node.parentId) ? node.parentId : undefined;
+      nodes.set(id, toSharedNode({ ...node, parentId }));
       added.push(id);
       continue;
     }
@@ -94,13 +99,15 @@ export function applyAgentCanvasToDoc(doc: Y.Doc, target: AgentCanvas, before: C
   const wantedEdges = new Map(target.edges.map((edge) => [edge.id, edge]));
   wantedEdges.forEach((edge, id) => {
     const current = edges.get(id);
+    // Deleted by someone else since the edit began, or between things that were
+    if (!current && (before.edges.has(id) || !nodes.has(edge.source) || !nodes.has(edge.target))) return;
     const next = current ? { ...current, ...edge, data: { ...current.data, ...edge.data } } : edge;
     if (!current || withoutRoute(next) !== withoutRoute(current)) edges.set(id, next);
   });
   edges.forEach((_, id) => !wantedEdges.has(id) && before.edges.has(id) && edges.delete(id));
 
   const wantedHotspots = new Map((target.hotspots ?? []).map((hotspot) => [hotspot.id, hotspot]));
-  wantedHotspots.forEach((hotspot, id) => !hotspots.has(id) && hotspots.set(id, hotspot));
+  wantedHotspots.forEach((hotspot, id) => !hotspots.has(id) && !before.hotspots.has(id) && hotspots.set(id, hotspot));
   hotspots.forEach((_, id) => !wantedHotspots.has(id) && before.hotspots.has(id) && hotspots.delete(id));
 
   // A new container fits what's put in it (containers only grow when fitted: from their default size, a new domain
