@@ -51,6 +51,8 @@ export function useCanvasFlow({
   onChange?: () => void;
 }) {
   const docRef = useRef<{ doc: Y.Doc; undoManager: Y.UndoManager } | null>(null);
+  // The content the document was made from (it's made once the content's here, in an effect)
+  const loadedFrom = useRef<CanvasContent | null>(null);
   // The document itself, for what shares it (a live room): a new one each time the canvas starts again
   const [doc, setDoc] = useState<Y.Doc | null>(null);
   // Comment threads, as they are in the document (people's, and the room's)
@@ -117,6 +119,7 @@ export function useCanvasFlow({
     undoManager.on('stack-cleared', updateHistory);
     setHistory({ canUndo: false, canRedo: false });
     docRef.current = { doc, undoManager };
+    loadedFrom.current = content;
     setDoc(doc);
 
     // Only what changed is replaced, so React Flow re-renders just those nodes
@@ -394,8 +397,12 @@ export function useCanvasFlow({
   const undo = useCallback(() => docRef.current?.undoManager.undo(), []);
   const redo = useCallback(() => docRef.current?.undoManager.redo(), []);
 
+  /** Whether the canvas has `content` (its document is made from it): empty or not */
+  const hasLoaded = useCallback((content: CanvasContent) => loadedFrom.current === content, []);
+
   return {
     doc,
+    hasLoaded,
     applyAgentCanvas,
     threads,
     createThread,

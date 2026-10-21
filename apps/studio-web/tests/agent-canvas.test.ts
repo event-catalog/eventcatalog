@@ -82,6 +82,20 @@ describe("the agent's changes on the canvas", () => {
     expect(getCanvasMaps(doc).hotspots.has('h1')).toBe(false);
   });
 
+  it('removes the notes about a resource with it, and keeps the others', async () => {
+    const doc = await canvasOf({
+      ...orders,
+      notes: [
+        { text: 'Retries three times', resource: 'OrderCreated' },
+        { text: 'The main flow', resource: 'ordering-service' },
+      ],
+    });
+    const { model } = await edit(doc, orders, [{ op: 'remove_resource', id: 'OrderCreated' }]);
+    const texts = [...getCanvasMaps(doc).nodes.values()].filter((node) => node.type === 'note').map((node) => node.data.text);
+    expect(texts).toEqual(['The main flow']);
+    expect(model.notes?.map((note) => note.text)).toEqual(['The main flow']);
+  });
+
   it('takes a service out of its domain to where it can be seen, and drops a field taken off it from its node', async () => {
     const doc = await canvasOf(Model.parse({ ...orders, resources: orders.resources.map((r) => (r.id === 'ordering-service' ? { ...r, summary: 'Takes orders.' } : r)) }));
     expect(JSON.stringify(node(doc, 'ordering-service')!.data)).toContain('Takes orders.');

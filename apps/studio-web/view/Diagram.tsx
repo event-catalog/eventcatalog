@@ -140,6 +140,8 @@ type DiagramProps = {
   animate?: boolean;
   /** In a chat: the diagram's id, for the agent to change and read it here (edit_diagram, read_diagram) */
   diagramId?: string;
+  /** In a chat: the token the diagram waits for the agent's changes and reads with (from its tool result) */
+  viewToken?: string;
   /** What's already been built in front of the user (the agent's draft, as it wrote it): the build carries on from it */
   builtBefore?: StageState;
   /** A payload laid out again as soon as it's open (a link opened: where it had things may be out of date) */
@@ -161,6 +163,7 @@ export function Diagram({
   fullPage,
   animate = false,
   diagramId,
+  viewToken,
   builtBefore,
   reorderWhenOpened,
   room,
@@ -710,7 +713,8 @@ export function Diagram({
   // canvas to have it, else is turned down (never answered as made when it wasn't)
   const contentRef = useRef(content);
   contentRef.current = content;
-  const canvasReady = () => !!canvasRef.current && contentRef.current !== null && canvasRef.current.snapshot().nodes.length > 0;
+  // (an empty one too: the agent can fill a canvas the user emptied)
+  const canvasReady = () => !!contentRef.current && !!canvasRef.current?.hasLoaded(contentRef.current);
   // Edits are made one at a time, each on the model the last one left (agents in the browser can send several at once)
   const editing = useRef<Promise<unknown>>(Promise.resolve());
   const makeEdit: DiagramBridgeHandlers['edit'] = async (changes, { reorder } = {}) => {
@@ -752,7 +756,10 @@ export function Diagram({
     const hook = (window as { __studioTest?: Record<string, unknown> }).__studioTest;
     if (hook) hook.edit = (changes: Changes) => bridge.current!.edit(changes);
   }, []);
-  useEffect(() => (app && diagramId ? serveDiagram(app, diagramId, () => bridge.current!) : undefined), [app, diagramId]);
+  useEffect(
+    () => (app && diagramId && viewToken ? serveDiagram(app, diagramId, viewToken, () => bridge.current!) : undefined),
+    [app, diagramId, viewToken]
+  );
   // Its first diagram in place of work on the canvas is asked about first (as a link's is); once allowed, not again
   // while the tab's open, as they work on it together
   const agentAllowed = useRef(false);

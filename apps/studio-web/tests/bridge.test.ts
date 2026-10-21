@@ -1,27 +1,26 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { Client, InMemoryTransport } from '@modelcontextprotocol/client';
 import fixture from './fixtures/orders-model.json';
 import { Model } from '@eventcatalog/visualiser/model';
-import { answerRequest, ask, newDiagramId, resetBridge, waitForRequests, DIAGRAM_ID } from '../src/mcp/bridge';
+import { answerRequest, ask, newDiagramId, resetBridge, viewTokenFor, waitForRequests, DIAGRAM_ID } from '../src/mcp/bridge';
 import { createMcpServer } from '../src/mcp/server';
 
 const model = Model.parse(fixture);
-const SECRET = 'a'.repeat(64);
-const OTHER_SECRET = 'b'.repeat(64);
+const FORGED = 'a'.repeat(64);
 
 afterEach(() => resetBridge());
 
 /** The open diagram's view: waits, and answers each request with `answer` */
-function openView(diagramId: string, answer: (request: { id: string; kind: string; changes?: unknown }) => Record<string, unknown>, secret = SECRET) {
+function openView(diagramId: string, answer: (request: { id: string; kind: string; changes?: unknown }) => Record<string, unknown>, token = viewTokenFor(diagramId)) {
   let open = true;
   const seen: unknown[] = [];
   void (async () => {
     while (open) {
-      const result = await waitForRequests(diagramId, secret, { waitMs: 50 });
+      const result = await waitForRequests(diagramId, token, { waitMs: 50 });
       if ('error' in result) return;
       for (const request of result.requests) {
         seen.push(request);
-        answerRequest(diagramId, secret, request.id, answer(request));
+        answerRequest(diagramId, token, request.id, answer(request));
       }
     }
   })();
@@ -55,56 +54,63 @@ describe('the bridge to the open diagram', () => {
     expect(await ask(newDiagramId(), { kind: 'read' })).toEqual({ outcome: 'not_open' });
 
     const id = newDiagramId();
-    await waitForRequests(id, SECRET, { waitMs: 1 }); // waited once, then stopped (out of sight)
+    const token = viewTokenFor(id);
+    await waitForRequests(id, token, { waitMs: 1 }); // waited once, then stopped (out of sight)
     expect((await ask(id, { kind: 'edit', changes: [] }, { answerMs: 50 })).outcome).toBe('not_taken');
     // Not kept to be done later (nothing here keeps it that long): the agent's told it wasn't made
-    const later = await waitForRequests(id, SECRET, { waitMs: 1 });
+    const later = await waitForRequests(id, token, { waitMs: 1 });
     expect('requests' in later && later.requests).toEqual([]);
 
     // Taken, but not answered in time: it may still be made
-    const taking = waitForRequests(id, SECRET, { waitMs: 1000 }); // takes it, and never answers
+    const taking = waitForRequests(id, token, { waitMs: 1000 }); // takes it, and never answers
     const asking = ask(id, { kind: 'edit', changes: [] }, { answerMs: 100 });
     expect('requests' in (await taking) && (await taking as { requests: unknown[] }).requests).toHaveLength(1);
     expect((await asking).outcome).toBe('not_answered');
   });
 
-  it('keeps a diagram to the view that has it open: another secret can neither wait for its requests nor answer them', async () => {
+  it("keeps a diagram to its views: without its token, nobody can wait for its requests or answer them", async () => {
     const id = newDiagramId();
     const answers: string[] = [];
     const view = openView(id, (request) => (answers.push(request.id), { from: 'view' }));
     await new Promise((resolve) => setTimeout(resolve, 10));
 
-    expect(await waitForRequests(id, OTHER_SECRET, { waitMs: 1 })).toEqual({ error: 'This diagram is open in another view.' });
+    // Another diagram's token, or a made-up one, is refused
+    for (const token of [FORGED, viewTokenFor(newDiagramId())])
+      expect(await waitForRequests(id, token, { waitMs: 1 })).toEqual({ error: "Not this diagram's view." });
     const asking = ask(id, { kind: 'read' }, { answerMs: 1000 });
     // Someone else answering a request they can't see, with a made-up id, is ignored
-    expect(answerRequest(id, OTHER_SECRET, crypto.randomUUID(), { from: 'someone else' })).toBe(false);
+    expect(answerRequest(id, FORGED, crypto.randomUUID(), { from: 'someone else' })).toBe(false);
     expect(await asking).toEqual({ outcome: 'answered', answer: { from: 'view' } });
     view.close();
   });
 
-  it('keeps to its cap on diagrams, even when every one has a view waiting', async () => {
-    const first = newDiagramId();
-    const waiting = waitForRequests(first, SECRET, { waitMs: 200, maxChannels: 1 });
-    // No room, and none to make room with: turned down, not added
-    expect(await waitForRequests(newDiagramId(), SECRET, { waitMs: 1, maxChannels: 1 })).toEqual({ error: 'Too many diagrams are open. Try again shortly.' });
-    await waiting;
-    // Once the first isn't waiting, it makes room
-    expect('requests' in (await waitForRequests(newDiagramId(), SECRET, { waitMs: 1, maxChannels: 1 }))).toBe(true);
+  it('makes a token for each diagram that only the server can make', () => {
+    const id = newDiagramId();
+    expect(viewTokenFor(id)).toBe(viewTokenFor(id));
+    expect(viewTokenFor(id)).toMatch(/^[0-9a-f]{64}$/);
+    expect(viewTokenFor(newDiagramId())).not.toBe(viewTokenFor(id));
   });
 
-  it('lets the diagram be opened again elsewhere once the first view stops waiting', async () => {
+  it('keeps to its cap on diagrams, even when every one has a view waiting', async () => {
+    const first = newDiagramId();
+    const waiting = waitForRequests(first, viewTokenFor(first), { waitMs: 200, maxChannels: 1 });
+    // No room, and none to make room with: turned down, not added
+    const second = newDiagramId();
+    expect(await waitForRequests(second, viewTokenFor(second), { waitMs: 1, maxChannels: 1 })).toEqual({ error: 'Too many diagrams are open. Try again shortly.' });
+    await waiting;
+    // Once the first isn't waiting, it makes room
+    expect('requests' in (await waitForRequests(second, viewTokenFor(second), { waitMs: 1, maxChannels: 1 }))).toBe(true);
+  });
+
+  it('carries each request to one of its views when it is open in more than one (the conversation opened twice)', async () => {
     const id = newDiagramId();
-    await waitForRequests(id, SECRET, { waitMs: 1 });
-    // Still open (between two waits): refused
-    expect('error' in (await waitForRequests(id, OTHER_SECRET, { waitMs: 1 }))).toBe(true);
-    // Not waited on for a while: the other view takes it over, and the first one can't come back to it
-    vi.useFakeTimers();
-    vi.setSystemTime(Date.now() + 60_000);
-    const takingOver = waitForRequests(id, OTHER_SECRET, { waitMs: 1 });
-    await vi.advanceTimersByTimeAsync(5);
-    expect('requests' in (await takingOver)).toBe(true);
-    expect('error' in (await waitForRequests(id, SECRET, { waitMs: 1 }))).toBe(true);
-    vi.useRealTimers();
+    const first = openView(id, () => ({ from: 'first' }));
+    const second = openView(id, () => ({ from: 'second' }));
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect((await ask(id, { kind: 'read' }, { answerMs: 1000 })).outcome).toBe('answered');
+    expect(first.seen.length + second.seen.length).toBe(1);
+    first.close();
+    second.close();
   });
 });
 
@@ -178,8 +184,12 @@ describe('edit_diagram and read_diagram, through the open view', () => {
 
   it('gives each rendered diagram an id to change it by, and tells the agent to use it', async () => {
     const client = await connect();
-    const result = textOf(await client.callTool({ name: 'render_architecture', arguments: { model } }));
+    const rendered = await client.callTool({ name: 'render_architecture', arguments: { model } });
+    const result = textOf(rendered);
     expect(result.diagramId).toMatch(DIAGRAM_ID);
     expect(result.next).toContain('edit_diagram');
+    // Its views get its token, the model doesn't
+    expect(JSON.stringify(rendered._meta)).toContain(viewTokenFor(result.diagramId));
+    expect(JSON.stringify(rendered.content)).not.toContain(viewTokenFor(result.diagramId));
   });
 });

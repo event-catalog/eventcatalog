@@ -7,7 +7,7 @@
 import { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { appViewMeta, getViewLoader, mcpAppNote, registerMcpApp } from './register';
-import { ask, answerRequest, DIAGRAM_ID, newDiagramId, waitForRequests } from './bridge';
+import { ask, answerRequest, DIAGRAM_ID, newDiagramId, viewTokenFor, waitForRequests } from './bridge';
 import { SCHEMA_GUIDE, SERVER_INSTRUCTIONS } from './guide';
 import { LEVELS, Model, type ArchitecturePayload } from '@eventcatalog/visualiser/model';
 import { summarise, toMermaid } from '../model/to-text';
@@ -27,8 +27,8 @@ export const WAIT_TOOL = 'wait_for_diagram_requests';
 export const ANSWER_TOOL = 'answer_diagram_request';
 
 const diagramId = z.string().regex(DIAGRAM_ID).describe('The diagramId render_architecture returned');
-// The view's secret: only the view that waits with it takes and answers what's asked of its diagram (bridge.ts)
-const viewSecret = z.string().min(32).max(128);
+// The diagram's view token: only its views, which get it in the result's _meta, take and answer what's asked of it (bridge.ts)
+const viewToken = z.string().length(64);
 
 const readOnly = { readOnlyHint: true, openWorldHint: false, destructiveHint: false } as const;
 
@@ -147,7 +147,8 @@ export function createMcpServer({ baseUrl, report = () => {}, log = () => {} }: 
           viewUrl: prepared.url ?? 'The model is too large for a link: render a smaller part of it (set focus, or fewer resources)',
           mermaid: toMermaid(payload.model, payload.level ?? 'messages'),
         },
-        getPayload: async () => ({ ...payload, viewUrl: prepared.url, diagramId: id }),
+        // (its views wait for requests with its token: in _meta, which the model isn't shown)
+        getPayload: async () => ({ ...payload, viewUrl: prepared.url, diagramId: id, viewToken: viewTokenFor(id) }),
       };
     },
   });
@@ -249,13 +250,13 @@ export function createMcpServer({ baseUrl, report = () => {}, log = () => {} }: 
       {
         title: 'Wait for requests to the open diagram',
         description: 'The diagram view waiting for changes and reads the agent asks of it.',
-        inputSchema: z.object({ diagramId, secret: viewSecret }),
+        inputSchema: z.object({ diagramId, token: viewToken }),
         annotations: readOnly,
         _meta: appViewMeta(VIEW_RESOURCE_URI, ['app']),
       },
-      async ({ diagramId: id, secret }, extra) => {
+      async ({ diagramId: id, token }, extra) => {
         const signal = (extra as { mcpReq?: { signal?: AbortSignal } } | undefined)?.mcpReq?.signal;
-        const result = await waitForRequests(id, secret, { signal });
+        const result = await waitForRequests(id, token, { signal });
         if ('error' in result) return text(result, true);
         log({ requests: result.requests.length });
         return { content: [{ type: 'text' as const, text: `${result.requests.length} request(s)` }], structuredContent: result };
@@ -266,11 +267,11 @@ export function createMcpServer({ baseUrl, report = () => {}, log = () => {} }: 
       {
         title: 'Answer a request to the open diagram',
         description: 'The diagram view answering a change or read the agent asked of it.',
-        inputSchema: z.object({ diagramId, secret: viewSecret, requestId: z.string().uuid(), answer: z.record(z.string(), z.unknown()) }),
+        inputSchema: z.object({ diagramId, token: viewToken, requestId: z.string().uuid(), answer: z.record(z.string(), z.unknown()) }),
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         _meta: appViewMeta(VIEW_RESOURCE_URI, ['app']),
       },
-      async ({ diagramId: id, secret, requestId, answer }) => text({ answered: answerRequest(id, secret, requestId, answer) })
+      async ({ diagramId: id, token, requestId, answer }) => text({ answered: answerRequest(id, token, requestId, answer) })
     );
   }
 

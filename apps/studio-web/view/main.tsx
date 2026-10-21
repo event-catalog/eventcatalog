@@ -31,8 +31,11 @@ const hostName = (app?: App | null) => {
   return host ? host.replace(/^\w/, (letter) => letter.toUpperCase()) : 'Agent';
 };
 
-/** The agent's diagram as its tool result has it: with its id, for edit_diagram and read_diagram to reach it here */
-type ChatPayload = ArchitecturePayload & { diagramId?: string };
+/**
+ * The agent's diagram as its tool result has it: with its id, for edit_diagram and read_diagram to reach it here, and
+ * the token its views wait for them with (bridge.ts)
+ */
+type ChatPayload = ArchitecturePayload & { diagramId?: string; viewToken?: string };
 
 function McpApp() {
   // The agent's diagram built up as it writes it, before the tool has run (hosts that stream the tool's arguments)
@@ -83,7 +86,7 @@ function McpApp() {
   // Built up in front of the user (carrying on from the draft), then changed in place as the agent edits it
   return (
     <ErrorBoundary>
-      <Diagram app={app} payload={shown} hostContext={hostContext} animate={!kept} diagramId={diagramId} builtBefore={kept ? undefined : drafted.current} />
+      <Diagram app={app} payload={shown} hostContext={hostContext} animate={!kept} diagramId={diagramId} viewToken={payload?.viewToken} builtBefore={kept ? undefined : drafted.current} />
     </ErrorBoundary>
   );
 }

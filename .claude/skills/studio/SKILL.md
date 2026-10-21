@@ -166,8 +166,9 @@ bundles Studio's components, with the shared ones: rebuild it after changing the
   `diagramId` (128 random bits). Every later change goes through `edit_diagram` (only what changes, never the whole
   model or where things go: `src/model/changes.ts`) and reads through `read_diagram`, which have no view: the open
   view waits for them (`wait_for_diagram_requests`), carries them out and answers (`answer_diagram_request`), as the
-  MCP Apps pdf-server example does (`src/mcp/bridge.ts`, `view/diagram-bridge.ts`). Only the view holding its own
-  secret for the diagram takes and answers them; the server keeps requests in memory until they're answered (one
+  MCP Apps pdf-server example does (`src/mcp/bridge.ts`, `view/diagram-bridge.ts`). Only the diagram's views take
+  and answer them, with its view token (signed by the server with `STUDIO_VIEW_KEY`, handed to them in the result's
+  `_meta`, never to the model; nothing secret is kept in the browser); the server keeps requests in memory until they're answered (one
   process, as the rooms). The view applies changes to the model as the canvas has it, lays it out keeping where
   things are (`modelToCanvas`), and writes only what's different (`view/studio/apply-agent-canvas.ts`), as one change
   outside the user's undo: never rebuild the canvas for an agent's change. Agents never see layout (`outlineModel`).

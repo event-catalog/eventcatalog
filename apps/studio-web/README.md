@@ -24,7 +24,7 @@ A public, no-login MCP server. Connect your AI client and ask *"help me understa
 ## Tools
 - `get_architecture_schema`: the vocabulary, relation rules, how to change a diagram, and an example. Agents call it first.
 - `render_architecture`: `{ model, focus?, level? }`, once per diagram, where the model can carry `notes`, `hotspots` and `comments` → the interactive view (`_meta`), a `diagramId`, and text (view link, Mermaid, summary).
-- `edit_diagram`: `{ diagramId, changes, reorder? }` → changes the diagram where the user has it open (`reorder: true`, on the last edit of a round, lays it out again as the view's Reorder does): only what changes (`add_resource`, `update_resource`, `remove_resource`, `add_relation`, `remove_relation`, `add_hotspot`, `remove_hotspot`, `add_note`, `set_title`). It has no view of its own (that would show a new diagram): the open view waits for requests (`wait_for_diagram_requests`, app-only), makes the changes on its canvas and answers (`answer_diagram_request`) with which were made and why any weren't. Only the view holding its own secret for that diagram can take and answer them (`src/mcp/bridge.ts`).
+- `edit_diagram`: `{ diagramId, changes, reorder? }` → changes the diagram where the user has it open (`reorder: true`, on the last edit of a round, lays it out again as the view's Reorder does): only what changes (`add_resource`, `update_resource`, `remove_resource`, `add_relation`, `remove_relation`, `add_hotspot`, `remove_hotspot`, `add_note`, `set_title`). It has no view of its own (that would show a new diagram): the open view waits for requests (`wait_for_diagram_requests`, app-only), makes the changes on its canvas and answers (`answer_diagram_request`) with which were made and why any weren't. Only the diagram's views can take and answer them: they wait with its view token, which the server signs (`STUDIO_VIEW_KEY`) and hands them in the result's `_meta`, never to the model (`src/mcp/bridge.ts`).
 - `read_diagram`: `{ diagramId }` → the open diagram as it is now, with what the user changed (from the view), or `{ diagram }` → the model in a diagram link someone pasted (`#m=...`). Never where things are. Live session links are encrypted and can't be read.
 - `get_architecture_view`: app-only, for hosts that don't pass `_meta` to the view.
 
@@ -54,10 +54,11 @@ From the repo root (the Docker build uses workspace packages; `.dockerignore` th
 ```bash
 fly deploy . --config apps/studio-web/fly.toml --ha=false --remote-only
 ```
-Live at https://eventcatalog-mcp.fly.dev. One long-running Node process on one machine (`fly.toml`): rate limits (60/min, 1,000/day per IP) and live rooms are in memory, so keep it to one machine until rooms are routed by id. `PUBLIC_URL` (in `fly.toml`) is where links and the social preview point. The page is served compressed (Brotli, gzip) from memory.
+Live at https://eventcatalog-mcp.fly.dev. One long-running Node process on one machine (`fly.toml`): rate limits (60/min, 1,000/day per IP) and live rooms are in memory, so keep it to one machine until rooms are routed by id. `PUBLIC_URL` (in `fly.toml`) is where links and the social preview point. Set `STUDIO_VIEW_KEY` (`fly secrets set STUDIO_VIEW_KEY=$(openssl rand -hex 32)`): the key the open diagrams' view tokens are signed with; without it each start makes a new one, and diagrams open in chats across a restart or deploy stop taking the agent's changes. The page is served compressed (Brotli, gzip) from memory.
 
 ## Layout
 - `PUBLIC_URL`: where view links point (set it behind a tunnel, e.g. `PUBLIC_URL=https://xyz.trycloudflare.com pnpm dev`).
+- `STUDIO_VIEW_KEY`: the key view tokens are signed with (a Fly secret; made for each start when it isn't set).
 - `src/server.ts`: Hono. `POST /mcp` (stateless Streamable HTTP), `GET /` and `/view` (the canvas), `GET /og.png`, `GET /health`
 - `src/rooms.ts`: the live sessions' relay (WebSockets at `/rooms/:id`): passes encrypted messages between the people in a room, stores nothing, logs counts only
 - `src/mcp/`: the server, tools, and `register.ts` (`registerMcpApp`, ported from EventCatalog v5-beta)

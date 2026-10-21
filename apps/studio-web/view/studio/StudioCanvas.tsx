@@ -140,6 +140,8 @@ export type StudioCanvasHandle = {
   centreOn: (nodeId: string) => void;
   /** The canvas as it is now */
   snapshot: () => CanvasSnapshot;
+  /** Whether the canvas has this content yet (its document is made from it once it's here), empty or not */
+  hasLoaded: (content: CanvasContent) => boolean;
   /** Lays the canvas (or the level shown) out again */
   reorder: () => void;
   /**
@@ -1436,6 +1438,7 @@ function Canvas({
       void setCenter(at.x + width / 2, at.y + height / 2, { zoom: 1, duration: 450 });
     },
     snapshot,
+    hasLoaded: (content) => flow.hasLoaded(content),
     reorder: () => void reorder(),
     tidy: () => {
       void reorder();

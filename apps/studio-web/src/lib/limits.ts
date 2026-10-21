@@ -38,13 +38,15 @@ const HOST_CLIENTS = new Set(['openai-mcp', 'claude-user', 'claude-ai']);
 /**
  * The MCP endpoint's limits, always per address: the user agent is the caller's to say, so changing it never gets
  * another quota, and claiming to be a chat host only ever gets that address the host's. Open diagrams waiting for
- * what the agent asks of them (they call again whenever a wait returns, ~15s) are counted on their own. Returns why
- * a request is refused, or undefined
+ * what the agent asks of them (`waitingOn`: with the diagram's token, so only for diagrams the server drew) call
+ * again whenever a wait returns (~15s, all day while a chat's open, and a host's users share its addresses), so
+ * they're counted per diagram instead, a minute at a time. Returns why a request is refused, or undefined
  */
 export function createMcpRateLimits() {
   const people = createRateLimiter();
   const hosts = createRateLimiter({ perMinute: 600, perDay: 50_000 });
-  const waits = createRateLimiter({ perMinute: 600, perDay: 100_000 });
-  return ({ ip, client, waiting }: { ip: string; client: string; waiting: boolean }) =>
-    (waiting ? waits : HOST_CLIENTS.has(client) ? hosts : people)(ip);
+  // A wait returns early for each request it carries: a few a minute, more while the agent's editing
+  const waits = createRateLimiter({ perMinute: 120, perDay: Infinity });
+  return ({ ip, client, waitingOn }: { ip: string; client: string; waitingOn?: string }) =>
+    waitingOn ? waits(waitingOn) : (HOST_CLIENTS.has(client) ? hosts : people)(ip);
 }

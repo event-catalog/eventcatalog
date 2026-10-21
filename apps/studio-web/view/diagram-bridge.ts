@@ -1,8 +1,8 @@
 /**
  * The open diagram's end of the bridge (src/mcp/bridge.ts): it waits for what the agent asks of it (edit_diagram,
- * read_diagram), does it on what's on screen and answers. It waits with a secret of its own for this diagram (kept
- * in this browser, so the diagram opened again here is still its view): only it can take and answer those requests.
- * While the page is hidden it doesn't wait: what's asked meanwhile is done when it's back.
+ * read_diagram), does it on what's on screen and answers. It waits with the diagram's view token (the server's, from
+ * the tool result; nothing is kept here): only its views can take and answer those requests. While the page is hidden
+ * it doesn't wait: what's asked meanwhile is done when it's back.
  */
 import type { App } from '@modelcontextprotocol/ext-apps';
 import type { Changes } from '../src/model/changes';
@@ -15,22 +15,6 @@ export type DiagramBridgeHandlers = {
   edit: (changes: Changes, options?: { reorder?: boolean }) => Promise<Record<string, unknown>>;
   read: () => Record<string, unknown>;
 };
-
-const secretKey = (diagramId: string) => `eventcatalog-studio-view:${diagramId}`;
-const newSecret = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), (byte) => byte.toString(16).padStart(2, '0')).join('');
-
-/** This view's secret for the diagram: the one kept here, else a new one (kept, where storage allows) */
-function secretFor(diagramId: string) {
-  try {
-    const kept = localStorage.getItem(secretKey(diagramId));
-    if (kept && kept.length >= 32) return kept;
-    const secret = newSecret();
-    localStorage.setItem(secretKey(diagramId), secret);
-    return secret;
-  } catch {
-    return newSecret();
-  }
-}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const shown = () =>
@@ -46,8 +30,7 @@ const shown = () =>
       });
 
 /** Waits for, does and answers what the agent asks of diagram `diagramId`, until stopped */
-export function serveDiagram(app: App, diagramId: string, handlers: () => DiagramBridgeHandlers) {
-  const secret = secretFor(diagramId);
+export function serveDiagram(app: App, diagramId: string, token: string, handlers: () => DiagramBridgeHandlers) {
   let stopped = false;
   let retryMs = 2000;
 
@@ -58,7 +41,7 @@ export function serveDiagram(app: App, diagramId: string, handlers: () => Diagra
     } catch (error) {
       answer = { error: String((error as Error)?.message ?? error) };
     }
-    await app.callServerTool({ name: ANSWER_TOOL, arguments: { diagramId, secret, requestId: request.id, answer } }).catch(() => {});
+    await app.callServerTool({ name: ANSWER_TOOL, arguments: { diagramId, token, requestId: request.id, answer } }).catch(() => {});
   };
 
   void (async () => {
@@ -66,9 +49,9 @@ export function serveDiagram(app: App, diagramId: string, handlers: () => Diagra
       await shown();
       if (stopped) break;
       try {
-        const result = await app.callServerTool({ name: WAIT_TOOL, arguments: { diagramId, secret } });
-        // Open in another view (elsewhere): tried again later, in case that one's closed
-        if (result.isError) throw new Error('Not this view');
+        const result = await app.callServerTool({ name: WAIT_TOOL, arguments: { diagramId, token } });
+        // Refused (a server restarted with another key, or too many diagrams open): tried again, less often
+        if (result.isError) throw new Error('Refused');
         const requests = (result.structuredContent as { requests?: Request[] } | undefined)?.requests ?? [];
         for (const request of requests) await handle(request);
         retryMs = 2000;

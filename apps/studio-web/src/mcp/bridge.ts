@@ -6,21 +6,21 @@
  * does (interact, and its viewer polling for commands).
  *
  * Safe between people: a diagram is reached only by its id, 128 random bits the server makes for each diagram and
- * hands only to that conversation (the tool's result, and its view); nothing lists, searches or logs them. The view
- * waits with a secret of its own (the server keeps only its hash), and requests go only to, and answers only come
- * from, the view holding it: another client that learned the id can't take or answer them. Nothing is written to
- * disk: a request is kept in memory until the view answers it (seconds), and a diagram no view waits on is forgotten.
+ * hands only to that conversation (the tool's result, and its view); nothing lists, searches or logs them. Its views
+ * wait with a token the server makes for it (viewTokenFor: signed with the server's key), handed only to them, in
+ * the result's _meta (hosts don't show the model that), so requests go only to, and answers only come from, its
+ * views: another client that learned the id can't take or answer them, and nothing secret is kept in the browser
+ * (the host hands the view its result again whenever the conversation's opened). Nothing is written to disk: a
+ * request is kept in memory until the view answers it (seconds), and a diagram no view waits on is forgotten.
  * One process (as the live sessions' rooms.ts): a view waits on the machine the agent's request comes to.
  */
-import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 
 /** What the agent asks of the open diagram */
 export type BridgeRequest = { id: string; kind: 'edit'; changes: unknown; reorder?: boolean } | { id: string; kind: 'read' };
 type Ask = { kind: 'edit'; changes: unknown; reorder?: boolean } | { kind: 'read' };
 
 type Channel = {
-  /** The hash of the waiting view's secret (set by its first wait) */
-  secret?: Buffer;
   /** When the view last waited, or stopped waiting */
   seenAt: number;
   /** Its waits under way (one, or a few when the diagram is open in more than one tab) */
@@ -44,7 +44,19 @@ export const newDiagramId = () => randomBytes(16).toString('hex');
 export const DIAGRAM_ID = /^[0-9a-f]{32}$/;
 
 const channels = new Map<string, Channel>();
-const hash = (secret: string) => createHash('sha256').update(secret).digest();
+// The key view tokens are signed with: STUDIO_VIEW_KEY (the same across restarts and deploys, so views already open
+// keep working), else one made for this process (views open before it restarts are told the diagram isn't open)
+const VIEW_KEY = process.env.STUDIO_VIEW_KEY || randomBytes(32).toString('hex');
+if (!process.env.STUDIO_VIEW_KEY && process.env.PUBLIC_URL)
+  console.warn("STUDIO_VIEW_KEY is not set: diagrams open when the server restarts will stop taking the agent's changes");
+
+/** The token a diagram's views wait and answer with (only they get it, in the tool result's _meta) */
+export const viewTokenFor = (diagramId: string) => createHmac('sha256', VIEW_KEY).update(diagramId).digest('hex');
+export const isViewToken = (diagramId: string, token: string) => {
+  const expected = Buffer.from(viewTokenFor(diagramId));
+  const given = Buffer.from(token);
+  return given.length === expected.length && timingSafeEqual(given, expected);
+};
 const isOpen = (channel: Channel) => channel.waiting.size > 0 || Date.now() - channel.seenAt < OPEN_MS;
 
 // Diagrams no view waits on any more are forgotten, with what was asked of them
@@ -57,18 +69,15 @@ function forget(id: string, channel: Channel) {
 
 /**
  * The view showing diagram `diagramId` waiting for what the agent asks of it: returns the requests (taking them) as
- * soon as there are any, or none after `waitMs`. Refused when another view, with another secret, has the diagram
- * open; once that one stops waiting, the next view to wait takes it over (the conversation opened elsewhere)
+ * soon as there are any, or none after `waitMs`. Refused without the diagram's view token
  */
 export async function waitForRequests(
   diagramId: string,
-  secret: string,
+  token: string,
   { waitMs = WAIT_MS, signal, maxChannels = MAX_CHANNELS }: { waitMs?: number; signal?: AbortSignal; maxChannels?: number } = {}
 ): Promise<{ requests: BridgeRequest[] } | { error: string }> {
-  const mine = hash(secret);
+  if (!isViewToken(diagramId, token)) return { error: "Not this diagram's view." };
   let channel = channels.get(diagramId);
-  if (channel?.secret && !timingSafeEqual(channel.secret, mine) && isOpen(channel))
-    return { error: 'This diagram is open in another view.' };
   if (!channel) {
     if (channels.size >= maxChannels) {
       const oldest = [...channels].filter(([, open]) => !open.waiting.size).sort(([, a], [, b]) => a.seenAt - b.seenAt)[0];
@@ -79,7 +88,6 @@ export async function waitForRequests(
     channel = { seenAt: Date.now(), waiting: new Set(), pending: [], answers: new Map() };
     channels.set(diagramId, channel);
   }
-  channel.secret = mine;
   channel.seenAt = Date.now();
 
   if (!channel.pending.length) {
@@ -101,9 +109,9 @@ export async function waitForRequests(
 }
 
 /** The view's answer to a request it took. False when it isn't that diagram's view, or nobody's waiting for it */
-export function answerRequest(diagramId: string, secret: string, requestId: string, answer: unknown) {
+export function answerRequest(diagramId: string, token: string, requestId: string, answer: unknown) {
   const channel = channels.get(diagramId);
-  if (!channel?.secret || !timingSafeEqual(channel.secret, hash(secret))) return false;
+  if (!channel || !isViewToken(diagramId, token)) return false;
   const resolve = channel.answers.get(requestId);
   channel.answers.delete(requestId);
   resolve?.(answer);

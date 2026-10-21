@@ -1,13 +1,14 @@
 /**
  * The agent's changes to the diagram (edit_diagram), written into the canvas's document: from the canvas the
  * changed model should give (modelToCanvas, laid out from where things are now), only what's different is written.
- * Resources and connections added, changed and removed, and hotspots added and removed; notes, text and comments
- * are left as they are. What's kept stays where it is, unless it moved into another container; containers grow
+ * Resources and connections added, changed and removed, and hotspots added and removed; notes and text are left as
+ * they are (the view adds the agent's), but for those about a resource removed (they go with it, as in the model),
+ * and comments are left as they are. What's kept stays where it is, unless it moved into another container; containers grow
  * around what's new in them.
  */
 import type * as Y from 'yjs';
 import type { Edge, Node } from '@xyflow/react';
-import { deleteNodes, fitContainersAround, getCanvasMaps, isGroupType, modelToCanvas, resourceTypeOf, toSharedNode, type Hotspot, type RenderedSizes } from '@eventcatalog/visualiser/studio';
+import { deleteNodes, fitContainersAround, getCanvasMaps, isGroupType, isWrittenOnCanvas, modelToCanvas, resourceTypeOf, toSharedNode, type Hotspot, type RenderedSizes } from '@eventcatalog/visualiser/studio';
 import type { Model } from '@eventcatalog/visualiser/model';
 
 /**
@@ -70,7 +71,10 @@ export function applyAgentCanvasToDoc(doc: Y.Doc, target: AgentCanvas, sizes?: R
     changed.push(id);
   }
   const removed = [...nodes.values()].filter((node) => isResource(node) && !wanted.has(node.id)).map((node) => node.id);
-  if (removed.length) deleteNodes(doc, removed);
+  // With the notes about them (remove_resource takes those off the model too)
+  const gone = new Set(removed);
+  const notes = [...nodes.values()].filter((node) => isWrittenOnCanvas(node.type) && gone.has(node.data?.resource as string)).map((node) => node.id);
+  if (removed.length) deleteNodes(doc, [...removed, ...notes]);
 
   const wantedEdges = new Map(target.edges.map((edge) => [edge.id, edge]));
   wantedEdges.forEach((edge, id) => {

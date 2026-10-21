@@ -14,6 +14,7 @@ import { bodyLimit } from 'hono/body-limit';
 import { compress } from 'hono/compress';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/server';
 import { createMcpServer, WAIT_TOOL } from './mcp/server';
+import { isViewToken } from './mcp/bridge';
 import { attachRooms } from './rooms';
 import { DIST_DIRECTORY } from './paths';
 import type { Server as HttpServer } from 'node:http';
@@ -31,14 +32,19 @@ const brotli = promisify(zlib.brotliCompress);
 
 const app = new Hono();
 const isRateLimited = createMcpRateLimits();
-/** Whether a request is an open diagram waiting for requests (small: read without taking the body) */
-async function isWaitingForRequests(request: Request) {
-  if (Number(request.headers.get('content-length') ?? Infinity) > 4096) return false;
+/**
+ * The diagram an open view is waiting for requests to, when that's what a request is, with the diagram's token
+ * (small: read without taking the body)
+ */
+async function diagramWaitedOn(request: Request) {
+  if (Number(request.headers.get('content-length') ?? Infinity) > 4096) return undefined;
   try {
-    const message = (await request.clone().json()) as { method?: unknown; params?: { name?: unknown } };
-    return message.method === 'tools/call' && message.params?.name === WAIT_TOOL;
+    const message = (await request.clone().json()) as { method?: unknown; params?: { name?: unknown; arguments?: { diagramId?: unknown; token?: unknown } } };
+    const { diagramId, token } = message.params?.arguments ?? {};
+    if (message.method !== 'tools/call' || message.params?.name !== WAIT_TOOL) return undefined;
+    return typeof diagramId === 'string' && typeof token === 'string' && isViewToken(diagramId, token) ? diagramId : undefined;
   } catch {
-    return false;
+    return undefined;
   }
 }
 
@@ -103,7 +109,7 @@ app.post('/mcp', bodyLimit({ maxSize: MAX_BODY_BYTES, onError: tooLarge }), asyn
   const limited = isRateLimited({
     ip: clientIp(c.req.raw.headers),
     client: userAgentFamily(c.req.raw.headers.get('user-agent') ?? ''),
-    waiting: await isWaitingForRequests(c.req.raw),
+    waitingOn: await diagramWaitedOn(c.req.raw),
   });
   if (limited) {
     reportRejected('rate_limited', callerOf(c.req.raw));

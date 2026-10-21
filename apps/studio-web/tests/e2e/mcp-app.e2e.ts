@@ -212,6 +212,40 @@ test("an edit sent while the diagram is still opening waits for it, and isn't re
   await agent.close();
 });
 
+test('the agent fills a diagram that was emptied', async ({ page, baseURL }) => {
+  test.setTimeout(60_000);
+  const host = await connect(baseURL!);
+  const agent = await connect(baseURL!);
+  const rendered = await agent.callTool({ name: 'render_architecture', arguments: { model } });
+  const { diagramId } = textOf(rendered);
+  const resource = await host.readResource({ uri: 'ui://eventcatalog/architecture' });
+  const { bridge, nodes } = await hostView(page, host, (resource.contents[0] as { text: string }).text);
+  await bridge.sendToolInput({ arguments: { model } });
+  await bridge.sendToolResult(rendered as Parameters<AppBridge['sendToolResult']>[0]);
+  await expect.poll(async () => (await nodes()).length, { timeout: 20_000 }).toBeGreaterThan(0);
+
+  const edit = async (changes: unknown[]) => {
+    let edited = textOf(await agent.callTool({ name: 'edit_diagram', arguments: { diagramId, changes } }));
+    // (the view may not be waiting yet)
+    for (let tries = 0; edited.error?.includes("doesn't have that diagram open") && tries < 500; tries++) {
+      await page.waitForTimeout(10);
+      edited = textOf(await agent.callTool({ name: 'edit_diagram', arguments: { diagramId, changes } }));
+    }
+    return edited;
+  };
+  // Everything taken off it: an empty canvas
+  const removed = await edit(model.resources.map((resource: { id: string }) => ({ op: 'remove_resource', id: resource.id })));
+  expect(removed.note).toContain(`Made ${model.resources.length} of ${model.resources.length}`);
+  await expect.poll(async () => (await nodes()).length).toBe(0);
+  // And something put back on it: made straight away (not turned down as still opening)
+  const added = await edit([{ op: 'add_resource', resource: { id: 'billing', type: 'domain', name: 'Billing' } }]);
+  expect(added.note).toContain('Made 1 of 1');
+  await expect.poll(async () => (await nodes()).map((node) => node.id)).toEqual(['billing']);
+
+  await host.close();
+  await agent.close();
+});
+
 test('edits that arrive together all stay, and a change is kept when the view goes straight after', async ({ page, baseURL }) => {
   test.setTimeout(60_000);
   const host = await connect(baseURL!);
