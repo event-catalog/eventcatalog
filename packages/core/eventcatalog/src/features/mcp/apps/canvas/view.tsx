@@ -17,7 +17,7 @@ import visualiserStyles from '@eventcatalog/visualiser/styles.css?inline';
 import StudioDesigner, { type SelectedNode } from '@features/studio/components/StudioDesigner';
 import { getAgent } from '@features/studio/agents';
 import { CANVAS_STATUS_LOOK, STATUS } from '@eventcatalog/visualiser/studio';
-import { getToolResultPayload, mountView, useMcpAppView } from '../shared/app-view';
+import { fullscreenStyle, getToolResultPayload, mountView, useMcpAppView } from '../shared/app-view';
 import {
   CANVAS_CATALOG_TOOL,
   CANVAS_META_KEY,
@@ -131,7 +131,7 @@ function CanvasPicker({
 }
 
 function CanvasApp() {
-  const { app, payload, setPayload, error, hostContext } = useMcpAppView(VIEW_OPTIONS);
+  const { app, payload, setPayload, error, hostContext, superseded } = useMcpAppView(VIEW_OPTIONS);
   const [catalog, setCatalog] = useState<CanvasCatalog>({ resources: [], relations: [] });
   const [selection, setSelection] = useState<SelectedNode[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -178,9 +178,11 @@ function CanvasApp() {
   }, [app, canvas?.canvasId]);
 
   // Model context (replaced on each update): which canvas is open as background context the user doesn't see,
-  // and what they've selected as an attachment they can see (and remove), titled with the names
+  // and what they've selected as an attachment they can see (and remove), titled with the names. Only from the view
+  // that has it (the newest result's, or the one last used): the others in the conversation still run, and would
+  // replace it with what they show
   useEffect(() => {
-    if (!app || !payload || !app.getHostCapabilities()?.updateModelContext) return;
+    if (!app || !payload || superseded || !app.getHostCapabilities()?.updateModelContext) return;
     const background = {
       type: 'text' as const,
       text: canvas
@@ -203,7 +205,7 @@ function CanvasApp() {
         ]
       : [];
     app.updateModelContext({ content: [background, ...selected] }).catch(() => {});
-  }, [app, payload, selection]);
+  }, [app, payload, selection, superseded]);
 
   if (error || loadError) return <p className="p-4 text-sm">{error ?? loadError}</p>;
   if (!payload) return <p className="p-4 text-sm text-[rgb(var(--ec-page-text-muted))]">Opening the canvas…</p>;
@@ -219,7 +221,7 @@ function CanvasApp() {
   const agentOf = (view: CanvasView) => view.agent ?? getAgent(undefined, hostName);
 
   return (
-    <div className="flex flex-col" style={{ height: fullscreen ? '100vh' : INLINE_HEIGHT }}>
+    <div className="flex flex-col" style={fullscreen ? fullscreenStyle(hostContext) : { height: INLINE_HEIGHT }}>
       <div className="flex items-center justify-between border-b px-3 py-1.5 border-[rgb(var(--ec-page-border))]">
         <span className="flex min-w-0 items-center gap-1">
           {canvas && (

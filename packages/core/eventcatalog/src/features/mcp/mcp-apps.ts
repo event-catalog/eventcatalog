@@ -2,6 +2,7 @@ import type { Icon, McpServer, ToolAnnotations } from '@modelcontextprotocol/ser
 import type { McpUiDisplayMode } from '@modelcontextprotocol/ext-apps';
 import { registerAppResource, RESOURCE_MIME_TYPE, RESOURCE_URI_META_KEY } from '@modelcontextprotocol/ext-apps/server';
 import { z } from 'zod';
+import { newViewInstance, VIEW_INSTANCE_META_KEY } from './apps/shared/view-instance';
 
 // MCP App views (built by scripts/build-mcp-apps.mjs). Without a build, tools return text only.
 // Loaded when a host reads the view, not up front: each view's HTML is up to a few MB
@@ -54,12 +55,9 @@ export type McpAppDefinition<Shape extends z.ZodRawShape, ViewShape extends z.Zo
     csp?: { resourceDomains?: string[]; connectDomains?: string[] };
     /** How hosts open the view: ChatGPT reads these before loading it, so it can open straight in that mode */
     displayModes?: { preferred: McpUiDisplayMode; available: McpUiDisplayMode[] };
+    /** Whether the host frames the view with a border and background (hosts' defaults differ, e.g. Claude's web and mobile apps) */
+    prefersBorder?: boolean;
   };
-  /**
-   * Ties every result to one view (ChatGPT's `openai/widgetSessionId`): the host updates the view it already
-   * shows with each new result, instead of showing another one
-   */
-  sessionId?: string;
   /** Key of the payload in the model-facing tool result's `_meta` */
   metaKey: string;
   /** The tool the model calls to show the user something */
@@ -97,7 +95,7 @@ export function registerMcpApp<Shape extends z.ZodRawShape, ViewShape extends z.
         ...(loadView && {
           _meta: {
             [app.metaKey]: await result.getPayload(),
-            ...(app.sessionId && { 'openai/widgetSessionId': app.sessionId }),
+            [VIEW_INSTANCE_META_KEY]: newViewInstance(),
           },
         }),
       };
@@ -151,7 +149,10 @@ export function registerMcpApp<Shape extends z.ZodRawShape, ViewShape extends z.
         mimeType: RESOURCE_MIME_TYPE,
         text: await loadView(),
         _meta: {
-          ...(app.resource.csp && { ui: { csp: app.resource.csp } }),
+          ui: {
+            ...(app.resource.csp && { csp: app.resource.csp }),
+            ...(app.resource.prefersBorder !== undefined && { prefersBorder: app.resource.prefersBorder }),
+          },
           ...(app.resource.displayModes && {
             'openai/ui': {
               preferredDisplayMode: app.resource.displayModes.preferred,

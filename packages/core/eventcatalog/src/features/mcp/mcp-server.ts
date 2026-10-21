@@ -512,9 +512,9 @@ function createMcpServer(
       csp: { resourceDomains: [catalogUrl] },
       // Diagrams and schemas need the room, so hosts that can open the viewer full screen straight away
       displayModes: { preferred: 'fullscreen', available: ['inline', 'fullscreen'] },
+      // The viewer has its own background: no frame around it, on the web and on phones alike
+      prefersBorder: false,
     },
-    // One viewer per server: each result updates the viewer the host already shows
-    sessionId: scope ? `eventcatalog:${scope.ref.kind}:${scope.ref.id}` : 'eventcatalog',
     metaKey: VIEWER_META_KEY,
     tool: {
       name: 'showResource',
