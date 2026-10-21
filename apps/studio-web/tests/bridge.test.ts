@@ -109,6 +109,16 @@ describe('the bridge to the open diagram', () => {
     expect('requests' in (await waitForRequests(second, viewTokenFor(second), { waitMs: 1, maxChannels: 1 }))).toBe(true);
   });
 
+  it('holds only a few waits for one diagram at once (each holds a connection)', async () => {
+    const id = newDiagramId();
+    const token = viewTokenFor(id);
+    const held = Array.from({ length: 4 }, () => waitForRequests(id, token, { waitMs: 100 }));
+    expect(await waitForRequests(id, token, { waitMs: 100 })).toEqual({ error: 'Too many views of this diagram are waiting. Try again shortly.' });
+    await Promise.all(held);
+    // Once they've returned, it waits again
+    expect('requests' in (await waitForRequests(id, token, { waitMs: 1 }))).toBe(true);
+  });
+
   it('carries each request to one of its views when it is open in more than one (the conversation opened twice)', async () => {
     const id = newDiagramId();
     const first = openView(id, () => ({ from: 'first' }));

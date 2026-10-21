@@ -4,7 +4,7 @@ import type { Node } from '@xyflow/react';
 import { Model } from '@eventcatalog/visualiser/model';
 import { addNodes, canvasToModel, getCanvasMaps, modelToCanvas } from '@eventcatalog/visualiser/studio';
 import { applyChanges, type Changes } from '../src/model/changes';
-import { agentCanvasFor, applyAgentCanvasToDoc } from '../view/studio/apply-agent-canvas';
+import { agentCanvasFor, applyAgentCanvasToDoc, canvasIds } from '../view/studio/apply-agent-canvas';
 
 const EVENTS = ['OrderPlaced', 'OrderCreated', 'OrderConfirmed'];
 const orders = Model.parse({
@@ -27,13 +27,18 @@ async function canvasOf(model: Model) {
   return doc;
 }
 
-/** What the view does with an edit: the model as the canvas has it, the changes on it, and what changed written back */
-async function edit(doc: Y.Doc, base: Model, changes: Changes) {
+/**
+ * What the view does with an edit: the model as the canvas has it, the changes on it, and what changed written back.
+ * `meanwhile` happens while it's laid out (someone else changing the canvas)
+ */
+async function edit(doc: Y.Doc, base: Model, changes: Changes, meanwhile?: () => void) {
   const { nodes, edges, hotspots } = getCanvasMaps(doc);
   const current = canvasToModel([...nodes.values()], [...edges.values()], { 1: new Map(), 2: new Map() }, base, [], [...hotspots.values()]);
+  const before = canvasIds(doc);
   const { model, results } = applyChanges(current, changes);
   const target = await agentCanvasFor(current, model);
-  return { results, model, ...doc.transact(() => applyAgentCanvasToDoc(doc, target)) };
+  meanwhile?.();
+  return { results, model, ...doc.transact(() => applyAgentCanvasToDoc(doc, target, before)) };
 }
 
 const node = (doc: Y.Doc, id: string) => getCanvasMaps(doc).nodes.get(id) as Node | undefined;
@@ -79,6 +84,21 @@ describe("the agent's changes on the canvas", () => {
     expect(JSON.stringify(node(doc, 'ordering-service')!.data)).toContain('Orders API');
     expect(node(doc, 'OrderCreated')).toBeUndefined();
     expect([...getCanvasMaps(doc).edges.values()].some((edge) => edge.target === 'OrderCreated' || edge.source === 'OrderCreated')).toBe(false);
+    expect(getCanvasMaps(doc).hotspots.has('h1')).toBe(false);
+  });
+
+  it('keeps what someone else adds while the edit is laid out, and still takes off what the edit removes', async () => {
+    const doc = await canvasOf(orders);
+    const { removed } = await edit(doc, orders, [{ op: 'remove_resource', id: 'OrderCreated' }, { op: 'remove_hotspot', id: 'h1' }], () => {
+      // The user (or someone in a live session) adds a service, a connection and a hotspot meanwhile
+      const service = { ...node(doc, 'ordering-service')!, id: 'their-service', parentId: undefined, position: { x: 2000, y: 0 } };
+      addNodes(doc, [service], [{ id: 'their-edge', source: 'their-service', target: 'OrderPlaced' }]);
+      getCanvasMaps(doc).hotspots.set('theirs', { id: 'theirs', title: 'Theirs', resource: 'their-service', createdAt: 0 } as never);
+    });
+    expect(removed).toEqual(['OrderCreated']);
+    expect(node(doc, 'their-service')).toBeDefined();
+    expect(getCanvasMaps(doc).edges.has('their-edge')).toBe(true);
+    expect(getCanvasMaps(doc).hotspots.has('theirs')).toBe(true);
     expect(getCanvasMaps(doc).hotspots.has('h1')).toBe(false);
   });
 

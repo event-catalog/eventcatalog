@@ -37,6 +37,8 @@ const OPEN_MS = WAIT_MS + 15_000;
 export const ANSWER_MS = 8_000;
 /** Requests kept for a view at most; and diagrams kept at most (the longest unseen go first) */
 const MAX_PENDING = 10;
+/** Waits held for one diagram at once at most: one for each view of it (the conversation open in a few tabs) */
+const MAX_WAITERS = 4;
 const MAX_CHANNELS = 10_000;
 
 /** The id of a new diagram: 128 random bits, as hex */
@@ -89,6 +91,8 @@ export async function waitForRequests(
     channels.set(diagramId, channel);
   }
   channel.seenAt = Date.now();
+  // More waits for one diagram than it has views: each holds a connection open, so they're turned down
+  if (!channel.pending.length && channel.waiting.size >= MAX_WAITERS) return { error: 'Too many views of this diagram are waiting. Try again shortly.' };
 
   if (!channel.pending.length) {
     const open = channel;

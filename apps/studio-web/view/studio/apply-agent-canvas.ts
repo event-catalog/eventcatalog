@@ -18,6 +18,18 @@ import type { Model } from '@eventcatalog/visualiser/model';
 export type AgentCanvas = { nodes: Node[]; edges: Edge[]; hotspots?: Hotspot[]; changed: ReadonlySet<string> };
 
 /**
+ * What was on the canvas when the agent's edit began (canvasIds): only that can be taken off by it. Laying the edit
+ * out takes a moment, and what people (or a live session) add meanwhile isn't in it, but stays
+ */
+export type CanvasIds = { nodes: ReadonlySet<string>; edges: ReadonlySet<string>; hotspots: ReadonlySet<string> };
+
+/** What's on the canvas now, from its document */
+export function canvasIds(doc: Y.Doc): CanvasIds {
+  const { nodes, edges, hotspots } = getCanvasMaps(doc);
+  return { nodes: new Set(nodes.keys()), edges: new Set(edges.keys()), hotspots: new Set(hotspots.keys()) };
+}
+
+/**
  * The canvas a changed model should give, from the model as the canvas has it now (`current`, with where things
  * are) and after the agent's changes (`next`). What moved into another container (or out of one) is placed again:
  * where it was is relative to the container it was in
@@ -45,8 +57,11 @@ const NEW_CONTAINER = { width: 200, height: 140 };
 // Where an edge is drawn (its route) is the canvas's own, not something the agent changes
 const withoutRoute = (edge: Edge) => JSON.stringify({ ...edge, data: { ...edge.data, route: undefined } });
 
-/** Writes the differences (call it inside one transaction). Returns the resources added, changed and removed */
-export function applyAgentCanvasToDoc(doc: Y.Doc, target: AgentCanvas, sizes?: RenderedSizes) {
+/**
+ * Writes the differences (call it inside one transaction), taking off only what was there when the edit began
+ * (`before`). Returns the resources added, changed and removed
+ */
+export function applyAgentCanvasToDoc(doc: Y.Doc, target: AgentCanvas, before: CanvasIds, sizes?: RenderedSizes) {
   const { nodes, edges, hotspots } = getCanvasMaps(doc);
   const wanted = new Map(target.nodes.filter(isResource).map((node) => [node.id, node]));
   const added: string[] = [];
@@ -70,7 +85,7 @@ export function applyAgentCanvasToDoc(doc: Y.Doc, target: AgentCanvas, sizes?: R
     nodes.set(id, { ...rest, type: node.type, data, ...(moved && { position: node.position }), ...(parentId && { parentId }) });
     changed.push(id);
   }
-  const removed = [...nodes.values()].filter((node) => isResource(node) && !wanted.has(node.id)).map((node) => node.id);
+  const removed = [...nodes.values()].filter((node) => isResource(node) && !wanted.has(node.id) && before.nodes.has(node.id)).map((node) => node.id);
   // With the notes about them (remove_resource takes those off the model too)
   const gone = new Set(removed);
   const notes = [...nodes.values()].filter((node) => isWrittenOnCanvas(node.type) && gone.has(node.data?.resource as string)).map((node) => node.id);
@@ -82,11 +97,11 @@ export function applyAgentCanvasToDoc(doc: Y.Doc, target: AgentCanvas, sizes?: R
     const next = current ? { ...current, ...edge, data: { ...current.data, ...edge.data } } : edge;
     if (!current || withoutRoute(next) !== withoutRoute(current)) edges.set(id, next);
   });
-  edges.forEach((_, id) => !wantedEdges.has(id) && edges.delete(id));
+  edges.forEach((_, id) => !wantedEdges.has(id) && before.edges.has(id) && edges.delete(id));
 
   const wantedHotspots = new Map((target.hotspots ?? []).map((hotspot) => [hotspot.id, hotspot]));
   wantedHotspots.forEach((hotspot, id) => !hotspots.has(id) && hotspots.set(id, hotspot));
-  hotspots.forEach((_, id) => !wantedHotspots.has(id) && hotspots.delete(id));
+  hotspots.forEach((_, id) => !wantedHotspots.has(id) && before.hotspots.has(id) && hotspots.delete(id));
 
   // A new container fits what's put in it (containers only grow when fitted: from their default size, a new domain
   // with one service in it was a big, mostly empty box)

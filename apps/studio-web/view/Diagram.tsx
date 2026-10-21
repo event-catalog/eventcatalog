@@ -722,11 +722,14 @@ export function Diagram({
     // Locked by the user (or someone in a live session): looked at, not changed, by anyone, the agent too
     if (lockedRef.current) return { error: 'The user has locked the diagram (the lock at the top left): ask them to unlock it.' };
     const current = modelNow();
+    // What's there as it begins: laying the changes out takes a moment, and what people add meanwhile stays
+    const before = canvasRef.current!.currentIds();
     const { model: next, results } = applyChanges(current, changes);
     const applied = results.filter((result) => result.ok).length;
     if (applied && canvasRef.current) {
       used.current = true;
-      const { added } = canvasRef.current.applyAgentCanvas(await agentCanvasFor(current, next));
+      const target = await agentCanvasFor(current, next);
+      const { added } = canvasRef.current?.applyAgentCanvas(target, before) ?? { added: [] };
       editedModel.current = next;
       // Notes and the title as the changes left them (a note on something removed later in the same edit isn't put on)
       const notesBefore = new Set(current.notes ?? []);

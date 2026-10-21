@@ -32,4 +32,13 @@ describe("the MCP endpoint's rate limits", () => {
     for (let i = 0; i < 20; i++) limited({ ip: '203.0.113.7', client: 'openai-mcp', waitingOn: 'd0' });
     expect(limited({ ip: '203.0.113.7', client: 'openai-mcp', waitingOn: 'd0' })).toMatch(/Rate limit/);
   });
+
+  it("keep the waits from one address under a ceiling, however many diagrams they're for", () => {
+    vi.useFakeTimers({ now: new Date('2026-10-21T10:00:00Z') });
+    const limited = createMcpRateLimits();
+    for (let i = 0; i < 6_000; i++) expect(limited({ ip: '203.0.113.7', client: 'curl', waitingOn: `d${i}` })).toBeUndefined();
+    expect(limited({ ip: '203.0.113.7', client: 'curl', waitingOn: 'another' })).toMatch(/Rate limit/);
+    // Another address has its own
+    expect(limited({ ip: '198.51.100.1', client: 'curl', waitingOn: 'another' })).toBeUndefined();
+  });
 });

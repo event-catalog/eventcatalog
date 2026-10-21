@@ -6,7 +6,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Y from 'yjs';
-import { applyAgentCanvasToDoc, type AgentCanvas } from './apply-agent-canvas';
+import { applyAgentCanvasToDoc, canvasIds, type AgentCanvas, type CanvasIds } from './apply-agent-canvas';
 import { applyEdgeChanges, applyNodeChanges, type Connection, type Edge, type EdgeChange, type Node, type NodeChange, type XYPosition } from '@xyflow/react';
 import { addNodes, addHotspots, setEdgeLabel as setEdgeLabelInDoc, getLock, setLock, addThreads, createHotspot as createHotspotInDoc, deleteHotspot as deleteHotspotInDoc, readHotspots, updateHotspot as updateHotspotInDoc, type Hotspot, createThread as createThreadInDoc, deleteThread as deleteThreadInDoc, moveThread as moveThreadInDoc, readThreads, replyToThread as replyToThreadInDoc, setThreadResolved as setThreadResolvedInDoc, type Author, type CommentAnchor, type Thread, buildNode, changesNodesOrEdges, connectNodes, deleteEdges, deleteNodes as deleteNodesInDoc, fitContainersAround, getCanvasMaps, getStructureKey, moveNode, placeNode, readLevelLayout, reconnectEdge, resizeNode, setEdgeRoutes, setLevelPlaces, setMeta, setNodeParents, updateNodeData as updateNodeDataInDoc, type LevelPlace, type RenderedSizes, keepDragged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, patchShared, containerFor, toRelativePosition, type NodePreview, type LayoutResult, canGoInContainer, getNodeDefinition, isGroupType } from '@eventcatalog/visualiser/studio';
 import type { Editing } from '../collab/room';
@@ -377,9 +377,15 @@ export function useCanvasFlow({
 
   /** The agent's changes to the diagram (edit_diagram): see apply-agent-canvas.ts */
   const applyAgentCanvas = useCallback(
-    (target: AgentCanvas) => withDoc((doc) => applyAgentCanvasToDoc(doc, target, renderedSizes()), AGENT_ORIGIN) ?? { added: [], changed: [], removed: [] },
+    (target: AgentCanvas, before: CanvasIds) =>
+      withDoc((doc) => applyAgentCanvasToDoc(doc, target, before, renderedSizes()), AGENT_ORIGIN) ?? { added: [], changed: [], removed: [] },
     []
   );
+  /** What's on the canvas now (its document's, not what's rendered yet): where an agent's edit begins */
+  const currentIds = useCallback((): CanvasIds => {
+    const doc = docRef.current?.doc;
+    return doc ? canvasIds(doc) : { nodes: new Set(), edges: new Set(), hotspots: new Set() };
+  }, []);
 
   // ---- Comments ----
   const createThread = useCallback((anchor: CommentAnchor, text: string, author: Author) => withDoc((doc) => createThreadInDoc(doc, anchor, text, author)), []);
@@ -403,6 +409,7 @@ export function useCanvasFlow({
   return {
     doc,
     hasLoaded,
+    currentIds,
     applyAgentCanvas,
     threads,
     createThread,
