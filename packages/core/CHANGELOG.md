@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 5.5.1
+
+### Patch Changes
+
+- 25f9db5: fix(core): MCP server and AI chat tools now return a service's AsyncAPI, OpenAPI and GraphQL specifications from getSchemaForResource; list what a domain or system sends and receives through the services, agents, systems and subdomains inside it (with `by` naming who); include domains that send or receive a message, and leave out old versions of resources, in the producer, consumer and change impact tools; match sends and receives to message versions the way the message pages do (semver ranges, x-patterns, and no version meaning the latest); and return compact JSON so tool results use about a fifth fewer tokens
+- d627b41: Upgrade `@parcel/watcher` to `^2.5.4` (installs 2.6.0) for its security fixes. 2.6.0 no longer ships a 32-bit Windows (ia32) build.
+- 3a59232: fix(core): align the expand/collapse arrow with the field name in the Avro, JSON Schema and Protobuf schema viewers
+
 ## 5.5.0
 
 ### Minor Changes
