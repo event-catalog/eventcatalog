@@ -66,8 +66,14 @@ export type WebMcpCanvas = {
   live: boolean;
   /** Puts the agent's diagram on the canvas in place of what's there, built up in front of the user; false if they said no */
   render: (payload: ArchitecturePayload) => Promise<boolean>;
-  /** Makes the agent's changes on the canvas (as edit_diagram does in a chat): which were made, and why any weren't */
-  edit: (changes: Changes, options?: { reorder?: boolean }) => Promise<{ results: ChangeResult[]; resources: number; relations: number; reordered?: boolean }>;
+  /**
+   * Makes the agent's changes on the canvas (as edit_diagram does in a chat): which were made, and why any weren't;
+   * or why none could be (locked by the user, or still opening)
+   */
+  edit: (
+    changes: Changes,
+    options?: { reorder?: boolean }
+  ) => Promise<{ results: ChangeResult[]; resources: number; relations: number; reordered?: boolean } | { error: string }>;
 };
 
 type WebMcpTool<Input extends z.ZodType = z.ZodType> = {
@@ -162,7 +168,9 @@ export function createWebMcpTools(get: () => WebMcpCanvas): WebMcpTool[] {
       }),
       annotations: { consequentialHint: true },
       execute: async ({ changes, reorder }) => {
-        const { results, resources, relations, reordered } = await get().edit(changes, { reorder });
+        const edited = await get().edit(changes, { reorder });
+        if ('error' in edited) return { error: `${edited.error} Nothing was changed.` };
+        const { results, resources, relations, reordered } = edited;
         const failed = results.filter((result) => !result.ok);
         return {
           made: results.length - failed.length,

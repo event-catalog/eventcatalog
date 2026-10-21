@@ -1,9 +1,16 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Client, InMemoryTransport } from '@modelcontextprotocol/client';
 import fixture from './fixtures/orders-model.json';
 import { Model } from '@eventcatalog/visualiser/model';
 import { answerRequest, ask, newDiagramId, resetBridge, viewTokenFor, waitForRequests, DIAGRAM_ID } from '../src/mcp/bridge';
 import { createMcpServer } from '../src/mcp/server';
+
+// The server as deployed, with its view (the built page isn't there when the tests run without a build): tool
+// results carry what the view gets in _meta, and the view's tools are there
+vi.mock('../src/mcp/register', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/mcp/register')>()),
+  getViewLoader: () => async () => '<!doctype html><html><head></head><body></body></html>',
+}));
 
 const model = Model.parse(fixture);
 const FORGED = 'a'.repeat(64);

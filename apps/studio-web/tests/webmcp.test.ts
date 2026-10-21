@@ -120,6 +120,13 @@ describe('WebMCP tools', () => {
     expect(result.failed).toHaveLength(1);
   });
 
+  it("tell the agent why the canvas couldn't take its changes (locked by the user), not fail", async () => {
+    const { call } = await setUp({ edit: async () => ({ error: 'The user has locked the diagram (the lock at the top left): ask them to unlock it.' }) });
+    const result = await call('edit_diagram', { changes: [{ op: 'set_title', title: 'Billing' }] });
+    expect(result.isError).toBe(true);
+    expect(result.json().error).toBe('The user has locked the diagram (the lock at the top left): ask them to unlock it. Nothing was changed.');
+  });
+
   it('are only read only when they change nothing the user sees', () => {
     const tools = createWebMcpTools(() => ({ model, live: false, render: async () => true, edit: async () => ({ results: [], resources: 0, relations: 0 }) }));
     const readOnly = tools.filter((tool) => tool.annotations?.readOnlyHint).map((tool) => tool.name);
