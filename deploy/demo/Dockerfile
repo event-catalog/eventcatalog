@@ -1,7 +1,7 @@
 # The demo (https://eventcatalog-demo.fly.dev): the default example catalog, built from the
 # workspace packages on main and run as a server with Studio on. Built from the repo root:
 #   fly deploy . --config deploy/demo/fly.toml --ha=false --remote-only
-FROM node:22-slim AS base
+FROM node:22.23.4-slim AS base
 RUN corepack enable
 
 # Just core and the workspace packages it uses, with a lockfile cut down to them
