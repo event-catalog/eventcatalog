@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 24.x
 
       - name: Get latest release info (manual trigger only)
         if: github.event_name == 'workflow_dispatch'

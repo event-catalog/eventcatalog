@@ -1,7 +1,7 @@
 # EventCatalog Studio on the web (the public MCP server and canvas): one long-running Node process (in-memory rate
 # limits, no storage). Built from the repo root, as it uses workspace packages (the visualiser):
 #   fly deploy . --config apps/studio-web/fly.toml --ha=false --remote-only
-FROM node:22-slim AS base
+FROM node:22.23.4-slim AS base
 RUN corepack enable
 
 # Just this app and the workspace packages it uses, with a lockfile cut down to them
@@ -20,7 +20,7 @@ RUN pnpm turbo run build --filter=@eventcatalog/studio-web
 # Its production dependencies, on their own (the server bundle leaves packages in node_modules)
 RUN pnpm --filter @eventcatalog/studio-web deploy --prod --legacy /prod
 
-FROM node:22-slim
+FROM node:22.23.4-slim
 WORKDIR /app
 ENV NODE_ENV=production PORT=8080
 COPY --from=build /prod/package.json ./
