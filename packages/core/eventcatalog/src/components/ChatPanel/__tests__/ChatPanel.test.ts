@@ -132,6 +132,39 @@ describe('Ask AI setup experience', () => {
     }
   });
 
+  it('keeps making room for the open sidebar on the page a navigation swaps in', async () => {
+    const page = () => {
+      const app = document.createElement('div');
+      app.id = 'eventcatalog-application';
+      const sidebar = document.createElement('nav');
+      sidebar.id = 'eventcatalog-docs-sidebar';
+      app.appendChild(sidebar);
+      document.body.appendChild(app);
+      return { app, sidebar };
+    };
+    const first = page();
+    let next: ReturnType<typeof page> | undefined;
+    try {
+      await act(async () => root.render(createElement(ChatPanelButton, { configured: false })));
+      await act(async () => container.querySelector<HTMLButtonElement>('button[aria-label="Open AI Assistant"]')!.click());
+      expect(first.app.style.paddingRight).toBe('400px');
+
+      // ClientRouter swaps the page under the persisted header, so the panel stays open
+      first.app.remove();
+      next = page();
+      await act(async () => document.dispatchEvent(new Event('astro:after-swap')));
+      expect(next.app.style.paddingRight).toBe('400px');
+      expect(next.sidebar.style.display).toBe('none');
+
+      await act(async () => container.querySelector<HTMLButtonElement>('button[aria-label="Close chat panel"]')!.click());
+      expect(next.app.style.paddingRight).toBe('0px');
+      expect(next.sidebar.style.display).toBe('');
+    } finally {
+      first.app.remove();
+      next?.app.remove();
+    }
+  });
+
   it('follows the answer as it arrives, until the reader scrolls up', async () => {
     await act(async () => root.render(createElement(ChatPanel, { isOpen: true, onClose: vi.fn(), configured: false })));
     const messages = container.querySelector<HTMLDivElement>('div.overflow-y-auto.scrollbar-hide')!;
