@@ -390,7 +390,7 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
                             href={getSpecUrl(spec, resourceId, resource?.data?.version)}
                             class="hover:underline hover:text-[rgb(var(--ec-accent))]"
                           >
-                            {getSpecLabel(spec.type)}
+                            {spec.type === 'generic' && spec.name ? spec.name : getSpecLabel(spec.type)}
                           </a>
                           {idx < specifications.length - 1 && ', '}
                         </>

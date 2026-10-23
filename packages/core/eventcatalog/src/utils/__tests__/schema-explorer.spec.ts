@@ -168,6 +168,27 @@ describe('schema explorer content delivery', () => {
     }
   });
 
+  it('lists generic specifications by the syntax of their file, with their custom icon', async () => {
+    fixtures.services[0].data.specifications = [
+      {
+        type: 'generic',
+        path: 'specs/carrier.wsdl',
+        name: 'Carrier WSDL',
+        icon: '/icons/soap.svg',
+        filenameWithoutExtension: 'carrier',
+      },
+    ];
+
+    const item = (await getSchemaMetadata()).find((candidate) => candidate.collection === 'services')!;
+
+    expect(item).toMatchObject({
+      schemaExtension: 'xml',
+      specType: 'generic',
+      specIcon: '/icons/soap.svg',
+      specFilenameWithoutExtension: 'carrier',
+    });
+  });
+
   it('loads message schema content and examples on demand', async () => {
     const item = (await getSchemaMetadata())[0];
     const details = await getSchemaDetails(keyOf(item.contentUrl!));

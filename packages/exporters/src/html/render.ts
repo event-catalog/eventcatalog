@@ -47,7 +47,12 @@ const TYPE: Record<MessageType, { label: string; short: string; cls: string; plu
     intro: 'Requests for information. They return data and change nothing.',
   },
 };
-const SPEC_TYPE_LABEL: Record<string, string> = { openapi: 'OpenAPI', asyncapi: 'AsyncAPI', graphql: 'GraphQL' };
+const SPEC_TYPE_LABEL: Record<string, string> = {
+  openapi: 'OpenAPI',
+  asyncapi: 'AsyncAPI',
+  graphql: 'GraphQL',
+  generic: 'Specification',
+};
 const KIND_LABEL: Record<string, string> = {
   domain: 'Domain',
   service: 'Service',

@@ -1269,6 +1269,7 @@ describe('getSchemaForResource', () => {
         specifications: [
           { type: 'asyncapi', path: 'asyncapi.yml', name: 'Spec Service AsyncAPI' },
           { type: 'openapi', path: 'openapi.yml' },
+          { type: 'generic', path: 'specs/carrier.wsdl', name: 'Carrier WSDL' },
         ],
       },
     };
@@ -1280,6 +1281,8 @@ describe('getSchemaForResource', () => {
       expect(result).toEqual([
         { name: 'Spec Service AsyncAPI', path: 'asyncapi.yml', format: 'asyncapi', code: 'contents of asyncapi.yml' },
         { name: 'OpenAPI', path: 'openapi.yml', format: 'openapi', code: 'contents of openapi.yml' },
+        // A generic specification's format is its syntax
+        { name: 'Carrier WSDL', path: 'specs/carrier.wsdl', format: 'xml', code: 'contents of carrier.wsdl' },
       ]);
     });
   });

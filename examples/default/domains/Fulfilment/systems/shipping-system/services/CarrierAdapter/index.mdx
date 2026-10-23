@@ -11,6 +11,14 @@ owners:
 sends:
   - id: create-shipment
     version: 1.0.0
+specifications:
+  - type: generic
+    path: specs/carrier-shipping.wsdl
+    name: Carrier Shipping API (WSDL)
+    icon: /icons/specifications/soap.svg
+  - type: generic
+    path: specs/shipment.xsd
+    name: Shipment XML Schema
 repository:
   language: Go
   url: 'https://github.com/acme/carrier-adapter'
@@ -21,6 +29,8 @@ import Footer from '@catalog/components/footer.astro';
 ## Overview
 
 The **Carrier Adapter** is the anti-corruption layer between Acme Inc and its carriers. It takes a shipment request from the [[service|shipping-api]], maps it to the external [[system|carrier]]'s API, and sends a [[command|create-shipment]] to dispatch the parcel.
+
+The carrier exposes a SOAP API, so the adapter keeps the carrier's WSDL and the XML Schema for its messages as specifications. You can read them under **API & Contracts** in the sidebar.
 
 <Tiles>
   <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} message`} description="The create-shipment command" />

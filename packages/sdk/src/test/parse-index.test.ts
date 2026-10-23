@@ -23,6 +23,23 @@ describe('parseIndex', () => {
     expect(parseIndex(validIndex)).toEqual(validIndex);
   });
 
+  it('parses generic specifications with a custom icon', () => {
+    const index = {
+      ...validIndex,
+      resources: [
+        {
+          ...validIndex.resources[0],
+          specifications: [
+            { type: 'generic', path: 'specs/carrier.wsdl', name: 'Carrier WSDL', icon: '/icons/soap.svg' },
+            { type: 'generic', path: 'specs/shipment.xsd' },
+          ],
+        },
+      ],
+    };
+
+    expect(parseIndex(index)).toEqual(index);
+  });
+
   it('parses channel resources and channel pointers', () => {
     const index = {
       indexVersion: 1,

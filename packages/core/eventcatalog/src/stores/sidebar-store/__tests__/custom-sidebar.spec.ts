@@ -257,6 +257,8 @@ describe('applyCustomSidebar', () => {
             specifications: [
               { type: 'asyncapi', path: 'specs/events.yaml', name: 'Product events' },
               { type: 'graphql', path: 'schema.graphql', name: 'Product GraphQL' },
+              { type: 'generic', path: 'specs/product.xsd', name: 'Product XML Schema' },
+              { type: 'generic', path: 'specs/feed.wsdl', name: 'Product Feed', icon: '/icons/soap.svg' },
             ],
           },
         },
@@ -302,6 +304,23 @@ describe('applyCustomSidebar', () => {
           title: 'Product GraphQL',
           leftIcon: '/icons/graphql-black.svg',
           href: '/base/docs/services/product-api/1.0.0/graphql/schema',
+        },
+      ]);
+    });
+
+    it('resolves generic specifications, with their custom icon when they have one', () => {
+      expect(pagesOf(['[[spec|product-api/product.xsd]]', '[[spec|product-api/feed.wsdl]]'])).toEqual([
+        {
+          type: 'item',
+          title: 'Product XML Schema',
+          leftIcon: '/icons/specification.svg',
+          href: '/base/docs/services/product-api/1.0.0/generic/product',
+        },
+        {
+          type: 'item',
+          title: 'Product Feed',
+          leftIcon: '/icons/soap.svg',
+          href: '/base/docs/services/product-api/1.0.0/generic/feed',
         },
       ]);
     });

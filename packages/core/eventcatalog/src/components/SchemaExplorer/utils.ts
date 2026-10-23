@@ -1,5 +1,6 @@
-import type { SchemaRelationshipCollection } from './types';
+import type { SchemaItem, SchemaRelationshipCollection } from './types';
 import { buildUrl } from '@utils/url-builder';
+import { getGenericSpecificationIcon, resolveIconUrl } from '@utils/icon';
 
 // Schema types that should use SVG icons
 export const ICON_SPECS: Record<string, string> = {
@@ -13,6 +14,72 @@ export const ICON_SPECS: Record<string, string> = {
   protobuf: 'proto',
   json: 'json-schema',
 };
+
+type SchemaFormat = Pick<SchemaItem, 'schemaExtension' | 'specType' | 'specIcon'>;
+
+/** The icon for a schema, or undefined when it shows a format badge instead */
+export function getSchemaIconUrl(message: SchemaFormat): string | undefined {
+  if (message.specType === 'generic') return resolveIconUrl(getGenericSpecificationIcon(message.specIcon));
+  const iconSpec = ICON_SPECS[message.schemaExtension?.toLowerCase() || ''];
+  return iconSpec ? buildUrl(`/icons/${iconSpec}.svg`, true) : undefined;
+}
+
+// A generic specification's extension is only its syntax, so a JSON file is not called a JSON Schema
+const GENERIC_SPECIFICATION_LABELS: Record<string, string> = { json: 'JSON', yaml: 'YAML', xml: 'XML', text: 'Text' };
+
+export const getSchemaDisplayLabel = (message: SchemaFormat): string =>
+  (message.specType === 'generic' && GENERIC_SPECIFICATION_LABELS[message.schemaExtension || '']) ||
+  getSchemaTypeLabel(message.schemaExtension);
+
+// Extensions that are the same format, so they share one filter
+const FORMAT_ALIASES: Record<string, string> = { yml: 'yaml', gql: 'graphql', avsc: 'avro', protobuf: 'proto' };
+
+/**
+ * The format a schema is filtered by in the Schema Explorer. A generic specification's extension is only its syntax,
+ * so a generic JSON file is plain JSON (`json-document`), not a JSON Schema.
+ */
+export function getSchemaFormat(message: Pick<SchemaItem, 'schemaExtension' | 'specType'>): string | undefined {
+  if (!message.schemaExtension) return undefined;
+  if (message.specType === 'generic' && message.schemaExtension.toLowerCase() === 'json') return 'json-document';
+  return normalizeSchemaFormat(message.schemaExtension);
+}
+
+/** A format with extensions of the same format merged, so a filter saved as `avsc` still selects Avro */
+export const normalizeSchemaFormat = (format: string): string => FORMAT_ALIASES[format.toLowerCase()] ?? format.toLowerCase();
+
+/**
+ * The extension to download a schema with. A generic specification's schemaExtension is only the syntax it's
+ * highlighted in (a WSDL is `xml`), so it keeps its own file's extension.
+ */
+export function getSchemaDownloadExtension(message: Pick<SchemaItem, 'schemaExtension' | 'specType' | 'data'>): string {
+  const fileExtension =
+    message.specType === 'generic'
+      ? message.data.schemaPath
+          ?.split('/')
+          .pop()
+          ?.match(/\.([^.]+)$/)?.[1]
+      : undefined;
+  return fileExtension || message.schemaExtension || 'json';
+}
+
+/**
+ * The formats of the given schemas with how many use each, most used first. The selected format is always included
+ * (with a count of 0 when none of the schemas use it) so it can be cleared.
+ */
+export function getFormatOptions(
+  messages: Pick<SchemaItem, 'schemaExtension' | 'specType'>[],
+  selectedFormat?: string
+): { format: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const message of messages) {
+    const format = getSchemaFormat(message);
+    if (format) counts.set(format, (counts.get(format) ?? 0) + 1);
+  }
+  if (selectedFormat && !counts.has(selectedFormat)) counts.set(selectedFormat, 0);
+  return [...counts]
+    .map(([format, count]) => ({ format, count }))
+    .sort((a, b) => b.count - a.count || a.format.localeCompare(b.format));
+}
 
 // Schema format badge config for non-icon types: short label + color
 export function getFormatBadge(ext?: string): { label: string; color: string } {
@@ -105,6 +172,8 @@ export const getLanguageForHighlight = (extension?: string): string => {
     case 'ts':
     case 'typescript':
       return 'typescript';
+    case 'text':
+      return 'text';
     case 'js':
     case 'javascript':
       return 'javascript';

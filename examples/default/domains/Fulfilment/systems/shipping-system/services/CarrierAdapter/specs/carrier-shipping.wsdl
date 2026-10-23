@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The carrier's SOAP API that the Carrier Adapter calls to book shipments -->
+<definitions name="CarrierShippingService"
+  targetNamespace="https://carrier.example.com/shipping/v2"
+  xmlns="http://schemas.xmlsoap.org/wsdl/"
+  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+  xmlns:tns="https://carrier.example.com/shipping/v2"
+  xmlns:ship="https://carrier.example.com/shipping/v2/types">
+
+  <types>
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="https://carrier.example.com/shipping/v2/types" schemaLocation="shipment.xsd" />
+    </xsd:schema>
+  </types>
+
+  <message name="CreateShipmentRequest">
+    <part name="body" element="ship:CreateShipment" />
+  </message>
+  <message name="CreateShipmentResponse">
+    <part name="body" element="ship:ShipmentConfirmation" />
+  </message>
+  <message name="CancelShipmentRequest">
+    <part name="body" element="ship:CancelShipment" />
+  </message>
+  <message name="CancelShipmentResponse">
+    <part name="body" element="ship:CancellationResult" />
+  </message>
+
+  <portType name="ShippingPortType">
+    <operation name="CreateShipment">
+      <documentation>Books a shipment and returns its tracking number and label.</documentation>
+      <input message="tns:CreateShipmentRequest" />
+      <output message="tns:CreateShipmentResponse" />
+    </operation>
+    <operation name="CancelShipment">
+      <documentation>Cancels a shipment that has not been collected yet.</documentation>
+      <input message="tns:CancelShipmentRequest" />
+      <output message="tns:CancelShipmentResponse" />
+    </operation>
+  </portType>
+
+  <binding name="ShippingSoapBinding" type="tns:ShippingPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+    <operation name="CreateShipment">
+      <soap:operation soapAction="https://carrier.example.com/shipping/v2/CreateShipment" />
+      <input><soap:body use="literal" /></input>
+      <output><soap:body use="literal" /></output>
+    </operation>
+    <operation name="CancelShipment">
+      <soap:operation soapAction="https://carrier.example.com/shipping/v2/CancelShipment" />
+      <input><soap:body use="literal" /></input>
+      <output><soap:body use="literal" /></output>
+    </operation>
+  </binding>
+
+  <service name="CarrierShippingService">
+    <port name="ShippingPort" binding="tns:ShippingSoapBinding">
+      <soap:address location="https://api.carrier.example.com/soap/shipping/v2" />
+    </port>
+  </service>
+</definitions>

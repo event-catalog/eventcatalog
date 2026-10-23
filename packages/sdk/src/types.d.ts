@@ -270,9 +270,12 @@ export interface Specifications {
 }
 
 export interface Specification {
-  type: 'openapi' | 'asyncapi' | 'graphql';
+  /** `generic` is for any other specification file (XML, JSON, YAML...), shown as source */
+  type: 'openapi' | 'asyncapi' | 'graphql' | 'generic';
   path: string;
   name?: string;
+  /** Icon for a generic specification: a path in your public folder or a URL */
+  icon?: string;
 }
 
 export interface Service extends BaseSchema {

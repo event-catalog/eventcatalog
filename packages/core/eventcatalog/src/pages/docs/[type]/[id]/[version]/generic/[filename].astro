@@ -1,0 +1,137 @@
+---
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import Footer from '@layouts/Footer.astro';
+import { Page } from './_[filename].data';
+import SpecificationSource from './_SpecificationSource';
+import { buildUrl } from '@utils/url-builder';
+import { getGenericSpecificationIcon, resolveIconUrl } from '@utils/icon';
+import { readResourceFile, resourceFileExists } from '@utils/resource-files';
+import { resolveHeaders } from '@utils/remote-spec';
+import Admonition from '@components/MDX/Admonition';
+import NewVersionBanner from '@components/NewVersionBanner.astro';
+import Badge from '@components/Badge.astro';
+import { getResourceTypeBadge } from '@utils/collections/resource-type-badge';
+import { getResourceNoun, getSpecificationCodeLanguage } from '@utils/collections/util';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+// Get data
+const pageData = await Page.getData(Astro);
+if (!pageData) return Astro.rewrite('/404');
+const {
+  collection,
+  data,
+  filename,
+  filenameWithoutExtension,
+  path: relativeSpecPath,
+  specificationName,
+  icon,
+  headers = {},
+} = pageData;
+
+// Generic specifications are shown as source, without parsing them
+const isRemote = /^https?:\/\//i.test(relativeSpecPath);
+let fileExists = isRemote || resourceFileExists(pageData, relativeSpecPath);
+let content = '';
+
+if (isRemote) {
+  // A remote file that can't be fetched is shown as not found, like a missing local file, so it doesn't fail the build
+  const response = await fetch(relativeSpecPath, { headers: resolveHeaders(headers) }).catch(() => null);
+
+  if (response?.ok) {
+    content = await response.text();
+  } else {
+    fileExists = false;
+    console.warn(`Failed to fetch specification ${relativeSpecPath}: ${response ? response.status : 'network error'}`);
+  }
+} else if (fileExists) {
+  content = readResourceFile(pageData, relativeSpecPath) ?? '';
+}
+
+const iconURL = resolveIconUrl(getGenericSpecificationIcon(icon));
+
+// Create comprehensive page title
+const pageTitle = `${collection} | ${data.name} | ${specificationName}`.replace(/^\w/, (c) => c.toUpperCase());
+
+const badges = [
+  getResourceTypeBadge(collection),
+  {
+    textColor: 'gray',
+    content: specificationName,
+    iconURL,
+    id: 'generic-specification-badge',
+  },
+];
+
+// Index only the latest version
+const pagefindAttributes =
+  data.version === data.latestVersion
+    ? {
+        'data-pagefind-body': '',
+        'data-pagefind-meta': `title:${pageTitle}`,
+      }
+    : {};
+---
+
+<VerticalSideBarLayout title={pageTitle} description={`${specificationName} for ${data.name}`}>
+  <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
+    <div class="flex docs-layout w-full">
+      <div class="w-full min-w-0 lg:mr-2 xl:pr-12 py-8 bg-[rgb(var(--ec-page-bg))]">
+        <!-- Title and subtitle sized like the resource's overview page, kept compact so the source starts high up -->
+        <div class="border-b border-[rgb(var(--ec-page-border))] pb-4">
+          <h1 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{data.name}</h1>
+          <p class="text-base pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{specificationName}</p>
+          <div class="flex flex-wrap gap-1.5 pt-3">
+            {badges.map((badge: any) => <Badge badge={badge} />)}
+          </div>
+        </div>
+
+        <div data-pagefind-ignore>
+          {
+            data.version !== data.latestVersion && (
+              <NewVersionBanner
+                subject={getResourceNoun(collection)}
+                name={data.name}
+                latestOf={specificationName}
+                latestVersion={data.latestVersion}
+                href={buildUrl(`/docs/${collection}/${data.id}/${data.latestVersion}/generic/${filenameWithoutExtension}`)}
+              />
+            )
+          }
+        </div>
+
+        {
+          !fileExists && (
+            <Admonition type="warning" title="Specification not found">
+              <p>The specification file could not be found at {relativeSpecPath}.</p>
+            </Admonition>
+          )
+        }
+
+        {
+          fileExists && (
+            <div class="mt-4 not-prose">
+              <SpecificationSource
+                client:load
+                name={`${data.name} - ${specificationName}`}
+                version={data.version}
+                code={content}
+                language={getSpecificationCodeLanguage(filename)}
+              />
+            </div>
+          )
+        }
+
+        <Footer />
+      </div>
+    </div>
+  </main>
+
+  <style is:global>
+    .docs-layout .prose {
+      max-width: none;
+      overflow: auto;
+    }
+  </style>
+</VerticalSideBarLayout>

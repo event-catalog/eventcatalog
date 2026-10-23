@@ -22,6 +22,11 @@
         "[[event|shipment-failed]]"
       ]
     },
+    {
+      "title": "Contracts",
+      "icon": "FileCode",
+      "pages": ["[[spec|carrier-sla.yaml]]"]
+    },
     "$architecture",
     "$systems",
     "$entities",

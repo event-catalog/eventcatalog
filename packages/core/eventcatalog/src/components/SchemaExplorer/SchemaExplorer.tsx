@@ -1,29 +1,120 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { AdjustmentsHorizontalIcon, DocumentTextIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { useState, useMemo, useEffect, useRef, type ComponentType, type ReactNode } from 'react';
+import {
+  AdjustmentsHorizontalIcon,
+  BoltIcon,
+  ChatBubbleLeftIcon,
+  CheckIcon,
+  DocumentCheckIcon,
+  DocumentTextIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 import type { CollectionMessageTypes } from '@types';
 import semver from 'semver';
 import SchemaListItem from './SchemaListItem';
 import SchemaDetailsPanel from './SchemaDetailsPanel';
 import Pagination from './Pagination';
 import type { SchemaItem } from './types';
+import { getFormatBadge, getFormatOptions, getSchemaFormat, getSchemaIconUrl, normalizeSchemaFormat } from './utils';
 
-// Specification file types (OpenAPI, AsyncAPI, GraphQL)
-const SPEC_TYPES = ['openapi', 'asyncapi', 'graphql'];
-const HIDDEN_FORMAT_FILTERS = new Set(['graphql', 'gql', 'yaml', 'yml']);
+// Labels for the formats getSchemaFormat returns
 const SCHEMA_TYPE_LABELS: Record<string, string> = {
   json: 'JSON Schema',
+  'json-document': 'JSON',
   asyncapi: 'AsyncAPI',
   openapi: 'OpenAPI',
   graphql: 'GraphQL',
   avro: 'Avro',
-  avsc: 'Avro',
   proto: 'Protobuf',
-  protobuf: 'Protobuf',
   yaml: 'YAML',
-  yml: 'YAML',
   xml: 'XML',
   xsd: 'XML Schema',
+  text: 'Text',
 };
+
+const TYPE_ICONS: Record<string, ComponentType<{ className?: string }>> = {
+  events: BoltIcon,
+  commands: ChatBubbleLeftIcon,
+  queries: MagnifyingGlassIcon,
+  specifications: DocumentTextIcon,
+  'data-contracts': DocumentCheckIcon,
+};
+
+function TypeIcon({ type }: { type: string }) {
+  const Icon = TYPE_ICONS[type] ?? DocumentTextIcon;
+  return <Icon className="h-3.5 w-3.5" />;
+}
+
+/** The same icon or badge a schema of this format shows in the list */
+function FormatIcon({ format }: { format: string }) {
+  // A generic JSON file gets the plain JSON badge, not the JSON Schema icon
+  const iconUrl = format === 'json-document' ? undefined : getSchemaIconUrl({ schemaExtension: format });
+  if (iconUrl) return <img src={iconUrl} alt="" className="schema-icon h-3.5 w-3.5" />;
+  const { label, color } = getFormatBadge(format === 'json-document' ? 'json' : format);
+  return <span className={`font-mono text-[7px] font-bold uppercase ${color}`}>{label}</span>;
+}
+
+function FilterSection({ title, role, children }: { title: string; role?: 'radiogroup'; children: ReactNode }) {
+  return (
+    <fieldset>
+      <legend className="mb-1.5 text-[11px] font-semibold text-[rgb(var(--ec-page-text))]">{title}</legend>
+      <div role={role} aria-label={title} className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+        {children}
+      </div>
+    </fieldset>
+  );
+}
+
+/** A checkbox (pick any) or radio (pick one) row in the filter panel */
+function FilterOption({
+  label,
+  count,
+  icon,
+  isActive,
+  control,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  icon?: ReactNode;
+  isActive: boolean;
+  control: 'checkbox' | 'radio';
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role={control}
+      aria-checked={isActive}
+      onClick={onClick}
+      className={`flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1 text-left text-[11px] transition-colors hover:bg-[rgb(var(--ec-content-hover))] ${
+        isActive
+          ? 'text-[rgb(var(--ec-page-text))]'
+          : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
+      }`}
+    >
+      <span
+        aria-hidden
+        className={`flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center border transition-colors ${
+          control === 'radio' ? 'rounded-full' : 'rounded-[3px]'
+        } ${
+          isActive
+            ? 'border-[rgb(var(--ec-accent))] bg-[rgb(var(--ec-accent))] text-white'
+            : 'border-[rgb(var(--ec-page-text-muted)/0.5)] bg-[rgb(var(--ec-dropdown-bg))]'
+        }`}
+      >
+        {isActive &&
+          (control === 'radio' ? (
+            <span className="h-1.5 w-1.5 rounded-full bg-white" />
+          ) : (
+            <CheckIcon className="h-2.5 w-2.5 stroke-[3]" />
+          ))}
+      </span>
+      {icon && <span className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center">{icon}</span>}
+      <span className={`min-w-0 flex-1 truncate ${isActive ? 'font-medium' : ''}`}>{label}</span>
+      <span className="flex-shrink-0 text-[10px] tabular-nums text-[rgb(var(--ec-page-text-muted)/0.8)]">{count}</span>
+    </button>
+  );
+}
 
 /** Resolve the spec filename for a schema item, with consistent fallback. */
 function getSpecFile(item: SchemaItem): string {
@@ -73,7 +164,7 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
   const [selectedSchemaType, setSelectedSchemaType] = useState<'all' | string>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('schemaRegistrySelectedSchemaType');
-      return stored !== null ? stored : 'all';
+      return stored !== null && stored !== 'all' ? normalizeSchemaFormat(stored) : 'all';
     }
     return 'all';
   });
@@ -164,36 +255,27 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
     return Array.from(messagesByIdAndVersions.values()).map((versions) => versions[0]);
   }, [messagesByIdAndVersions]);
 
-  const schemaTypes = useMemo(() => {
-    const types = new Set<string>();
-    latestMessages.forEach((msg) => {
-      if (msg.schemaExtension && !HIDDEN_FORMAT_FILTERS.has(msg.schemaExtension.toLowerCase())) {
-        types.add(msg.schemaExtension.toLowerCase());
-      }
-    });
-    return Array.from(types).sort();
-  }, [latestMessages]);
+  // Schemas of the selected types; the format filter offers (and counts) only the formats among them
+  const typeFilteredMessages = useMemo(() => {
+    if (selectedTypes.size === 0) return latestMessages;
+    return latestMessages.filter(
+      (msg) =>
+        selectedTypes.has(msg.collection as CollectionMessageTypes) ||
+        (selectedTypes.has('specifications') && Boolean(msg.specType)) ||
+        (selectedTypes.has('data-contracts') && msg.collection === 'data-products')
+    );
+  }, [latestMessages, selectedTypes]);
+
+  const formatOptions = useMemo(
+    () => getFormatOptions(typeFilteredMessages, selectedSchemaType === 'all' ? undefined : selectedSchemaType),
+    [typeFilteredMessages, selectedSchemaType]
+  );
 
   const filteredMessages = useMemo(() => {
-    let result = [...latestMessages];
-
-    if (selectedTypes.size > 0) {
-      result = result.filter((msg) => {
-        if (selectedTypes.has(msg.collection as CollectionMessageTypes)) {
-          return true;
-        }
-        if (selectedTypes.has('specifications') && SPEC_TYPES.includes(msg.schemaExtension?.toLowerCase() || '')) {
-          return true;
-        }
-        if (selectedTypes.has('data-contracts') && msg.collection === 'data-products') {
-          return true;
-        }
-        return false;
-      });
-    }
+    let result = [...typeFilteredMessages];
 
     if (selectedSchemaType !== 'all') {
-      result = result.filter((msg) => msg.schemaExtension?.toLowerCase() === selectedSchemaType);
+      result = result.filter((msg) => getSchemaFormat(msg) === selectedSchemaType);
     }
 
     if (searchQuery) {
@@ -213,7 +295,7 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
     });
 
     return result;
-  }, [latestMessages, searchQuery, selectedTypes, selectedSchemaType]);
+  }, [typeFilteredMessages, searchQuery, selectedSchemaType]);
 
   const totalPages = Math.ceil(filteredMessages.length / ITEMS_PER_PAGE);
   const paginatedMessages = useMemo(() => {
@@ -338,11 +420,10 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
 
   const stats = useMemo(() => {
     return {
-      total: latestMessages.length,
       events: latestMessages.filter((m) => m.collection === 'events').length,
       commands: latestMessages.filter((m) => m.collection === 'commands').length,
       queries: latestMessages.filter((m) => m.collection === 'queries').length,
-      specifications: latestMessages.filter((m) => SPEC_TYPES.includes(m.schemaExtension?.toLowerCase() || '')).length,
+      specifications: latestMessages.filter((m) => Boolean(m.specType)).length,
       dataContracts: latestMessages.filter((m) => m.collection === 'data-products').length,
     };
   }, [latestMessages]);
@@ -366,7 +447,6 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
   const hasActiveFilters = searchQuery.length > 0 || selectedTypes.size > 0 || selectedSchemaType !== 'all';
   const activeFilterCount = (selectedTypes.size > 0 ? 1 : 0) + (selectedSchemaType !== 'all' ? 1 : 0);
   const collectionTabs = [
-    { key: 'all', label: 'All', count: stats.total },
     { key: 'events', label: 'Events', count: stats.events },
     { key: 'commands', label: 'Commands', count: stats.commands },
     { key: 'queries', label: 'Queries', count: stats.queries },
@@ -402,7 +482,7 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
               />
             </div>
 
-            {schemaTypes.length > 0 && (
+            {latestMessages.length > 0 && (
               <button
                 onClick={() => setShowFormatFilters((prev) => !prev)}
                 aria-pressed={showFormatFilters}
@@ -423,110 +503,59 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
           </div>
 
           {showFormatFilters && latestMessages.length > 0 && (
-            <div className="flex-shrink-0 border-b border-[rgb(var(--ec-page-border))] px-4 py-3">
-              <div className="rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover)/0.45)] p-3">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[rgb(var(--ec-page-text-muted))]">
-                    Filters
-                  </span>
-                  {hasActiveFilters && (
-                    <button
-                      onClick={() => {
-                        setSearchQuery('');
-                        clearTypeFilters();
-                        setSelectedSchemaType('all');
-                      }}
-                      className="text-[11px] font-medium text-[rgb(var(--ec-accent))] hover:opacity-80"
-                    >
-                      Reset
-                    </button>
-                  )}
-                </div>
-
-                <div>
-                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-page-text-muted))]">
-                    Type
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {collectionTabs.map((tab) => {
-                      const isAll = tab.key === 'all';
-                      const isActive = isAll ? selectedTypes.size === 0 : selectedTypes.has(tab.key as CollectionMessageTypes);
-
-                      return (
-                        <button
-                          key={tab.key}
-                          onClick={() => {
-                            if (isAll) {
-                              clearTypeFilters();
-                              return;
-                            }
-                            toggleType(tab.key as CollectionMessageTypes | 'specifications' | 'data-contracts');
-                          }}
-                          className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-medium transition-all ${
-                            isActive
-                              ? 'border-[rgb(var(--ec-accent)/0.5)] bg-[rgb(var(--ec-accent)/0.16)] text-[rgb(var(--ec-page-text))] shadow-[0_0_0_1px_rgb(var(--ec-accent)/0.2)]'
-                              : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-page-text-muted))] hover:border-[rgb(var(--ec-page-text-muted)/0.3)] hover:text-[rgb(var(--ec-page-text))]'
-                          }`}
-                        >
-                          <span>{tab.label}</span>
-                          <span
-                            className={`rounded-sm px-1 py-0.5 text-[8px] font-semibold tabular-nums ${
-                              isActive
-                                ? 'bg-[rgb(var(--ec-accent)/0.18)] text-[rgb(var(--ec-page-text))]'
-                                : 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))]'
-                            }`}
-                          >
-                            {tab.count}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {schemaTypes.length > 0 && (
-                  <div className="mt-3">
-                    <div className="mb-2 flex items-center justify-between gap-3">
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-page-text-muted))]">
-                        Format
-                      </span>
-                      {selectedSchemaType !== 'all' && (
-                        <button
-                          onClick={() => setSelectedSchemaType('all')}
-                          className="text-[10px] font-medium text-[rgb(var(--ec-accent))] hover:opacity-80"
-                        >
-                          Clear
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      <button
-                        onClick={() => setSelectedSchemaType('all')}
-                        className={`rounded-md border px-2 py-1 text-[10px] font-medium transition-all ${
-                          selectedSchemaType === 'all'
-                            ? 'border-[rgb(var(--ec-accent)/0.45)] bg-[rgb(var(--ec-accent)/0.16)] text-[rgb(var(--ec-page-text))]'
-                            : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
-                        }`}
-                      >
-                        All formats
-                      </button>
-                      {schemaTypes.map((type) => (
-                        <button
-                          key={type}
-                          onClick={() => setSelectedSchemaType(selectedSchemaType === type ? 'all' : type)}
-                          className={`rounded-md border px-2 py-1 text-[10px] font-medium transition-all ${
-                            selectedSchemaType === type
-                              ? 'border-[rgb(var(--ec-accent)/0.45)] bg-[rgb(var(--ec-accent)/0.16)] text-[rgb(var(--ec-page-text))]'
-                              : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
-                          }`}
-                        >
-                          {SCHEMA_TYPE_LABELS[type] || type.charAt(0).toUpperCase() + type.slice(1)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+            <div className="flex-shrink-0 space-y-3 border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover)/0.3)] px-4 py-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] font-semibold text-[rgb(var(--ec-page-text))]">Filters</span>
+                {hasActiveFilters && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      clearTypeFilters();
+                      setSelectedSchemaType('all');
+                    }}
+                    className="text-[11px] font-medium text-[rgb(var(--ec-accent))] hover:opacity-80"
+                  >
+                    Reset
+                  </button>
                 )}
               </div>
+
+              <FilterSection title="Type">
+                {collectionTabs.map((tab) => (
+                  <FilterOption
+                    key={tab.key}
+                    control="checkbox"
+                    label={tab.label}
+                    count={tab.count}
+                    icon={<TypeIcon type={tab.key} />}
+                    isActive={selectedTypes.has(tab.key as CollectionMessageTypes)}
+                    onClick={() => toggleType(tab.key as CollectionMessageTypes | 'specifications' | 'data-contracts')}
+                  />
+                ))}
+              </FilterSection>
+
+              {formatOptions.length > 0 && (
+                <FilterSection title="Format" role="radiogroup">
+                  <FilterOption
+                    control="radio"
+                    label="All formats"
+                    count={typeFilteredMessages.length}
+                    isActive={selectedSchemaType === 'all'}
+                    onClick={() => setSelectedSchemaType('all')}
+                  />
+                  {formatOptions.map(({ format, count }) => (
+                    <FilterOption
+                      key={format}
+                      control="radio"
+                      label={SCHEMA_TYPE_LABELS[format] || format.charAt(0).toUpperCase() + format.slice(1)}
+                      count={count}
+                      icon={<FormatIcon format={format} />}
+                      isActive={selectedSchemaType === format}
+                      onClick={() => setSelectedSchemaType(format)}
+                    />
+                  ))}
+                </FilterSection>
+              )}
             </div>
           )}
 

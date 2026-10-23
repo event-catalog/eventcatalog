@@ -65,7 +65,7 @@ import {
 import { getSchemasFromResource } from '@utils/collections/schemas';
 import { getIcon } from '@utils/badges';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
-import { isIconPath, resolveIconUrl } from '@utils/icon';
+import { getGenericSpecificationIcon, isIconPath, resolveIconUrl } from '@utils/icon';
 import {
   isEventCatalogChatVisible,
   isMarkdownDownloadEnabled,
@@ -249,6 +249,7 @@ const getSpecificationBadges = () => {
   const asyncapiSpecs = specifications.filter((spec) => spec.type === 'asyncapi');
   const openapiSpecs = specifications.filter((spec) => spec.type === 'openapi');
   const graphQLSpecs = specifications.filter((spec) => spec.type === 'graphql');
+  const genericSpecs = specifications.filter((spec) => spec.type === 'generic');
 
   if (openapiSpecs.length > 0) {
     for (const spec of openapiSpecs) {
@@ -288,6 +289,18 @@ const getSpecificationBadges = () => {
         ),
       });
     }
+  }
+
+  for (const spec of genericSpecs) {
+    badges.push({
+      content: spec.name,
+      iconURL: resolveIconUrl(getGenericSpecificationIcon(spec.icon)),
+      class: 'text-[rgb(var(--ec-page-text))] hover:underline',
+      id: 'generic-specification-badge',
+      url: buildUrl(
+        `/docs/${props.collection}/${props.data.id}/${props.data.version}/generic/${spec.filenameWithoutExtension}`
+      ),
+    });
   }
 
   return badges;

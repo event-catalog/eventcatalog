@@ -24,6 +24,7 @@ const SPEC_LABELS: Record<string, string> = {
   openapi: "OpenAPI",
   asyncapi: "AsyncAPI",
   graphql: "GraphQL",
+  generic: "Spec",
 };
 
 const SPEC_COLORS: Record<
@@ -47,6 +48,12 @@ const SPEC_COLORS: Record<
     text: "#be185d",
     darkBg: "rgba(229,53,171,0.2)",
     darkText: "#f9a8d4",
+  },
+  generic: {
+    bg: "rgba(100,116,139,0.12)",
+    text: "#475569",
+    darkBg: "rgba(100,116,139,0.2)",
+    darkText: "#cbd5e1",
   },
 };
 

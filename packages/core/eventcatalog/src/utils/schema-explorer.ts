@@ -11,6 +11,7 @@ import { getFlowsForMessages } from '@utils/collections/flows';
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl } from '@utils/url-builder';
 import { getSchemaExtensionForFormat } from '@utils/collections/schemas';
+import { getSpecificationCodeLanguage } from '@utils/collections/util';
 import { resourceFileExists, readResourceFile } from '@utils/resource-files';
 import { getExamplesForResource } from '@utils/collections/examples';
 import { attachFlowGraphs, getMessageUsageGraph } from '@utils/schema-usage-graph';
@@ -172,7 +173,8 @@ async function buildRegistry() {
               return null;
             }
 
-            const schemaExtension = spec.type;
+            // Generic specifications are shown as source, so their extension is the syntax to highlight
+            const schemaExtension = spec.type === 'generic' ? getSpecificationCodeLanguage(spec.path) : spec.type;
             const enrichedOwners = await enrichOwners(service.data.owners || []);
 
             return {
@@ -189,6 +191,7 @@ async function buildRegistry() {
               schemaExtension,
               specType: spec.type,
               specName: spec.name,
+              specIcon: spec.icon,
               specFilenameWithoutExtension: spec.filenameWithoutExtension,
             };
           })
@@ -222,7 +225,8 @@ async function buildRegistry() {
               return null;
             }
 
-            const schemaExtension = spec.type;
+            // Generic specifications are shown as source, so their extension is the syntax to highlight
+            const schemaExtension = spec.type === 'generic' ? getSpecificationCodeLanguage(spec.path) : spec.type;
             const enrichedOwners = await enrichOwners(domain.data.owners || []);
 
             return {
@@ -239,6 +243,7 @@ async function buildRegistry() {
               schemaExtension,
               specType: spec.type,
               specName: spec.name,
+              specIcon: spec.icon,
               specFilenameWithoutExtension: spec.filenameWithoutExtension,
             };
           })

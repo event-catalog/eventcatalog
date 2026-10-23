@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Types used by the carrier's shipping SOAP API -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  targetNamespace="https://carrier.example.com/shipping/v2/types"
+  xmlns:ship="https://carrier.example.com/shipping/v2/types"
+  elementFormDefault="qualified">
+
+  <xsd:complexType name="Address">
+    <xsd:sequence>
+      <xsd:element name="Name" type="xsd:string" />
+      <xsd:element name="Line1" type="xsd:string" />
+      <xsd:element name="Line2" type="xsd:string" minOccurs="0" />
+      <xsd:element name="City" type="xsd:string" />
+      <xsd:element name="PostalCode" type="xsd:string" />
+      <xsd:element name="CountryCode" type="ship:CountryCode" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:simpleType name="CountryCode">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[A-Z]{2}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ServiceLevel">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="STANDARD" />
+      <xsd:enumeration value="EXPRESS" />
+      <xsd:enumeration value="NEXT_DAY" />
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:complexType name="Parcel">
+    <xsd:sequence>
+      <xsd:element name="WeightGrams" type="xsd:positiveInteger" />
+      <xsd:element name="LengthCm" type="xsd:decimal" />
+      <xsd:element name="WidthCm" type="xsd:decimal" />
+      <xsd:element name="HeightCm" type="xsd:decimal" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:element name="CreateShipment">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Reference" type="xsd:string" />
+        <xsd:element name="ServiceLevel" type="ship:ServiceLevel" />
+        <xsd:element name="Sender" type="ship:Address" />
+        <xsd:element name="Recipient" type="ship:Address" />
+        <xsd:element name="Parcel" type="ship:Parcel" maxOccurs="unbounded" />
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="ShipmentConfirmation">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="ShipmentId" type="xsd:string" />
+        <xsd:element name="TrackingNumber" type="xsd:string" />
+        <xsd:element name="LabelUrl" type="xsd:anyURI" />
+        <xsd:element name="EstimatedDelivery" type="xsd:date" />
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="CancelShipment">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="ShipmentId" type="xsd:string" />
+        <xsd:element name="Reason" type="xsd:string" minOccurs="0" />
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="CancellationResult">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="ShipmentId" type="xsd:string" />
+        <xsd:element name="Cancelled" type="xsd:boolean" />
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>
