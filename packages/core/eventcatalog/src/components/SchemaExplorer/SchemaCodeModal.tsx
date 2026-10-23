@@ -11,7 +11,8 @@ import { renderHighlightedRows } from '@utils/syntax-highlighter-renderer';
 interface SchemaCodeModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  message: SchemaItem;
+  // Only what the modal shows, so specification pages can open it too
+  message: Pick<SchemaItem, 'schemaExtension' | 'schemaContent'> & { data: Pick<SchemaItem['data'], 'name' | 'version'> };
   onCopy: () => void;
   isCopied: boolean;
 }

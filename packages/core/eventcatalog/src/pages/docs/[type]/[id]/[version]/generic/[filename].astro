@@ -1,9 +1,8 @@
 ---
-import { Code } from 'astro-expressive-code/components';
-
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Footer from '@layouts/Footer.astro';
 import { Page } from './_[filename].data';
+import SpecificationSource from './_SpecificationSource';
 import { buildUrl } from '@utils/url-builder';
 import { getGenericSpecificationIcon, resolveIconUrl } from '@utils/icon';
 import { readResourceFile, resourceFileExists } from '@utils/resource-files';
@@ -79,21 +78,12 @@ const pagefindAttributes =
   <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
     <div class="flex docs-layout w-full">
       <div class="w-full min-w-0 lg:mr-2 xl:pr-12 py-8 bg-[rgb(var(--ec-page-bg))]">
-        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-2">
-          <div>
-            <div class="flex justify-between items-start">
-              <div class="flex-1">
-                <h1 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))] mb-2">
-                  {data.name}
-                  <span class="text-[rgb(var(--ec-page-text-muted))]">(v{data.version})</span>
-                </h1>
-                <h2 class="text-lg text-[rgb(var(--ec-page-text-muted))] font-medium mb-1">{specificationName}</h2>
-              </div>
-            </div>
-
-            <div class="flex flex-wrap gap-3 py-4">
-              {badges.map((badge: any) => <Badge badge={badge} />)}
-            </div>
+        <!-- Title and subtitle sized like the resource's overview page, kept compact so the source starts high up -->
+        <div class="border-b border-[rgb(var(--ec-page-border))] pb-4">
+          <h1 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{data.name}</h1>
+          <p class="text-base pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{specificationName}</p>
+          <div class="flex flex-wrap gap-1.5 pt-3">
+            {badges.map((badge: any) => <Badge badge={badge} />)}
           </div>
         </div>
 
@@ -121,8 +111,14 @@ const pagefindAttributes =
 
         {
           fileExists && (
-            <div class="mt-6 not-prose overflow-x-auto">
-              <Code code={content} title={filename} lang={getSpecificationCodeLanguage(filename)} />
+            <div class="mt-4 not-prose">
+              <SpecificationSource
+                client:load
+                name={`${data.name} - ${specificationName}`}
+                version={data.version}
+                code={content}
+                language={getSpecificationCodeLanguage(filename)}
+              />
             </div>
           )
         }

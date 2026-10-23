@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getSchemaDisplayLabel, getSchemaIconUrl } from '../utils';
+import { getFormatOptions, getSchemaDisplayLabel, getSchemaFormat, getSchemaIconUrl } from '../utils';
 
 describe('Schema Explorer utils', () => {
   describe('getSchemaIconUrl', () => {
@@ -38,6 +38,53 @@ describe('Schema Explorer utils', () => {
     it('labels other schemas by their format', () => {
       expect(getSchemaDisplayLabel({ schemaExtension: 'json' })).toBe('JSON Schema');
       expect(getSchemaDisplayLabel({ specType: 'openapi', schemaExtension: 'openapi' })).toBe('OpenAPI');
+    });
+  });
+
+  describe('getSchemaFormat', () => {
+    it.each([
+      { message: { schemaExtension: 'json' }, format: 'json' },
+      { message: { schemaExtension: 'yml' }, format: 'yaml' },
+      { message: { schemaExtension: 'gql' }, format: 'graphql' },
+      { message: { schemaExtension: 'avsc' }, format: 'avro' },
+      { message: { schemaExtension: 'protobuf' }, format: 'proto' },
+      { message: { schemaExtension: 'XSD' }, format: 'xsd' },
+      { message: { specType: 'openapi', schemaExtension: 'openapi' }, format: 'openapi' },
+      { message: { specType: 'generic', schemaExtension: 'xml' }, format: 'xml' },
+      { message: { specType: 'generic', schemaExtension: 'json' }, format: 'json-document' },
+      { message: { specType: 'generic', schemaExtension: 'text' }, format: 'text' },
+      { message: {}, format: undefined },
+    ])('files $message under $format', ({ message, format }) => {
+      expect(getSchemaFormat(message)).toBe(format);
+    });
+  });
+
+  describe('getFormatOptions', () => {
+    const messages = [
+      { schemaExtension: 'json' },
+      { schemaExtension: 'json' },
+      { schemaExtension: 'yml' },
+      { schemaExtension: 'yaml' },
+      { specType: 'generic', schemaExtension: 'xml' },
+      { specType: 'generic', schemaExtension: 'json' },
+      { specType: 'openapi', schemaExtension: 'openapi' },
+    ];
+
+    it('counts each format, merging extensions of the same format, most used first', () => {
+      expect(getFormatOptions(messages)).toEqual([
+        { format: 'json', count: 2 },
+        { format: 'yaml', count: 2 },
+        { format: 'json-document', count: 1 },
+        { format: 'openapi', count: 1 },
+        { format: 'xml', count: 1 },
+      ]);
+    });
+
+    it('keeps the selected format when none of the schemas use it, so it can be cleared', () => {
+      expect(getFormatOptions([{ schemaExtension: 'json' }], 'xml')).toEqual([
+        { format: 'json', count: 1 },
+        { format: 'xml', count: 0 },
+      ]);
     });
   });
 });

@@ -31,6 +31,39 @@ export const getSchemaDisplayLabel = (message: SchemaFormat): string =>
   (message.specType === 'generic' && GENERIC_SPECIFICATION_LABELS[message.schemaExtension || '']) ||
   getSchemaTypeLabel(message.schemaExtension);
 
+// Extensions that are the same format, so they share one filter
+const FORMAT_ALIASES: Record<string, string> = { yml: 'yaml', gql: 'graphql', avsc: 'avro', protobuf: 'proto' };
+
+/**
+ * The format a schema is filtered by in the Schema Explorer. A generic specification's extension is only its syntax,
+ * so a generic JSON file is plain JSON (`json-document`), not a JSON Schema.
+ */
+export function getSchemaFormat(message: Pick<SchemaItem, 'schemaExtension' | 'specType'>): string | undefined {
+  const extension = message.schemaExtension?.toLowerCase();
+  if (!extension) return undefined;
+  if (message.specType === 'generic' && extension === 'json') return 'json-document';
+  return FORMAT_ALIASES[extension] ?? extension;
+}
+
+/**
+ * The formats of the given schemas with how many use each, most used first. The selected format is always included
+ * (with a count of 0 when none of the schemas use it) so it can be cleared.
+ */
+export function getFormatOptions(
+  messages: Pick<SchemaItem, 'schemaExtension' | 'specType'>[],
+  selectedFormat?: string
+): { format: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const message of messages) {
+    const format = getSchemaFormat(message);
+    if (format) counts.set(format, (counts.get(format) ?? 0) + 1);
+  }
+  if (selectedFormat && !counts.has(selectedFormat)) counts.set(selectedFormat, 0);
+  return [...counts]
+    .map(([format, count]) => ({ format, count }))
+    .sort((a, b) => b.count - a.count || a.format.localeCompare(b.format));
+}
+
 // Schema format badge config for non-icon types: short label + color
 export function getFormatBadge(ext?: string): { label: string; color: string } {
   const type = ext?.toLowerCase();
