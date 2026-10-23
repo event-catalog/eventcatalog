@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -629,6 +630,53 @@ describe('hydrate', () => {
       fetched: 3,
       written: 3,
     });
+  });
+
+  it('fetches generic specifications, including ones in subfolders', async () => {
+    const files: Record<string, Buffer> = {
+      'services/carrier-adapter/index.mdx': Buffer.from('# Carrier Adapter'),
+      'services/carrier-adapter/specs/carrier.wsdl': Buffer.from('<definitions name="CarrierShipping"/>'),
+      'services/carrier-adapter/contract.json': Buffer.from('{"format":"acme-ledger-export"}'),
+    };
+    const hashOf = (filePath: string) => `sha256:${createHash('sha256').update(files[filePath]).digest('hex')}`;
+    const fetch = vi.fn<Fetcher>().mockImplementation(async (request) => files[request.path]);
+    const graph: ResolvedGraph = {
+      entities: [
+        {
+          type: 'service',
+          id: 'carrier-adapter',
+          version: '1.0.0',
+          name: 'Carrier Adapter',
+          contentPath: 'services/carrier-adapter/index.mdx',
+          contentHash: hashOf('services/carrier-adapter/index.mdx'),
+          specifications: [
+            {
+              type: 'generic',
+              path: 'specs/carrier.wsdl',
+              name: 'Carrier WSDL',
+              icon: '/icons/soap.svg',
+              hash: hashOf('services/carrier-adapter/specs/carrier.wsdl'),
+            },
+            { type: 'generic', path: 'contract.json', hash: hashOf('services/carrier-adapter/contract.json') },
+          ],
+          resolvedFrom: { source: 'acme/fulfilment', commit: '4a1b7e2' },
+        },
+      ],
+      assets: [],
+      edges: [],
+      conflicts: [],
+      warnings: [],
+      externals: [],
+    };
+
+    const result = await hydrate(graph, { outDir, localSource: 'acme/central', fetch });
+
+    expect(fetch.mock.calls.map(([request]) => request.path)).toEqual(Object.keys(files));
+    const [sourceDirectory] = await fs.readdir(outDir);
+    await expect(
+      Promise.all(Object.keys(files).map((filePath) => fs.readFile(path.join(outDir, sourceDirectory, filePath))))
+    ).resolves.toEqual(Object.values(files));
+    expect(result).toEqual({ fetched: 3, written: 3 });
   });
 
   it('fetches arbitrary resource sidecars as separate files', async () => {

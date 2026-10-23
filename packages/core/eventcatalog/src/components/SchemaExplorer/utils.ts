@@ -39,10 +39,27 @@ const FORMAT_ALIASES: Record<string, string> = { yml: 'yaml', gql: 'graphql', av
  * so a generic JSON file is plain JSON (`json-document`), not a JSON Schema.
  */
 export function getSchemaFormat(message: Pick<SchemaItem, 'schemaExtension' | 'specType'>): string | undefined {
-  const extension = message.schemaExtension?.toLowerCase();
-  if (!extension) return undefined;
-  if (message.specType === 'generic' && extension === 'json') return 'json-document';
-  return FORMAT_ALIASES[extension] ?? extension;
+  if (!message.schemaExtension) return undefined;
+  if (message.specType === 'generic' && message.schemaExtension.toLowerCase() === 'json') return 'json-document';
+  return normalizeSchemaFormat(message.schemaExtension);
+}
+
+/** A format with extensions of the same format merged, so a filter saved as `avsc` still selects Avro */
+export const normalizeSchemaFormat = (format: string): string => FORMAT_ALIASES[format.toLowerCase()] ?? format.toLowerCase();
+
+/**
+ * The extension to download a schema with. A generic specification's schemaExtension is only the syntax it's
+ * highlighted in (a WSDL is `xml`), so it keeps its own file's extension.
+ */
+export function getSchemaDownloadExtension(message: Pick<SchemaItem, 'schemaExtension' | 'specType' | 'data'>): string {
+  const fileExtension =
+    message.specType === 'generic'
+      ? message.data.schemaPath
+          ?.split('/')
+          .pop()
+          ?.match(/\.([^.]+)$/)?.[1]
+      : undefined;
+  return fileExtension || message.schemaExtension || 'json';
 }
 
 /**

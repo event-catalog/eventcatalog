@@ -14,7 +14,7 @@ import SchemaListItem from './SchemaListItem';
 import SchemaDetailsPanel from './SchemaDetailsPanel';
 import Pagination from './Pagination';
 import type { SchemaItem } from './types';
-import { getFormatBadge, getFormatOptions, getSchemaFormat, getSchemaIconUrl } from './utils';
+import { getFormatBadge, getFormatOptions, getSchemaFormat, getSchemaIconUrl, normalizeSchemaFormat } from './utils';
 
 // Labels for the formats getSchemaFormat returns
 const SCHEMA_TYPE_LABELS: Record<string, string> = {
@@ -164,7 +164,7 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
   const [selectedSchemaType, setSelectedSchemaType] = useState<'all' | string>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('schemaRegistrySelectedSchemaType');
-      return stored !== null ? stored : 'all';
+      return stored !== null && stored !== 'all' ? normalizeSchemaFormat(stored) : 'all';
     }
     return 'all';
   });

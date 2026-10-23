@@ -30,6 +30,7 @@ import SchemaCodeModal from './SchemaCodeModal';
 import SchemaViewerModal from './SchemaViewerModal';
 import {
   copyToClipboard,
+  getSchemaDownloadExtension,
   downloadSchema,
   getSchemaDisplayLabel,
   getSchemaIconUrl,
@@ -460,7 +461,7 @@ export default function SchemaDetailsPanel({
 
   const handleDownload = () => {
     if (!message.schemaContent) return;
-    downloadSchema(message.schemaContent, message.data.id, message.schemaExtension || 'json');
+    downloadSchema(message.schemaContent, message.data.id, getSchemaDownloadExtension(message));
   };
 
   const isCopied = copiedId === message.data.id;

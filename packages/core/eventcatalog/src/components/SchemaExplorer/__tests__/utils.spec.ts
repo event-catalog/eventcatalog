@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { getFormatOptions, getSchemaDisplayLabel, getSchemaFormat, getSchemaIconUrl } from '../utils';
+import {
+  getFormatOptions,
+  getSchemaDisplayLabel,
+  getSchemaDownloadExtension,
+  getSchemaFormat,
+  getSchemaIconUrl,
+  normalizeSchemaFormat,
+} from '../utils';
 
 describe('Schema Explorer utils', () => {
   describe('getSchemaIconUrl', () => {
@@ -85,6 +92,42 @@ describe('Schema Explorer utils', () => {
         { format: 'json', count: 1 },
         { format: 'xml', count: 0 },
       ]);
+    });
+  });
+
+  describe('normalizeSchemaFormat', () => {
+    it.each([
+      ['avsc', 'avro'],
+      ['protobuf', 'proto'],
+      ['yml', 'yaml'],
+      ['GQL', 'graphql'],
+      ['json', 'json'],
+      ['json-document', 'json-document'],
+    ])('keeps a filter saved as %s selecting %s', (saved, format) => {
+      expect(normalizeSchemaFormat(saved)).toBe(format);
+    });
+  });
+
+  describe('getSchemaDownloadExtension', () => {
+    const data = { id: 'carrier-adapter', name: 'Carrier Adapter', version: '1.0.0' };
+
+    it("downloads a generic specification with its own file's extension", () => {
+      expect(
+        getSchemaDownloadExtension({
+          specType: 'generic',
+          schemaExtension: 'xml',
+          data: { ...data, schemaPath: 'specs/carrier.wsdl' },
+        })
+      ).toBe('wsdl');
+      expect(
+        getSchemaDownloadExtension({ specType: 'generic', schemaExtension: 'xml', data: { ...data, schemaPath: 'shipment.xsd' } })
+      ).toBe('xsd');
+    });
+
+    it('downloads other schemas with their extension, and JSON when they have none', () => {
+      expect(getSchemaDownloadExtension({ schemaExtension: 'avsc', data: { ...data, schemaPath: 'schema.avsc' } })).toBe('avsc');
+      expect(getSchemaDownloadExtension({ specType: 'openapi', schemaExtension: 'openapi', data })).toBe('openapi');
+      expect(getSchemaDownloadExtension({ data })).toBe('json');
     });
   });
 });

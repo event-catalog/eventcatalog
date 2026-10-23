@@ -129,6 +129,42 @@ describe('resolve', () => {
       });
     });
 
+    it('keeps generic specifications with their name and icon', () => {
+      const specifications = [
+        {
+          type: 'generic' as const,
+          path: 'specs/carrier.wsdl',
+          name: 'Carrier WSDL',
+          icon: '/icons/soap.svg',
+          hash: 'sha256:a1',
+        },
+        { type: 'generic' as const, path: 'contract.json', hash: 'sha256:b2' },
+      ];
+      const index = anIndex({
+        source: 'acme/fulfilment',
+        commit: '4a1b7e2',
+        resources: [
+          {
+            type: 'service',
+            id: 'carrier-adapter',
+            version: '1.0.0',
+            name: 'Carrier Adapter',
+            contentPath: 'services/carrier-adapter/index.mdx',
+            contentHash: 'sha256:c81a4f',
+            specifications,
+          },
+        ],
+      });
+
+      expect(resolve([index]).entities).toEqual([
+        expect.objectContaining({
+          id: 'carrier-adapter',
+          specifications,
+          resolvedFrom: { source: 'acme/fulfilment', commit: '4a1b7e2' },
+        }),
+      ]);
+    });
+
     it('preserves generic and example sidecars without adding entities or edges', () => {
       const index = anIndex({
         source: 'acme/payments',
