@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 5.6.1
+
+### Patch Changes
+
+- 1d8711f: fix(core): pages you navigate to with the EventCatalog Assistant open now make room for it. The panel stays open across navigations, but the new page went under it (and its docs sidebar came back) until the panel was closed and opened again
+
 ## 5.6.0
 
 ### Minor Changes
