@@ -69,6 +69,21 @@ describe('validateSchema', () => {
       expect(errors).toHaveLength(0);
     });
 
+    it('should pass with generic specifications and a custom icon', () => {
+      const parsedFile = createParsedFile('service', {
+        id: 'carrier-adapter',
+        name: 'Carrier Adapter',
+        version: '1.0.0',
+        specifications: [
+          { type: 'generic', path: 'specs/carrier.wsdl', name: 'Carrier WSDL', icon: '/icons/soap.svg' },
+          { type: 'generic', path: 'specs/shipment.xsd' },
+        ],
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors).toHaveLength(0);
+    });
+
     it('should pass with deprecated field', () => {
       const parsedFile = createParsedFile('service', {
         id: 'user-service',

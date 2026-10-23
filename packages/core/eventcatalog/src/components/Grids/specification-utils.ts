@@ -1,6 +1,6 @@
 import { buildUrl } from '@utils/url-builder';
 
-export type SpecificationType = 'openapi' | 'asyncapi' | 'graphql';
+export type SpecificationType = 'openapi' | 'asyncapi' | 'graphql' | 'generic';
 
 export interface Specification {
   type: SpecificationType;
@@ -18,6 +18,8 @@ export const getSpecUrl = (spec: Specification, serviceId: string, serviceVersio
       return buildUrl(`/docs/services/${serviceId}/${serviceVersion}/asyncapi/${spec.filenameWithoutExtension}`);
     case 'graphql':
       return buildUrl(`/docs/services/${serviceId}/${serviceVersion}/graphql/${spec.filenameWithoutExtension}`);
+    case 'generic':
+      return buildUrl(`/docs/services/${serviceId}/${serviceVersion}/generic/${spec.filenameWithoutExtension}`);
     default:
       return '#';
   }
@@ -31,6 +33,8 @@ export const getSpecIcon = (type: string): string => {
       return 'asyncapi';
     case 'graphql':
       return 'graphql';
+    case 'generic':
+      return 'specification';
     default:
       return 'json-schema';
   }
@@ -44,6 +48,8 @@ export const getSpecLabel = (type: string): string => {
       return 'AsyncAPI';
     case 'graphql':
       return 'GraphQL';
+    case 'generic':
+      return 'Specification';
     default:
       return type;
   }

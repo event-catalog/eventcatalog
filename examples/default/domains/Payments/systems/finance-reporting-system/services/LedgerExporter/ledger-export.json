@@ -1,0 +1,23 @@
+{
+  "$comment": "The month-end ledger export file the Ledger Exporter writes for the finance team",
+  "format": "acme-ledger-export",
+  "version": "2.1",
+  "delivery": {
+    "destination": "s3://acme-finance-exports/ledger/{yyyy}/{mm}/ledger-export.json",
+    "schedule": "0 2 1 * *",
+    "timezone": "UTC"
+  },
+  "fields": [
+    { "name": "entryId", "type": "string", "required": true, "description": "Unique id of the ledger entry" },
+    { "name": "postedAt", "type": "date-time", "required": true, "description": "When the entry was posted" },
+    { "name": "account", "type": "string", "required": true, "description": "Chart of accounts code, e.g. 4000-SALES" },
+    { "name": "debit", "type": "decimal", "required": false, "description": "Debit amount in the entry currency" },
+    { "name": "credit", "type": "decimal", "required": false, "description": "Credit amount in the entry currency" },
+    { "name": "currency", "type": "string", "required": true, "description": "ISO 4217 currency code" },
+    { "name": "paymentId", "type": "string", "required": false, "description": "The payment the entry came from" }
+  ],
+  "totals": {
+    "required": ["debit", "credit"],
+    "mustBalance": true
+  }
+}

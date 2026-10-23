@@ -1,6 +1,7 @@
 import path from 'node:path';
 import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
+import { isIconPath } from '@utils/icon';
 import { processSpecifications } from '@utils/collections/util';
 import type { ResourceCollection, ResourceDocEntry } from '@utils/collections/resource-docs';
 import type { NavNode, ChildRef } from './builders/shared';
@@ -119,6 +120,7 @@ const SPEC_ROUTES: Record<string, { segment: string; icon: string }> = {
   openapi: { segment: 'spec', icon: '/icons/openapi-black.svg' },
   asyncapi: { segment: 'asyncapi', icon: '/icons/asyncapi-black.svg' },
   graphql: { segment: 'graphql', icon: '/icons/graphql-black.svg' },
+  generic: { segment: 'generic', icon: '/icons/specification.svg' },
 };
 
 const MESSAGE_COLLECTIONS: Record<string, keyof CustomSidebarContext> = {
@@ -335,7 +337,7 @@ const resolveSpecPage = (
   return {
     type: 'item',
     title: specification.name,
-    leftIcon: route.icon,
+    leftIcon: specification.type === 'generic' && isIconPath(specification.icon) ? specification.icon : route.icon,
     href: buildUrl(
       `/docs/${owner.collection}/${owner.id}/${owner.version}/${route.segment}/${specification.filenameWithoutExtension}`
     ),

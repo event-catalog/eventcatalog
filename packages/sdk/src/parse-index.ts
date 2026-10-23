@@ -111,9 +111,10 @@ const IndexSchemaPointerSchema = z
 
 const IndexSpecificationSchema = z
   .object({
-    type: z.enum(['openapi', 'asyncapi', 'graphql']),
+    type: z.enum(['openapi', 'asyncapi', 'graphql', 'generic']),
     path: nonEmptyString,
     name: z.string().optional(),
+    icon: z.string().optional(),
     hash: contentHash.optional(),
   })
   .strict();

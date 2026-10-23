@@ -5,7 +5,12 @@
 import { getCollection } from 'astro:content';
 import { z } from 'zod';
 import { getSchemaFormatFromURL } from '@utils/collections/schemas';
-import { getItemsFromCollectionByIdAndSemverOrLatest, processSpecifications, versionMatches } from '@utils/collections/util';
+import {
+  getItemsFromCollectionByIdAndSemverOrLatest,
+  getSpecificationCodeLanguage,
+  processSpecifications,
+  versionMatches,
+} from '@utils/collections/util';
 import { getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import fs from 'node:fs';
@@ -464,7 +469,7 @@ export async function getSchemaForResource(params: { resourceId: string; resourc
     ...processSpecifications(resource.data.specifications).map((spec) => ({
       name: spec.name,
       path: spec.path,
-      format: spec.type,
+      format: spec.type === 'generic' ? getSpecificationCodeLanguage(spec.path) : spec.type,
     })),
   ];
 
@@ -1332,7 +1337,7 @@ export const toolDescriptions = {
   getMessagesProducedOrConsumedByResource:
     'Use this tool to get the messages (events, commands, queries) a service, agent, domain or system sends and receives. Each message is resolved to its catalog id, version, name and summary; messages that are referenced but not documented in the catalog are marked notFound. For a domain or system, this includes what the services, agents, systems and subdomains inside it send and receive, and each message lists `by`: the resources that send or receive it (e.g. services/order-service). Omit the version to use the latest version of the resource.',
   getSchemaForResource:
-    'Use this tool to get the schema or specifications (openapi or asyncapi or graphql) for a resource by its id and version',
+    'Use this tool to get the schema or specifications (openapi, asyncapi, graphql or generic specifications such as XML, JSON or YAML files) for a resource by its id and version',
   findResourcesByOwner:
     'Use this tool to find all resources (agents, services, events, commands, etc.) owned by a specific team or user',
   getProducersOfMessage:

@@ -2,23 +2,13 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getSpecificationsForDomain } from '@utils/collections/domains';
 import { getSpecificationsForService } from '@utils/collections/services';
-import type { ProcessedSpecification } from '@utils/collections/util';
+import { getSpecificationMediaType, type ProcessedSpecification } from '@utils/collections/util';
 import { readResourceFile } from '@utils/resource-files';
 
 type SupportedCollection = 'domains' | 'services';
 
 const isSupportedCollection = (collection: string | undefined): collection is SupportedCollection => {
   return collection === 'domains' || collection === 'services';
-};
-
-const getSpecificationMediaType = (specification: ProcessedSpecification) => {
-  const extension = specification.filename.split('.').pop()?.toLowerCase();
-
-  if (specification.type === 'graphql') return 'application/graphql';
-  if (extension === 'json') return 'application/json';
-  if (extension === 'yaml' || extension === 'yml') return 'application/yaml';
-
-  return 'text/plain';
 };
 
 const getSpecificationIdentifier = (specification: ProcessedSpecification) => {

@@ -1,5 +1,6 @@
-import type { SchemaRelationshipCollection } from './types';
+import type { SchemaItem, SchemaRelationshipCollection } from './types';
 import { buildUrl } from '@utils/url-builder';
+import { getGenericSpecificationIcon, resolveIconUrl } from '@utils/icon';
 
 // Schema types that should use SVG icons
 export const ICON_SPECS: Record<string, string> = {
@@ -13,6 +14,22 @@ export const ICON_SPECS: Record<string, string> = {
   protobuf: 'proto',
   json: 'json-schema',
 };
+
+type SchemaFormat = Pick<SchemaItem, 'schemaExtension' | 'specType' | 'specIcon'>;
+
+/** The icon for a schema, or undefined when it shows a format badge instead */
+export function getSchemaIconUrl(message: SchemaFormat): string | undefined {
+  if (message.specType === 'generic') return resolveIconUrl(getGenericSpecificationIcon(message.specIcon));
+  const iconSpec = ICON_SPECS[message.schemaExtension?.toLowerCase() || ''];
+  return iconSpec ? buildUrl(`/icons/${iconSpec}.svg`, true) : undefined;
+}
+
+// A generic specification's extension is only its syntax, so a JSON file is not called a JSON Schema
+const GENERIC_SPECIFICATION_LABELS: Record<string, string> = { json: 'JSON', yaml: 'YAML', xml: 'XML', text: 'Text' };
+
+export const getSchemaDisplayLabel = (message: SchemaFormat): string =>
+  (message.specType === 'generic' && GENERIC_SPECIFICATION_LABELS[message.schemaExtension || '']) ||
+  getSchemaTypeLabel(message.schemaExtension);
 
 // Schema format badge config for non-icon types: short label + color
 export function getFormatBadge(ext?: string): { label: string; color: string } {
@@ -105,6 +122,8 @@ export const getLanguageForHighlight = (extension?: string): string => {
     case 'ts':
     case 'typescript':
       return 'typescript';
+    case 'text':
+      return 'text';
     case 'js':
     case 'javascript':
       return 'javascript';

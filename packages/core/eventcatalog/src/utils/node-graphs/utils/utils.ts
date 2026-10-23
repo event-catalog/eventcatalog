@@ -173,7 +173,7 @@ const getSpecMenuItems = (
 ): { label: string; href: string; separator?: boolean }[] => {
   const items: { label: string; href: string; separator?: boolean }[] = [];
 
-  const addSpec = (type: string, filePath: string, isFirst: boolean) => {
+  const addSpec = (type: string, filePath: string, isFirst: boolean, name?: string) => {
     const filename = filePath.split('/').pop() || filePath;
     const filenameNoExt = filename.replace(/\.[^/.]+$/, '');
     const typeLower = type.toLowerCase();
@@ -189,6 +189,9 @@ const getSpecMenuItems = (
     } else if (typeLower === 'graphql') {
       label = 'View GraphQL spec';
       urlSegment = 'graphql';
+    } else if (typeLower === 'generic') {
+      label = name ? `View ${name}` : label;
+      urlSegment = 'generic';
     }
 
     items.push({
@@ -200,7 +203,7 @@ const getSpecMenuItems = (
 
   if (Array.isArray(specs)) {
     specs.forEach((spec: any, i: number) => {
-      if (spec?.type && spec?.path) addSpec(spec.type, spec.path, i === 0);
+      if (spec?.type && spec?.path) addSpec(spec.type, spec.path, i === 0, spec.name);
     });
   } else if (specs && typeof specs === 'object') {
     const legacy = specs as Record<string, string>;

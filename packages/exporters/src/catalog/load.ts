@@ -344,7 +344,12 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
   );
 
   // ---------- specifications (read from each resource's folder, in parallel) ----------
-  const SPEC_LABEL: Record<string, string> = { openapi: 'OpenAPI', asyncapi: 'AsyncAPI', graphql: 'GraphQL' };
+  const SPEC_LABEL: Record<string, string> = {
+    openapi: 'OpenAPI',
+    asyncapi: 'AsyncAPI',
+    graphql: 'GraphQL',
+    generic: 'Specification',
+  };
   type SpecPointer = { type: string; path: string; name?: string };
   const specPointers = (specs: unknown): SpecPointer[] => {
     if (Array.isArray(specs)) return specs.filter((x) => x?.path).map((x) => ({ type: x.type, path: x.path, name: x.name }));

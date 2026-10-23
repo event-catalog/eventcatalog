@@ -8,6 +8,8 @@ import {
   getPointerField,
   getResourceNoun,
   getResourceTypeLabel,
+  getSpecificationCodeLanguage,
+  getSpecificationMediaType,
   isSameVersion,
   processSpecifications,
   satisfies,
@@ -183,6 +185,49 @@ describe('Collections - utils', () => {
       expect(processSpecifications([{ type: 'asyncapi', path }])).toEqual([
         { type: 'asyncapi', path, name: 'AsyncAPI', filename, filenameWithoutExtension },
       ]);
+    });
+
+    it('keeps the icon of a generic specification and names it "Specification" by default', () => {
+      expect(processSpecifications([{ type: 'generic', path: 'specs/carrier.wsdl', icon: '/icons/soap.svg' }])).toEqual([
+        {
+          type: 'generic',
+          path: 'specs/carrier.wsdl',
+          name: 'Specification',
+          icon: '/icons/soap.svg',
+          filename: 'carrier.wsdl',
+          filenameWithoutExtension: 'carrier',
+        },
+      ]);
+    });
+  });
+
+  describe('getSpecificationMediaType', () => {
+    it.each([
+      { type: 'graphql', filename: 'schema.graphql', mediaType: 'application/graphql' },
+      { type: 'openapi', filename: 'openapi.json', mediaType: 'application/json' },
+      { type: 'asyncapi', filename: 'asyncapi.yml', mediaType: 'application/yaml' },
+      { type: 'generic', filename: 'carrier.wsdl', mediaType: 'application/xml' },
+      { type: 'generic', filename: 'transform.xslt', mediaType: 'application/xml' },
+      { type: 'generic', filename: 'contract.txt', mediaType: 'text/plain' },
+    ] as const)('serves $filename ($type) as $mediaType', ({ type, filename, mediaType }) => {
+      expect(getSpecificationMediaType({ type, filename })).toBe(mediaType);
+    });
+  });
+
+  describe('getSpecificationCodeLanguage', () => {
+    it.each([
+      { filename: 'ledger.json', language: 'json' },
+      { filename: 'sla.yaml', language: 'yaml' },
+      { filename: 'sla.YML', language: 'yaml' },
+      { filename: 'orders.xml', language: 'xml' },
+      { filename: 'shipment.xsd', language: 'xml' },
+      { filename: 'carrier.wsdl', language: 'xml' },
+      { filename: 'transform.xslt', language: 'xml' },
+      { filename: 'https://example.com/specs/carrier.wsdl?token=abc', language: 'xml' },
+      { filename: 'contract.txt', language: 'text' },
+      { filename: 'CONTRACT', language: 'text' },
+    ])('highlights $filename as $language', ({ filename, language }) => {
+      expect(getSpecificationCodeLanguage(filename)).toBe(language);
     });
   });
 

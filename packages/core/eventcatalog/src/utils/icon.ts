@@ -28,3 +28,11 @@ export function customIconFieldsForResource(data: { styles?: { icon?: string } }
   const styleIcon = data?.styles?.icon;
   return isIconPath(styleIcon) ? { leftIcon: styleIcon } : {};
 }
+
+/**
+ * The icon for a generic specification: its custom `icon` when one is set, otherwise the default
+ * specification icon. Unlike the black logos of the other specification types, it reads in both themes.
+ */
+export function getGenericSpecificationIcon(icon: string | undefined): string {
+  return isIconPath(icon) ? icon : '/icons/specification.svg';
+}

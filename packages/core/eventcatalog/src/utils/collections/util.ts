@@ -18,12 +18,13 @@ export const getFolderNameFromFilePath = (filePath: string): string => {
 
 // --- SPECIFICATION HELPERS ---
 
-export type SpecificationType = 'asyncapi' | 'openapi' | 'graphql';
+export type SpecificationType = 'asyncapi' | 'openapi' | 'graphql' | 'generic';
 
 export interface SpecificationInput {
   type: SpecificationType;
   path: string;
   name?: string;
+  icon?: string;
   headers?: Record<string, string>;
 }
 
@@ -33,6 +34,7 @@ export interface ProcessedSpecification {
   name: string;
   filename: string;
   filenameWithoutExtension: string;
+  icon?: string;
   headers?: Record<string, string>;
 }
 
@@ -48,6 +50,41 @@ export const getDefaultSpecificationName = (type: string): string => {
       return 'Specification';
   }
 };
+
+export type SpecificationCodeLanguage = 'json' | 'yaml' | 'xml' | 'text';
+
+const CODE_LANGUAGE_BY_EXTENSION: Record<string, SpecificationCodeLanguage> = {
+  json: 'json',
+  yaml: 'yaml',
+  yml: 'yaml',
+  xml: 'xml',
+  xsd: 'xml',
+  wsdl: 'xml',
+  xsl: 'xml',
+  xslt: 'xml',
+};
+
+const MEDIA_TYPE_BY_CODE_LANGUAGE: Record<SpecificationCodeLanguage, string> = {
+  json: 'application/json',
+  yaml: 'application/yaml',
+  xml: 'application/xml',
+  text: 'text/plain',
+};
+
+/** The syntax of a specification file, from its extension (query strings on remote URLs are ignored) */
+export const getSpecificationCodeLanguage = (filename: string): SpecificationCodeLanguage => {
+  const extension =
+    getBasename(filename.split(/[?#]/, 1)[0])
+      .match(/\.([^.]+)$/)?.[1]
+      .toLowerCase() ?? '';
+  return CODE_LANGUAGE_BY_EXTENSION[extension] ?? 'text';
+};
+
+/** The media type a specification file is served with */
+export const getSpecificationMediaType = (specification: Pick<ProcessedSpecification, 'type' | 'filename'>): string =>
+  specification.type === 'graphql'
+    ? 'application/graphql'
+    : MEDIA_TYPE_BY_CODE_LANGUAGE[getSpecificationCodeLanguage(specification.filename)];
 
 interface LegacySpecificationFormat {
   asyncapiPath?: string;

@@ -17,7 +17,7 @@ import {
 } from './shared';
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
-import { iconFieldsForResource } from '@utils/icon';
+import { getGenericSpecificationIcon, iconFieldsForResource } from '@utils/icon';
 import { resolveSidebarPages, toCustomSidebarContext, type SidebarSpec } from '../custom-sidebar';
 
 const uniqueRefs = (refs: string[]) => [...new Set(refs)];
@@ -86,6 +86,7 @@ export const buildServiceSections = (
   const openAPISpecifications = specifications.filter((specification) => specification.type === 'openapi');
   const asyncAPISpecifications = specifications.filter((specification) => specification.type === 'asyncapi');
   const graphQLSpecifications = specifications.filter((specification) => specification.type === 'graphql');
+  const genericSpecifications = specifications.filter((specification) => specification.type === 'generic');
 
   const dataStoresInService = uniqueBy([...(service.data.writesTo || []), ...(service.data.readsFrom || [])], 'id');
 
@@ -188,6 +189,12 @@ export const buildServiceSections = (
               title: `${specification.name}`,
               leftIcon: '/icons/graphql-black.svg',
               href: buildUrl(`${docsBasePath}/graphql/${specification.filenameWithoutExtension}`),
+            })),
+            ...genericSpecifications.map((specification) => ({
+              type: 'item',
+              title: `${specification.name}`,
+              leftIcon: getGenericSpecificationIcon(specification.icon),
+              href: buildUrl(`${docsBasePath}/generic/${specification.filenameWithoutExtension}`),
             })),
           ] as ChildRef[],
         }

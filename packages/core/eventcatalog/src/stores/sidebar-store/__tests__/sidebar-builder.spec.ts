@@ -1783,6 +1783,8 @@ describe('getNestedSideBarData', () => {
             { type: 'openapi', path: 'openapi.yaml', name: 'OpenAPI' },
             { type: 'asyncapi', path: 'asyncapi.yaml', name: 'AsyncAPI' },
             { type: 'graphql', path: 'graphql.yaml', name: 'GraphQL' },
+            { type: 'generic', path: 'carrier.wsdl', name: 'Carrier WSDL', icon: '/icons/soap.svg' },
+            { type: 'generic', path: 'sla.yaml', name: 'Carrier SLA' },
           ],
         } as any);
 
@@ -1807,6 +1809,18 @@ describe('getNestedSideBarData', () => {
             title: 'GraphQL',
             leftIcon: '/icons/graphql-black.svg',
             href: '/docs/domains/Shipping/0.0.1/graphql/graphql',
+          },
+          {
+            type: 'item',
+            title: 'Carrier WSDL',
+            leftIcon: '/icons/soap.svg',
+            href: '/docs/domains/Shipping/0.0.1/generic/carrier',
+          },
+          {
+            type: 'item',
+            title: 'Carrier SLA',
+            leftIcon: '/icons/specification.svg',
+            href: '/docs/domains/Shipping/0.0.1/generic/sla',
           },
         ]);
       });
@@ -2185,6 +2199,8 @@ describe('getNestedSideBarData', () => {
             { type: 'openapi', path: 'openapi.yaml', name: 'OpenAPI' },
             { type: 'asyncapi', path: 'asyncapi.yaml', name: 'AsyncAPI' },
             { type: 'graphql', path: 'graphql.yaml', name: 'GraphQL' },
+            { type: 'generic', path: 'carrier.wsdl', name: 'Carrier WSDL', icon: '/icons/soap.svg' },
+            { type: 'generic', path: 'sla.yaml', name: 'Carrier SLA' },
           ],
         });
 
@@ -2209,6 +2225,18 @@ describe('getNestedSideBarData', () => {
             title: 'GraphQL',
             leftIcon: '/icons/graphql-black.svg',
             href: '/docs/services/ShippingService/0.0.1/graphql/graphql',
+          },
+          {
+            type: 'item',
+            title: 'Carrier WSDL',
+            leftIcon: '/icons/soap.svg',
+            href: '/docs/services/ShippingService/0.0.1/generic/carrier',
+          },
+          {
+            type: 'item',
+            title: 'Carrier SLA',
+            leftIcon: '/icons/specification.svg',
+            href: '/docs/services/ShippingService/0.0.1/generic/sla',
           },
         ]);
       });

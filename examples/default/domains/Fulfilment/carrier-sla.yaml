@@ -1,0 +1,28 @@
+# Service levels Acme Inc agrees with its carriers. The Fulfilment domain plans deliveries around them.
+kind: CarrierServiceLevelAgreement
+version: 2026.1
+carriers:
+  - id: carrier
+    name: Acme Logistics Partner
+    serviceLevels:
+      - code: STANDARD
+        deliveryDays: 3-5
+        cutOffTime: '16:00'
+        maxParcelWeightKg: 30
+      - code: EXPRESS
+        deliveryDays: 1-2
+        cutOffTime: '14:00'
+        maxParcelWeightKg: 20
+      - code: NEXT_DAY
+        deliveryDays: 1
+        cutOffTime: '12:00'
+        maxParcelWeightKg: 10
+    collection:
+      window: '17:00-19:00'
+      days: [MON, TUE, WED, THU, FRI]
+    penalties:
+      lateDeliveryCreditPercent: 15
+      lostParcelReimbursement: full-value
+support:
+  escalationEmail: carrier-ops@acme.example.com
+  responseTimeHours: 4

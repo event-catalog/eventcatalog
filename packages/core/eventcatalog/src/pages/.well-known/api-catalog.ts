@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import yaml from 'js-yaml';
 import { getServices, getSpecificationsForService } from '@utils/collections/services';
 import { getDomains, getSpecificationsForDomain } from '@utils/collections/domains';
-import type { ProcessedSpecification } from '@utils/collections/util';
+import { getSpecificationMediaType, type ProcessedSpecification } from '@utils/collections/util';
 import { buildUrl } from '@utils/url-builder';
 import { readResourceFile } from '@utils/resource-files';
 import { isEventCatalogMCPEnabled } from '@utils/feature';
@@ -25,16 +25,6 @@ type ApiCatalogEntry = {
 type ApiCatalogResource = Awaited<ReturnType<typeof getServices>>[number] | Awaited<ReturnType<typeof getDomains>>[number];
 
 const absoluteUrl = (request: Request, pathOrUrl: string) => new URL(pathOrUrl, request.url).toString();
-
-const getSpecificationMediaType = (specification: ProcessedSpecification) => {
-  const extension = specification.filename.split('.').pop()?.toLowerCase();
-
-  if (specification.type === 'graphql') return 'application/graphql';
-  if (extension === 'json') return 'application/json';
-  if (extension === 'yaml' || extension === 'yml') return 'application/yaml';
-
-  return 'text/plain';
-};
 
 const getSpecificationIdentifier = (specification: ProcessedSpecification) => {
   return `${specification.type}-${Buffer.from(specification.path).toString('base64url')}`;

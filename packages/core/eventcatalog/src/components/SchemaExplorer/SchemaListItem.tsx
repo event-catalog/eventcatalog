@@ -1,6 +1,5 @@
-import { buildUrl } from '@utils/url-builder';
 import type { SchemaItem } from './types';
-import { getSchemaTypeLabel, ICON_SPECS, getFormatBadge, extractServiceName } from './utils';
+import { getSchemaDisplayLabel, getSchemaIconUrl, getFormatBadge, extractServiceName } from './utils';
 
 interface SchemaListItemProps {
   message: SchemaItem;
@@ -34,7 +33,7 @@ function getNamespace(message: SchemaItem): string | null {
 
 export default function SchemaListItem({ message, isSelected, versions, onClick, itemRef }: SchemaListItemProps) {
   const ext = message.schemaExtension?.toLowerCase() || '';
-  const iconSpec = ICON_SPECS[ext];
+  const iconUrl = getSchemaIconUrl(message);
   const { label: formatLabel, color: formatColor } = getFormatBadge(ext);
   const namespace = getNamespace(message);
   const summary = message.data.summary || `Browse the ${message.data.name} schema.`;
@@ -52,8 +51,8 @@ export default function SchemaListItem({ message, isSelected, versions, onClick,
     >
       <div className="flex items-start justify-between gap-2">
         <div className="mt-0.5 flex h-4.5 w-4.5 flex-shrink-0 items-center justify-center rounded-sm border border-[rgb(var(--ec-page-border)/0.55)] bg-[rgb(var(--ec-content-hover))]">
-          {iconSpec ? (
-            <img src={buildUrl(`/icons/${iconSpec}.svg`, true)} alt={`${ext} icon`} className="schema-icon h-2.5 w-2.5" />
+          {iconUrl ? (
+            <img src={iconUrl} alt={`${ext} icon`} className="schema-icon h-2.5 w-2.5" />
           ) : (
             <span className={`font-mono text-[6px] font-bold uppercase ${formatColor}`}>{formatLabel}</span>
           )}
@@ -82,9 +81,7 @@ export default function SchemaListItem({ message, isSelected, versions, onClick,
       <div className="mt-1.5 flex items-end justify-between gap-2">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[9px] text-[rgb(var(--ec-page-text-muted))]">
-            <span className="font-medium text-[rgb(var(--ec-page-text-muted))]">
-              {getSchemaTypeLabel(message.schemaExtension)}
-            </span>
+            <span className="font-medium text-[rgb(var(--ec-page-text-muted))]">{getSchemaDisplayLabel(message)}</span>
             {namespace && (
               <>
                 <span className="opacity-35">&rsaquo;</span>
