@@ -990,8 +990,16 @@
       "version": "1.0.0",
       "name": "Fulfilment",
       "contentPath": "domains/Fulfilment/index.mdx",
-      "contentHash": "sha256:67a75287a2bb254e3c97b3c598aeed40853daf5eaf3f6162ddc13ba9284cb454",
+      "contentHash": "sha256:66e6b0867eda31368db59df85241d6d50ef7ade42c6abfff201649f8cb69c3de",
       "owners": ["fulfilment-platform"],
+      "specifications": [
+        {
+          "type": "generic",
+          "path": "carrier-sla.yaml",
+          "name": "Carrier Service Levels",
+          "hash": "sha256:b413a6550b328a7b39982f55028c8377a6d665df1380001c8b7677f7695ae968"
+        }
+      ],
       "sidecars": [
         {
           "path": "domains/Fulfilment/docs/guides/01-integrating-with-fulfilment.mdx",
@@ -3682,8 +3690,23 @@
       "version": "1.0.0",
       "name": "Carrier Adapter",
       "contentPath": "domains/Fulfilment/systems/shipping-system/services/CarrierAdapter/index.mdx",
-      "contentHash": "sha256:1194ad01f16f233dadefa14925ec4af2cd73715f03bac9bae45e5c27650e423d",
+      "contentHash": "sha256:ab5a28c8b322621a02e33da6344a0dc0df4895cac61aba1415be32b45de95701",
       "owners": ["fulfilment-platform"],
+      "specifications": [
+        {
+          "type": "generic",
+          "path": "specs/carrier-shipping.wsdl",
+          "name": "Carrier Shipping API (WSDL)",
+          "icon": "/icons/specifications/soap.svg",
+          "hash": "sha256:a897e169c9f49f68a4e0ab6479ab5083fc148cb1a76edf839c96e6fa227037f3"
+        },
+        {
+          "type": "generic",
+          "path": "specs/shipment.xsd",
+          "name": "Shipment XML Schema",
+          "hash": "sha256:39f3568576826648ea9cd3fa13d68481fd856b52288777d04a4be25ea1890f81"
+        }
+      ],
       "sends": [
         {
           "id": "create-shipment",
@@ -3991,8 +4014,16 @@
       "version": "1.0.0",
       "name": "Ledger Exporter",
       "contentPath": "domains/Payments/systems/finance-reporting-system/services/LedgerExporter/index.mdx",
-      "contentHash": "sha256:a3cc2a75f432901345afd55e57d16fb67ad07ff42044de3dc2a5f87a1d1ab9ec",
-      "owners": ["payments-platform"]
+      "contentHash": "sha256:4f067bdeed56f77c9e5b497e63b6c8bac9864ed36679dec91bdbac6814a9b965",
+      "owners": ["payments-platform"],
+      "specifications": [
+        {
+          "type": "generic",
+          "path": "ledger-export.json",
+          "name": "Ledger Export Format",
+          "hash": "sha256:1f486b05cb413cc97cd4ff2ce5bc03962c0cbf969b6d8cd444d5e2b704e4b9f9"
+        }
+      ]
     },
     {
       "type": "service",
@@ -5718,6 +5749,10 @@
     {
       "path": "public/icons/payments/stripe.svg",
       "hash": "sha256:4a339a433c6eee8e60929b3f339998fc2ecbdd362e243fb48e9701185d546d7e"
+    },
+    {
+      "path": "public/icons/specifications/soap.svg",
+      "hash": "sha256:107e39f0eb1e73039d453b5ffd018bfa0714bec1d7ef38530d1b49b92148e235"
     },
     {
       "path": "public/logo.png",
