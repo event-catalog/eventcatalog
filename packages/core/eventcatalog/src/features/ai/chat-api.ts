@@ -35,6 +35,10 @@ import {
 
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 
+// How many model calls one answer may take. Questions across several domains need many tool calls, so the last
+// step has tools turned off: the model has to answer with what it found, rather than stop without a reply.
+const MAX_STEPS = 10;
+
 export const defaultConfiguration = {
   temperature: 0.4,
   topP: 0.9,
@@ -394,7 +398,8 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
       instructions: getBaseSystemPrompt(referrer ?? ''),
       messages: await convertToModelMessages(messages),
       temperature: modelConfiguration?.temperature ?? 0.7,
-      stopWhen: isStepCount(5),
+      stopWhen: isStepCount(MAX_STEPS),
+      prepareStep: ({ stepNumber }) => (stepNumber === MAX_STEPS - 1 ? { toolChoice: 'none' } : undefined),
       onError: (error) => {
         console.error('[Chat] On error', error);
       },

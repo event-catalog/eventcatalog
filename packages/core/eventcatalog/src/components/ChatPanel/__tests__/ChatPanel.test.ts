@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { createElement, act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import ChatPanel from '../ChatPanel';
+import ChatPanel, { preprocessMarkdown } from '../ChatPanel';
 import ChatPanelButton from '../ChatPanelButton';
 
 vi.mock('@utils/url-builder', () => ({ buildUrl: (url: string) => url }));
@@ -132,9 +132,52 @@ describe('Ask AI setup experience', () => {
     }
   });
 
+  it('follows the answer as it arrives, until the reader scrolls up', async () => {
+    await act(async () => root.render(createElement(ChatPanel, { isOpen: true, onClose: vi.fn(), configured: false })));
+    const messages = container.querySelector<HTMLDivElement>('div.overflow-y-auto.scrollbar-hide')!;
+    Object.defineProperty(messages, 'scrollHeight', { configurable: true, value: 1000 });
+    Object.defineProperty(messages, 'clientHeight', { configurable: true, value: 300 });
+    const question = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('?'));
+
+    await act(async () => question!.click());
+    expect(messages.scrollTop).toBe(1000);
+
+    // The reader scrolls up to read while the answer is still coming
+    await act(async () => {
+      messages.scrollTop = 200;
+      messages.dispatchEvent(new Event('scroll'));
+    });
+    await act(async () => vi.advanceTimersByTime(1200));
+    expect(messages.scrollTop).toBe(200);
+
+    await act(async () =>
+      Array.from(container.querySelectorAll('button'))
+        .find((button) => button.textContent === 'Scroll to bottom')!
+        .click()
+    );
+    expect(messages.scrollTop).toBe(1000);
+  });
+
   it('loads available tools when the configured assistant opens', async () => {
     await act(async () => root.render(createElement(ChatPanel, { isOpen: true, onClose: vi.fn(), configured: true })));
     expect(fetchMock).toHaveBeenCalledWith('/api/chat');
     expect(container.textContent).not.toContain('Your whole catalog, connected to your AI.');
+  });
+});
+
+describe('preprocessMarkdown', () => {
+  it('shows a link that is still streaming in as its text', () => {
+    expect(preprocessMarkdown('Fills go to the [Order Service](/docs/services/order-ser')).toBe('Fills go to the Order Service');
+    expect(preprocessMarkdown('Fills go to the [Order Service](')).toBe('Fills go to the Order Service');
+  });
+
+  it('leaves finished links alone', () => {
+    const text = 'Fills go to the [Order Service](/docs/services/order-service/1.0.0) and on to risk';
+    expect(preprocessMarkdown(text)).toBe(text);
+  });
+
+  it('only rewrites a link at the end of the text', () => {
+    const text = 'See [Order Service](/docs/services/order-service/1.0.0), then [Risk](/docs/domains/ri';
+    expect(preprocessMarkdown(text)).toBe('See [Order Service](/docs/services/order-service/1.0.0), then Risk');
   });
 });
