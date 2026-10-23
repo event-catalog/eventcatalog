@@ -1,5 +1,23 @@
 # @eventcatalog/core
 
+## 5.6.0
+
+### Minor Changes
+
+- de4a87a: feat(core): attach any specification file to a service, domain or message with `type: generic`, such as a WSDL, an XML Schema, or a JSON or YAML contract. Each gets a page that shows its source (XML, JSON and YAML are highlighted) and is listed in the sidebar, the resource's badges, the Schema Explorer and the visualiser, with an optional custom `icon`
+
+  feat(core): the Schema Explorer filters list every format in the catalog (XML, YAML, GraphQL and more) with counts that follow the selected types, in a compact redesign; specification pages show their source in the Schema Explorer's code box
+
+### Patch Changes
+
+- 7acf23c: fix(core): the EventCatalog Assistant no longer scrolls up and down while a long answer streams in. It follows the answer to the bottom, stays where you are when you scroll up to read, and follows again when you scroll back down or send a message. Links still arriving show as their text, so the answer no longer jumps as each one completes. Questions that need many lookups now get an answer: the Assistant can take up to 10 steps, and on the last one it has to answer with what it found instead of stopping without a reply
+- Updated dependencies [de4a87a]
+  - @eventcatalog/sdk@2.32.0
+  - @eventcatalog/linter@1.3.0
+  - @eventcatalog/exporters@0.1.3
+  - @eventcatalog/visualiser@5.1.2
+  - @eventcatalog/fitness@0.1.1
+
 ## 5.5.2
 
 ### Patch Changes

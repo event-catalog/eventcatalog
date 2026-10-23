@@ -1,5 +1,13 @@
 # @eventcatalog/sdk
 
+## 2.32.0
+
+### Minor Changes
+
+- de4a87a: feat(core): attach any specification file to a service, domain or message with `type: generic`, such as a WSDL, an XML Schema, or a JSON or YAML contract. Each gets a page that shows its source (XML, JSON and YAML are highlighted) and is listed in the sidebar, the resource's badges, the Schema Explorer and the visualiser, with an optional custom `icon`
+
+  feat(core): the Schema Explorer filters list every format in the catalog (XML, YAML, GraphQL and more) with counts that follow the selected types, in a compact redesign; specification pages show their source in the Schema Explorer's code box
+
 ## 2.31.2
 
 ### Patch Changes
@@ -242,6 +250,7 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
+
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"
