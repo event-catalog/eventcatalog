@@ -408,10 +408,16 @@ const fadeInStyles = {
 };
 
 // Preprocess markdown to fix common formatting issues
-const preprocessMarkdown = (text: string): string => {
-  // Add newlines before headings if they're directly after text (no newline)
-  // This fixes cases like "some text.## Heading" → "some text.\n\n## Heading"
-  return text.replace(/([^\n])(#{1,6}\s)/g, '$1\n\n$2');
+export const preprocessMarkdown = (text: string): string => {
+  return (
+    text
+      // Add newlines before headings if they're directly after text (no newline)
+      // This fixes cases like "some text.## Heading" → "some text.\n\n## Heading"
+      .replace(/([^\n])(#{1,6}\s)/g, '$1\n\n$2')
+      // Show a link still streaming in ("[Order Service](/docs/serv") as its text: shown raw, its URL wraps onto more
+      // lines until the closing bracket arrives, then the answer jumps back as it collapses into a link
+      .replace(/\[([^\]\n]*)\]\([^)\s]*$/, '$1')
+  );
 };
 
 // Helper to extract text content from message parts
@@ -564,9 +570,12 @@ const modalMarkdownComponents = {
 const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const modalInputRef = useRef<HTMLTextAreaElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const modalMessagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const modalMessagesContainerRef = useRef<HTMLDivElement>(null);
+  // Follow the answer as it streams, until the person scrolls up to read: sending a message or the scroll button
+  // follows it again
+  const followLatest = useRef(true);
+  const lastScrollTop = useRef(new WeakMap<HTMLElement, number>());
   const [inputValue, setInputValue] = useState('');
   const [isSetupThinking, setIsSetupThinking] = useState(false);
   const setupReplyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -647,10 +656,14 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
     return null;
   }, [pathname]);
 
-  // Handle scroll to detect if user scrolled up
+  // Stop following the answer when the person scrolls up, and follow it again when they're back at the bottom.
+  // Only a move up stops it: content growing below doesn't scroll, and a scroll down is heading for the latest.
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
+    const target = e.currentTarget;
     const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 100;
+    if (isNearBottom) followLatest.current = true;
+    else if (target.scrollTop < (lastScrollTop.current.get(target) ?? 0)) followLatest.current = false;
+    lastScrollTop.current.set(target, target.scrollTop);
     setShowScrollButton(!isNearBottom);
   }, []);
 
@@ -685,16 +698,24 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
   // Get currently running tools from the last assistant message
   const runningTools = useMemo(() => (lastAssistantMessage ? getRunningTools(lastAssistantMessage) : []), [lastAssistantMessage]);
 
-  // Scroll to bottom when new messages arrive
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // Jump the messages (in the panel and the fullscreen modal) to the latest. Instantly: a smooth scroll restarted on
+  // every streamed token lands short of the growing answer and scrolls back and forth.
+  const scrollToLatest = useCallback(() => {
+    for (const container of [messagesContainerRef.current, modalMessagesContainerRef.current]) {
+      if (!container) continue;
+      container.scrollTop = container.scrollHeight;
+      lastScrollTop.current.set(container, container.scrollTop);
+    }
   }, []);
 
+  const scrollToBottom = useCallback(() => {
+    followLatest.current = true;
+    scrollToLatest();
+  }, [scrollToLatest]);
+
   useEffect(() => {
-    scrollToBottom();
-    // Also scroll modal messages
-    modalMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, scrollToBottom]);
+    if (followLatest.current) scrollToLatest();
+  }, [messages, scrollToLatest]);
 
   // Focus modal input when fullscreen opens
   useEffect(() => {
@@ -771,6 +792,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
     (text: string) => {
       if (!text.trim() || isLoading) return;
       setInputValue('');
+      followLatest.current = true;
       if (!configured) {
         setMessages((previous) => [...previous, { id: crypto.randomUUID(), role: 'user', parts: [{ type: 'text', text }] }]);
         setIsSetupThinking(true);
@@ -1075,8 +1097,6 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                         </div>
                       </div>
                     ))}
-
-                  <div ref={messagesEndRef} />
                 </div>
               )}
             </div>
@@ -1265,7 +1285,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
             </div>
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-6">
+            <div ref={modalMessagesContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 py-6">
               {!hasMessages ? (
                 /* Welcome area - Clean design */
                 <div className="flex flex-col h-full max-w-2xl mx-auto">
@@ -1383,8 +1403,6 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                         </div>
                       </div>
                     ))}
-
-                  <div ref={modalMessagesEndRef} />
                 </div>
               )}
             </div>
