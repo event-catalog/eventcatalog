@@ -1,5 +1,12 @@
 # @eventcatalog/fitness
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [de4a87a]
+  - @eventcatalog/sdk@2.32.0
+
 ## 0.1.0
 
 ### Minor Changes

@@ -1,5 +1,18 @@
 # @eventcatalog/linter
 
+## 1.3.0
+
+### Minor Changes
+
+- de4a87a: feat(core): attach any specification file to a service, domain or message with `type: generic`, such as a WSDL, an XML Schema, or a JSON or YAML contract. Each gets a page that shows its source (XML, JSON and YAML are highlighted) and is listed in the sidebar, the resource's badges, the Schema Explorer and the visualiser, with an optional custom `icon`
+
+  feat(core): the Schema Explorer filters list every format in the catalog (XML, YAML, GraphQL and more) with counts that follow the selected types, in a compact redesign; specification pages show their source in the Schema Explorer's code box
+
+### Patch Changes
+
+- Updated dependencies [de4a87a]
+  - @eventcatalog/sdk@2.32.0
+
 ## 1.2.4
 
 ### Patch Changes
@@ -36,7 +49,7 @@
 
 ### Patch Changes
 
-- eb79ef0: Explain a missing or invalid ADR `status` or `date` clearly. A missing `date` was reported as ``Expected type `"date"`, received `"object"` `` (with the field name garbled) by the build, and as `Invalid date` by the linter. The build now reports `Required: a date, e.g. 2026-06-01` or `Invalid date: use a date, e.g. 2026-06-01`, and a missing status lists the allowed values. The linter reports a missing date as missing.
+- eb79ef0: Explain a missing or invalid ADR `status` or `date` clearly. A missing `date` was reported as `` Expected type `"date"`, received `"object"`  `` (with the field name garbled) by the build, and as `Invalid date` by the linter. The build now reports `Required: a date, e.g. 2026-06-01` or `Invalid date: use a date, e.g. 2026-06-01`, and a missing status lists the allowed values. The linter reports a missing date as missing.
 - eb79ef0: Fix several `npm audit` findings in new catalogs: upgrade `astro-seo` to 1.x (it no longer installs `@astrojs/check`) and `hono` to a version with the `hono/jsx` XSS fix, remove `shelljs` from core, and replace `fast-glob` with `glob` in the linter.
 - eb79ef0: `@eventcatalog/core` 5.0.0 (including its pre-releases) and later is licensed under the Business Source License 1.1 (`BUSL-1.1`), replacing the MIT License and the separate EventCatalog Commercial License for the enterprise and federation code. Releases up to and including 4.x remain available under the MIT License, and their notice is kept in `NOTICE`.
 
@@ -62,7 +75,7 @@
 
 ### Patch Changes
 
-- d34ae95: Explain a missing or invalid ADR `status` or `date` clearly. A missing `date` was reported as ``Expected type `"date"`, received `"object"` `` (with the field name garbled) by the build, and as `Invalid date` by the linter. The build now reports `Required: a date, e.g. 2026-06-01` or `Invalid date: use a date, e.g. 2026-06-01`, and a missing status lists the allowed values. The linter reports a missing date as missing.
+- d34ae95: Explain a missing or invalid ADR `status` or `date` clearly. A missing `date` was reported as `` Expected type `"date"`, received `"object"`  `` (with the field name garbled) by the build, and as `Invalid date` by the linter. The build now reports `Required: a date, e.g. 2026-06-01` or `Invalid date: use a date, e.g. 2026-06-01`, and a missing status lists the allowed values. The linter reports a missing date as missing.
 
 ## 1.2.0-beta.3
 
