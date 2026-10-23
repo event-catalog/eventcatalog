@@ -755,15 +755,19 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
 
   // Add/remove padding to main application and header when sidebar panel is open
   useEffect(() => {
-    const appEl = document.getElementById('eventcatalog-application');
-    const headerEl = document.getElementById('eventcatalog-header');
-    const docsSidebarEl = document.getElementById('eventcatalog-docs-sidebar');
-
-    const elements = [appEl, headerEl].filter(Boolean) as HTMLElement[];
+    // Looked up each time: the panel stays open across ClientRouter navigations (the header persists), but each one
+    // swaps in a new page that needs pushing over too
+    const getElements = () => ({
+      elements: [document.getElementById('eventcatalog-application'), document.getElementById('eventcatalog-header')].filter(
+        Boolean
+      ) as HTMLElement[],
+      docsSidebarEl: document.getElementById('eventcatalog-docs-sidebar'),
+    });
 
     const desktop = window.matchMedia('(min-width: 1024px)');
     const updateLayout = () => {
       const pushContent = desktop.matches && isOpen && !isFullscreen;
+      const { elements, docsSidebarEl } = getElements();
       elements.forEach((el) => {
         if (!el.style.transition) {
           el.style.transition = 'padding-right 420ms cubic-bezier(0.16, 1, 0.3, 1)';
@@ -774,10 +778,14 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
     };
     updateLayout();
     desktop.addEventListener('change', updateLayout);
+    // The new page is in place but not yet shown, so it opens already pushed over
+    document.addEventListener('astro:after-swap', updateLayout);
 
     // Cleanup on unmount
     return () => {
       desktop.removeEventListener('change', updateLayout);
+      document.removeEventListener('astro:after-swap', updateLayout);
+      const { elements, docsSidebarEl } = getElements();
       elements.forEach((el) => {
         el.style.paddingRight = '0';
       });
