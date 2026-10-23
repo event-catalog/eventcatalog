@@ -165,6 +165,24 @@ describe('Ask AI setup experience', () => {
     }
   });
 
+  it('suggests questions for the page a navigation swaps in while the chat is still fresh', async () => {
+    window.history.replaceState({}, '', '/');
+    try {
+      await act(async () => root.render(createElement(ChatPanel, { isOpen: true, onClose: vi.fn(), configured: false })));
+      expect(container.textContent).toContain('What domains do we have?');
+      expect(container.textContent).not.toContain('Who owns this service?');
+
+      // ClientRouter swaps the page under the persisted header, so the panel stays open on the new page
+      window.history.replaceState({}, '', '/docs/services/OrderService/1.0.0');
+      await act(async () => document.dispatchEvent(new Event('astro:after-swap')));
+      expect(container.textContent).toContain('Who owns this service?');
+      expect(container.textContent).not.toContain('What domains do we have?');
+      expect(container.textContent).toContain('Based on Service: OrderService');
+    } finally {
+      window.history.replaceState({}, '', '/');
+    }
+  });
+
   it('follows the answer as it arrives, until the reader scrolls up', async () => {
     await act(async () => root.render(createElement(ChatPanel, { isOpen: true, onClose: vi.fn(), configured: false })));
     const messages = container.querySelector<HTMLDivElement>('div.overflow-y-auto.scrollbar-hide')!;

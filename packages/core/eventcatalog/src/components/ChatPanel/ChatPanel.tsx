@@ -619,9 +619,14 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
     }
   }, [configured, isOpen, tools.length, chatApiUrl]);
 
-  // Get current URL (pathname + search) on mount and when panel opens
+  // Follow the current URL (pathname + search): the panel lives in the persisted header, so it stays mounted while
+  // ClientRouter swaps pages underneath it. Reading the URL again after each swap keeps the suggested questions and
+  // the "Based on" context on the page the person is actually looking at, not the one they opened the panel from.
   useEffect(() => {
-    setPathname(window.location.pathname + window.location.search);
+    const updatePathname = () => setPathname(window.location.pathname + window.location.search);
+    updatePathname();
+    document.addEventListener('astro:after-swap', updatePathname);
+    return () => document.removeEventListener('astro:after-swap', updatePathname);
   }, [isOpen]);
 
   // Memoize suggested questions to avoid recalculating on every render
