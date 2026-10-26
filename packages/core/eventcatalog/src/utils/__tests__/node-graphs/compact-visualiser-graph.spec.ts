@@ -165,7 +165,9 @@ describe('compactVisualiserGraph', () => {
       summary: 'Orders',
       specifications: [{ type: 'asyncapi', path: 'asyncapi.yml' }],
     });
-    expect((compactNodes[1].data as any).service.sends).toBeUndefined();
+    // Its messages by id only (a node's card tells which of a shared channel's messages it sends or receives)
+    expect((compactNodes[1].data as any).service.sends).toEqual([{ id: 'OrderCreated' }]);
+    expect((compactNodes[1].data as any).service.receives).toEqual([]);
 
     expect(compactEdges[0].data).toMatchObject({
       customColor: '#ff0000',

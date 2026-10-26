@@ -1,0 +1,262 @@
+/* A node's card (NodeCard): on a diagram when a node is clicked, and in Studio to see and edit a node. One file for
+   both, imported by styles.css, styles-core.css and studio.css */
+/* Icon buttons, as EventCatalog's (Studio's Dialog.tsx and CanvasHeader.tsx) */
+.ec-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: rgb(var(--ec-page-text-muted));
+  cursor: pointer;
+}
+.ec-icon-button:hover:not(:disabled) {
+  color: rgb(var(--ec-page-text));
+  background: rgb(var(--ec-page-border) / 0.4);
+}
+.ec-icon-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.ec-icon-button svg {
+  width: 15px;
+  height: 15px;
+}
+/* A node's page: a small docs page (the catalog's resource header, badges, toolbar and Sends / Receives lists) */
+.ec-doc-card {
+  position: absolute;
+  z-index: 30;
+  max-height: calc(100% - 110px);
+  overflow-y: auto;
+  border: 1px solid rgb(var(--ec-page-border));
+  border-radius: 12px;
+  background: rgb(var(--ec-card-bg));
+  color: rgb(var(--ec-page-text));
+  box-shadow:
+    0 24px 48px rgb(0 0 0 / 0.16),
+    0 2px 6px rgb(0 0 0 / 0.06);
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+/* The card's arrow, to the node it's about: a square turned on its corner, over the card's edge */
+.ec-doc-card-arrow {
+  position: absolute;
+  z-index: 31;
+  width: 14px;
+  height: 14px;
+  background: rgb(var(--ec-card-bg));
+  transform: rotate(45deg);
+  border: 1px solid rgb(var(--ec-page-border));
+  pointer-events: none;
+}
+.ec-doc-card-arrow.is-right {
+  border-top-color: transparent;
+  border-right-color: transparent;
+}
+.ec-doc-card-arrow.is-left {
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+}
+/* Nothing under the header: no line under it either */
+.ec-doc-card-header:last-child {
+  border-bottom: 0;
+}
+.ec-doc-card-header {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid rgb(var(--ec-page-border));
+}
+.ec-doc-card-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.ec-doc-card-breadcrumb {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgb(var(--ec-page-text-muted));
+  font-size: 12px;
+}
+.ec-doc-card-close {
+  margin-left: auto;
+  margin-right: -6px;
+}
+.ec-doc-card-title {
+  margin: 10px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.ec-doc-card-version {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--ec-page-text-muted));
+  letter-spacing: 0;
+}
+.ec-doc-card-summary {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.55;
+  color: rgb(var(--ec-page-text-muted));
+}
+.ec-doc-card-header:has(+ .ec-doc-card-body:empty) {
+  border-bottom: 0;
+}
+/* The card's links (its diagram, its docs): quiet buttons, the same size, that lift a little on hover */
+.ec-doc-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.ec-doc-card-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgb(var(--ec-page-border));
+  border-radius: 7px;
+  background: rgb(var(--ec-card-bg));
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  color: rgb(var(--ec-page-text));
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms,
+    transform 150ms;
+}
+.ec-doc-card-action svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: rgb(var(--ec-icon-color, var(--ec-page-text-muted)));
+  transition: transform 150ms;
+}
+.ec-doc-card-action.is-primary svg {
+  color: rgb(var(--ec-accent));
+}
+.ec-doc-card-action:hover {
+  border-color: color-mix(in srgb, rgb(var(--ec-accent)) 45%, transparent);
+  background: rgb(var(--ec-page-border) / 0.25);
+  box-shadow: 0 3px 10px rgb(0 0 0 / 0.08);
+  transform: translateY(-1px);
+}
+.ec-doc-card-action:active {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  transform: none;
+}
+.ec-doc-card-action:hover .ec-doc-card-action-arrow {
+  transform: translateX(2px);
+}
+.ec-doc-card-action:focus-visible,
+.ec-doc-card-item:focus-visible {
+  outline: 2px solid rgb(var(--ec-accent));
+  outline-offset: 1px;
+}
+/* What it's connected to: a row each, with the resource's icon in its colour, that highlights on hover and shows a
+   chevron (go to it) */
+.ec-doc-card-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 6px 4px 4px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: rgb(var(--ec-page-text));
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 120ms,
+    border-color 120ms;
+}
+.ec-doc-card-item:hover {
+  border-color: rgb(var(--ec-page-border));
+  background: rgb(var(--ec-page-border) / 0.3);
+}
+.ec-doc-card-item:active {
+  background: rgb(var(--ec-page-border) / 0.5);
+}
+.ec-doc-card-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 6px;
+  /* A tint of the resource's colour, set on the element as its text colour */
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+.ec-doc-card-item-icon svg {
+  width: 14px;
+  height: 14px;
+}
+.ec-doc-card-item-chevron {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  margin-left: -2px;
+  color: rgb(var(--ec-page-text-muted));
+  opacity: 0;
+  transform: translateX(-3px);
+  transition:
+    opacity 120ms,
+    transform 120ms;
+}
+.ec-doc-card-item:hover .ec-doc-card-item-chevron,
+.ec-doc-card-item:focus-visible .ec-doc-card-item-chevron {
+  opacity: 1;
+  transform: none;
+}
+/* A card whose header stays in view while what's under it scrolls (the diagram's card: a node can have dozens of
+   connections) */
+.ec-doc-card:has(> .ec-doc-card-scroll) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ec-doc-card:has(> .ec-doc-card-scroll) > .ec-doc-card-header {
+  flex: none;
+}
+.ec-doc-card-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* A summary cut to three lines (the whole of it is on hover, and on its page) */
+.ec-doc-card-summary.is-clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+.ec-doc-card-more {
+  margin-top: 1px;
+  color: rgb(var(--ec-page-text-muted));
+  font-size: 12px;
+  font-weight: 500;
+}
+.ec-doc-card-more .ec-doc-card-item-icon {
+  background: transparent;
+}
+.ec-doc-card-more:hover {
+  color: rgb(var(--ec-page-text));
+}

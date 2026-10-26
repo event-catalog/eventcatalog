@@ -59,7 +59,6 @@ import StepWalkthrough from "./StepWalkthrough";
 import WalkthroughBadges from "./WalkthroughBadges";
 import CanvasToolbar from "./CanvasToolbar";
 import SwimlanePicker from "./SwimlanePicker";
-import FocusModeModal from "./FocusModeModal";
 import DiagramBackground from "./DiagramBackground";
 import DiagramMiniMap from "./DiagramMiniMap";
 import { getStoredShowMinimap, storeShowMinimap } from "../utils/minimap";
@@ -126,7 +125,10 @@ import {
   getExpandedMessageGroupNode,
 } from "../utils/message-group-expansion";
 import { AllNotesModal, getNotesFromNode } from "./NotesToolbarButton";
-import { setBuildUrlFn } from "../utils/url-builder";
+import { buildUrl, navigateTo, setBuildUrlFn } from "../utils/url-builder";
+import NodeInfoCard, { type NodeInfoCardProps } from "./NodeInfoCard";
+import { getNodeDocUrl, getNodeInfo } from "../utils/node-labels";
+import { getNodeNeighbours } from "../utils/node-neighbours";
 import { PortalContainerProvider } from "../context/PortalContainerContext";
 import type { DslGraph } from "../types";
 
@@ -218,6 +220,30 @@ const EXPANDED_WRAPPER_TYPES = new Set([
 ]);
 const isExpandedWrapper = (type: string | undefined) =>
   type != null && EXPANDED_WRAPPER_TYPES.has(type);
+// System and domain cards, which open their diagram themselves (nodes/System.tsx, nodes/DomainCard.tsx)
+const OPENS_ITS_OWN_DIAGRAM = new Set(["system", "systems", "context-domain"]);
+const opensItsOwnDiagram = (type: string | undefined) =>
+  type != null && OPENS_ITS_OWN_DIAGRAM.has(type);
+// Domains and systems drawn as boxes around what's in them
+const CONTAINER_TYPES = new Set(["domain-group", "system-group"]);
+const isContainerNode = (type: string | undefined) =>
+  type != null && CONTAINER_TYPES.has(type);
+const isOnContainerHeader = (event: React.MouseEvent) =>
+  !!(event.target as Element | null)?.closest?.("[data-ec-container-header]");
+// Written on the diagram, not something with a card
+const NO_CARD_TYPES = new Set(["note", "text"]);
+/** Whether a link is to the page this is (the resource whose page it is has nothing to open) */
+const isThisPage = (url: string) => {
+  const path = (value: string) => value.replace(/\/+$/, "");
+  return (
+    path(new URL(url, window.location.href).pathname) ===
+    path(window.location.pathname)
+  );
+};
+type CardState = Omit<
+  NodeInfoCardProps,
+  "onOpenDiagram" | "onOpenNode" | "containerRef" | "onClose"
+>;
 
 // The step the flow walkthrough is on is ringed and glowing (see styles)
 const WALKTHROUGH_CURRENT_CLASS = "ec-walkthrough-current";
@@ -381,6 +407,7 @@ interface Props {
   includeControls?: boolean;
   linkTo?: "docs" | "visualiser";
   includeKey?: boolean;
+  /** @deprecated Does nothing: nodes open their diagram when `getNodeDiagramUrl` gives one */
   linksToVisualiser?: boolean;
   links?: { label: string; url: string }[];
   mode?: "full" | "simple";
@@ -446,6 +473,11 @@ interface Props {
   onBuildUrl?: (path: string) => string;
   /** Called when navigation should occur */
   onNavigate?: (url: string) => void;
+  /**
+   * The diagram a node opens when clicked (built with the base path), or undefined when it has none: clicking it
+   * then does nothing. Containers (domains, systems) open theirs from their header
+   */
+  getNodeDiagramUrl?: (node: Node) => string | undefined;
   /** Called to save layout positions (dev mode only) */
   onSaveLayout?: (
     resourceKey: string,
@@ -630,7 +662,6 @@ const NodeGraphBuilder = ({
   includeBackground = true,
   linkTo: _linkTo = "docs",
   includeKey = true,
-  linksToVisualiser = false,
   links = [],
   mode = "full",
   showFlowWalkthrough = true,
@@ -663,6 +694,7 @@ const NodeGraphBuilder = ({
   onNodeClick,
   onBuildUrl,
   onNavigate,
+  getNodeDiagramUrl,
   onSaveLayout,
   onResetLayout,
   onOpenInStudio,
@@ -816,8 +848,6 @@ const NodeGraphBuilder = ({
   const initialPositionsRef = useRef<Record<string, { x: number; y: number }>>(
     {},
   );
-  const [focusModeOpen, setFocusModeOpen] = useState(false);
-  const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [swimlanes, setSwimlanes] = useState<FlowGroupBy | null>(null);
   const swimlanesRef = useRef<FlowGroupBy | null>(null);
   const [swimlaneStyle, setSwimlaneStyle] = useState<FlowGroupStyle>("boxes");
@@ -871,16 +901,79 @@ const NodeGraphBuilder = ({
     hoveredEdgeNodesRef.current = [];
   }, []);
 
+  // The clicked node's card: what it is, what it's connected to, and its diagram and docs
+  const [card, setCard] = useState<CardState | null>(null);
+  const showCard = useCallback(
+    (id: string) => {
+      const currentNodes = nodesRef.current;
+      const node = currentNodes.find((n) => n.id === id);
+      if (!node) return;
+      const parent = node.parentId
+        ? currentNodes.find((n) => n.id === node.parentId)
+        : undefined;
+      const docsPath = getNodeDocUrl(node);
+      const docsUrl = docsPath ? buildUrl(docsPath) : undefined;
+      setCard({
+        node: { id: node.id, type: node.type, data: node.data },
+        ...(parent &&
+          isContainerNode(parent.type) && {
+            parentName: getNodeInfo(parent).name,
+          }),
+        neighbours: getNodeNeighbours(id, currentNodes, edgesRef.current),
+        diagramUrl: getNodeDiagramUrl?.(node),
+        docsUrl: docsUrl && !isThisPage(docsUrl) ? docsUrl : undefined,
+      });
+    },
+    [getNodeDiagramUrl],
+  );
+  const closeCard = useCallback(() => setCard(null), []);
+  // What it's connected to, from its card: the diagram moves to it (at the same zoom) and shows its card
+  const openNeighbour = useCallback(
+    (id: string) => {
+      const zoom = getZoom();
+      fitView({ nodes: [{ id }], duration: 400, minZoom: zoom, maxZoom: zoom });
+      showCard(id);
+    },
+    [fitView, getZoom, showCard],
+  );
+  /** Whether clicking a node shows its card (nothing does in flows and entity maps, as before) */
+  const showsCard = useCallback((node: Node) => {
+    if (!node.type || NO_CARD_TYPES.has(node.type)) return false;
+    if (opensItsOwnDiagram(node.type) || isExpandedWrapper(node.type))
+      return false;
+    if (
+      ["domain", "domains", "context-actor", "messageGroup"].includes(node.type)
+    )
+      return false;
+    if (isSwimlaneNode(node)) return false;
+    return (
+      !edgesRef.current.some((edge) => edge.type === "flow-edge") &&
+      !nodesRef.current.some((n) => n.type === "entities")
+    );
+  }, []);
+
   // Highlight all connected edges + their other-end nodes when hovering a node.
   // Looks up connected edges from the edges array, then queries DOM by edge ID.
   // Uses direct DOM manipulation to avoid re-renders.
   const hoveredNodeEdgesRef = useRef<Element[]>([]);
   const hoveredNodePeersRef = useRef<Element[]>([]);
+  // The hovered node (or a box's header) when clicking it shows its card: shown as something to click
+  const hoveredClickableRef = useRef<Element | null>(null);
 
   const handleNodeMouseEnter = useCallback(
-    (_: React.MouseEvent, node: Node) => {
+    (event: React.MouseEvent, node: Node) => {
       const wrapper = reactFlowWrapperRef.current;
       if (!wrapper) return;
+
+      if (showsCard(node)) {
+        const clickable = isContainerNode(node.type)
+          ? event.currentTarget.querySelector("[data-ec-container-header]")
+          : event.currentTarget;
+        if (clickable) {
+          clickable.classList.add("ec-node-clickable");
+          hoveredClickableRef.current = clickable;
+        }
+      }
 
       const peerIds = new Set<string>();
       const edgeEls: Element[] = [];
@@ -910,10 +1003,12 @@ const NodeGraphBuilder = ({
         hoveredNodePeersRef.current = Array.from(peerEls);
       }
     },
-    [],
+    [showsCard],
   );
 
   const handleNodeMouseLeave = useCallback(() => {
+    hoveredClickableRef.current?.classList.remove("ec-node-clickable");
+    hoveredClickableRef.current = null;
     hoveredNodeEdgesRef.current.forEach((el) =>
       el.classList.remove("ec-node-hover-edge"),
     );
@@ -1435,14 +1530,28 @@ const NodeGraphBuilder = ({
   }, [fitRequestId, fitView]);
 
   const handleNodeClick = useCallback(
-    (_: any, node: Node) => {
+    // No event when it's picked in search
+    (event: React.MouseEvent | null, node: Node) => {
       // If custom onNodeClick is provided, use it
       if (onNodeClick) {
         onNodeClick(node);
         return;
       }
 
-      // Disable focus mode for flow and entity visualizations — but allow
+      // Shows its card (cmd/ctrl-click opens its diagram in a new tab, as a link would). Picked in search, the
+      // diagram moves to it too
+      const showNode = () => {
+        if (event && (event.metaKey || event.ctrlKey)) {
+          const url = getNodeDiagramUrl?.(node);
+          if (url) window.open(url, "_blank", "noopener");
+          return;
+        }
+        if (!event)
+          fitView({ nodes: [{ id: node.id }], maxZoom: 1, duration: 800 });
+        showCard(node.id);
+      };
+
+      // Clicks do nothing in flow and entity visualizations — but allow
       // flow-type nodes that carry precomputed expandedNodes to continue
       // through to the inline expand handler below.
       const isFlow = edgesRef.current.some(
@@ -1460,15 +1569,16 @@ const NodeGraphBuilder = ({
       if (isExpandableFlow && swimlanesRef.current) return;
       if (isSwimlaneNode(node)) return;
 
-      // Disable focus mode for domain and expanded group nodes
       if (node.type === "domain" || node.type === "domains") return;
-      // System nodes navigate to their map on click (handled by the node itself),
-      // so don't open the focus-mode modal for them.
-      if (node.type === "system" || node.type === "systems") return;
+      // System and domain cards open their diagram themselves
+      if (opensItsOwnDiagram(node.type)) return;
       // Context-diagram actor nodes are non-interactive — clicking does nothing.
       if (node.type === "context-actor") return;
-      // The system-group boundary box on the System Diagram is just a container.
-      if (node.type === "system-group") return;
+      // Domain and system boxes show theirs from their header: their body holds what's in them
+      if (isContainerNode(node.type)) {
+        if (!event || isOnContainerHeader(event)) showNode();
+        return;
+      }
       if (isExpandedWrapper(node.type)) return;
 
       // Handle messageGroup click — expand inline
@@ -1883,21 +1993,14 @@ const NodeGraphBuilder = ({
         return;
       }
 
-      // Legacy behavior for linksToVisualiser (deprecated - use onNodeClick instead).
-      // Keep this after inline expand handlers so embedded overview graphs can
-      // still expand message groups/sub-flows without opening focus mode.
-      if (linksToVisualiser && onNavigate) {
-        return;
-      }
-
-      // Open focus mode modal
-      setFocusedNodeId(node.id);
-      setFocusModeOpen(true);
+      if (showsCard(node)) showNode();
     },
     [
       onNodeClick,
-      linksToVisualiser,
-      onNavigate,
+      getNodeDiagramUrl,
+      showCard,
+      showsCard,
+      fitView,
       makeRoomForRenderedExpandedGroup,
       getNodes,
       getZoom,
@@ -2002,6 +2105,8 @@ const NodeGraphBuilder = ({
     }
 
     const handleWheel = (event: WheelEvent) => {
+      // A node's card scrolls itself (its list of connections)
+      if ((event.target as Element | null)?.closest?.(".ec-doc-card")) return;
       // Only forward scroll if no modifier keys are pressed
       if (!event.ctrlKey && !event.shiftKey && !event.metaKey) {
         event.preventDefault();
@@ -2337,6 +2442,11 @@ const NodeGraphBuilder = ({
     nodeIdsKeyRef.current = computedNodeIdsKey;
   }
   const nodeIdsKey = nodeIdsKeyRef.current;
+  // A card for a node that's gone (another level, a group collapsed) goes too
+  useEffect(() => {
+    if (card && !nodesRef.current.some((n) => n.id === card.node.id))
+      setCard(null);
+  }, [nodeIdsKey, card]);
 
   const searchNodes = useMemo(
     () => nodes.filter((node) => !isSwimlaneNode(node)),
@@ -2879,17 +2989,16 @@ const NodeGraphBuilder = ({
             )}
           </ReactFlow>
         )}
-        <FocusModeModal
-          isOpen={focusModeOpen}
-          onClose={() => {
-            setFocusModeOpen(false);
-          }}
-          initialNodeId={focusedNodeId}
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-        />
+        {card && (
+          <NodeInfoCard
+            key={card.node.id}
+            {...card}
+            onOpenDiagram={navigateTo}
+            onOpenNode={openNeighbour}
+            containerRef={reactFlowWrapperRef}
+            onClose={closeCard}
+          />
+        )}
         <AllNotesModal
           noteGroups={allNoteGroups}
           isOpen={isNotesModalOpen}
@@ -3004,6 +3113,7 @@ interface NodeGraphProps {
   linkTo?: "docs" | "visualiser";
   includeKey?: boolean;
   footerLabel?: string;
+  /** @deprecated Does nothing: nodes open their diagram when `getNodeDiagramUrl` gives one */
   linksToVisualiser?: boolean;
   links?: { label: string; url: string }[];
   mode?: "full" | "simple";
@@ -3062,6 +3172,7 @@ interface NodeGraphProps {
   onNodeClick?: (node: Node) => void;
   onBuildUrl?: (path: string) => string;
   onNavigate?: (url: string) => void;
+  getNodeDiagramUrl?: (node: Node) => string | undefined;
   onSaveLayout?: (
     resourceKey: string,
     positions: Record<string, { x: number; y: number }>,
@@ -3082,7 +3193,6 @@ const NodeGraph = ({
   hrefLabel = "Open in visualizer",
   includeKey: includeKeyProp,
   footerLabel,
-  linksToVisualiser = false,
   links = [],
   syncRenderModeWithUrl = false,
   initialLevel,
@@ -3111,6 +3221,7 @@ const NodeGraph = ({
   onNodeClick,
   onBuildUrl,
   onNavigate,
+  getNodeDiagramUrl,
   onSaveLayout,
   onResetLayout,
   onOpenInStudio,
@@ -3224,7 +3335,6 @@ const NodeGraph = ({
             title={title}
             linkTo={linkTo}
             includeKey={includeKey}
-            linksToVisualiser={linksToVisualiser}
             links={links}
             mode={mode}
             showFlowWalkthrough={showFlowWalkthrough}
@@ -3258,6 +3368,7 @@ const NodeGraph = ({
             onNodeClick={onNodeClick}
             onBuildUrl={onBuildUrl}
             onNavigate={onNavigate}
+            getNodeDiagramUrl={getNodeDiagramUrl}
             onSaveLayout={onSaveLayout}
             onResetLayout={onResetLayout}
             onOpenInStudio={onOpenInStudio}

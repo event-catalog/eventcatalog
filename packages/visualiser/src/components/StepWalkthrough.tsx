@@ -22,7 +22,7 @@ import {
   getNodeDocUrl,
   NODE_COLOR_CLASSES,
   NODE_TYPE_LABELS,
-} from "./FocusMode/utils";
+} from "../utils/node-labels";
 
 type Resource = {
   summary?: string;

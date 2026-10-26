@@ -154,8 +154,8 @@ primitive:
   per toolbar.)
 
 `useViewport()` and `useNodes()` / `useEdges()` re-render their component on every pan, zoom or drag frame. In
-anything rendered per node (toolbars, overlays), select just the primitive you need, e.g. the clamped zoom in
-`FocusModeNodeActions` (`useStore(selectScaleFactor)`), so panning doesn't re-render them.
+anything rendered per node (toolbars, overlays), select just the primitive you need, e.g. only the zoom
+(`useStore((state) => state.transform[2])`), so panning doesn't re-render them.
 
 ## Rule 6: Nothing animates forever unless it's being looked at
 
@@ -239,7 +239,6 @@ When reviewing visualiser changes, verify:
 | `src/components/NodeGraph.tsx` | ReactFlow props, structural keys, legend computation |
 | `src/components/StepWalkthrough.tsx` | Effect dependencies use stable keys |
 | `src/components/VisualiserSearch.tsx` | Search filtering uses stable node snapshot |
-| `src/components/FocusMode/FocusModeContent.tsx` | Focus graph calculation deps |
 | `src/utils/message-animation.ts`, `src/utils/edge-animations.ts` | When messages animate, and pausing them |
 | `src/styles-core.css`, `src/styles.css` | Infinite animations (glow, dashes, hover effects): keep both files in step |
 | `src/nodes/*/` | All node components wrapped in memo() |

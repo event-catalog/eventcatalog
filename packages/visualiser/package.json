@@ -35,7 +35,7 @@
   "scripts": {
     "build": "rimraf dist && tsup && pnpm build:css",
     "build:bin": "rimraf dist && tsup && pnpm build:css",
-    "build:css": "postcss src/styles.css -o dist/styles.css && postcss src/styles-core.css -o dist/styles-core.css && cp src/studio/studio.css dist/studio.css && cp src/studio/studio-fonts.css dist/studio-fonts.css && mkdir -p dist/fonts && cp src/studio/fonts/* dist/fonts/",
+    "build:css": "postcss src/styles.css -o dist/styles.css && postcss src/styles-core.css -o dist/styles-core.css && cp src/studio/studio.css dist/studio.css && cp src/studio/node-card.css dist/node-card.css && cp src/studio/studio-fonts.css dist/studio-fonts.css && mkdir -p dist/fonts && cp src/studio/fonts/* dist/fonts/",
     "build:watch": "concurrently \"tsup --watch\" \"postcss src/styles.css -o dist/styles.css --watch\" \"postcss src/styles-core.css -o dist/styles-core.css --watch\"",
     "dev": "tsup --watch --onSuccess \"pnpm build:css\"",
     "clean": "rimraf dist",

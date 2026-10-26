@@ -65,3 +65,29 @@ export const getNodeCatalogResource = (node: DiagramNode): { collection: string;
   if (!collection || typeof details?.id !== 'string') return undefined;
   return { collection, id: details.id, ...(typeof details.version === 'string' && { version: details.version }) };
 };
+
+// The collections with a diagram page (pages/visualiser/[type], and domains' and systems' own)
+const DIAGRAM_COLLECTIONS = new Set([
+  'services',
+  'agents',
+  'events',
+  'commands',
+  'queries',
+  'channels',
+  'flows',
+  'containers',
+  'data-products',
+  'domains',
+  'systems',
+]);
+
+/**
+ * The path of the diagram page of the resource a node shows (e.g. `/visualiser/services/OrderService/1.0.0`), if it
+ * has one: not for actors, users, entities and the like, or a resource with `visualiser: false`
+ */
+export const getNodeDiagramPath = (node: DiagramNode): string | undefined => {
+  const resource = getNodeCatalogResource(node);
+  if (!resource?.version || !DIAGRAM_COLLECTIONS.has(resource.collection)) return undefined;
+  if (getNodeResourceDetails(node)?.visualiser === false) return undefined;
+  return `/visualiser/${resource.collection}/${resource.id}/${resource.version}`;
+};

@@ -17,6 +17,7 @@ import { createPortal } from 'react-dom';
 import type { Node, Edge } from '@xyflow/react';
 import type { FlowGroupBy, OpenInStudioRequest } from '@eventcatalog/visualiser';
 import { buildUrl } from '@utils/url-builder';
+import { getNodeDiagramPath } from '@utils/node-graphs/node-resource';
 import { createCanvasThroughApi } from '@features/studio/api/client';
 import { getStoredName } from '@features/studio/identity';
 
@@ -84,9 +85,27 @@ interface AstroNodeGraphProps {
   swimlanes?: FlowGroupBy;
   // The Studio API's address, when Studio is on: the menu can then start a canvas from the diagram
   studioApiUrl?: string;
+  // Clicking a node opens its diagram (when the catalog has the visualiser's pages)
+  opensDiagrams?: boolean;
 }
 
-const AstroNodeGraph = ({ isDevMode = false, resourceKey, studioApiUrl, ...otherProps }: AstroNodeGraphProps) => {
+const withoutTrailingSlash = (path: string) => path.replace(/\/+$/, '');
+
+/** The diagram page a node opens, unless it's the page this is (e.g. the service on its own diagram) */
+const getNodeDiagramUrl = (node: Node) => {
+  const path = getNodeDiagramPath(node);
+  if (!path) return undefined;
+  const url = buildUrl(path);
+  return withoutTrailingSlash(url) === withoutTrailingSlash(window.location.pathname) ? undefined : url;
+};
+
+const AstroNodeGraph = ({
+  isDevMode = false,
+  resourceKey,
+  studioApiUrl,
+  opensDiagrams = false,
+  ...otherProps
+}: AstroNodeGraphProps) => {
   // Astro-specific navigation handler
   const handleNavigate = useCallback((url: string) => {
     // Use window.location for navigation since we can't import astro:transitions/client in a React component
@@ -167,6 +186,7 @@ const AstroNodeGraph = ({ isDevMode = false, resourceKey, studioApiUrl, ...other
         isDevMode={isDevMode}
         onNavigate={handleNavigate}
         onBuildUrl={handleBuildUrl}
+        getNodeDiagramUrl={opensDiagrams ? getNodeDiagramUrl : undefined}
         onSaveLayout={handleSaveLayout}
         onResetLayout={handleResetLayout}
         onOpenInStudio={studioApiUrl ? setToOpen : undefined}

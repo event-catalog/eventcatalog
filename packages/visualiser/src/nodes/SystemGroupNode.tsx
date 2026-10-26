@@ -142,8 +142,11 @@ export default memo(function SystemGroupNode({ data }: NodeProps) {
         {typeLabel}
       </span>
 
-      {/* Header banner carrying the system (or domain) name */}
-      <div style={isDomain ? DOMAIN_HEADER_STYLE : HEADER_STYLE}>
+      {/* Header banner carrying the system (or domain) name: clicking it opens its diagram (NodeGraph) */}
+      <div
+        style={isDomain ? DOMAIN_HEADER_STYLE : HEADER_STYLE}
+        data-ec-container-header
+      >
         <TruncatedResourceName
           value={resource?.name || typeLabel}
           tooltipBorderColor={isDomain ? "#eab308" : "#8b5cf6"}
