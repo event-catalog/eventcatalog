@@ -1,5 +1,23 @@
 # @eventcatalog/core
 
+## 5.7.0
+
+### Minor Changes
+
+- 945ebb2: feat: clicking a node on a diagram shows its card, in place of focus mode: what it is and which domain or system it's in, its name, version and summary, what it's connected to, with each resource's icon (a message's producers and consumers, through its channels and the channels they route to, what a service sends and receives, and what a channel carries, who produces and consumes it and where it routes: click one to go to it; long groups show the first few until opened, and the list scrolls under the card's header), and links to open its diagram and its docs. It's Studio's node card, so a node reads the same on a diagram and on a canvas. Domain and system boxes show theirs from their header, cmd/ctrl-click opens a node's diagram in a new tab, and picking a node in search moves the diagram to it and shows its card. Flow diagrams and entity maps are unchanged. The visualiser's `NodeGraph` takes a `getNodeDiagramUrl` prop for the diagram a node's card opens; `FocusModeModal` is removed, and `linksToVisualiser` no longer does anything
+
+### Patch Changes
+
+- 2c6891c: fix(core): show the suggested questions for the page you navigate to while the assistant is open
+- 4d43159: fix(core): `<NodeGraph lanes="…" />` on a flow's page now opens the flow grouped, as `<Flow lanes="…" />` does. The page dropped the `lanes` prop, so the flow was shown ungrouped.
+- 9306e41: fix(core): update dependencies with known vulnerabilities (GHSA-v4v9-w7cf-4c6q). Core now needs `@scalar/api-reference-react` 0.9.82 or later (vue, axios, nanoid and `@ai-sdk/provider-utils` fixes) and expressive-code 0.44.3 or later (`postcss-selector-parser` 7). The CLI and exporters need `js-yaml` 4.3.2 or later. The lockfile also picks up fixed versions of undici, fast-uri, dompurify, fast-xml-parser, lodash, minimatch, brace-expansion, sharp and others that the existing ranges already allowed. If your project's lockfile still holds an older version, refresh it (for example `npm update`) to get them
+- 6959689: feat(visualiser): Studio's canvas can make what a connection connects to. Let go of a connection on empty canvas and a placeholder appears there with a list beside it (suggested connections first, searchable, arrow keys and Enter) to choose what it is. The new node is added where you let go, connected, in one undo step, and its card opens to name it. Exports `useConnectNew`, `ConnectChooser`, `ConnectPlaceholderNode` and the helpers in `connect-new.ts`, and `EditableText` can start empty (`startEmpty`); used by EventCatalog's Studio and Studio on the web.
+- Updated dependencies [945ebb2]
+- Updated dependencies [9306e41]
+- Updated dependencies [6959689]
+  - @eventcatalog/visualiser@5.2.0
+  - @eventcatalog/exporters@0.1.4
+
 ## 5.6.1
 
 ### Patch Changes
