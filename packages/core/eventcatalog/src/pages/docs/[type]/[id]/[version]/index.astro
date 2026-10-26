@@ -75,6 +75,7 @@ import {
   isArchitectureGraphEnabled,
 } from '@utils/feature';
 import { getMDXComponentsByName, parseMdxBooleanProp } from '@utils/markdown';
+import { isFlowGroupBy } from '@eventcatalog/visualiser';
 
 import type { CollectionTypes } from '@types';
 
@@ -349,6 +350,8 @@ let nodeGraphs =
       ...graph,
       search: parseMdxBooleanProp(nodeGraph.search, true),
       legend: parseMdxBooleanProp(nodeGraph.legend, true),
+      // Flows only: group the steps to start with (a string in MDX, so only a way they can be grouped)
+      lanes: isFlowGroupBy(nodeGraph.lanes) ? nodeGraph.lanes : undefined,
     };
   }) || [];
 const flowEmbeds = getMDXComponentsByName(props.body || '', 'Flow') || [];
@@ -649,6 +652,7 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                     linksToVisualiser={true}
                     showSearch={nodeGraph.search ?? true}
                     showLegend={nodeGraph.legend ?? true}
+                    lanes={collection === 'flows' ? nodeGraph.lanes : undefined}
                     href={
                       isVisualiserEnabled()
                         ? {
