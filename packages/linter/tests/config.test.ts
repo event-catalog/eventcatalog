@@ -254,8 +254,8 @@ module.exports = {
 };
 `);
       writeDirectoryStore({
-        users: [{ id: 'dboyne', name: 'David Boyne' }],
-        teams: [{ id: 'academic-life', name: 'Academic Life' }],
+        users: [{ id: 'dboyne', name: 'David Boyne', source: { provider: 'github' } }],
+        teams: [{ id: 'academic-life', name: 'Academic Life', source: { provider: 'github' } }],
       });
 
       const result = await loadEventCatalogConfigAsync(tempDir);
@@ -263,6 +263,49 @@ module.exports = {
       expect(result.unloadedDirectorySources).toEqual([]);
       expect(result.dependencies.user).toEqual([{ id: 'dboyne', version: undefined }]);
       expect(result.dependencies.team).toEqual([{ id: 'academic-life', version: undefined }]);
+    });
+
+    it('only falls back to the synced users and teams of the sources that failed', async () => {
+      writeEventCatalogConfig(`
+module.exports = {
+  directory: {
+    sources: [
+      { type: 'directory', name: 'github:my-org', loadUsers: async () => [{ id: 'current-github-user', name: 'Current' }] },
+      { type: 'directory', name: 'microsoft-entra:tenant', loadUsers: async () => { throw new Error('offline'); } },
+    ],
+  },
+};
+`);
+      writeDirectoryStore({
+        users: [
+          { id: 'deleted-github-user', name: 'Deleted', source: { provider: 'github' } },
+          { id: 'entra-user', name: 'Entra', source: { provider: 'microsoft-entra' } },
+        ],
+      });
+
+      const result = await loadEventCatalogConfigAsync(tempDir);
+
+      expect(result.unloadedDirectorySources).toEqual([]);
+      expect(result.dependencies.user).toEqual([
+        { id: 'current-github-user', version: undefined },
+        { id: 'entra-user', version: undefined },
+      ]);
+    });
+
+    it('treats a failed source as unloaded when the synced copy has nothing from it', async () => {
+      writeEventCatalogConfig(`
+module.exports = {
+  directory: {
+    sources: [{ type: 'directory', name: 'microsoft-entra:tenant', loadUsers: async () => { throw new Error('offline'); } }],
+  },
+};
+`);
+      writeDirectoryStore({ users: [{ id: 'github-user', name: 'GitHub', source: { provider: 'github' } }] });
+
+      const result = await loadEventCatalogConfigAsync(tempDir);
+
+      expect(result.unloadedDirectorySources).toEqual(['microsoft-entra:tenant']);
+      expect(result.dependencies.user).toBeUndefined();
     });
 
     it('reports the sources it could not load when there is no synced copy to fall back on', async () => {

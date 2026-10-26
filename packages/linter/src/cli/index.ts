@@ -144,7 +144,7 @@ program
         const sources = unloadedDirectorySources.map((name) => `"${name}"`).join(', ');
         console.log(
           chalk.yellow(
-            `⚠ Skipped refs/owner-exists: could not load users and teams from directory source ${sources}, and found no ${DIRECTORY_STORE_PATH} from a previous EventCatalog run`
+            `⚠ Skipped refs/owner-exists: could not load users and teams from directory source ${sources}, and ${DIRECTORY_STORE_PATH} has none synced from it by a previous EventCatalog run`
           )
         );
       }
