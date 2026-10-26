@@ -1,5 +1,15 @@
 # @eventcatalog/visualiser
 
+## 5.2.0
+
+### Minor Changes
+
+- 945ebb2: feat: clicking a node on a diagram shows its card, in place of focus mode: what it is and which domain or system it's in, its name, version and summary, what it's connected to, with each resource's icon (a message's producers and consumers, through its channels and the channels they route to, what a service sends and receives, and what a channel carries, who produces and consumes it and where it routes: click one to go to it; long groups show the first few until opened, and the list scrolls under the card's header), and links to open its diagram and its docs. It's Studio's node card, so a node reads the same on a diagram and on a canvas. Domain and system boxes show theirs from their header, cmd/ctrl-click opens a node's diagram in a new tab, and picking a node in search moves the diagram to it and shows its card. Flow diagrams and entity maps are unchanged. The visualiser's `NodeGraph` takes a `getNodeDiagramUrl` prop for the diagram a node's card opens; `FocusModeModal` is removed, and `linksToVisualiser` no longer does anything
+
+### Patch Changes
+
+- 6959689: feat(visualiser): Studio's canvas can make what a connection connects to. Let go of a connection on empty canvas and a placeholder appears there with a list beside it (suggested connections first, searchable, arrow keys and Enter) to choose what it is. The new node is added where you let go, connected, in one undo step, and its card opens to name it. Exports `useConnectNew`, `ConnectChooser`, `ConnectPlaceholderNode` and the helpers in `connect-new.ts`, and `EditableText` can start empty (`startEmpty`); used by EventCatalog's Studio and Studio on the web.
+
 ## 5.1.2
 
 ### Patch Changes
