@@ -30,6 +30,7 @@ export default memo(function NodeDetails({
   connections,
   onOpenNode,
   containerRef,
+  nameEmpty,
   locked,
   onChange,
   onClose,
@@ -43,6 +44,8 @@ export default memo(function NodeDetails({
   onOpenNode: (id: string) => void;
   /** The canvas, to put the card next to the node */
   containerRef: RefObject<HTMLElement | null>;
+  /** Its name starts empty, to type it straight in (a node just made: it keeps its name if nothing's typed) */
+  nameEmpty?: boolean;
   locked: boolean;
   onChange: UpdateNodeData;
   onClose: () => void;
@@ -112,6 +115,7 @@ export default memo(function NodeDetails({
                 onSaved={showSaved}
                 placeholder={`Name this ${label.toLowerCase()}`}
                 className="ec-editable-title"
+                startEmpty={nameEmpty}
                 required
               />
             </Field>

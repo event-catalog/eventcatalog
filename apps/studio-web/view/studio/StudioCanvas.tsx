@@ -41,6 +41,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { X } from 'lucide-react';
 import { ContextMenu, type ContextMenuState, type MenuQuestion } from '@eventcatalog/visualiser/studio';
 import { EditButton, Palette, COMPONENT_DRAG_TYPE, RemeasureHandles } from '@eventcatalog/visualiser/studio';
+import { ConnectChooser, isCardType, newCardData, notPlaceholder, useConnectNew, type NewLink } from '@eventcatalog/visualiser/studio';
 import { useCanvasFlow, type CanvasDocument } from './use-canvas-flow';
 import type { AgentCanvas, CanvasIds } from './apply-agent-canvas';
 import { bump, track } from '../analytics';
@@ -73,8 +74,9 @@ const centredOn = (center: XYPosition, size: { width: number; height: number }):
   y: center.y - size.height / 2,
 });
 
-/** How something was put on the canvas: clicked in the palette, or dragged from it */
-type AddedVia = 'click' | 'drag';
+/** How something was put on the canvas: clicked in the palette, dragged from it, or made at the end of a connection */
+type AddedVia = 'click' | 'drag' | 'connect';
+
 
 type Landing = {
   point: XYPosition;
@@ -171,8 +173,8 @@ type StudioCanvasProps = {
   initialLevel?: Level;
   /** Something on it changed (once it's dropped, not as it's dragged) */
   onChange: (snapshot: CanvasSnapshot) => void;
-  /** A node clicked (its page opens) */
-  onNodeClick?: (node: Node) => void;
+  /** A node clicked (its page opens), or one just made at the end of a connection (opened to name it) */
+  onNodeClick?: (node: Node, opened?: { justMade: boolean }) => void;
   /** The canvas clicked (not a node) */
   onPaneClick?: () => void;
   /** Questions for the agent about a node, in its right-click menu */
@@ -532,6 +534,7 @@ function Canvas({
     setStartWriting(null);
     glide();
     setContextMenu(null);
+    connect.cancel();
     setDraft(null);
     setOpenThreadId(null);
     setHotspotDraft(null);
@@ -609,18 +612,21 @@ function Canvas({
     const { kind, point, via } = chooser;
     setChooser(null);
     if (choice.as === 'container') return void addComponentAt(GROUP_TYPES[kind], point, via, true);
-    // A card: the visualiser's domain or system card, connected to what it holds
-    const type = kind === 'domain' ? 'context-domain' : 'system';
+    addCardAt(kind === 'domain' ? 'context-domain' : 'system', point, via);
+  });
+  // A card: the visualiser's domain or system card, connected to what it holds
+  const addCardAt = (type: 'context-domain' | 'system', point: XYPosition, via: AddedVia, link?: NewLink) => {
+    const kind = type === 'context-domain' ? 'domain' : 'system';
     const at = landingAt(point, type);
-    const resource = { name: kind === 'domain' ? 'New Domain' : 'New System', version: '0.0.1', summary: '' };
-    const id = flow.insertNode(type, { mode: 'full', navigable: false, [kind]: resource }, at.center, at.inside);
+    const id = flow.insertNode(type, newCardData(type), at.center, at.inside, link);
     keepOnLevel(at, id);
     openOnceShown(id);
     if (id) track('resource_added', { resource_type: kind, as: 'card', via, level: at.onLevel?.level ?? 3 });
-  });
+    return id;
+  };
   const cancelChooser = useCallback(() => setChooser(null), []);
 
-  const addComponentAt = (component: string, point: XYPosition, via: AddedVia, chosen = false) => {
+  const addComponentAt = (component: string, point: XYPosition, via: AddedVia, chosen = false, link?: NewLink) => {
     // A kind of data store is a data node: placed by its type
     const type = getNodeDefinition(component)?.type ?? component;
     if (type === 'note') return addNoteAt(point);
@@ -631,7 +637,7 @@ function Canvas({
     // The first thing on an empty canvas: the camera goes in close to it, so it isn't a speck on a big canvas
     const first = !nodesRef.current.some((node) => !isWrittenOnCanvas(node.type));
     const at = landingAt(point, type);
-    const id = flow.addNode(component, at.center, at.inside);
+    const id = flow.addNode(component, at.center, at.inside, link);
     keepOnLevel(at, id);
     if (id) track('resource_added', { resource_type: component, ...(chosen && { as: 'container' }), via, level: at.onLevel?.level ?? 3, first });
     if (id && first) void setCenter(at.center.x, at.center.y, { zoom: FIRST_NODE_ZOOM, duration: 500 });
@@ -658,6 +664,23 @@ function Canvas({
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
     trackPointer(event);
+  });
+
+  // ---- Connecting to something new: a connection let go of on empty canvas ----
+
+  // A placeholder where it was let go of, connected to the node it came from, until what it is is chosen beside it
+  const connect = useConnectNew({
+    canvasRef,
+    getNode: (id) => nodesRef.current.find((node) => node.id === id),
+    getLevel: () => levelRef.current,
+    locked,
+    onMake: (option, center, link) => {
+      const id = isCardType(option.type) ? addCardAt(option.type, center, 'connect', link) : addComponentAt(option.key, center, 'connect', false, link);
+      if (!id) return;
+      track('relation_added', { level: levelRef.current, via: 'connect' });
+      // Its details open, to name it
+      openOnceShown(id, true);
+    },
   });
 
   // ---- Pointer, copy and paste ----
@@ -929,9 +952,12 @@ function Canvas({
       return asShown(node, hidden, classes.filter(Boolean).join(' '));
     });
   }, [shownNodes, hiddenLegendKeys, hotspotSpots, hotspotDropTarget]);
+  const { placeholder } = connect;
+  const flowNodes = useMemo(() => (placeholder ? [...visibleNodes, placeholder.node] : visibleNodes), [visibleNodes, placeholder]);
 
   /** Changes on L1 and L2: notes go to the canvas, removing removes from the canvas, moving arranges the level */
-  const onLevelNodesChange = useStableCallback((changes: NodeChange[]) => {
+  const onLevelNodesChange = useStableCallback((allChanges: NodeChange[]) => {
+    const changes = allChanges.filter(notPlaceholder);
     const level = levelRef.current;
     const current = levelGraphRef.current;
     if (level === 3 || !current) return;
@@ -976,7 +1002,9 @@ function Canvas({
     track('relation_added', { level: 3 });
   });
   // Deleted (the delete key, or React Flow's own removal): counted for the visit's summary
-  const onCanvasNodesChange = useStableCallback((changes: NodeChange[]) => {
+  const onCanvasNodesChange = useStableCallback((allChanges: NodeChange[]) => {
+    const changes = allChanges.filter(notPlaceholder);
+    if (!changes.length) return;
     const removed = changes.filter((change) => change.type === 'remove').length;
     if (removed) bump('deleted', removed);
     flow.onNodesChange(changes);
@@ -996,6 +1024,7 @@ function Canvas({
         : edge
     );
   }, [levelEdges, flow.edges, hovered]);
+  const flowEdges = useMemo(() => (placeholder ? [...shownEdges, placeholder.edge] : shownEdges), [shownEdges, placeholder]);
 
   // ---- Keyboard ----
 
@@ -1384,12 +1413,13 @@ function Canvas({
     return addNoteAt({ x: at.x + width + 40 + 100, y: at.y + 88 }, { resource: nodeId, ...extra });
   };
 
-  // ---- Something just added: selected once it's on the canvas (its details open from its Edit button) ----
+  // ---- Something just added: selected once it's on the canvas (its details open from its Edit button, or straight
+  // away when asked: what a connection was let go of to make, chosen from a list, is named next) ----
 
-  const toOpen = useRef<string | null>(null);
-  const openOnceShown = (id: string) => (toOpen.current = id);
+  const toOpen = useRef<{ id: string; edit: boolean } | null>(null);
+  const openOnceShown = (id: string, edit = false) => (toOpen.current = { id, edit });
   useEffect(() => {
-    const id = toOpen.current;
+    const { id, edit } = toOpen.current ?? {};
     const node = id && flow.nodes.find((candidate) => candidate.id === id);
     if (!node) return;
     toOpen.current = null;
@@ -1399,6 +1429,7 @@ function Canvas({
         .map((other) => ({ type: 'select' as const, id: other, selected: false })),
       { type: 'select', id: node.id, selected: true },
     ]);
+    if (edit) onNodeClicked?.(node, { justMade: true });
   }, [flow.nodes]);
 
   // ---- For browser tests ----
@@ -1494,8 +1525,8 @@ function Canvas({
                 onDoubleClick={onCanvasDoubleClick}
               >
                 <ReactFlow
-                  nodes={visibleNodes}
-                  edges={shownEdges}
+                  nodes={flowNodes}
+                  edges={flowEdges}
                   onNodeMouseEnter={onNodeMouseEnter}
                   onNodeMouseLeave={onHoverEnd}
                   onEdgeMouseEnter={onEdgeMouseEnter}
@@ -1508,8 +1539,11 @@ function Canvas({
                   onNodesChange={editable ? onCanvasNodesChange : onLevelNodesChange}
                   onEdgesChange={editable ? flow.onEdgesChange : undefined}
                   onConnect={editable ? onCanvasConnect : onLevelConnect}
+                  onConnectEnd={connect.onConnectEnd}
                   edgesReconnectable={editable && !locked}
                   onReconnect={editable ? flow.onReconnect : undefined}
+                  onReconnectStart={connect.onReconnectStart}
+                  onReconnectEnd={connect.onReconnectEnd}
                   reconnectRadius={RECONNECT_RADIUS}
                   onDragOver={locked ? undefined : onDragOver}
                   onDrop={locked ? undefined : onDrop}
@@ -1654,6 +1688,7 @@ function Canvas({
                     style={{ left: editingEdge.x, top: editingEdge.y }}
                   />
                 )}
+                {connect.chooser && <ConnectChooser {...connect.chooser} />}
                 {chooser && <ContainerChooser kind={chooser.kind} position={flowToScreenPosition(chooser.point)} onChoose={choose} onCancel={cancelChooser} />}
                 {/* The components to add, under the diagram's menu (drawn by the children) */}
                 {showPanel && !locked && <Palette level={level} onAddComponent={addComponent} footer={paletteFooter} />}

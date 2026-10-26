@@ -193,7 +193,8 @@ export function Diagram({
 
   const [error, setError] = useState<string | null>(null);
   // A clicked node shows what it is; "Ask a question about this" (right-click) asks the agent
-  const [selected, setSelected] = useState<{ nodeId: string; resourceId: string; asking?: boolean } | null>(null);
+  // (`justMade`: made at the end of a connection, so its name's typed straight in)
+  const [selected, setSelected] = useState<{ nodeId: string; resourceId: string; asking?: boolean; justMade?: boolean } | null>(null);
   const canvasRef = useRef<StudioCanvasHandle>(null);
   const graphRef = useRef<HTMLDivElement | null>(null);
   const [graphElement, setGraphElement] = useState<HTMLDivElement | null>(null);
@@ -437,11 +438,12 @@ export function Diagram({
   }, []);
   // Its page opens (each node on the canvas has its resource's id: one just added is in the model a moment later)
   const handleNodeClick = useCallback(
-    (node: Node) => {
+    (node: Node, opened?: { justMade: boolean }) => {
       const resource = resourceForNode(node.id, model);
-      // Which kinds of node people open (one just added may not be in the model yet: its node's type, then)
-      track('node_opened', { resource_type: resource?.type, node_type: resource ? undefined : node.type, locked });
-      setSelected({ nodeId: node.id, resourceId: resource?.id ?? node.id });
+      // Which kinds of node people open (one just added may not be in the model yet: its node's type, then), not one
+      // opened for them (just made, to name it)
+      if (!opened?.justMade) track('node_opened', { resource_type: resource?.type, node_type: resource ? undefined : node.type, locked });
+      setSelected({ nodeId: node.id, resourceId: resource?.id ?? node.id, justMade: opened?.justMade });
     },
     [model, locked]
   );
@@ -1180,9 +1182,10 @@ export function Diagram({
               model={rootModel}
               notes={notes}
               containerRef={graphRef}
+              nameEmpty={selected.justMade}
               onClose={closeSelected}
               openLink={openLink}
-              onAsk={canSend ? () => setSelected({ ...selected, asking: true }) : undefined}
+              onAsk={canSend ? () => setSelected({ ...selected, asking: true, justMade: false }) : undefined}
               onEdit={
                 locked
                   ? undefined

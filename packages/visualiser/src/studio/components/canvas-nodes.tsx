@@ -30,6 +30,8 @@ import {
   SystemGroupNode,
 } from "../../index";
 import { TeamNode } from "./TeamNode";
+import { ConnectPlaceholderNode } from "./ConnectChooser";
+import { CONNECT_PLACEHOLDER } from "../connect-new";
 import type { Editing } from "../presence";
 import { GROUP_PADDING } from "../grouping";
 import { getNodeName, getNoteLevel, GROUP_TYPES } from "../node-types";
@@ -608,6 +610,8 @@ const components: NodeTypes = {
   // Domains and systems as containers
   [GROUP_TYPES.domain]: GroupNode,
   [GROUP_TYPES.system]: GroupNode,
+  // Where a connection let go of on empty canvas makes something new, until what it is is chosen
+  [CONNECT_PLACEHOLDER]: ConnectPlaceholderNode,
 };
 
 // React Flow gives every node its position, which changes on every frame it moves (dragged, in a dragged container,
