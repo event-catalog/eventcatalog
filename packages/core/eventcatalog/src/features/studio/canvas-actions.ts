@@ -544,7 +544,8 @@ export const expandCatalogSpecs = async (existing: Node[], specs: NodeSpecs, cat
     if (spec.contents && !canBeContainer(resource))
       errors.push(`Only domains and systems have contents: "${resource.name}" was added on its own`);
     else if (spec.contents) {
-      const block = sortByHierarchy((await buildContainerWithContents(resource, { x: 0, y: 0 }, catalog, brought)).nodes);
+      // Nothing else in this call (its specs, or what their connections bring) is brought again
+      const block = sortByHierarchy((await buildContainerWithContents(resource, { x: 0, y: 0 }, catalog, brought, keys)).nodes);
       blocks.set(spec, block);
       brought.push(...block);
       for (const node of block) {

@@ -211,6 +211,26 @@ describe('playAddToCanvas', () => {
     expect([...nodes.keys()].map(keyOf).sort()).toEqual(['events:OrderPlaced', 'services:Billing', 'services:Shipping']);
   });
 
+  it('adds each resource once when a domain with its contents is added with other resources in the same call', async () => {
+    const { result, nodes, keyOf } = await add({
+      nodes: [
+        { resource: { collection: 'services', id: 'OrderService' }, connections: ['sends'] },
+        { resource: { collection: 'domains', id: 'Orders' }, contents: true },
+      ],
+    });
+
+    expect(result.errors).toEqual([]);
+    const keys = [...nodes.keys()].map(keyOf).sort();
+    expect(keys).toEqual([...new Set(keys)]);
+    expect(keys).toEqual([
+      'domains:Orders',
+      'events:OrderPlaced',
+      'services:Billing',
+      'services:OrderService',
+      'systems:Checkout',
+    ]);
+  });
+
   it('says contents are only for domains and systems, and adds the resource on its own', async () => {
     const { result, nodes } = await add({ nodes: [{ resource: { collection: 'services', id: 'Billing' }, contents: true }] });
 
