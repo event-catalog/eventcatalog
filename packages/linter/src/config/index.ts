@@ -135,20 +135,15 @@ const loadEnvFile = (rootDir: string) => {
 // EventCatalog records each synced entry's provider, defaulting to the source name's prefix (`github` for `github:my-org`)
 const getSourceProvider = (sourceName: string) => sourceName.split(':')[0] || sourceName;
 
-/** Users and teams EventCatalog last synced from the given providers. */
-const readDirectoryStore = (
-  rootDir: string,
-  providers: string[]
-): { user: DependencyEntry[]; team: DependencyEntry[] } | undefined => {
+/** Users and teams EventCatalog synced from directory sources the last time it ran. */
+const readDirectoryStore = (rootDir: string): { users: unknown[]; teams: unknown[] } | undefined => {
   const storePath = path.join(rootDir, DIRECTORY_STORE_PATH);
   if (!fs.existsSync(storePath)) return undefined;
 
-  const fromProviders = (entries: unknown) =>
-    toDependencyEntries(Array.isArray(entries) ? entries.filter((entry) => providers.includes(entry?.source?.provider)) : []);
-
   try {
     const resources = JSON.parse(fs.readFileSync(storePath, 'utf8'))?.resources;
-    return { user: fromProviders(resources?.users), team: fromProviders(resources?.teams) };
+    const asArray = (entries: unknown) => (Array.isArray(entries) ? entries : []);
+    return { users: asArray(resources?.users), teams: asArray(resources?.teams) };
   } catch (error) {
     console.warn(`Warning: Could not read ${DIRECTORY_STORE_PATH}: ${errorMessage(error)}`);
     return undefined;
@@ -177,14 +172,25 @@ const loadDirectoryOwners = async (rootDir: string, sources: unknown) => {
 
   if (failedSources.length === 0) return { owners, failedSources };
 
-  // Fall back to the users and teams the failed sources synced the last time EventCatalog ran
-  const store = readDirectoryStore(rootDir, failedSources.map(getSourceProvider));
-  if (!store || store.user.length + store.team.length === 0) return { owners, failedSources };
+  // Fall back to the users and teams each failed source synced the last time EventCatalog ran
+  const store = readDirectoryStore(rootDir);
+  if (!store) return { owners, failedSources };
 
-  console.warn(`Warning: Using users and teams from ${DIRECTORY_STORE_PATH} (last synced by EventCatalog) instead`);
-  owners.user.push(...store.user);
-  owners.team.push(...store.team);
-  return { owners, failedSources: [] };
+  const unloadedSources = failedSources.filter((name) => {
+    const provider = getSourceProvider(name);
+    const fromSource = (entries: unknown[]) =>
+      toDependencyEntries(entries.filter((entry: any) => entry?.source?.provider === provider));
+    const users = fromSource(store.users);
+    const teams = fromSource(store.teams);
+    if (users.length + teams.length === 0) return true;
+
+    console.warn(`Warning: Using the users and teams "${name}" last synced to ${DIRECTORY_STORE_PATH} instead`);
+    owners.user.push(...users);
+    owners.team.push(...teams);
+    return false;
+  });
+
+  return { owners, failedSources: unloadedSources };
 };
 
 /** Loads `dependencies` and the owners from `directory.sources`, from CommonJS or ESM configs. */

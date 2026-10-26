@@ -308,6 +308,25 @@ module.exports = {
       expect(result.dependencies.user).toBeUndefined();
     });
 
+    it('keeps a failed source unloaded when only another failed source has synced owners', async () => {
+      writeEventCatalogConfig(`
+module.exports = {
+  directory: {
+    sources: [
+      { type: 'directory', name: 'github:my-org', loadUsers: async () => { throw new Error('Bad credentials'); } },
+      { type: 'directory', name: 'microsoft-entra:tenant', loadUsers: async () => { throw new Error('offline'); } },
+    ],
+  },
+};
+`);
+      writeDirectoryStore({ users: [{ id: 'github-user', name: 'GitHub', source: { provider: 'github' } }] });
+
+      const result = await loadEventCatalogConfigAsync(tempDir);
+
+      expect(result.unloadedDirectorySources).toEqual(['microsoft-entra:tenant']);
+      expect(result.dependencies.user).toEqual([{ id: 'github-user', version: undefined }]);
+    });
+
     it('reports the sources it could not load when there is no synced copy to fall back on', async () => {
       writeEventCatalogConfig(`
 module.exports = {
