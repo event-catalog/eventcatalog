@@ -6,7 +6,9 @@ import { catalogNodeData } from '../catalog';
 import {
   describeNode,
   nodeCenter,
+  nodeSpecsSchema,
   planNodes,
+  withNotesPlaced,
   resolveEdgeRefs,
   topLeftFor,
   updateCanvasNode,
@@ -407,5 +409,149 @@ describe('updateCanvasNode', () => {
 
   it('says when the node is not on the canvas', () => {
     expect(updateCanvasNode(setup(), { nodeId: 'missing', name: 'X' })).toEqual({ error: 'No node "missing" on the canvas' });
+  });
+});
+
+describe('nodeSpecsSchema', () => {
+  it('lets agents add sticky notes and text, as well as what the palette has', () => {
+    for (const type of ['note', 'text', 'service']) {
+      expect(nodeSpecsSchema.safeParse([{ type, summary: 'Something to say' }]).success, type).toBe(true);
+    }
+    expect(nodeSpecsSchema.safeParse([{ type: 'not-a-type' }]).success).toBe(false);
+  });
+});
+
+describe('withNotesPlaced', () => {
+  const service = (id: string, x: number, y: number): Node => ({ id, type: 'service', position: { x, y }, data: {} });
+  const note = (id: string, x: number, y: number, level?: number): Node => ({
+    id,
+    type: 'note',
+    position: { x, y },
+    data: { text: id, ...(level && { level }) },
+  });
+
+  it('moves each note with the node beside it, and the rest with the whole diagram', () => {
+    const nodes = [service('a', 0, 0), service('b', 2000, 0), note('about-a', 300, 0), note('alone', 0, 5000)];
+    const layout = {
+      nodes: new Map([
+        ['a', { position: { x: 100, y: 400 } }],
+        ['b', { position: { x: 600, y: 0 } }],
+        // where the layout would put them otherwise
+        ['about-a', { position: { x: 9999, y: 9999 } }],
+        ['alone', { position: { x: 9999, y: 9999 } }],
+      ]),
+      routes: new Map(),
+    };
+
+    const placed = withNotesPlaced(nodes, layout).nodes;
+    expect(placed.get('about-a')).toEqual({ position: { x: 400, y: 400 } });
+    // Beside nothing: where it was around the diagram (which starts 100 further right now)
+    expect(placed.get('alone')).toEqual({ position: { x: 100, y: 5000 } });
+    expect(placed.get('a')).toEqual({ position: { x: 100, y: 400 } });
+  });
+
+  it('follows what is in a container, where the container goes', () => {
+    const nodes: Node[] = [
+      { id: 'domain', type: 'domain-group', position: { x: 0, y: 0 }, width: 600, height: 400, data: {} },
+      { ...service('inside', 40, 80), parentId: 'domain' },
+      note('about-inside', 700, 80),
+    ];
+    const layout = {
+      nodes: new Map([
+        ['domain', { position: { x: 1000, y: 0 }, size: { width: 600, height: 400 } }],
+        ['inside', { position: { x: 40, y: 80 } }],
+      ]),
+      routes: new Map(),
+    };
+
+    expect(withNotesPlaced(nodes, layout).nodes.get('about-inside')).toEqual({ position: { x: 1700, y: 80 } });
+  });
+
+  it('keeps a title above the diagram, clear of what is laid out under it', () => {
+    const title: Node = {
+      id: 'title',
+      type: 'text',
+      position: { x: 0, y: -150 },
+      data: { text: 'Food delivery platform', fontSize: 48 },
+    };
+    const nodes = [service('a', 0, 0), title];
+    // The layout puts a node where the title would land
+    const layout = { nodes: new Map([['a', { position: { x: 0, y: -150 } }]]), routes: new Map() };
+
+    const { position } = withNotesPlaced(nodes, layout).nodes.get('title')!;
+    // Moved up, clear of the node (its text is about 67px tall at that size)
+    expect(position.x).toBe(0);
+    expect(position.y + 48 * 1.4).toBeLessThanOrEqual(-150);
+  });
+
+  it('keeps notes off each other', () => {
+    const nodes = [service('a', 0, 0), note('first', 300, 0), note('second', 300, 0)];
+    const layout = { nodes: new Map([['a', { position: { x: 0, y: 0 } }]]), routes: new Map() };
+
+    const placed = withNotesPlaced(nodes, layout).nodes;
+    expect(placed.get('first')).toEqual({ position: { x: 300, y: 0 } });
+    expect(placed.get('second')!.position).not.toEqual({ x: 300, y: 0 });
+  });
+
+  it('leaves notes on L1 and L2 to those levels', () => {
+    const nodes = [service('a', 0, 0), note('on-l1', 300, 0, 1)];
+    const layout = { nodes: new Map([['a', { position: { x: 500, y: 0 } }]]), routes: new Map() };
+    expect(withNotesPlaced(nodes, layout).nodes.has('on-l1')).toBe(false);
+  });
+});
+
+describe('text written by agents', () => {
+  it('is as big as asked, and can be made bigger', () => {
+    const { planned } = planNodes([], [{ ref: 't', type: 'text', summary: 'Ordering', fontSize: 48 }], catalog);
+    expect(planned[0].node.data).toMatchObject({ text: 'Ordering', fontSize: 48 });
+
+    const doc = new Y.Doc();
+    addNodes(doc, [planned[0].node]);
+    updateCanvasNode(doc, { nodeId: planned[0].node.id, fontSize: 64 });
+    expect(getCanvasMaps(doc).nodes.get(planned[0].node.id)!.data).toMatchObject({ text: 'Ordering', fontSize: 64 });
+  });
+
+  it('leaves font sizes to text (notes are as big as what is on them)', () => {
+    const { planned } = planNodes([], [{ type: 'note', summary: 'An idea', fontSize: 48 }], catalog);
+    expect(planned[0].node.data).not.toHaveProperty('fontSize');
+  });
+});
+
+describe('notes and text added by agents', () => {
+  const service = (id: string, x: number, y: number): Node => ({ id, type: 'service', position: { x, y }, data: {} });
+  const rectOf = (node: Node, width: number, height: number) => ({ ...node.position, width, height });
+  const overlap = (a: { x: number; y: number; width: number; height: number }, b: typeof a) =>
+    a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
+  it('never lands a note on a node: it goes to the nearest clear spot beside it', () => {
+    const existing = [service('a', 0, 0)];
+    const { planned } = planNodes(existing, [{ type: 'note', summary: 'Kafka: ordered events', x: 120, y: 55 }], catalog);
+
+    const note = planned[0].node;
+    expect(overlap(rectOf(note, 200, 176), rectOf(existing[0], 240, 110))).toBe(false);
+    // Next to it, not far away
+    expect(Math.hypot(note.position.x - 20, note.position.y + 33)).toBeLessThan(400);
+  });
+
+  it('keeps notes off each other, sized by what is written on them', () => {
+    const long = 'A long note that goes on and on about what could be better here and there';
+    const { planned } = planNodes(
+      [],
+      [
+        { type: 'note', summary: long, x: 100, y: 100 },
+        { type: 'note', summary: 'Short', x: 100, y: 100 },
+      ],
+      catalog
+    );
+    const [first, second] = planned.map((entry) => entry.node);
+    // The long note is taller than a note's usual size
+    expect(overlap(rectOf(first, 200, Math.max(176, Math.ceil(long.length / 20) * 22 + 60)), rectOf(second, 200, 176))).toBe(
+      false
+    );
+  });
+
+  it('leaves a note where it is asked when that is clear', () => {
+    const { planned } = planNodes([service('a', 0, 0)], [{ type: 'note', summary: 'Idea', x: 600, y: 55 }], catalog);
+    expect(planned[0].canvasPosition).toEqual({ x: 500, y: -33 });
   });
 });

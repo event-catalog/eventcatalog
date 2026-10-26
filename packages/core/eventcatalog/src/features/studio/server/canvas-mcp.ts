@@ -16,7 +16,6 @@ import {
   getCanvasMaps,
   readCanvas,
   readMeta,
-  reopeningIfEdited,
   replyToThread,
   setCanvasStatus,
   setThreadResolved,
@@ -33,10 +32,10 @@ import {
   playOnNode,
   playRemove,
   playUpdateNode,
-  type AgentStage,
 } from '../agent-choreography';
 import { STUDIO_SOCKET_PATH, findStudioRuntime } from './runtime';
 import { getAgent } from '../agents';
+import { agentOnCanvas } from './canvas-agent';
 
 /**
  * MCP tools for the collaborative canvas: agents create canvases, join the ones people are on, and
@@ -100,18 +99,7 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
    * Work on a canvas as an agent: changes are played out like a person would make them (see agent-choreography),
    * with the agent's pointer, selection and what it's doing shown to everyone on the canvas.
    */
-  const asAgent = (id: string, name: string | undefined) => {
-    const agent = getAgent(name, userAgent);
-    const author = { ...agent, agent: true } as Author;
-    const stage: AgentStage = {
-      // An agent changing an accepted (or rejected) canvas makes it a draft again, like a person doing it
-      change: (fn) => runtime.withCanvas(id, (doc) => reopeningIfEdited(doc, author, () => fn(doc))),
-      present: (presence) => runtime.setAgentPresence(id, agent, presence),
-      lastPointer: runtime.getAgentPointer(id, agent),
-      sharesMoves: true,
-    };
-    return { stage, author };
-  };
+  const asAgent = (id: string, name: string | undefined) => agentOnCanvas(runtime, id, getAgent(name, userAgent));
 
   // ---- The canvas in the chat (MCP App) ----
 

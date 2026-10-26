@@ -148,6 +148,9 @@ const readNewCanvas = async (c: ApiContext): Promise<{ details: NewCanvasDetails
   if (!parsed.success) return c.json({ error: describeIssues(parsed.error) }, 400);
   const details = detailsOf(c, parsed.data);
   if (!parsed.data.nodes) return { details };
+  // What they bring from the catalog is worked out on a canvas as it is (with the agent tools), not for a new one
+  if (parsed.data.nodes.some((node) => node.contents || node.connections))
+    return c.json({ error: 'contents and connections can only be used when adding to a canvas: list the nodes instead' }, 400);
   const { resources, relations } = await getCatalogResources();
   const { content, errors } = planCanvas(
     parsed.data.nodes,

@@ -1,7 +1,16 @@
 // @vitest-environment jsdom
 import { createElement, act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import ChatPanel, { preprocessMarkdown } from '../ChatPanel';
+import ChatPanel, {
+  activityOf,
+  getActivitySteps,
+  getCanvasId,
+  getFlaggedHotspots,
+  getWalkthroughs,
+  isBetweenText,
+  isSuggestingFollowUps,
+  preprocessMarkdown,
+} from '../ChatPanel';
 import ChatPanelButton from '../ChatPanelButton';
 
 vi.mock('@utils/url-builder', () => ({ buildUrl: (url: string) => url }));
@@ -65,6 +74,45 @@ describe('Ask AI setup experience', () => {
     expect(container.textContent).not.toContain('Your whole catalog, connected to your AI.');
     expect(container.querySelector('button[aria-label="Stop generating"]')).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('draws on the Studio canvas it is asked on, and has the canvas follow it', async () => {
+    const canvasId = '3f1c2a4e-0000-4000-8000-000000000000';
+    window.history.pushState({}, '', `/studio/${canvasId}`);
+    const drawing = vi.fn();
+    window.addEventListener('eventcatalog:assistant-drawing', drawing);
+    try {
+      await act(async () => root.render(createElement(ChatPanel, { isOpen: true, onClose: vi.fn(), configured: true })));
+      expect(container.textContent).toContain("Tell me what to diagram and I'll draw it on the canvas");
+      const suggestion = Array.from(container.querySelectorAll('button')).find((button) =>
+        button.textContent?.includes('Review my architecture, highlight any issues')
+      );
+      await act(async () => suggestion!.click());
+
+      expect(drawing).toHaveBeenCalledTimes(1);
+      expect((drawing.mock.calls[0][0] as CustomEvent).detail).toEqual({ canvasId });
+      const chatRequest = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
+      expect(JSON.parse(chatRequest![1].body)).toMatchObject({ canvasId });
+    } finally {
+      window.removeEventListener('eventcatalog:assistant-drawing', drawing);
+      window.history.pushState({}, '', '/');
+    }
+  });
+
+  it('asks what to diagram straight away, without waiting on the model', async () => {
+    window.history.pushState({}, '', '/studio/3f1c2a4e-0000-4000-8000-000000000000');
+    try {
+      await act(async () => root.render(createElement(ChatPanel, { isOpen: true, onClose: vi.fn(), configured: true })));
+      const suggestion = Array.from(container.querySelectorAll('button')).find((button) =>
+        button.textContent?.includes('Create a new diagram')
+      );
+      await act(async () => suggestion!.click());
+
+      expect(container.textContent).toContain('What would you like to diagram?');
+      expect(fetchMock.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
+    } finally {
+      window.history.pushState({}, '', '/');
+    }
   });
 
   it.each(['metaKey', 'ctrlKey'])('opens Ask and focuses its input with %s + I', async (modifier) => {
@@ -230,5 +278,139 @@ describe('preprocessMarkdown', () => {
   it('only rewrites a link at the end of the text', () => {
     const text = 'See [Order Service](/docs/services/order-service/1.0.0), then [Risk](/docs/domains/ri';
     expect(preprocessMarkdown(text)).toBe('See [Order Service](/docs/services/order-service/1.0.0), then Risk');
+  });
+});
+
+describe('getCanvasId', () => {
+  it('is the Studio canvas the page shows, so the assistant draws on it', () => {
+    expect(getCanvasId('/studio/3f1c2a4e-0000-4000-8000-000000000000')).toBe('3f1c2a4e-0000-4000-8000-000000000000');
+    expect(getCanvasId('/catalog/studio/3f1c2a4e-0000-4000-8000-000000000000?l=overview')).toBe(
+      '3f1c2a4e-0000-4000-8000-000000000000'
+    );
+  });
+
+  it('is nothing on other pages, or the list of canvases', () => {
+    expect(getCanvasId('/studio')).toBeUndefined();
+    expect(getCanvasId('/studio?new=1')).toBeUndefined();
+    expect(getCanvasId('/docs/services/OrdersService/1.0.0')).toBeUndefined();
+  });
+});
+
+describe('what the assistant is shown doing', () => {
+  it('says what it is doing on a canvas in words, planning while it writes what to draw', () => {
+    expect(activityOf('addToCanvas', 'input-streaming')).toBe('Planning the diagram…');
+    expect(activityOf('addToCanvas', 'input-available')).toBe('Drawing on the canvas…');
+    expect(activityOf('layoutCanvas')).toBe('Tidying the canvas…');
+    expect(activityOf('someCustomTool')).toBe('Using someCustomTool…');
+  });
+
+  it('is shown working whenever it is not writing text, even after it has written some', () => {
+    expect(isBetweenText({ parts: [] })).toBe(true);
+    expect(isBetweenText({ parts: [{ type: 'text', text: 'I will draw it', state: 'streaming' }] })).toBe(false);
+    expect(
+      isBetweenText({
+        parts: [
+          { type: 'text', text: 'I will draw it', state: 'done' },
+          { type: 'tool-addToCanvas', state: 'input-streaming' },
+        ],
+      })
+    ).toBe(true);
+    expect(isBetweenText({ parts: [{ type: 'text', text: 'Thinking', state: 'done' }, { type: 'step-start' }] })).toBe(true);
+  });
+});
+
+describe('getActivitySteps', () => {
+  it('lists what the assistant has done this turn, ticked, and what it is doing now', () => {
+    const steps = getActivitySteps({
+      role: 'assistant',
+      parts: [
+        { type: 'tool-getCanvas', state: 'output-available' },
+        { type: 'tool-getResources', state: 'output-available' },
+        { type: 'tool-getResources', state: 'output-available' },
+        { type: 'text', text: 'I will draw it', state: 'done' },
+        { type: 'tool-addToCanvas', state: 'input-streaming' },
+      ],
+    });
+    expect(steps).toEqual([
+      { label: 'Reading the canvas', done: true, count: 1 },
+      { label: 'Searching the catalog', done: true, count: 2 },
+      { label: 'Planning the diagram', done: false, count: 1 },
+    ]);
+  });
+
+  it('is thinking when nothing is being done, and between steps', () => {
+    expect(getActivitySteps(undefined)).toEqual([{ label: 'Thinking it through', done: false, count: 1 }]);
+    // A question just asked: the last message is theirs, not a turn of the assistant's yet
+    expect(getActivitySteps({ role: 'user', parts: [{ type: 'tool-getCanvas', state: 'output-available' }] })).toEqual([
+      { label: 'Thinking it through', done: false, count: 1 },
+    ]);
+    expect(getActivitySteps({ role: 'assistant', parts: [{ type: 'tool-getCanvas', state: 'output-available' }] })).toEqual([
+      { label: 'Reading the canvas', done: true, count: 1 },
+      { label: 'Thinking it through', done: false, count: 1 },
+    ]);
+  });
+});
+
+describe('isSuggestingFollowUps', () => {
+  it('is while the assistant writes its follow-up questions, not once they are written', () => {
+    const writing = {
+      role: 'assistant',
+      parts: [
+        { type: 'text', text: 'Done', state: 'done' },
+        { type: 'tool-suggestFollowUpQuestions', state: 'input-streaming' },
+      ],
+    };
+    expect(isSuggestingFollowUps(writing)).toBe(true);
+    expect(
+      isSuggestingFollowUps({ role: 'assistant', parts: [{ type: 'tool-suggestFollowUpQuestions', state: 'output-available' }] })
+    ).toBe(false);
+    expect(isSuggestingFollowUps({ role: 'assistant', parts: [{ type: 'tool-addToCanvas', state: 'input-streaming' }] })).toBe(
+      false
+    );
+  });
+});
+
+describe('getFlaggedHotspots', () => {
+  it('lists the hotspots the assistant flagged, as it flagged them', () => {
+    expect(
+      getFlaggedHotspots({
+        parts: [
+          {
+            type: 'tool-addHotspot',
+            state: 'output-available',
+            input: { severity: 'warning', title: 'Single point of failure' },
+            output: { hotspotId: 'h1' },
+          },
+          // Couldn't be flagged, or still being flagged
+          {
+            type: 'tool-addHotspot',
+            state: 'output-available',
+            input: { severity: 'info', title: 'Nowhere' },
+            output: { error: 'No node' },
+          },
+          { type: 'tool-addHotspot', state: 'input-available', input: { severity: 'critical', title: 'Soon' } },
+          { type: 'tool-getCanvas', state: 'output-available', output: {} },
+        ],
+      })
+    ).toEqual([{ id: 'h1', severity: 'warning', title: 'Single point of failure' }]);
+  });
+});
+
+describe('getWalkthroughs', () => {
+  it('reads the walkthroughs the assistant gave, as the canvas had them', () => {
+    const steps = [{ title: 'Customer places an order', description: 'They check out.', nodeIds: ['a'] }];
+    expect(
+      getWalkthroughs({
+        parts: [
+          {
+            type: 'tool-walkThrough',
+            toolCallId: 't1',
+            state: 'output-available',
+            output: { title: 'How checkout works', steps },
+          },
+          { type: 'tool-walkThrough', toolCallId: 't2', state: 'input-streaming', input: { title: 'Not yet' } },
+        ],
+      })
+    ).toEqual([{ id: 't1', title: 'How checkout works', steps }]);
   });
 });

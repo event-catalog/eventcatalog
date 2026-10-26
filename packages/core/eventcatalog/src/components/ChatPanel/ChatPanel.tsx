@@ -1,5 +1,23 @@
 import { useEffect, useRef, useCallback, useState, useMemo, memo } from 'react';
-import { X, Square, Trash2, Sparkles, Copy, Check, Maximize2, Minimize2, Wrench, ChevronDown, MessageSquare } from 'lucide-react';
+import {
+  X,
+  Square,
+  Trash2,
+  Sparkles,
+  Copy,
+  Check,
+  Maximize2,
+  Minimize2,
+  Wrench,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  MessageSquare,
+  LocateFixed,
+  OctagonAlert,
+  TriangleAlert,
+  Info,
+} from 'lucide-react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import ReactMarkdown from 'react-markdown';
@@ -10,6 +28,16 @@ import * as Dialog from '@radix-ui/react-dialog';
 import * as Popover from '@radix-ui/react-popover';
 import { buildUrl } from '@utils/url-builder';
 import OfflineReply, { ConfigurationErrorReply, getChatError, offlineReplyText } from './OfflineReply';
+import {
+  ASSISTANT_DRAWING_EVENT,
+  CANVAS_FOCUS_EVENT,
+  CANVAS_HOTSPOT_EVENT,
+  canvasRefIn,
+  nodesInFocusLink,
+} from './assistant-events';
+import { getResourceReferenceColorName } from '@utils/resource-reference-colors';
+import { tailwind500RgbByColor } from '@utils/collection-colors';
+import { getResourceReferenceIcon } from '@utils/resource-reference-icons';
 
 interface ToolMetadata {
   name: string;
@@ -23,10 +51,6 @@ const CHAT_PANEL_STYLES = `
     0%, 100% { transform: scale(1); opacity: .7; }
     50% { transform: scale(1.06); opacity: 1; }
   }
-  @keyframes ec-chat-dot {
-    0%, 80%, 100% { transform: translateY(0); opacity: .35; }
-    40% { transform: translateY(-3px); opacity: 1; }
-  }
   .ec-chat-surface { font-weight: 400; }
   .ec-chat-avatar { background: rgb(var(--ec-accent) / .06); animation: ec-chat-breathe 5s ease-in-out infinite; }
   /* The closed panel stays on the page (off screen): a running animation there still costs every frame */
@@ -38,9 +62,58 @@ const CHAT_PANEL_STYLES = `
   .ec-chat-offline > :nth-child(2) { animation-delay: 100ms; }
   .ec-chat-offline > :nth-child(3) { animation-delay: 220ms; }
   .ec-chat-offline > :nth-child(4) { animation-delay: 340ms; }
-  .ec-chat-dot { width: 4px; height: 4px; border-radius: 50%; background: rgb(var(--ec-accent)); animation: ec-chat-dot 1.2s infinite; }
-  .ec-chat-dot:nth-child(2) { animation-delay: 150ms; }
-  .ec-chat-dot:nth-child(3) { animation-delay: 300ms; }
+  /* What the assistant's doing while it works: a card with a sheen passing over it, its steps so far ticked and the
+     one it's on spinning, its words shimmering */
+  @keyframes ec-chat-sheen {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+  }
+  @keyframes ec-chat-spin { to { transform: rotate(360deg); } }
+  .ec-chat-activity {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgb(var(--ec-accent) / .18);
+    border-radius: 14px;
+    background: rgb(var(--ec-accent) / .03);
+    box-shadow: 0 6px 20px rgb(var(--ec-accent) / .05);
+  }
+  .ec-chat-activity::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(110deg, transparent 30%, rgb(var(--ec-accent) / .09) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: ec-chat-sheen 2.2s linear infinite;
+  }
+  .ec-chat-activity-now {
+    background: linear-gradient(90deg, rgb(var(--ec-page-text)) 0%, rgb(var(--ec-accent)) 50%, rgb(var(--ec-page-text)) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: ec-chat-sheen 2.4s linear infinite;
+  }
+  .ec-chat-spinner {
+    width: 12px;
+    height: 12px;
+    flex: none;
+    border-radius: 50%;
+    border: 1.5px solid rgb(var(--ec-accent) / .2);
+    border-top-color: rgb(var(--ec-accent));
+    animation: ec-chat-spin .8s linear infinite;
+  }
+  /* Follow-up questions on their way: pills like theirs, a sheen passing along them */
+  .ec-chat-pending-pill {
+    height: 30px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgb(var(--ec-accent) / .05) 25%, rgb(var(--ec-accent) / .14) 50%, rgb(var(--ec-accent) / .05) 75%);
+    background-size: 200% 100%;
+    animation: fadeInUp 300ms ease-out both, ec-chat-sheen 1.6s linear infinite;
+  }
+  .ec-chat-surface[aria-hidden='true'] .ec-chat-activity,
+  .ec-chat-surface[aria-hidden='true'] .ec-chat-activity *,
+  .ec-chat-surface[aria-hidden='true'] .ec-chat-pending-pill { animation-play-state: paused; }
   .ec-chat-composer {
     border-radius: 20px;
     border-color: rgb(var(--ec-accent) / .22);
@@ -49,8 +122,9 @@ const CHAT_PANEL_STYLES = `
     transition: border-color 200ms, box-shadow 200ms;
   }
   .ec-chat-composer:focus-within { border-color: rgb(var(--ec-accent) / .5); box-shadow: 0 0 0 3px rgb(var(--ec-accent) / .09); }
-  .ec-chat-composer textarea { display: block; resize: none; min-height: 104px; padding: 14px 16px 46px; border-radius: 20px; }
-  .ec-chat-composer-actions { top: auto; bottom: 10px; transform: none; }
+  /* What's typed grows the box (up to a point, then scrolls), with what it's based on and Send in a row under it */
+  .ec-chat-composer textarea { display: block; resize: none; min-height: 58px; max-height: 200px; overflow-y: auto; padding: 14px 16px 4px; border-radius: 20px 20px 0 0; }
+  .ec-chat-composer-footer { display: flex; align-items: center; gap: 8px; padding: 2px 8px 8px 16px; }
   @media (prefers-reduced-motion: reduce) {
     .ec-chat-surface, .ec-chat-surface *, #eventcatalog-header, #eventcatalog-application {
       animation: none !important;
@@ -153,6 +227,8 @@ const getGreeting = () => {
 interface SuggestedQuestion {
   label: string;
   prompt: string;
+  /** Answered here, straight away, rather than by the model: e.g. a question back to the person */
+  reply?: string;
 }
 
 interface QuestionConfig {
@@ -161,6 +237,33 @@ interface QuestionConfig {
 }
 
 const suggestedQuestionsConfig: QuestionConfig[] = [
+  // A Studio canvas: the assistant draws on it
+  {
+    pattern: /\/studio\/[0-9a-f-]{36}/i,
+    questions: [
+      {
+        label: 'Create a new diagram',
+        prompt: 'Create a new diagram',
+        reply: [
+          'What would you like to diagram? Describe it in a sentence or two, for example:',
+          '',
+          '- How an order flows from checkout to shipping',
+          '- One of our domains and what it talks to',
+          "- A new service you're designing, and the events it sends and receives",
+        ].join('\n'),
+      },
+      {
+        label: 'Review my architecture, highlight any issues',
+        prompt:
+          'Review the architecture on this canvas and highlight any issues: flag what you find with hotspots on the nodes they are about (critical, warning or info), and add sticky notes with your review and suggestions.',
+      },
+      {
+        label: 'How could we improve this architecture?',
+        prompt:
+          'How could we improve the architecture on this canvas? Flag the problems and risks you find with hotspots on the nodes they are about, and add sticky notes with your suggested improvements.',
+      },
+    ],
+  },
   // Message pages (events, commands, queries) - most specific first
   {
     pattern: /^\/docs\/(events|commands|queries)\/.+/,
@@ -364,6 +467,9 @@ const suggestedQuestionsConfig: QuestionConfig[] = [
   },
 ];
 
+/** The Studio canvas the page shows, if it's one: the assistant draws on it */
+export const getCanvasId = (pathname: string) => pathname.match(/\/studio\/([0-9a-f-]{36})\/?(?:[?#]|$)/i)?.[1];
+
 // Get suggested questions based on current URL path
 const getSuggestedQuestions = (pathname: string): SuggestedQuestion[] => {
   for (const config of suggestedQuestionsConfig) {
@@ -446,23 +552,29 @@ const getFollowUpSuggestions = (message: { parts?: Array<any> }): string[] => {
   return [];
 };
 
-// Helper to extract currently running tools from message parts
-const getRunningTools = (message: { parts?: Array<any> }): string[] => {
-  if (!message.parts) return [];
+/** What the assistant's doing, in words, while a tool runs (or is being written, for the canvas's) */
+const TOOL_ACTIVITY: Record<string, string> = {
+  getCanvas: 'Reading the canvas…',
+  addToCanvas: 'Drawing on the canvas…',
+  updateCanvasNode: 'Updating the canvas…',
+  connectCanvasNodes: 'Connecting things on the canvas…',
+  removeFromCanvas: 'Removing things from the canvas…',
+  layoutCanvas: 'Tidying the canvas…',
+  walkThrough: 'Preparing the walkthrough…',
+  showOnCanvas: 'Showing you on the canvas…',
+  addHotspot: 'Flagging hotspots…',
+  getResources: 'Searching the catalog…',
+  getResource: 'Reading the catalog…',
+};
+export const activityOf = (toolName: string, state?: string) =>
+  toolName === 'addToCanvas' && state === 'input-streaming'
+    ? 'Planning the diagram…'
+    : (TOOL_ACTIVITY[toolName] ?? `Using ${toolName}…`);
 
-  const runningTools: string[] = [];
-  for (const part of message.parts) {
-    // Tool parts have type like "tool-{toolName}" and state indicates progress
-    if (part.type?.startsWith('tool-') && part.state !== 'output-available') {
-      // Extract tool name from type (e.g., "tool-getServiceHealth" -> "getServiceHealth")
-      const toolName = part.type.replace('tool-', '');
-      // Skip the follow-up suggestions tool as it's internal
-      if (toolName !== 'suggestFollowUpQuestions') {
-        runningTools.push(toolName);
-      }
-    }
-  }
-  return runningTools;
+/** The assistant is between things it writes (thinking, or using a tool), not writing text right now */
+export const isBetweenText = (message: { parts?: Array<any> } | undefined) => {
+  const last = message?.parts?.at(-1);
+  return !last || last.type !== 'text' || last.state === 'done';
 };
 
 // Helper to extract completed tools from message parts (for showing after completion)
@@ -484,28 +596,218 @@ const getCompletedTools = (message: { parts?: Array<any> }): string[] => {
 };
 
 // Skeleton loading component - memoized since it never changes
-const SkeletonLoader = memo(({ label = 'Thinking it through…' }: { label?: string }) => (
-  <div role="status" className="ec-chat-message flex items-center gap-3 py-3 text-xs text-[rgb(var(--ec-page-text-muted))]">
-    <span className="flex items-center gap-1" aria-hidden="true">
-      <span className="ec-chat-dot" />
-      <span className="ec-chat-dot" />
-      <span className="ec-chat-dot" />
-    </span>
-    {label}
+export type ActivityStep = { label: string; done: boolean; count: number };
+
+/**
+ * What the assistant has done this turn, step by step (each tool it used, in words, repeats counted), and what it's
+ * doing now: the tool it's using, else thinking. Only for a turn that's still going.
+ */
+export const getActivitySteps = (message: { role?: string; parts?: Array<any> } | undefined): ActivityStep[] => {
+  const steps: ActivityStep[] = [];
+  for (const part of message?.role === 'assistant' ? (message.parts ?? []) : []) {
+    if (!part.type?.startsWith('tool-')) continue;
+    const name = part.type.replace('tool-', '');
+    if (name === 'suggestFollowUpQuestions') continue;
+    const done = part.state === 'output-available' || part.state === 'output-error';
+    const label = activityOf(name, part.state).replace(/…$/, '');
+    const last = steps.at(-1);
+    if (last && last.label === label) {
+      last.count += 1;
+      last.done = done;
+    } else steps.push({ label, done, count: 1 });
+  }
+  if (!steps.length || steps.every((step) => step.done)) steps.push({ label: 'Thinking it through', done: false, count: 1 });
+  return steps;
+};
+
+/** The card the assistant's shown working in: its steps so far, ticked, and what it's on now */
+const ActivityCard = memo(({ steps }: { steps: ActivityStep[] }) => (
+  <div role="status" aria-live="polite" className="ec-chat-message ec-chat-activity my-2 px-4 py-3">
+    <ol className="relative space-y-1.5 text-xs">
+      {steps.map((step, index) => (
+        <li key={index} className="flex items-center gap-2.5">
+          {step.done ? (
+            <Check size={12} className="flex-none text-[rgb(var(--ec-accent))]" aria-hidden="true" />
+          ) : (
+            <span className="ec-chat-spinner" aria-hidden="true" />
+          )}
+          <span className={step.done ? 'text-[rgb(var(--ec-page-text-muted))]' : 'ec-chat-activity-now font-medium'}>
+            {step.label}
+            {step.done ? '' : '…'}
+            {step.count > 1 && <span className="ml-1 opacity-60">×{step.count}</span>}
+          </span>
+        </li>
+      ))}
+    </ol>
   </div>
 ));
-SkeletonLoader.displayName = 'SkeletonLoader';
+ActivityCard.displayName = 'ActivityCard';
+
+/** It's writing follow-up questions (what it does once it's answered) */
+export const isSuggestingFollowUps = (message: { role?: string; parts?: Array<any> } | undefined) =>
+  message?.role === 'assistant' &&
+  !!message.parts?.some((part) => part.type === 'tool-suggestFollowUpQuestions' && part.state !== 'output-available');
+
+/** Where the follow-up questions will be, while it writes them: pills like theirs, coming in */
+const FollowUpsLoading = memo(() => (
+  <div role="status" aria-live="polite" className="ec-chat-message mt-1 flex flex-col items-start gap-2">
+    <span className="ec-chat-activity-now text-xs font-medium">Suggesting what to ask next…</span>
+    {['72%', '58%', '66%'].map((width, index) => (
+      <span
+        key={width}
+        aria-hidden="true"
+        className="ec-chat-pending-pill block"
+        style={{ width, animationDelay: `${index * 90}ms, ${index * 150}ms` }}
+      />
+    ))}
+  </div>
+));
+FollowUpsLoading.displayName = 'FollowUpsLoading';
 
 // Memoized markdown components to prevent re-renders
+/** Takes the person to nodes on the Studio canvas they have open */
+const focusCanvas = (nodeIds: string[]) =>
+  window.dispatchEvent(
+    new CustomEvent(CANVAS_FOCUS_EVENT, { detail: { canvasId: getCanvasId(window.location.pathname), nodeIds } })
+  );
+
+/** Takes the person to a hotspot on the Studio canvas they have open, and opens it */
+const showHotspot = (hotspotId: string) =>
+  window.dispatchEvent(
+    new CustomEvent(CANVAS_HOTSPOT_EVENT, { detail: { canvasId: getCanvasId(window.location.pathname), hotspotId } })
+  );
+
+/** How long the pointer rests on a walkthrough step before it takes them there (so moving across the steps doesn't) */
+const FOCUS_ON_HOVER_MS = 250;
+
+/** Something on the canvas, from the chat: clicking it, or resting the pointer on it, takes them there */
+function CanvasLink({ go, className, children }: { go: () => void; className: string; children: React.ReactNode }) {
+  const hover = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancel = () => {
+    if (hover.current !== null) clearTimeout(hover.current);
+    hover.current = null;
+  };
+  useEffect(() => cancel, []);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        cancel();
+        go();
+      }}
+      onMouseEnter={() => {
+        cancel();
+        hover.current = setTimeout(go, FOCUS_ON_HOVER_MS);
+      }}
+      onMouseLeave={cancel}
+      title="Show me on the canvas"
+      className={`cursor-pointer transition-colors ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** A step of a walkthrough on a canvas: takes them to its nodes */
+const FocusLink = ({ nodeIds, children }: { nodeIds: string[]; children: React.ReactNode }) => (
+  <CanvasLink
+    go={() => focusCanvas(nodeIds)}
+    className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-medium text-[rgb(var(--ec-accent))] bg-[rgb(var(--ec-accent)/0.08)] hover:bg-[rgb(var(--ec-accent)/0.16)]"
+  >
+    {children}
+    <LocateFixed size={12} className="flex-none opacity-70" aria-hidden="true" />
+  </CanvasLink>
+);
+
+/** Something on the canvas the assistant mentions: drawn like the docs' resource references (its type's icon and colour) */
+const CanvasRef = ({ type, nodeId, children }: { type: string; nodeId: string; children: React.ReactNode }) => {
+  const rgb = type ? tailwind500RgbByColor[getResourceReferenceColorName(type)] : undefined;
+  const style = {
+    '--ec-resource-ref-bg': rgb ? `rgb(${rgb} / 0.12)` : 'rgb(var(--ec-accent) / 0.12)',
+    '--ec-resource-ref-color': rgb ? `rgb(${rgb})` : 'rgb(var(--ec-accent))',
+  } as React.CSSProperties;
+  return (
+    <span style={style}>
+      <CanvasLink
+        go={() => focusCanvas([nodeId])}
+        className="inline-flex items-center gap-1 px-1 -mx-0.5 rounded font-medium underline decoration-dotted decoration-2 underline-offset-[3px] text-[var(--ec-resource-ref-color)] decoration-[var(--ec-resource-ref-color)] hover:bg-[var(--ec-resource-ref-bg)]"
+      >
+        <svg
+          className="w-3.5 h-3.5 flex-shrink-0"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.75}
+          aria-hidden="true"
+          dangerouslySetInnerHTML={{ __html: getResourceReferenceIcon(type) }}
+        />
+        <span>{children}</span>
+      </CanvasLink>
+    </span>
+  );
+};
+
+/** Hotspots' severities, as Studio shows them */
+const HOTSPOT_SEVERITY = {
+  critical: { label: 'Critical', color: '#dc2626', icon: OctagonAlert },
+  warning: { label: 'Warning', color: '#d97706', icon: TriangleAlert },
+  info: { label: 'Info', color: '#2563eb', icon: Info },
+} as const;
+export type FlaggedHotspot = { id: string; severity: keyof typeof HOTSPOT_SEVERITY; title: string };
+
+/** The hotspots the assistant flagged on the canvas in a message */
+export const getFlaggedHotspots = (message: { parts?: Array<any> }): FlaggedHotspot[] =>
+  (message.parts ?? []).flatMap((part) =>
+    part.type === 'tool-addHotspot' &&
+    part.state === 'output-available' &&
+    typeof part.output?.hotspotId === 'string' &&
+    part.input?.severity in HOTSPOT_SEVERITY
+      ? [{ id: part.output.hotspotId, severity: part.input.severity, title: String(part.input.title ?? '') }]
+      : []
+  );
+
+/** The hotspots it flagged, listed under what it says: each takes them to it on the canvas, opened */
+const FlaggedHotspots = memo(({ hotspots }: { hotspots: FlaggedHotspot[] }) => (
+  <div className="mt-3 w-full overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border))]">
+    <div className="px-3 py-2 text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-accent)/0.03)]">
+      Hotspots flagged on the canvas ({hotspots.length})
+    </div>
+    <ul>
+      {hotspots.map((hotspot) => {
+        const { label, color, icon: Icon } = HOTSPOT_SEVERITY[hotspot.severity];
+        return (
+          <li key={hotspot.id} className="border-t border-[rgb(var(--ec-page-border))]">
+            <CanvasLink
+              go={() => showHotspot(hotspot.id)}
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent)/0.06)]"
+            >
+              <Icon size={14} className="flex-none" style={{ color }} aria-label={label} />
+              <span className="min-w-0 flex-1">{hotspot.title}</span>
+              <LocateFixed size={12} className="flex-none text-[rgb(var(--ec-icon-color))]" aria-hidden="true" />
+            </CanvasLink>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+));
+FlaggedHotspots.displayName = 'FlaggedHotspots';
+
 const markdownComponents = {
-  a: ({ ...props }: any) => (
-    <a
-      {...props}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent-hover))] underline"
-    />
-  ),
+  a: ({ node: _node, ...props }: any) => {
+    const nodeIds = nodesInFocusLink(props.href);
+    if (nodeIds) return <FocusLink nodeIds={nodeIds}>{props.children}</FocusLink>;
+    const ref = canvasRefIn(props.href);
+    if (ref) return <CanvasRef {...ref}>{props.children}</CanvasRef>;
+    return (
+      <a
+        {...props}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent-hover))] underline"
+      />
+    );
+  },
   code: ({ children, className, ...props }: any) => {
     const isInline = !className;
     const match = /language-(\w+)/.exec(className || '');
@@ -541,6 +843,104 @@ const markdownComponents = {
 };
 
 // Modal version with slightly different code styling
+export type WalkthroughStep = { title: string; description: string; nodeIds: string[] };
+export type Walkthrough = { id: string; title: string; steps: WalkthroughStep[] };
+
+/** The walkthroughs the assistant gave in a message (walkThrough), as the canvas had them */
+export const getWalkthroughs = (message: { parts?: Array<any> }): Walkthrough[] =>
+  (message.parts ?? []).flatMap((part) =>
+    part.type === 'tool-walkThrough' && part.state === 'output-available' && Array.isArray(part.output?.steps)
+      ? [{ id: String(part.toolCallId), title: String(part.output.title ?? ''), steps: part.output.steps as WalkthroughStep[] }]
+      : []
+  );
+
+/**
+ * A walkthrough, step by step: each step takes them to its nodes on the canvas (clicked, or the pointer resting on it),
+ * and Previous and Next go through them in turn
+ */
+const WalkthroughSteps = memo(({ walkthrough }: { walkthrough: Walkthrough }) => {
+  const [current, setCurrent] = useState<number | null>(null);
+  const goTo = useCallback(
+    (index: number) => {
+      const step = walkthrough.steps[index];
+      if (!step) return;
+      setCurrent(index);
+      if (step.nodeIds.length) focusCanvas(step.nodeIds);
+    },
+    [walkthrough]
+  );
+  const count = walkthrough.steps.length;
+  return (
+    <div className="mt-3 w-full overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border))]">
+      <div className="flex items-center gap-2 px-3 py-2 bg-[rgb(var(--ec-accent)/0.03)] border-b border-[rgb(var(--ec-page-border))]">
+        <span className="min-w-0 flex-1 truncate text-xs font-semibold text-[rgb(var(--ec-page-text))]">{walkthrough.title}</span>
+        <span className="flex-none text-[11px] text-[rgb(var(--ec-page-text-muted))]">
+          {current === null ? `${count} step${count === 1 ? '' : 's'}` : `Step ${current + 1} of ${count}`}
+        </span>
+        <button
+          type="button"
+          aria-label="Previous step"
+          disabled={current === null || current === 0}
+          onClick={() => goTo((current ?? 0) - 1)}
+          className="flex-none cursor-pointer rounded p-0.5 text-[rgb(var(--ec-icon-color))] hover:bg-[rgb(var(--ec-accent)/0.1)] disabled:cursor-default disabled:opacity-30"
+        >
+          <ChevronLeft size={14} />
+        </button>
+        <button
+          type="button"
+          aria-label="Next step"
+          disabled={current === count - 1}
+          onClick={() => goTo(current === null ? 0 : current + 1)}
+          className="flex-none cursor-pointer rounded p-0.5 text-[rgb(var(--ec-icon-color))] hover:bg-[rgb(var(--ec-accent)/0.1)] disabled:cursor-default disabled:opacity-30"
+        >
+          <ChevronRight size={14} />
+        </button>
+      </div>
+      <ol className="py-1">
+        {walkthrough.steps.map((step, index) => {
+          const active = index === current;
+          return (
+            <li key={index} className="relative">
+              {/* The line down to the next step */}
+              {index < count - 1 && (
+                <span aria-hidden="true" className="absolute left-[23px] top-8 bottom-0 w-px bg-[rgb(var(--ec-accent)/0.2)]" />
+              )}
+              <CanvasLink
+                go={() => goTo(index)}
+                className={`flex w-full items-start gap-3 px-3 py-2 text-left ${
+                  active ? 'bg-[rgb(var(--ec-accent)/0.08)]' : 'hover:bg-[rgb(var(--ec-accent)/0.05)]'
+                }`}
+              >
+                <span
+                  className={`relative z-10 flex h-[22px] w-[22px] flex-none items-center justify-center rounded-full text-[11px] font-semibold ${
+                    active
+                      ? 'bg-[rgb(var(--ec-accent))] text-white'
+                      : 'bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-accent))] ring-1 ring-inset ring-[rgb(var(--ec-accent)/0.35)]'
+                  }`}
+                >
+                  {index + 1}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))]">
+                    {step.title}
+                    {step.nodeIds.length > 0 && (
+                      <LocateFixed size={11} className="flex-none text-[rgb(var(--ec-accent))] opacity-70" aria-hidden="true" />
+                    )}
+                  </span>
+                  <span className="mt-0.5 block text-xs leading-relaxed text-[rgb(var(--ec-page-text-muted))]">
+                    {step.description}
+                  </span>
+                </span>
+              </CanvasLink>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+});
+WalkthroughSteps.displayName = 'WalkthroughSteps';
+
 const modalMarkdownComponents = {
   ...markdownComponents,
   code: ({ children, className, ...props }: any) => {
@@ -631,6 +1031,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
 
   // Memoize suggested questions to avoid recalculating on every render
   const suggestedQuestions = useMemo(() => getSuggestedQuestions(pathname), [pathname]);
+  const canvasId = useMemo(() => getCanvasId(pathname), [pathname]);
 
   // Memoize page context to avoid recalculating on every render
   const pageContext = useMemo(() => {
@@ -699,9 +1100,31 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
     isWaitingForResponse ||
     (messages.length > 0 && (status === 'submitted' || status === 'streaming') && !assistantHasContent);
   const isLoading = isThinking || isStreaming;
+  // Working, and not writing text right now (e.g. drawing on a canvas after saying what it'll do): still shown working
+  const isWorking = isThinking || (isStreaming && isBetweenText(lastAssistantMessage));
 
-  // Get currently running tools from the last assistant message
-  const runningTools = useMemo(() => (lastAssistantMessage ? getRunningTools(lastAssistantMessage) : []), [lastAssistantMessage]);
+  // What it's done and is doing in the turn going on (the last message, once the assistant's started it)
+  const lastMessage = messages.at(-1);
+  const activitySteps = useMemo(() => getActivitySteps(lastMessage), [lastMessage]);
+  const suggestingFollowUps = useMemo(() => isSuggestingFollowUps(lastMessage), [lastMessage]);
+
+  // The assistant showing them something on the canvas (showOnCanvas, a walkthrough's start): taken there, once
+  const shownOnCanvas = useRef(new Set<string>());
+  useEffect(() => {
+    for (const part of (lastAssistantMessage?.parts ?? []) as Array<any>) {
+      if (part.state !== 'output-available' || shownOnCanvas.current.has(part.toolCallId)) continue;
+      // What it showed them, or a walkthrough's first step
+      const nodeIds: string[] | undefined =
+        part.type === 'tool-showOnCanvas'
+          ? part.output?.nodeIds
+          : part.type === 'tool-walkThrough'
+            ? part.output?.steps?.[0]?.nodeIds
+            : undefined;
+      if (!nodeIds?.length) continue;
+      shownOnCanvas.current.add(part.toolCallId);
+      focusCanvas(nodeIds);
+    }
+  }, [lastAssistantMessage]);
 
   // Jump the messages (in the panel and the fullscreen modal) to the latest. Instantly: a smooth scroll restarted on
   // every streamed token lands short of the growing answer and scrolls back and forth.
@@ -829,9 +1252,11 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
         return;
       }
       setIsWaitingForResponse(true);
-      sendMessage({ text });
+      // The canvas follows the assistant while it draws
+      if (canvasId) window.dispatchEvent(new CustomEvent(ASSISTANT_DRAWING_EVENT, { detail: { canvasId } }));
+      sendMessage({ text }, canvasId ? { body: { canvasId } } : undefined);
     },
-    [configured, isLoading, sendMessage, setMessages]
+    [configured, isLoading, sendMessage, setMessages, canvasId]
   );
 
   const stopResponse = useCallback(() => {
@@ -856,6 +1281,30 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
     },
     [submitMessage]
   );
+
+  // A suggested question: asked, or answered here straight away (no need to wait on the model to ask something back)
+  const handleSuggestedQuestion = useCallback(
+    ({ prompt, reply }: SuggestedQuestion) => {
+      if (!reply || isLoading) return handleSuggestedAction(prompt);
+      followLatest.current = true;
+      setMessages((previous) => [
+        ...previous,
+        { id: crypto.randomUUID(), role: 'user', parts: [{ type: 'text', text: prompt }] },
+        { id: crypto.randomUUID(), role: 'assistant', parts: [{ type: 'text', text: reply }] },
+      ]);
+      (isFullscreen ? modalInputRef : inputRef).current?.focus();
+    },
+    [handleSuggestedAction, isLoading, isFullscreen, setMessages]
+  );
+
+  // The box grows with what's typed in it (up to its max-height, then scrolls), and shrinks back once it's sent
+  useEffect(() => {
+    for (const input of [inputRef.current, modalInputRef.current]) {
+      if (!input) continue;
+      input.style.height = 'auto';
+      input.style.height = `${input.scrollHeight}px`;
+    }
+  }, [inputValue, isFullscreen, isOpen]);
 
   // Handle input enter key
   const handleInputKeyDown = useCallback(
@@ -1004,7 +1453,9 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                     </div>
                     <h2 className="text-lg font-medium text-[rgb(var(--ec-page-text))] mb-1">{greeting}</h2>
                     <p className="text-sm font-normal text-[rgb(var(--ec-content-text))]">
-                      I'm here to help with your architecture
+                      {canvasId
+                        ? "Tell me what to diagram and I'll draw it on the canvas"
+                        : "I'm here to help with your architecture"}
                     </p>
                   </div>
 
@@ -1013,7 +1464,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                     {suggestedQuestions.map((question, index) => (
                       <button
                         key={index}
-                        onClick={() => handleSuggestedAction(question.prompt)}
+                        onClick={() => handleSuggestedQuestion(question)}
                         className="ec-chat-suggestion text-left px-3 py-2 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-accent)/0.04)] hover:bg-[rgb(var(--ec-accent)/0.09)] rounded-full transition-all duration-200"
                         style={isOpen ? fadeInStyles.getQuestionStyle(index) : undefined}
                       >
@@ -1029,6 +1480,8 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                     const content = getMessageContent(message);
                     const followUpSuggestions = message.role === 'assistant' ? getFollowUpSuggestions(message) : [];
                     const completedTools = message.role === 'assistant' ? getCompletedTools(message) : [];
+                    const flaggedHotspots = message.role === 'assistant' ? getFlaggedHotspots(message) : [];
+                    const walkthroughs = message.role === 'assistant' ? getWalkthroughs(message) : [];
                     const isLastMessage = messageIndex === messages.length - 1;
                     return (
                       <div
@@ -1067,6 +1520,10 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                               </div>
                             </div>
                             {/* Follow-up suggestions - only show for last assistant message when not loading */}
+                            {walkthroughs.map((walkthrough) => (
+                              <WalkthroughSteps key={walkthrough.id} walkthrough={walkthrough} />
+                            ))}
+                            {flaggedHotspots.length > 0 && <FlaggedHotspots hotspots={flaggedHotspots} />}
                             {isLastMessage && followUpSuggestions.length > 0 && !isLoading && (
                               <div className="flex flex-wrap gap-2 mt-3 w-full">
                                 {followUpSuggestions.map((suggestion, index) => (
@@ -1088,9 +1545,9 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                   })}
 
                   {/* Skeleton loading indicator */}
-                  {isThinking && (
+                  {isWorking && (
                     <div className="w-full">
-                      <SkeletonLoader label={runningTools.length > 0 ? `Using ${runningTools[0]}…` : undefined} />
+                      {suggestingFollowUps ? <FollowUpsLoading /> : <ActivityCard steps={activitySteps} />}
                     </div>
                   )}
 
@@ -1136,40 +1593,42 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleInputKeyDown}
-                    placeholder="Ask, search, or explain..."
+                    placeholder={canvasId ? 'Describe what to diagram...' : 'Ask, search, or explain...'}
                     disabled={isLoading}
-                    className="w-full px-4 py-3 pr-16 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-hidden text-sm disabled:opacity-50 rounded-xl"
+                    className="w-full px-4 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-hidden text-sm disabled:opacity-50 rounded-xl"
                   />
-                  <div className="absolute bottom-4 left-4 right-20 truncate text-[10px] text-[rgb(var(--ec-page-text-muted))]">
-                    <span className="mr-1.5 rounded bg-[rgb(var(--ec-accent)/0.08)] px-1 py-0.5 font-medium text-[rgb(var(--ec-accent))]">
-                      AI
-                    </span>
-                    {configured
-                      ? pageContext
-                        ? `Based on ${pageContext.name}`
-                        : 'Your architecture, connected'
-                      : 'Explore your catalog with AI'}
-                  </div>
-                  <div className="ec-chat-composer-actions absolute right-2 z-10">
-                    {isStreaming || isSetupThinking ? (
-                      <button
-                        type="button"
-                        onClick={stopResponse}
-                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                        aria-label="Stop generating"
-                      >
-                        <Square size={14} fill="currentColor" />
-                      </button>
-                    ) : (
-                      <button
-                        type="submit"
-                        disabled={!inputValue.trim() || isLoading}
-                        className="px-3 py-1.5 bg-[rgb(var(--ec-accent))] text-white text-xs font-medium rounded-lg hover:bg-[rgb(var(--ec-accent-hover))] disabled:bg-transparent disabled:text-[rgb(var(--ec-icon-color))] transition-colors"
-                        aria-label="Send message"
-                      >
-                        Send
-                      </button>
-                    )}
+                  <div className="ec-chat-composer-footer">
+                    <div className="min-w-0 flex-1 truncate text-[10px] text-[rgb(var(--ec-page-text-muted))]">
+                      <span className="mr-1.5 rounded bg-[rgb(var(--ec-accent)/0.08)] px-1 py-0.5 font-medium text-[rgb(var(--ec-accent))]">
+                        AI
+                      </span>
+                      {configured
+                        ? pageContext
+                          ? `Based on ${pageContext.name}`
+                          : 'Your architecture, connected'
+                        : 'Explore your catalog with AI'}
+                    </div>
+                    <div className="flex-none">
+                      {isStreaming || isSetupThinking ? (
+                        <button
+                          type="button"
+                          onClick={stopResponse}
+                          className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                          aria-label="Stop generating"
+                        >
+                          <Square size={14} fill="currentColor" />
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          disabled={!inputValue.trim() || isLoading}
+                          className="px-3 py-1.5 bg-[rgb(var(--ec-accent))] text-white text-xs font-medium rounded-lg hover:bg-[rgb(var(--ec-accent-hover))] disabled:bg-transparent disabled:text-[rgb(var(--ec-icon-color))] transition-colors"
+                          aria-label="Send message"
+                        >
+                          Send
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </form>
@@ -1312,7 +1771,9 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                     </div>
                     <h2 className="text-2xl font-medium text-[rgb(var(--ec-page-text))] mb-2">{greeting}</h2>
                     <p className="font-normal text-[rgb(var(--ec-content-text))] text-center">
-                      I'm here to help with your architecture
+                      {canvasId
+                        ? "Tell me what to diagram and I'll draw it on the canvas"
+                        : "I'm here to help with your architecture"}
                     </p>
                   </div>
 
@@ -1321,7 +1782,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                     {suggestedQuestions.map((question, index) => (
                       <button
                         key={index}
-                        onClick={() => handleSuggestedAction(question.prompt)}
+                        onClick={() => handleSuggestedQuestion(question)}
                         className="ec-chat-suggestion px-3 py-2 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-accent)/0.04)] hover:bg-[rgb(var(--ec-accent)/0.09)] rounded-full transition-all duration-200 text-left"
                       >
                         {question.label}
@@ -1336,6 +1797,8 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                     const content = getMessageContent(message);
                     const followUpSuggestions = message.role === 'assistant' ? getFollowUpSuggestions(message) : [];
                     const completedTools = message.role === 'assistant' ? getCompletedTools(message) : [];
+                    const flaggedHotspots = message.role === 'assistant' ? getFlaggedHotspots(message) : [];
+                    const walkthroughs = message.role === 'assistant' ? getWalkthroughs(message) : [];
                     const isLastMessage = messageIndex === messages.length - 1;
                     return (
                       <div
@@ -1374,6 +1837,10 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                               </div>
                             </div>
                             {/* Follow-up suggestions - only show for last assistant message when not loading */}
+                            {walkthroughs.map((walkthrough) => (
+                              <WalkthroughSteps key={walkthrough.id} walkthrough={walkthrough} />
+                            ))}
+                            {flaggedHotspots.length > 0 && <FlaggedHotspots hotspots={flaggedHotspots} />}
                             {isLastMessage && followUpSuggestions.length > 0 && !isLoading && (
                               <div className="flex flex-wrap gap-2 mt-3 w-full">
                                 {followUpSuggestions.map((suggestion, index) => (
@@ -1394,9 +1861,9 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                     );
                   })}
 
-                  {isThinking && (
+                  {isWorking && (
                     <div className="w-full max-w-md">
-                      <SkeletonLoader label={runningTools.length > 0 ? `Using ${runningTools[0]}…` : undefined} />
+                      {suggestingFollowUps ? <FollowUpsLoading /> : <ActivityCard steps={activitySteps} />}
                     </div>
                   )}
 
@@ -1431,40 +1898,42 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleInputKeyDown}
-                    placeholder="Ask, search, or explain..."
+                    placeholder={canvasId ? 'Describe what to diagram...' : 'Ask, search, or explain...'}
                     disabled={isLoading}
-                    className="w-full px-4 py-3.5 pr-20 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-hidden text-sm disabled:opacity-50 rounded-xl"
+                    className="w-full px-4 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-hidden text-sm disabled:opacity-50 rounded-xl"
                   />
-                  <div className="absolute bottom-4 left-4 right-20 truncate text-[10px] text-[rgb(var(--ec-page-text-muted))]">
-                    <span className="mr-1.5 rounded bg-[rgb(var(--ec-accent)/0.08)] px-1 py-0.5 font-medium text-[rgb(var(--ec-accent))]">
-                      AI
-                    </span>
-                    {configured
-                      ? pageContext
-                        ? `Based on ${pageContext.name}`
-                        : 'Your architecture, connected'
-                      : 'Explore your catalog with AI'}
-                  </div>
-                  <div className="ec-chat-composer-actions absolute right-2 z-10">
-                    {isStreaming || isSetupThinking ? (
-                      <button
-                        type="button"
-                        onClick={stopResponse}
-                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                        aria-label="Stop generating"
-                      >
-                        <Square size={14} fill="currentColor" />
-                      </button>
-                    ) : (
-                      <button
-                        type="submit"
-                        disabled={!inputValue.trim() || isLoading}
-                        className="px-4 py-2 bg-[rgb(var(--ec-accent))] text-white text-sm font-medium rounded-lg hover:bg-[rgb(var(--ec-accent-hover))] disabled:bg-transparent disabled:text-[rgb(var(--ec-icon-color))] disabled:cursor-not-allowed transition-colors"
-                        aria-label="Send message"
-                      >
-                        Send
-                      </button>
-                    )}
+                  <div className="ec-chat-composer-footer">
+                    <div className="min-w-0 flex-1 truncate text-[10px] text-[rgb(var(--ec-page-text-muted))]">
+                      <span className="mr-1.5 rounded bg-[rgb(var(--ec-accent)/0.08)] px-1 py-0.5 font-medium text-[rgb(var(--ec-accent))]">
+                        AI
+                      </span>
+                      {configured
+                        ? pageContext
+                          ? `Based on ${pageContext.name}`
+                          : 'Your architecture, connected'
+                        : 'Explore your catalog with AI'}
+                    </div>
+                    <div className="flex-none">
+                      {isStreaming || isSetupThinking ? (
+                        <button
+                          type="button"
+                          onClick={stopResponse}
+                          className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                          aria-label="Stop generating"
+                        >
+                          <Square size={14} fill="currentColor" />
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          disabled={!inputValue.trim() || isLoading}
+                          className="px-4 py-2 bg-[rgb(var(--ec-accent))] text-white text-sm font-medium rounded-lg hover:bg-[rgb(var(--ec-accent-hover))] disabled:bg-transparent disabled:text-[rgb(var(--ec-icon-color))] disabled:cursor-not-allowed transition-colors"
+                          aria-label="Send message"
+                        >
+                          Send
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </form>

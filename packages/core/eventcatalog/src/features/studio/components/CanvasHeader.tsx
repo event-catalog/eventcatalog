@@ -10,6 +10,7 @@ import {
   Plug,
   Plus,
   Share2,
+  Sparkles,
   Trash2,
   Users,
 } from 'lucide-react';
@@ -440,6 +441,7 @@ export default memo(function CanvasHeader({
   statusHistory,
   onStatusChange,
   onDelete,
+  onDrawWithAi,
 }: {
   title?: string;
   onRetitle: (title: string) => void;
@@ -470,6 +472,8 @@ export default memo(function CanvasHeader({
   onHelp: () => void;
   /** Ask to delete the canvas (not given where it can't be, e.g. inside a chat) */
   onDelete?: () => void;
+  /** Opens the assistant to draw on the canvas (not given where there isn't one, e.g. inside a chat) */
+  onDrawWithAi?: () => void;
 }) {
   const peers = usePeople(presence);
   const agentsHere = peers.some((peer) => peer.agent);
@@ -505,6 +509,16 @@ export default memo(function CanvasHeader({
           </div>
         )}
         <ProfileMenu me={me} onRename={onRename} onRecolor={onRecolor} />
+        {onDrawWithAi && (
+          <button
+            onClick={onDrawWithAi}
+            title="Describe what to diagram and the assistant draws it here"
+            className={`${barClass} gap-2 px-3 text-sm font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-accent-subtle))]`}
+          >
+            <Sparkles size={16} className="text-[rgb(var(--ec-accent))]" aria-hidden />
+            Draw with AI
+          </button>
+        )}
         <button
           onClick={onShare}
           className="pointer-events-auto inline-flex h-[38px] items-center gap-2 rounded-[9px] bg-[rgb(var(--ec-page-text))] px-4 text-sm font-semibold text-[rgb(var(--ec-page-bg))] shadow-sm transition-colors hover:bg-[rgb(var(--ec-page-text)/0.85)]"

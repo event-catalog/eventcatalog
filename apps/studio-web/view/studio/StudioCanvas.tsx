@@ -1119,6 +1119,8 @@ function Canvas({
   const onPaneClick = useStableCallback((event: ReactMouseEvent) => {
     onPaneClicked?.();
     setAllSelected(false);
+    // An open hotspot closes on a click anywhere else on the canvas
+    setOpenHotspot(null);
     if (tool === 'hand') return;
     // Commenting: a pin where it's clicked, and its comment written there
     if (tool === 'comment') return startComment({ ...anchorAt(flowPositionOf(event)), ...placeLevel() });
@@ -1157,6 +1159,7 @@ function Canvas({
 
   // A node clicked with the comment tool: the pin's on it (and moves with it)
   const onNodeClick = useStableCallback((event: ReactMouseEvent, node: Node) => {
+    setOpenHotspot(null);
     // Not on notes and text: they're written on, not what's being flagged or commented on
     if (isWrittenOnCanvas(node.type)) return;
     // A hotspot on it (it shows on the node, wherever it goes, on every level it's on)

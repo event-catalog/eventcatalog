@@ -25,11 +25,16 @@ import {
   isOnLevel,
   isVersioned,
   isWrittenOnCanvas,
+  readHotspots,
+  sortByHierarchy,
+  TEXT_FONT_SIZE,
+  type LayoutResult,
   updateResource,
 } from '@eventcatalog/visualiser/studio';
 import type { CatalogRelation, CatalogResource } from './catalog-resources';
 import {
   buildContainer,
+  buildContainerWithContents,
   canBeContainer,
   catalogNodeData,
   containerTypeFor,
@@ -45,6 +50,12 @@ import {
 
 // ---- Inputs ----
 
+/** What agents can add as new components: what people add from the palette, and sticky notes and text (from the bar) */
+export const AGENT_COMPONENT_TYPES = [...COMPONENT_TYPES, 'note', 'text'] as const;
+
+/** What a catalog service or message can bring with it: a service's messages and data stores, a message's services */
+export const CONNECTION_GROUP_IDS = ['receives', 'sends', 'dataStores', 'senders', 'receivers'] as const;
+
 export const nodeSpecsSchema = z
   .array(
     z.object({
@@ -53,15 +64,39 @@ export const nodeSpecsSchema = z
         .object({ collection: z.enum(CATALOG_COLLECTIONS), id: z.string() })
         .optional()
         .describe('A catalog resource to add (latest version)'),
-      type: z.enum(COMPONENT_TYPES).optional().describe('For a new component: what it is'),
+      type: z
+        .enum(AGENT_COMPONENT_TYPES)
+        .optional()
+        .describe('For a new component: what it is (note: a sticky note; text: words written on the canvas)'),
       name: z.string().optional().describe('For a new component: its name'),
-      summary: z.string().optional().describe('For a new component: what it does. For a note or text: its text'),
+      summary: z
+        .string()
+        .optional()
+        .describe('For a new component: what it does. For a note or text: its text (keep notes to a few words)'),
       version: z.string().optional().describe('For a new component: its version, e.g. 1.0.0 (defaults to 0.0.1)'),
+      fontSize: z
+        .number()
+        .min(8)
+        .max(200)
+        .optional()
+        .describe(`For text: how big it's written, in pixels (${TEXT_FONT_SIZE} by default; e.g. 48 for a heading)`),
       container: z
         .boolean()
         .optional()
         .describe(
           'For a domain or system from the catalog: add it as a container that other nodes sit inside, rather than a card'
+        ),
+      contents: z
+        .boolean()
+        .optional()
+        .describe(
+          'For a domain or system from the catalog: add it as a container with everything it holds in the catalog (its systems, services, and their messages and data stores), connected and laid out, in one go. Use it to add an existing domain or system rather than adding what is in it one by one'
+        ),
+      connections: z
+        .array(z.enum(CONNECTION_GROUP_IDS))
+        .optional()
+        .describe(
+          'For a service or message from the catalog: bring what it connects to in the catalog too, placed around it and connected. For a service: receives (messages it receives), sends (messages it sends), dataStores. For a message: senders, receivers (the services that send and receive it)'
         ),
       inside: z
         .string()
@@ -179,6 +214,7 @@ export const ADD_TO_CANVAS_DESCRIPTION = [
   'A node is either a catalog resource (resource: { collection, id }), shown with its real name and summary and automatically connected to the related resources already on the canvas (e.g. a service to the events it publishes), or a new component (type, name, summary) for things that are not in the catalog yet, like a proposed service.',
   'Give each node a ref to connect new nodes to each other in edges.',
   'Domains and systems can be containers (container: true for catalog ones, or type domain-group / system-group for new ones): put services, messages and data stores inside one with inside (its ref or node id), e.g. a domain container with its system containers inside, and their services inside those.',
+  'To add a domain or system that is in the catalog with what it holds, give it contents: true: its systems, services, messages and data stores come with it, connected and laid out, in one go (as people add one from the catalog), so don\'t add them one by one. To bring what a catalog service or message connects to, give it connections (e.g. ["sends", "receives"] for a service, ["senders", "receivers"] for a message).',
   'Leave out x/y and each node is placed like an architect would: next to what it connects to (in edges, or as a related catalog resource), following the flow left to right (producers on the left of their messages, consumers on the right), lined up with it, and stacked when several connect to the same node. Nothing already on the canvas moves, and nodes connected to nothing go below what is there.',
   "Give x/y (a node's centre, like the positions from reading the canvas) only to put a node somewhere specific. Nodes are about 240 wide and 110 tall: leave about 200 between connected nodes for the labels on their connections.",
 ].join(' ');
@@ -258,6 +294,13 @@ export const describeCanvas = (doc: Y.Doc) => {
       to: edge.target,
       description: `${names.get(edge.source)} ${String(edge.label || '→').replace(/\s+/g, ' ')} ${names.get(edge.target)}`,
     })),
+    hotspots: readHotspots(doc).map((hotspot) => ({
+      hotspotId: hotspot.id,
+      severity: hotspot.severity,
+      title: hotspot.title,
+      ...(hotspot.description && { description: hotspot.description }),
+      ...(hotspot.nodeId ? { onNode: hotspot.nodeId } : { position: hotspot.position }),
+    })),
     comments: canvas.threads.map((thread) => ({
       threadId: thread.id,
       ...(thread.nodeId ? { onNode: thread.nodeId } : { position: thread.position }),
@@ -276,13 +319,30 @@ export type EdgeSpecs = z.output<typeof edgeSpecsSchema>;
  * Its node's position is relative to its container, as the canvas is now; `canvasPosition` is where it goes on
  * the canvas, which stays the same when containers grow to fit what's added (and move what's in them).
  */
-export type PlannedNode = { ref?: string; node: Node; name: string; resource?: CatalogResource; canvasPosition: XYPosition };
+export type PlannedNode = {
+  ref?: string;
+  node: Node;
+  name: string;
+  resource?: CatalogResource;
+  canvasPosition: XYPosition;
+  /** In a domain or system added with its contents (the container's node id): added with it, in one go */
+  partOf?: string;
+};
+
+/** Domains and systems added with their contents, built and laid out (the container first), by the spec they're for */
+export type CatalogBlocks = Map<NodeSpecs[number], Node[]>;
 
 /**
  * Builds the nodes to add (catalog resources, as cards or containers, or new components), and places them:
  * where asked, or next to what they connect to (the edges asked for, and related catalog resources)
  */
-export const planNodes = (existing: Node[], specs: NodeSpecs, catalog: CatalogIndex, edges: EdgeSpecs = []) => {
+export const planNodes = (
+  existing: Node[],
+  specs: NodeSpecs,
+  catalog: CatalogIndex,
+  edges: EdgeSpecs = [],
+  blocks: CatalogBlocks = new Map()
+) => {
   const lookup: NodeLookup = new Map(existing.map((node) => [node.id, node]));
   const refs = new Map<string, Node>();
   const planned: PlannedNode[] = [];
@@ -296,6 +356,12 @@ export const planNodes = (existing: Node[], specs: NodeSpecs, catalog: CatalogIn
     const center = centerOf(spec);
     const { width, height } = spec;
     return { ...node, width, height, position: { x: center.x - width / 2, y: center.y - height / 2 } };
+  };
+
+  // A domain or system laid out with its contents, centred where asked
+  const centred = (node: Node, center: XYPosition): Node => {
+    const { width, height } = sizeOf(node);
+    return { ...node, position: { x: center.x - width / 2, y: center.y - height / 2 } };
   };
 
   // Inside a container, at the canvas point asked for (relative to the container)
@@ -318,19 +384,26 @@ export const planNodes = (existing: Node[], specs: NodeSpecs, catalog: CatalogIn
         errors.push(`No ${spec.resource.collection} resource "${spec.resource.id}" in the catalog`);
         continue;
       }
-      const asContainer = spec.container && canBeContainer(resource);
-      const node = asContainer
-        ? sized(buildContainer(resource, centerOf(spec)), spec)
-        : buildNode(resource.node.type, catalogNodeData(resource), centerOf(spec));
+      const asContainer = (spec.container || spec.contents) && canBeContainer(resource);
+      const block = blocks.get(spec);
+      const node = block
+        ? centred(block[0], centerOf(spec))
+        : asContainer
+          ? sized(buildContainer(resource, centerOf(spec)), spec)
+          : buildNode(resource.node.type, catalogNodeData(resource), centerOf(spec));
       built = { node, name: resource.name, resource };
     } else {
       const definition = getNodeDefinition(spec.type);
       if (!definition) {
-        errors.push(`Give each node a resource, or a type (one of ${COMPONENT_TYPES.join(', ')})`);
+        errors.push(`Give each node a resource, or a type (one of ${AGENT_COMPONENT_TYPES.join(', ')})`);
         continue;
       }
       const data = isWrittenOnCanvas(definition.type)
-        ? { ...definition.createData(), text: spec.summary ?? spec.name ?? '' }
+        ? {
+            ...definition.createData(),
+            text: spec.summary ?? spec.name ?? '',
+            ...(spec.fontSize && definition.type === 'text' && { fontSize: spec.fontSize }),
+          }
         : updateResource(definition.type, definition.createData(), {
             ...(spec.name && { name: spec.name }),
             ...(spec.summary && { summary: spec.summary }),
@@ -351,11 +424,35 @@ export const planNodes = (existing: Node[], specs: NodeSpecs, catalog: CatalogIn
     lookup.set(built.node.id, built.node);
     if (spec.ref) refs.set(spec.ref, built.node);
     planned.push({ ref: spec.ref, ...built, canvasPosition: getAbsolutePosition(built.node, lookup) });
+
+    // What a domain or system holds, as it was laid out in it
+    for (const node of (spec.resource && blocks.get(spec)?.slice(1)) || []) {
+      const key = getCatalogLink(node)?.key;
+      const resource = key ? catalog.resourcesByKey.get(key) : undefined;
+      lookup.set(node.id, node);
+      planned.push({
+        node,
+        name: resource?.name ?? getNodeName(node.type, node.data, node.id),
+        resource,
+        canvasPosition: getAbsolutePosition(node, lookup),
+        partOf: built.node.id,
+      });
+    }
   }
 
   // What the new nodes connect to: the edges asked for, and related catalog resources (as they'll be connected)
   const links = new Map<string, Link>();
-  const link = (source: string, target: string) => links.set(`${source}>${target}`, { source, target });
+  // What's in a domain or system added with its contents is placed with it: its links are the container's
+  const inBlocks = new Set(planned.flatMap((entry) => (entry.partOf ? [entry.node.id] : [])));
+  const placedWith = (id: string) => {
+    let node = lookup.get(id);
+    while (node?.parentId && inBlocks.has(node.id)) node = lookup.get(node.parentId);
+    return node?.id ?? id;
+  };
+  const link = (from: string, to: string) => {
+    const [source, target] = [placedWith(from), placedWith(to)];
+    if (source !== target) links.set(`${source}>${target}`, { source, target });
+  };
   const nodeIdOf = (refOrId: string) => refs.get(refOrId)?.id ?? refOrId;
   edges.forEach((edge) => link(nodeIdOf(edge.from), nodeIdOf(edge.to)));
   const nodesByKey = new Map<string, Node[]>();
@@ -390,8 +487,85 @@ export const planNodes = (existing: Node[], specs: NodeSpecs, catalog: CatalogIn
     entry.canvasPosition = canvasPosition;
     entry.node = { ...entry.node, position: { x: canvasPosition.x - origin.x, y: canvasPosition.y - origin.y } };
   }
+  // What's in a domain or system added with its contents goes where it went
+  for (const entry of planned) {
+    const parentPosition = entry.partOf && entry.node.parentId ? canvasPositions.get(entry.node.parentId) : undefined;
+    if (!parentPosition) continue;
+    entry.canvasPosition = { x: parentPosition.x + entry.node.position.x, y: parentPosition.y + entry.node.position.y };
+    canvasPositions.set(entry.node.id, entry.canvasPosition);
+  }
+
+  // Notes and text go where they're asked, or the nearest clear spot to it: never on top of anything
+  const existingLookup = new Map(existing.map((node) => [node.id, node]));
+  const sizeOnCanvas = (node: Node) => (isWrittenOnCanvas(node.type) ? writtenSize(node) : sizeOf(node));
+  const taken: Rect[] = [
+    ...existing
+      .filter((node) => isOnLevel(node, 3))
+      .map((node) => ({ ...getAbsolutePosition(node, existingLookup), ...sizeOnCanvas(node) })),
+    ...planned
+      .filter((entry) => !isWrittenOnCanvas(entry.node.type) && isOnLevel(entry.node, 3))
+      .map((entry) => ({ ...entry.canvasPosition, ...sizeOf(entry.node) })),
+  ];
+  for (const entry of planned) {
+    if (!isWrittenOnCanvas(entry.node.type) || entry.node.parentId || !isOnLevel(entry.node, 3)) continue;
+    const size = writtenSize(entry.node);
+    const spot = clearSpot(entry.canvasPosition, size, taken, entry.node.type === 'note' ? RIGHT_FIRST : UP_FIRST);
+    entry.canvasPosition = spot;
+    entry.node = { ...entry.node, position: spot };
+    taken.push({ ...spot, ...size });
+  }
 
   return { planned, errors };
+};
+
+const keyOf = (resource: { collection: string; id: string }) => `${resource.collection}:${resource.id}`;
+
+/**
+ * What specs bring from the catalog, as people get it there: the connections asked for (as more specs, after the
+ * one they're for) and the contents of domains and systems (built and laid out, for planNodes). Nothing already on
+ * the canvas, or brought by an earlier spec, is brought again.
+ */
+export const expandCatalogSpecs = async (existing: Node[], specs: NodeSpecs, catalog: CatalogIndex) => {
+  const expanded: NodeSpecs = [];
+  const blocks: CatalogBlocks = new Map();
+  const errors: string[] = [];
+  const brought = [...existing];
+  const keys = new Set(
+    [...existing.map((node) => getCatalogLink(node)?.key), ...specs.map((spec) => spec.resource && keyOf(spec.resource))].filter(
+      (key): key is string => !!key
+    )
+  );
+
+  for (const spec of specs) {
+    expanded.push(spec);
+    const resource = spec.resource && catalog.resourcesByKey.get(keyOf(spec.resource));
+    if (!resource) continue;
+
+    if (spec.contents && !canBeContainer(resource))
+      errors.push(`Only domains and systems have contents: "${resource.name}" was added on its own`);
+    else if (spec.contents) {
+      const block = sortByHierarchy((await buildContainerWithContents(resource, { x: 0, y: 0 }, catalog, brought)).nodes);
+      blocks.set(spec, block);
+      brought.push(...block);
+      for (const node of block) {
+        const key = getCatalogLink(node)?.key;
+        if (key) keys.add(key);
+      }
+    }
+
+    if (!spec.connections?.length) continue;
+    const wanted = new Set<string>(spec.connections);
+    const groups = getCatalogConnections(resource, catalog, keys).filter((group) => wanted.has(group.id));
+    for (const other of groups.flatMap((group) => group.resources)) {
+      keys.add(other.key);
+      expanded.push({
+        resource: { collection: other.collection as (typeof CATALOG_COLLECTIONS)[number], id: other.id },
+        // A service's data stores go in its container with it
+        ...(spec.inside && other.collection === 'containers' && { inside: spec.inside }),
+      });
+    }
+  }
+  return { specs: expanded, blocks, errors };
 };
 
 /** Edges given by refs (or ids of nodes already on the canvas), as node ids */
@@ -433,17 +607,157 @@ export const planCanvas = (
   };
 };
 
-export type NodeUpdate = { nodeId: string; name?: string; summary?: string; version?: string };
+/** How far a sticky note or text can be from a node to be about it (to move with it when the canvas is laid out) */
+const NOTE_REACH = 400;
+/** Notes and text that would land on something are moved this far at a time, up to this many times, to clear it */
+const NUDGE = 40;
+const MAX_NUDGES = 80;
+/** The least room left between a note or text and what's around it */
+const NOTE_CLEARANCE = 24;
+
+type Rect = { x: number; y: number; width: number; height: number };
+const overlaps = (a: Rect, b: Rect) =>
+  a.x < b.x + b.width + NOTE_CLEARANCE &&
+  b.x < a.x + a.width + NOTE_CLEARANCE &&
+  a.y < b.y + b.height + NOTE_CLEARANCE &&
+  b.y < a.y + a.height + NOTE_CLEARANCE;
+const boundsOf = (rects: Rect[]): Rect | undefined => {
+  if (!rects.length) return undefined;
+  const x = Math.min(...rects.map((rect) => rect.x));
+  const y = Math.min(...rects.map((rect) => rect.y));
+  return {
+    x,
+    y,
+    width: Math.max(...rects.map((rect) => rect.x + rect.width)) - x,
+    height: Math.max(...rects.map((rect) => rect.y + rect.height)) - y,
+  };
+};
+
+/** How big a note or text is drawn: text is as big as what's written (the canvas only knows once it's drawn) */
+const writtenSize = (node: Node) => {
+  // A sticky note grows taller with what's written on it (about 20 characters a line)
+  if (node.type === 'note') {
+    const { width, height } = sizeOf(node);
+    const lines = Math.ceil(String(node.data.text ?? '').length / 20);
+    return { width, height: Math.max(height, lines * 22 + 60) };
+  }
+  if (node.type !== 'text') return sizeOf(node);
+  const fontSize = typeof node.data.fontSize === 'number' ? node.data.fontSize : TEXT_FONT_SIZE;
+  const lines = String(node.data.text ?? '').split('\n');
+  return {
+    width: Math.max(1, ...lines.map((line) => line.length)) * fontSize * 0.6,
+    height: lines.length * fontSize * 1.4,
+  };
+};
+
+const UP_FIRST = [
+  [0, -1],
+  [1, 0],
+  [0, 1],
+  [-1, 0],
+] as const;
+const RIGHT_FIRST = [
+  [1, 0],
+  [0, -1],
+  [0, 1],
+  [-1, 0],
+] as const;
+
+/**
+ * The nearest place to `at` where something this big is clear of everything taken, trying each way in turn: text
+ * upwards first (titles stay above), notes to the right first (beside what they're about)
+ */
+const clearSpot = (
+  at: XYPosition,
+  size: { width: number; height: number },
+  taken: Rect[],
+  ways: readonly (readonly [number, number])[] = UP_FIRST
+): XYPosition => {
+  const isClear = (spot: XYPosition) => !taken.some((rect) => overlaps({ ...spot, ...size }, rect));
+  if (isClear(at)) return at;
+  for (let step = 1; step <= MAX_NUDGES; step++) {
+    const distance = step * NUDGE;
+    for (const [dx, dy] of ways) {
+      const spot = { x: at.x + dx * distance, y: at.y + dy * distance };
+      if (isClear(spot)) return spot;
+    }
+  }
+  return at;
+};
+
+/**
+ * A layout with sticky notes and text placed too, as they were around the diagram: each beside a node moves with it
+ * (the nearest one, within NOTE_REACH of its middle), the rest (e.g. a title) keep their place around the whole
+ * diagram. None lands on anything: one that would is moved to the nearest clear spot.
+ */
+export const withNotesPlaced = (nodes: Node[], layout: LayoutResult): LayoutResult => {
+  const before = new Map(nodes.map((node) => [node.id, node]));
+  const after = new Map(
+    nodes.map((node) => {
+      const placed = layout.nodes.get(node.id);
+      return [node.id, placed ? { ...node, position: placed.position, ...(placed.size ?? {}) } : node];
+    })
+  );
+  const rectIn = (lookup: Map<string, Node>) => (node: Node) => ({
+    ...getAbsolutePosition(lookup.get(node.id)!, lookup),
+    ...sizeOf(lookup.get(node.id)!),
+  });
+  const drawn = nodes.filter((node) => !isWrittenOnCanvas(node.type) && isOnLevel(node, 3));
+  /** How far a point is from a node (0 inside it), with what's in containers nearer than the containers */
+  const distanceTo = (point: XYPosition, node: Node) => {
+    const rect = rectIn(before)(node);
+    const dx = Math.max(rect.x - point.x, 0, point.x - (rect.x + rect.width));
+    const dy = Math.max(rect.y - point.y, 0, point.y - (rect.y + rect.height));
+    return Math.hypot(dx, dy) + (isGroupType(node.type) ? 1 : 0);
+  };
+  const boundsBefore = boundsOf(drawn.map(rectIn(before)));
+  const boundsAfter = boundsOf(drawn.map(rectIn(after)));
+  const aroundDiagram =
+    boundsBefore && boundsAfter ? { x: boundsAfter.x - boundsBefore.x, y: boundsAfter.y - boundsBefore.y } : { x: 0, y: 0 };
+
+  const taken: Rect[] = drawn.map(rectIn(after));
+  const placed = new Map(layout.nodes);
+  for (const note of nodes.filter((node) => isWrittenOnCanvas(node.type) && isOnLevel(node, 3) && !node.parentId)) {
+    const size = writtenSize(note);
+    const middle = { x: note.position.x + size.width / 2, y: note.position.y + size.height / 2 };
+    const nearest = drawn
+      .map((node) => ({ node, distance: distanceTo(middle, node) }))
+      .filter(({ distance }) => distance <= NOTE_REACH)
+      .sort((a, b) => a.distance - b.distance)[0]?.node;
+    const shift = nearest
+      ? (() => {
+          const from = getAbsolutePosition(nearest, before);
+          const to = getAbsolutePosition(after.get(nearest.id)!, after);
+          return { x: to.x - from.x, y: to.y - from.y };
+        })()
+      : aroundDiagram;
+    const position = clearSpot(
+      { x: note.position.x + shift.x, y: note.position.y + shift.y },
+      size,
+      taken,
+      note.type === 'note' ? RIGHT_FIRST : UP_FIRST
+    );
+    taken.push({ ...position, ...size });
+    placed.set(note.id, { position });
+  }
+  return { ...layout, nodes: placed };
+};
+
+export type NodeUpdate = { nodeId: string; name?: string; summary?: string; version?: string; fontSize?: number };
 
 /** Renames, re-describes or re-versions a node. Catalog resources keep their catalog name, summary and version. */
-export const updateCanvasNode = (doc: Y.Doc, { nodeId, name, summary, version }: NodeUpdate) =>
+export const updateCanvasNode = (doc: Y.Doc, { nodeId, name, summary, version, fontSize }: NodeUpdate) =>
   doc.transact(() => {
     const node = getCanvasMaps(doc).nodes.get(nodeId);
     if (!node) return { error: `No node "${nodeId}" on the canvas` };
     if (!getCatalogLink(node)) {
       updateNodeData(doc, nodeId, (data) =>
         isWrittenOnCanvas(node.type)
-          ? { ...data, text: summary ?? name ?? data.text }
+          ? {
+              ...data,
+              text: summary ?? name ?? data.text,
+              ...(fontSize && node.type === 'text' && { fontSize }),
+            }
           : updateResource(node.type, data, {
               ...(name !== undefined && { name }),
               ...(summary !== undefined && { summary }),
@@ -459,7 +773,7 @@ export const updateCanvasNode = (doc: Y.Doc, { nodeId, name, summary, version }:
 const MESSAGE_COLLECTIONS = new Set(['events', 'commands', 'queries']);
 
 /** What a group of connections is: what a service sends, receives and stores, or which services send or receive a message */
-export type ConnectionGroupId = 'receives' | 'sends' | 'dataStores' | 'senders' | 'receivers';
+export type ConnectionGroupId = (typeof CONNECTION_GROUP_IDS)[number];
 export type ConnectionGroup = { id: ConnectionGroupId; label: string; resources: CatalogResource[] };
 
 const GROUP_LABELS: Record<ConnectionGroupId, string> = {
