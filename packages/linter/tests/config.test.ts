@@ -327,6 +327,25 @@ module.exports = {
       expect(result.dependencies.user).toEqual([{ id: 'github-user', version: undefined }]);
     });
 
+    it('uses every synced user and team when a directory source throws while the config loads', async () => {
+      writeEventCatalogConfig(`
+const microsoftEntraDirectory = () => { throw new Error('Microsoft Entra directory connector requires clientSecret.'); };
+module.exports = { directory: { sources: [microsoftEntraDirectory()] } };
+`);
+      writeDirectoryStore({
+        users: [{ id: 'entra-user', name: 'Entra', source: { provider: 'microsoft-entra' } }],
+        teams: [{ id: 'platform', name: 'Platform', source: { provider: 'microsoft-entra' } }],
+      });
+
+      const result = await loadEventCatalogConfigAsync(tempDir);
+
+      expect(result.unloadedDirectorySources).toEqual([]);
+      expect(result.dependencies).toEqual({
+        user: [{ id: 'entra-user', version: undefined }],
+        team: [{ id: 'platform', version: undefined }],
+      });
+    });
+
     it('reports the sources it could not load when there is no synced copy to fall back on', async () => {
       writeEventCatalogConfig(`
 module.exports = {

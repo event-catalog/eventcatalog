@@ -150,6 +150,18 @@ const readDirectoryStore = (rootDir: string): { users: unknown[]; teams: unknown
   }
 };
 
+// A directory source can throw while the config is evaluated (e.g. a connector missing its secret), so the
+// sources are unknown. EventCatalog only keeps users and teams in the store while sources are configured
+const readAllSyncedOwners = (rootDir: string): CatalogDependencies => {
+  const store = readDirectoryStore(rootDir);
+  const user = toDependencyEntries(store?.users);
+  const team = toDependencyEntries(store?.teams);
+  if (user.length + team.length === 0) return {};
+
+  console.warn(`Warning: Using the users and teams last synced to ${DIRECTORY_STORE_PATH} instead`);
+  return { user, team };
+};
+
 /** Runs each directory source, as EventCatalog does, so synced users and teams count as owners. */
 const loadDirectoryOwners = async (rootDir: string, sources: unknown) => {
   const owners: { user: DependencyEntry[]; team: DependencyEntry[] } = { user: [], team: [] };
@@ -211,7 +223,7 @@ export const loadEventCatalogConfigAsync = async (rootDir: string): Promise<Even
     config = unwrapDefaultExport(await import(configUrl.href));
   } catch (error) {
     console.warn(`Warning: Could not load eventcatalog.config.js: ${errorMessage(error)}`);
-    return { dependencies: {}, unloadedDirectorySources: [] };
+    return { dependencies: readAllSyncedOwners(rootDir), unloadedDirectorySources: [] };
   }
 
   const dependencies = parseDependencies(config);
