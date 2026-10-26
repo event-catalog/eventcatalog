@@ -22,7 +22,6 @@ export {
 export { Tip, TipProvider } from "./Tip";
 export { default as VisualiserSearch } from "./VisualiserSearch";
 export { default as StepWalkthrough } from "./StepWalkthrough";
-export { default as FocusModeModal } from "./FocusModeModal";
 export { default as NodeContextMenu } from "./NodeContextMenu";
 // How the diagram's menu looks (Studio's canvas menu uses it too)
 export * from "./diagram-menu";

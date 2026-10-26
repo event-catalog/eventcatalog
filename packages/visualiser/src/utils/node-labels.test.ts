@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Node } from "@xyflow/react";
-import { getNodeDocUrl, NODE_TYPE_LABELS } from "./utils";
+import { getNodeDocUrl, NODE_TYPE_LABELS } from "./node-labels";
 
 const node = (type: string, data: Record<string, unknown>): Node => ({
   id: "step-1",

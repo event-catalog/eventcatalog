@@ -1,6 +1,7 @@
 @import "tailwindcss/theme";
 @import "tailwindcss/utilities";
 @import "@xyflow/react/dist/style.css";
+@import "./studio/node-card.css";
 
 @source "../src/**/*.{js,ts,jsx,tsx}";
 @source "../src/safelist.txt";
@@ -441,6 +442,12 @@
   to {
     stroke-dashoffset: -10;
   }
+}
+
+/* A node that shows its card when clicked (a domain or system box: its header), while it's hovered */
+.react-flow__node.ec-node-clickable,
+.ec-node-clickable[data-ec-container-header] {
+  cursor: pointer;
 }
 
 /* Pulse the border of source/target nodes when an edge is hovered */
