@@ -165,44 +165,48 @@ const readAllSyncedOwners = (rootDir: string): CatalogDependencies => {
 /** Runs each directory source, as EventCatalog does, so synced users and teams count as owners. */
 const loadDirectoryOwners = async (rootDir: string, sources: unknown) => {
   const owners: { user: DependencyEntry[]; team: DependencyEntry[] } = { user: [], team: [] };
-  const failedSources: string[] = [];
-  if (!Array.isArray(sources)) return { owners, failedSources };
+  const failed: { name: string; collection: 'users' | 'teams' }[] = [];
+  if (!Array.isArray(sources)) return { owners, failedSources: [] };
+
+  // Users and teams load independently, as in EventCatalog, so one failing keeps the other's live results
+  const collections = [
+    { collection: 'users', loader: 'loadUsers', type: 'user' },
+    { collection: 'teams', loader: 'loadTeams', type: 'team' },
+  ] as const;
 
   for (const source of sources) {
     if (!source || typeof source !== 'object') continue;
     const name = typeof source.name === 'string' ? source.name : 'unnamed';
 
-    try {
-      const [users, teams] = await Promise.all([source.loadUsers?.(), source.loadTeams?.()]);
-      owners.user.push(...toDependencyEntries(users));
-      owners.team.push(...toDependencyEntries(teams));
-    } catch (error) {
-      console.warn(`Warning: Could not load directory source "${name}": ${errorMessage(error)}`);
-      failedSources.push(name);
+    for (const { collection, loader, type } of collections) {
+      try {
+        owners[type].push(...toDependencyEntries(await source[loader]?.()));
+      } catch (error) {
+        console.warn(`Warning: Could not load ${collection} from directory source "${name}": ${errorMessage(error)}`);
+        failed.push({ name, collection });
+      }
     }
   }
 
-  if (failedSources.length === 0) return { owners, failedSources };
+  if (failed.length === 0) return { owners, failedSources: [] };
 
-  // Fall back to the users and teams each failed source synced the last time EventCatalog ran
+  // Fall back to what each failed source synced the last time EventCatalog ran
   const store = readDirectoryStore(rootDir);
-  if (!store) return { owners, failedSources };
+  const unloaded = new Set<string>();
 
-  const unloadedSources = failedSources.filter((name) => {
+  for (const { name, collection } of failed) {
     const provider = getSourceProvider(name);
-    const fromSource = (entries: unknown[]) =>
-      toDependencyEntries(entries.filter((entry: any) => entry?.source?.provider === provider));
-    const users = fromSource(store.users);
-    const teams = fromSource(store.teams);
-    if (users.length + teams.length === 0) return true;
+    const synced = toDependencyEntries(store?.[collection].filter((entry: any) => entry?.source?.provider === provider));
+    if (synced.length === 0) {
+      unloaded.add(name);
+      continue;
+    }
 
-    console.warn(`Warning: Using the users and teams "${name}" last synced to ${DIRECTORY_STORE_PATH} instead`);
-    owners.user.push(...users);
-    owners.team.push(...teams);
-    return false;
-  });
+    console.warn(`Warning: Using the ${collection} "${name}" last synced to ${DIRECTORY_STORE_PATH} instead`);
+    owners[collection === 'users' ? 'user' : 'team'].push(...synced);
+  }
 
-  return { owners, failedSources: unloadedSources };
+  return { owners, failedSources: Array.from(unloaded) };
 };
 
 /** Loads `dependencies` and the owners from `directory.sources`, from CommonJS or ESM configs. */
