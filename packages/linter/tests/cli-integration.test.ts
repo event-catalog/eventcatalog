@@ -348,6 +348,68 @@ receives:
     expect(result.stdout).toContain('2 files checked');
   });
 
+  const createServiceOwnedBySyncedOwners = () => {
+    createServiceFile(
+      'my-service',
+      `---
+id: my-service
+name: My Service
+version: 1.0.0
+summary: My service
+owners:
+  - academic-life
+  - dboyne
+---
+# My Service
+`
+    );
+  };
+
+  it('does not report owners that come from directory sources in eventcatalog.config.js', async () => {
+    fs.writeFileSync(
+      path.join(tempDir, 'eventcatalog.config.js'),
+      `
+const github = {
+  type: 'directory',
+  name: 'github:my-org',
+  loadUsers: async () => [{ id: 'dboyne', name: 'David Boyne' }],
+  loadTeams: async () => [{ id: 'academic-life', name: 'Academic Life' }],
+};
+
+export default {
+  directory: { sources: [github] },
+};
+`
+    );
+    createServiceOwnedBySyncedOwners();
+
+    const result = await runLinter();
+
+    expect(result.success).toBe(true);
+    expect(result.stdout).not.toContain('refs/owner-exists');
+  });
+
+  it('skips owner checks with a warning when a directory source fails and nothing was synced before', async () => {
+    fs.writeFileSync(
+      path.join(tempDir, 'eventcatalog.config.js'),
+      `
+export default {
+  directory: {
+    sources: [{ type: 'directory', name: 'github:my-org', loadTeams: async () => { throw new Error('Bad credentials'); } }],
+  },
+};
+`
+    );
+    createServiceOwnedBySyncedOwners();
+
+    const result = await runLinter();
+
+    expect(result.success).toBe(true);
+    expect(result.stdout).toContain('Skipped refs/owner-exists');
+    expect(result.stdout).toContain('"github:my-org"');
+    expect(result.stdout).not.toContain('Referenced user/team');
+  });
+
   it('warns about unrecognised markdown files without failing the run', async () => {
     createServiceFile(
       'user-service',
