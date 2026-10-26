@@ -49,6 +49,8 @@ type NodeInfoProps = {
   model: Model;
   notes: Note[];
   containerRef: RefObject<HTMLElement | null>;
+  /** Its name starts empty, to type it straight in (a node just made: it keeps its name if nothing's typed) */
+  nameEmpty?: boolean;
   onClose: () => void;
   /** Goes to a related resource: centred on the diagram, with its page */
   onOpenResource: (id: string) => void;
@@ -145,6 +147,7 @@ export function NodeInfo({
   model,
   notes,
   containerRef,
+  nameEmpty,
   onClose,
   onOpenResource,
   onAsk,
@@ -208,6 +211,7 @@ export function NodeInfo({
                   onSave={(name) => onEdit({ name })}
                   onSaved={showSaved}
                   className="ec-editable-title"
+                  startEmpty={nameEmpty}
                   required
                 />
               </Field>

@@ -6,6 +6,8 @@
  */
 export * from "./canvas-doc";
 export * from "./clipboard";
+export * from "./connect-new";
+export * from "./use-connect-new";
 export * from "./edges";
 export * from "./entity-handles";
 export * from "./flow-state";
@@ -32,6 +34,7 @@ export * from "./components/icons";
 export * from "./components/status";
 export * from "./components/CanvasControls";
 export * from "./components/ContainerChooser";
+export * from "./components/ConnectChooser";
 export { default as CanvasControls } from "./components/CanvasControls";
 export { default as ContainerChooser } from "./components/ContainerChooser";
 export { default as EditButton } from "./components/EditButton";

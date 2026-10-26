@@ -265,6 +265,7 @@ export function EditableText({
   className = "",
   label,
   required = false,
+  startEmpty = false,
   onSaved,
 }: {
   value: string;
@@ -274,10 +275,16 @@ export function EditableText({
   className?: string;
   label: string;
   required?: boolean;
+  /**
+   * Starts empty rather than showing `value` (a node just made: its name's typed straight in), and `value` is kept if
+   * it's left empty
+   */
+  startEmpty?: boolean;
   /** Something was saved (to say so) */
   onSaved?: () => void;
 }) {
-  const [draft, setDraft] = useState(value);
+  const [draft, setDraft] = useState(startEmpty ? "" : value);
+  const shown = useRef(value);
   const focused = useRef(false);
   const before = useRef(value);
   const pending = useRef<string | null>(null);
@@ -286,6 +293,8 @@ export function EditableText({
   latest.current = { value, onSave, onSaved, required };
   // Changed from elsewhere (undo, the agent): shown, unless it's being typed in
   useEffect(() => {
+    if (value === shown.current) return;
+    shown.current = value;
     if (!focused.current) setDraft(value);
   }, [value]);
 

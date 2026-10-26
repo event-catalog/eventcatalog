@@ -55,6 +55,8 @@ import {
   canGoInContainer,
   getNodeDefinition,
   isGroupType,
+  linkConnection,
+  type NewLink,
   createHotspot as createHotspotInDoc,
   updateHotspot as updateHotspotInDoc,
   deleteHotspot as deleteHotspotInDoc,
@@ -599,7 +601,8 @@ export function useStudioFlow({
 
   /**
    * Add a node centred on a canvas position. `connect` gets the new node's id and the nodes already
-   * on the canvas, and returns edges to add with it (e.g. a catalog resource's relationships).
+   * on the canvas, and returns edges to add with it (e.g. a catalog resource's relationships). `link` connects it to
+   * the node a connection was dragged from (in the same change, so one undo takes both back).
    */
   const insertNode = useCallback(
     (
@@ -607,7 +610,8 @@ export function useStudioFlow({
       data: Record<string, unknown>,
       center: XYPosition,
       connect?: (id: string, existing: Node[]) => Edge[],
-      inside?: string
+      inside?: string,
+      link?: NewLink
     ) => {
       const built = buildNode(type, data, center);
       withDoc((doc) => {
@@ -618,6 +622,7 @@ export function useStudioFlow({
           ? { ...built, parentId: group.id, position: toRelativePosition(built.position, group.id, existing) }
           : built;
         addNodes(doc, [node], connect?.(node.id, existing) ?? []);
+        if (link) connectNodes(doc, linkConnection(node.id, link));
         if (group) fitGroupToChildren(doc, group.id, renderedSizes());
       });
       return built.id;
@@ -627,9 +632,9 @@ export function useStudioFlow({
 
   /** Add a node of a component (its type, or its key in the components list), centred on a canvas position (in a container, if asked) */
   const addNode = useCallback(
-    (component: string, center: XYPosition, inside?: string) => {
+    (component: string, center: XYPosition, inside?: string, link?: NewLink) => {
       const definition = getNodeDefinition(component);
-      return definition ? insertNode(definition.type, definition.createData(), center, undefined, inside) : undefined;
+      return definition ? insertNode(definition.type, definition.createData(), center, undefined, inside, link) : undefined;
     },
     [insertNode]
   );

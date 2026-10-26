@@ -98,6 +98,12 @@ import {
   type HotspotSeverity,
   type HotspotSpot,
   RemeasureHandles,
+  ConnectChooser,
+  isCardType,
+  newCardData,
+  notPlaceholder,
+  useConnectNew,
+  type NewLink,
 } from '@eventcatalog/visualiser/studio';
 import { X } from 'lucide-react';
 import type { CatalogRelation, CatalogResource } from '../catalog-resources';
@@ -625,11 +631,23 @@ function Canvas({
     centring.current.set(id, { level, size });
     flow.setLevelLayout(level, new Map([[id, centredOn(center, size)]]));
   };
-  /** A component (its type, or its key in the components list: the kinds of data store share a type) */
-  const addComponentAt = (component: string, point: XYPosition) => {
-    if (component === 'note') return addNoteAt(point);
+  /**
+   * A component (its type, or its key in the components list: the kinds of data store share a type), connected to
+   * the node a connection was dragged from when there is one
+   */
+  const addComponentAt = (component: string, point: XYPosition, link?: NewLink) => {
+    if (component === 'note') return void addNoteAt(point);
     const at = landingAt(point, getNodeDefinition(component)?.type ?? component);
-    keepOnLevel(at, flow.addNode(component, at.center, at.inside));
+    const id = flow.addNode(component, at.center, at.inside, link);
+    keepOnLevel(at, id);
+    return id;
+  };
+  /** A new domain or system as a card (the visualiser's, as Studio on the web makes them), connected to `link`'s node */
+  const addCardAt = (type: 'context-domain' | 'system', point: XYPosition, link: NewLink) => {
+    const at = landingAt(point, type);
+    const id = flow.insertNode(type, newCardData(type), at.center, undefined, at.inside, link);
+    keepOnLevel(at, id);
+    return id;
   };
 
   const addComponent = useStableCallback((type: string) => addComponentAt(type, canvasCenter()));
@@ -726,6 +744,21 @@ function Canvas({
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
     trackPointer(event);
+  });
+
+  // ---- Connecting to something new: a connection let go of on empty canvas ----
+
+  // A placeholder where it was let go of, connected to the node it came from, until what it is is chosen beside it
+  const connect = useConnectNew({
+    canvasRef,
+    getNode: (id) => nodesRef.current.find((node) => node.id === id),
+    getLevel: () => levelRef.current,
+    locked,
+    onMake: (option, center, link) => {
+      const id = isCardType(option.type) ? addCardAt(option.type, center, link) : addComponentAt(option.key, center, link);
+      // Selected, and its details open to name it, once it's on the canvas
+      if (id) editOnceShown.current = id;
+    },
   });
 
   // While the canvas is panned, zoomed or dragged, message edges stop animating (a class, not state, so nothing re-renders)
@@ -972,6 +1005,7 @@ function Canvas({
     setTool('select');
     setDraft(null);
     setOpenThreadId(null);
+    connect.cancel();
     // What's selected may not be on the next level (e.g. a note added on this one)
     flow.onNodesChange(selectedIds().map((id) => ({ type: 'select', id, selected: false })));
     setLevel(next);
@@ -1193,7 +1227,8 @@ function Canvas({
    * removes it from the canvas (the level is drawn from it); and moving or resizing something arranges the level,
    * kept when it's dropped.
    */
-  const onLevelNodesChange = useStableCallback((changes: NodeChange[]) => {
+  const onLevelNodesChange = useStableCallback((allChanges: NodeChange[]) => {
+    const changes = allChanges.filter(notPlaceholder);
     const level = levelRef.current;
     const current = levelGraphRef.current;
     if (level === 3 || !current) return;
@@ -1232,6 +1267,11 @@ function Canvas({
     });
     if (measured.length) flow.setLevelLayout(level, new Map(measured));
   });
+  /** Changes on the canvas (L3), apart from the placeholder's */
+  const onCanvasNodesChange = useStableCallback((allChanges: NodeChange[]) => {
+    const changes = allChanges.filter(notPlaceholder);
+    if (changes.length) flow.onNodesChange(changes);
+  });
   /** Connecting two things on L1 or L2 connects them on the canvas (e.g. a relationship between two systems) */
   const onLevelConnect = useStableCallback((connection: Connection) => {
     const onCanvas = new Set(nodesRef.current.map((node) => node.id));
@@ -1254,6 +1294,13 @@ function Canvas({
         : edge
     );
   }, [levelEdges, flow.edges, hovered]);
+  // With the placeholder, while a connection let go of on empty canvas is waiting to be told what it connects to
+  const { placeholder } = connect;
+  const flowNodes = useMemo(
+    () => (placeholder ? [...visibleNodes, placeholder.node] : visibleNodes),
+    [visibleNodes, placeholder]
+  );
+  const flowEdges = useMemo(() => (placeholder ? [...shownEdges, placeholder.edge] : shownEdges), [shownEdges, placeholder]);
   // A canvas opened from a diagram has the levels the diagram has (until what's on it changes)
   const unavailableLevels = useMemo(() => {
     const reason = (level: 1 | 2) => {
@@ -1654,6 +1701,20 @@ function Canvas({
   // The node whose details are being edited in its card: opened with the edit button over it, by double clicking it,
   // or "Edit details" in its menu (selecting a node doesn't open it). Notes are edited on the canvas.
   const [editingId, setEditingId] = useState<string | null>(null);
+  // Made at the end of a connection: selected and its details opened once it's on the canvas (looked for as what's on
+  // it changes, not as things move), its name empty to type it straight in. NodeDetails is keyed by the node, so its
+  // name starts empty when its card opens, and only then (the next card opened, even its own again, doesn't).
+  const editOnceShown = useRef<string | null>(null);
+  const [justMadeId, setJustMadeId] = useState<string | null>(null);
+  useEffect(() => {
+    const id = editOnceShown.current;
+    if (!id || !nodesRef.current.some((node) => node.id === id)) return;
+    editOnceShown.current = null;
+    select(new Set([id]));
+    setEditingId(id);
+    setJustMadeId(id);
+  }, [flow.structureKey]);
+  useEffect(() => setJustMadeId((id) => (id === editingId ? id : null)), [editingId]);
   const editing = editingId ? flow.nodes.find((node) => node.id === editingId && !isWrittenOnCanvas(node.type)) : undefined;
   // What the card shows (not the node's position, so dragging it doesn't re-render the card)
   const inspected = useMemo(
@@ -1706,8 +1767,8 @@ function Canvas({
                   onDoubleClick={onCanvasDoubleClick}
                 >
                   <ReactFlow
-                    nodes={visibleNodes}
-                    edges={shownEdges}
+                    nodes={flowNodes}
+                    edges={flowEdges}
                     onNodeMouseEnter={onNodeMouseEnter}
                     onNodeMouseLeave={onHoverEnd}
                     onEdgeMouseEnter={onEdgeMouseEnter}
@@ -1717,9 +1778,10 @@ function Canvas({
                     nodesDraggable={!locked && tool !== 'hand'}
                     nodesConnectable={!locked && tool !== 'hand'}
                     elementsSelectable={tool !== 'hand'}
-                    onNodesChange={editable ? flow.onNodesChange : onLevelNodesChange}
+                    onNodesChange={editable ? onCanvasNodesChange : onLevelNodesChange}
                     onEdgesChange={editable ? flow.onEdgesChange : undefined}
                     onConnect={editable ? flow.onConnect : onLevelConnect}
+                    onConnectEnd={connect.onConnectEnd}
                     // Drag either end of a connection to another node (dropped anywhere else, it stays where it was)
                     edgesReconnectable={editable && !locked}
                     onReconnect={editable ? flow.onReconnect : undefined}
@@ -2016,6 +2078,7 @@ function Canvas({
                       connections={inspectedConnections}
                       onOpenNode={openConnected}
                       containerRef={canvasRef}
+                      nameEmpty={inspected.id === justMadeId}
                       locked={locked}
                       onChange={flow.updateNodeData}
                       onClose={closePanel}
@@ -2023,6 +2086,7 @@ function Canvas({
                   )}
                 </div>
 
+                {connect.chooser && <ConnectChooser {...connect.chooser} />}
                 {chooser && (
                   <ContainerChooser
                     kind={chooser.resource.collection === 'domains' ? 'domain' : 'system'}

@@ -8,7 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Y from 'yjs';
 import { applyAgentCanvasToDoc, canvasIds, type AgentCanvas, type CanvasIds } from './apply-agent-canvas';
 import { applyEdgeChanges, applyNodeChanges, type Connection, type Edge, type EdgeChange, type Node, type NodeChange, type XYPosition } from '@xyflow/react';
-import { addNodes, addHotspots, setEdgeLabel as setEdgeLabelInDoc, getLock, setLock, addThreads, createHotspot as createHotspotInDoc, deleteHotspot as deleteHotspotInDoc, readHotspots, updateHotspot as updateHotspotInDoc, type Hotspot, createThread as createThreadInDoc, deleteThread as deleteThreadInDoc, moveThread as moveThreadInDoc, readThreads, replyToThread as replyToThreadInDoc, setThreadResolved as setThreadResolvedInDoc, type Author, type CommentAnchor, type Thread, buildNode, changesNodesOrEdges, connectNodes, deleteEdges, deleteNodes as deleteNodesInDoc, fitContainersAround, getCanvasMaps, getStructureKey, moveNode, placeNode, readLevelLayout, reconnectEdge, resizeNode, setEdgeRoutes, setLevelPlaces, setMeta, setNodeParents, updateNodeData as updateNodeDataInDoc, type LevelPlace, type RenderedSizes, keepDragged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, patchShared, containerFor, toRelativePosition, type NodePreview, type LayoutResult, canGoInContainer, getNodeDefinition, isGroupType } from '@eventcatalog/visualiser/studio';
+import { addNodes, addHotspots, setEdgeLabel as setEdgeLabelInDoc, getLock, setLock, addThreads, createHotspot as createHotspotInDoc, deleteHotspot as deleteHotspotInDoc, readHotspots, updateHotspot as updateHotspotInDoc, type Hotspot, createThread as createThreadInDoc, deleteThread as deleteThreadInDoc, moveThread as moveThreadInDoc, readThreads, replyToThread as replyToThreadInDoc, setThreadResolved as setThreadResolvedInDoc, type Author, type CommentAnchor, type Thread, buildNode, changesNodesOrEdges, connectNodes, deleteEdges, deleteNodes as deleteNodesInDoc, fitContainersAround, getCanvasMaps, getStructureKey, moveNode, placeNode, readLevelLayout, reconnectEdge, resizeNode, setEdgeRoutes, setLevelPlaces, setMeta, setNodeParents, updateNodeData as updateNodeDataInDoc, type LevelPlace, type RenderedSizes, keepDragged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, patchShared, containerFor, toRelativePosition, type NodePreview, type LayoutResult, canGoInContainer, getNodeDefinition, isGroupType, linkConnection, type NewLink } from '@eventcatalog/visualiser/studio';
 import type { Editing } from '../collab/room';
 import { type ModelCanvasContent as CanvasContent } from '@eventcatalog/visualiser/studio';
 
@@ -319,14 +319,18 @@ export function useCanvasFlow({
     });
   }, []);
 
-  /** Add a node centred on a canvas position (in the container asked for, else the one it's dropped on) */
-  const insertNode = useCallback((type: string, data: Record<string, unknown>, center: XYPosition, inside?: string) => {
+  /**
+   * Add a node centred on a canvas position (in the container asked for, else the one it's dropped on), connected to
+   * the node a connection was dragged from when there is one (in the same change, so one undo takes both back)
+   */
+  const insertNode = useCallback((type: string, data: Record<string, unknown>, center: XYPosition, inside?: string, link?: NewLink) => {
     const built = buildNode(type, data, center);
     withDoc((doc) => {
       const existing = Array.from(getCanvasMaps(doc).nodes.values());
       const group = canGoInContainer(type) ? containerFor(center, existing, inside, type) : undefined;
       const node = group ? { ...built, parentId: group.id, position: toRelativePosition(built.position, group.id, existing) } : built;
       addNodes(doc, [node]);
+      if (link) connectNodes(doc, linkConnection(node.id, link));
       // The containers it's in grow to fit it, innermost first (a system in a domain: the domain too)
       if (group) fitContainersAround(doc, node.id, renderedSizes());
     });
@@ -335,9 +339,9 @@ export function useCanvasFlow({
 
   /** Add a node of a component (its type, or its key in the components list), centred on a canvas position */
   const addNode = useCallback(
-    (component: string, center: XYPosition, inside?: string) => {
+    (component: string, center: XYPosition, inside?: string, link?: NewLink) => {
       const definition = getNodeDefinition(component);
-      return definition ? insertNode(definition.type, definition.createData(), center, inside) : undefined;
+      return definition ? insertNode(definition.type, definition.createData(), center, inside, link) : undefined;
     },
     [insertNode]
   );
