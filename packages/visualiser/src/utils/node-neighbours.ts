@@ -33,6 +33,21 @@ type Direction = "in" | "out";
 // How many channels a route is followed through (channels can route to each other in a loop)
 const MAX_ROUTE = 5;
 
+// A service's (or agent's) messages, as its catalog entry lists them, by message id (undefined when it doesn't list
+// them, e.g. on a canvas)
+const listedMessages = (node: Node, key: "sends" | "receives") => {
+  const data = node.data as Record<
+    string,
+    { [list: string]: unknown } | undefined
+  >;
+  const list = (data.service ?? data.agent)?.[key];
+  return Array.isArray(list)
+    ? new Set(list.map((pointer: { id?: unknown }) => pointer?.id))
+    : undefined;
+};
+const messageId = (node: Node) =>
+  (node.data as { message?: { id?: unknown } }).message?.id;
+
 const edgeLabel = (edge: Edge) => {
   const label =
     edge.label ?? (edge.data as { label?: unknown } | undefined)?.label;
@@ -64,6 +79,27 @@ export function getNodeNeighbours(
       }));
 
   const isChannel = (id: string) => CHANNEL_TYPES.has(typeOf(id));
+  // Through a channel, a service and a message are only connected if the service sends or receives that message: a
+  // channel carries many messages, and its edges don't say which (e.g. one edge to each consumer, for all of them)
+  const connectedThroughChannels = (other: string, direction: Direction) => {
+    const self = byId.get(nodeId)!;
+    const found = byId.get(other)!;
+    const [service, message] = MESSAGE_TYPES.has(self.type ?? "")
+      ? [found, self]
+      : [self, found];
+    if (
+      !SERVICE_TYPES.has(service.type ?? "") ||
+      !MESSAGE_TYPES.has(message.type ?? "")
+    )
+      return true;
+    // Messages go from a sender, through channels, to a receiver
+    const serviceIsReceiver = (service === found) === (direction === "out");
+    const listed = listedMessages(
+      service,
+      serviceIsReceiver ? "receives" : "sends",
+    );
+    return !listed || listed.has(messageId(message));
+  };
   const toNeighbour = (id: string, label?: string): Neighbour => ({
     id,
     type: byId.get(id)!.type,
@@ -97,7 +133,8 @@ export function getNodeNeighbours(
             [...route, getNodeInfo(byId.get(other.id)!).name],
             new Set([...seen, other.id]),
           );
-        else add(other.id, via);
+        else if (connectedThroughChannels(other.id, direction))
+          add(other.id, via);
       }
     };
     for (const next of step(from, direction)) {

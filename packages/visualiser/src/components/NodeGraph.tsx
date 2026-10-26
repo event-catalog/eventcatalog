@@ -2105,6 +2105,8 @@ const NodeGraphBuilder = ({
     }
 
     const handleWheel = (event: WheelEvent) => {
+      // A node's card scrolls itself (its list of connections)
+      if ((event.target as Element | null)?.closest?.(".ec-doc-card")) return;
       // Only forward scroll if no modifier keys are pressed
       if (!event.ctrlKey && !event.shiftKey && !event.metaKey) {
         event.preventDefault();

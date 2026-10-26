@@ -192,6 +192,56 @@ describe("getNodeNeighbours", () => {
     });
   });
 
+  it("through a shared channel, only connects services to the messages they send and receive", () => {
+    // One edge from the channel to each consumer, for all the messages it carries (as channel diagrams draw it)
+    const shared = [
+      node("orders", "services", {
+        service: {
+          id: "orders",
+          name: "Orders Service",
+          sends: [{ id: "placed" }, { id: "cancelled" }],
+        },
+      }),
+      node("placed", "events", {
+        message: { id: "placed", name: "Order Placed" },
+      }),
+      node("cancelled", "events", {
+        message: { id: "cancelled", name: "Order Cancelled" },
+      }),
+      node("topic", "channels", {
+        channel: { id: "topic", name: "orders-topic" },
+      }),
+      node("warehouse", "services", {
+        service: {
+          id: "warehouse",
+          name: "Warehouse",
+          receives: [{ id: "placed" }],
+        },
+      }),
+      node("refunds", "services", {
+        service: {
+          id: "refunds",
+          name: "Refunds",
+          receives: [{ id: "cancelled" }],
+        },
+      }),
+    ];
+    const sharedEdges = [
+      edge("placed", "topic"),
+      edge("cancelled", "topic"),
+      edge("topic", "warehouse", "subscribed to"),
+      edge("topic", "refunds", "subscribed to"),
+    ];
+    const names = (id: string) =>
+      getNodeNeighbours(id, shared, sharedEdges).map((group) => [
+        group.heading,
+        group.items.map((item) => item.name),
+      ]);
+    expect(names("placed")).toEqual([["Consumed by", ["Warehouse"]]]);
+    expect(names("cancelled")).toEqual([["Consumed by", ["Refunds"]]]);
+    expect(names("warehouse")).toEqual([["Receives", ["Order Placed"]]]);
+  });
+
   it("is nothing for a node that isn't on the diagram, or isn't connected", () => {
     expect(getNodeNeighbours("missing", nodes, edges)).toEqual([]);
     expect(getNodeNeighbours("db", [nodes[5]], [])).toEqual([]);

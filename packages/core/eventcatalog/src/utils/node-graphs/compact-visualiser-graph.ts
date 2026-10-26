@@ -138,6 +138,18 @@ const compactVisualiserResourceData = (value: unknown): unknown => {
     out.services = value.services.map(compactDomainService);
   }
 
+  // A service's messages, by id only: a node's card uses them to tell which of a shared channel's messages it sends
+  // or receives (pointers, or hydrated messages)
+  for (const key of ['sends', 'receives'] as const) {
+    const list = value[key];
+    if (!Array.isArray(list)) continue;
+    out[key] = list.flatMap((pointer) => {
+      if (!isPlainObject(pointer)) return [];
+      const id = isPlainObject(pointer.data) ? pointer.data.id : pointer.id;
+      return id === undefined ? [] : [{ id }];
+    });
+  }
+
   return out;
 };
 
