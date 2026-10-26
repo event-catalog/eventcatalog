@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Sparkles } from 'lucide-react';
 import ChatPanel from './ChatPanel';
+import { OPEN_CHAT_EVENT } from './assistant-events';
 
 const ChatPanelButton = ({ configured = false }: { configured?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,10 +26,10 @@ const ChatPanelButton = ({ configured = false }: { configured?: boolean }) => {
       }
     };
     window.addEventListener('keydown', handleShortcut);
-    window.addEventListener('eventcatalog:open-chat', handleOpenChat);
+    window.addEventListener(OPEN_CHAT_EVENT, handleOpenChat);
     return () => {
       window.removeEventListener('keydown', handleShortcut);
-      window.removeEventListener('eventcatalog:open-chat', handleOpenChat);
+      window.removeEventListener(OPEN_CHAT_EVENT, handleOpenChat);
     };
   }, []);
 

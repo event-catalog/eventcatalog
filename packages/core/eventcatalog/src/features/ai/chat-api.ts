@@ -10,7 +10,7 @@ import {
   type UIMessage,
 } from 'ai';
 import { join } from 'node:path';
-import { isDevMode } from '@utils/feature';
+import { isCanvasEnabled, isDevMode } from '@utils/feature';
 import { getCollection, getEntry } from 'astro:content';
 import { z } from 'astro/zod';
 import { getConsumersOfMessage, getProducersOfMessage } from '@utils/collections/services';
@@ -38,6 +38,8 @@ const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 // How many model calls one answer may take. Questions across several domains need many tool calls, so the last
 // step has tools turned off: the model has to answer with what it found, rather than stop without a reply.
 const MAX_STEPS = 10;
+// Drawing a diagram on a Studio canvas takes more: finding the resources, adding them, connecting and tidying
+const MAX_CANVAS_STEPS = 20;
 
 export const defaultConfiguration = {
   temperature: 0.4,
@@ -204,7 +206,8 @@ export const GET = async ({ request }: APIContext<{ question: string; messages: 
 };
 
 export const POST = async ({ request }: APIContext<{ question: string; messages: Message[]; additionalContext?: string }>) => {
-  const { messages }: { messages: UIMessage[] } = await request.json();
+  // canvasId: the Studio canvas the assistant was opened on, which it can draw on
+  const { messages, canvasId }: { messages: UIMessage[]; canvasId?: string } = await request.json();
 
   if (!hasChatConfiguration) {
     return chatConfigurationErrorResponse();
@@ -214,6 +217,12 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
   const referrer = request.headers.get('referer');
 
   try {
+    const canvas =
+      canvasId && isCanvasEnabled()
+        ? (await import('@features/studio/server/assistant-tools')).getCanvasAssistant(canvasId)
+        : undefined;
+    const maxSteps = canvas ? MAX_CANVAS_STEPS : MAX_STEPS;
+
     const tools = {
       getResources: tool({
         description: toolDescriptions.getResources,
@@ -390,19 +399,29 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
           return { suggestions: questions };
         },
       }),
+      ...canvas?.tools,
       ...extendedTools,
     };
 
     const result = streamText({
       model,
-      instructions: getBaseSystemPrompt(referrer ?? ''),
+      instructions: getBaseSystemPrompt(referrer ?? '') + (canvas?.instructions ?? ''),
       messages: await convertToModelMessages(messages),
       temperature: modelConfiguration?.temperature ?? 0.7,
-      stopWhen: isStepCount(MAX_STEPS),
-      prepareStep: ({ stepNumber }) => (stepNumber === MAX_STEPS - 1 ? { toolChoice: 'none' } : undefined),
+      // The provider's own options (e.g. { anthropic: { effort: 'low' } }), from eventcatalog.chat.js's configuration
+      providerOptions: modelConfiguration?.providerOptions,
+      stopWhen: isStepCount(maxSteps),
+      prepareStep: ({ stepNumber }) => (stepNumber === maxSteps - 1 ? { toolChoice: 'none' } : undefined),
       onError: (error) => {
         console.error('[Chat] On error', error);
       },
+      // On a canvas: shown planning while it writes what to add, and what it drew tidied once it's finished
+      ...(canvas && {
+        onChunk: ({ chunk }) => {
+          if (chunk.type === 'tool-input-start') canvas.startedWriting(chunk.toolName);
+        },
+        onEnd: () => canvas.finished().catch((error) => console.error('[Chat] Could not tidy the canvas', error)),
+      }),
       tools,
     });
 

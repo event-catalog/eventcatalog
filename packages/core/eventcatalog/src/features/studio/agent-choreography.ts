@@ -3,6 +3,7 @@ import type * as Y from 'yjs';
 import {
   addNodes,
   connectNodes,
+  createHotspot,
   createThread,
   deleteEdges,
   deleteNodes,
@@ -14,6 +15,7 @@ import {
   setMeta,
   type Author,
   type CommentAnchor,
+  type HotspotSeverity,
   getAbsolutePosition,
   sizeOf,
   type LayoutResult,
@@ -21,6 +23,7 @@ import {
 } from '@eventcatalog/visualiser/studio';
 import {
   describeNode,
+  expandCatalogSpecs,
   nodeCenter,
   planNodes,
   resolveEdgeRefs,
@@ -63,6 +66,11 @@ export type AgentStage = {
    * end up, like a person's drag. Otherwise each step of a move is saved, so others see it move.
    */
   sharesMoves?: boolean;
+  /**
+   * How long the agent takes over everything, as a share of a person's pace (1, the default): lower is faster, e.g.
+   * the assistant, which someone is waiting on in the chat
+   */
+  pace?: number;
 };
 
 const FRAME_MS = 40;
@@ -88,7 +96,8 @@ const nameOf = (node: Node) => getNodeName(node.type, node.data);
  * The agent's hand: moves its pointer smoothly (in frames, so it glides for everyone) and shows what it's doing.
  * `pace` slows down or speeds up everything (big changes go faster, so a tool call doesn't take too long).
  */
-export function createAgentHand(stage: AgentStage, { pace = 1 }: { pace?: number } = {}) {
+export function createAgentHand(stage: AgentStage, { pace: changePace = 1 }: { pace?: number } = {}) {
+  const pace = changePace * (stage.pace ?? 1);
   const presence: AgentPresence = { pointer: stage.lastPointer ?? null, selection: [] };
   const show = () => stage.present({ ...presence });
 
@@ -169,39 +178,59 @@ async function playConnection(
   return outcome;
 }
 
-/** addToCanvas, played out: each node dropped in turn, connected (to related resources and as asked) as soon as it can be */
+/**
+ * addToCanvas, played out: each node dropped in turn, connected (to related resources and as asked) as soon as it can
+ * be. A domain or system with its contents is dropped in one go, as people add one from the catalog.
+ */
 export async function playAddToCanvas(
   stage: AgentStage,
-  { nodes: specs, edges = [] }: { nodes: NodeSpecs; edges?: EdgeSpecs },
+  { nodes, edges = [] }: { nodes: NodeSpecs; edges?: EdgeSpecs },
   catalog: CatalogIndex
 ) {
   const existing = await stage.change((doc) => [...readNodes(doc).values()]);
-  const { planned, errors } = planNodes(existing, specs, catalog, edges);
+  const expanded = await expandCatalogSpecs(existing, nodes, catalog);
+  const { planned, errors } = planNodes(existing, expanded.specs, catalog, edges, expanded.blocks);
+  errors.unshift(...expanded.errors);
   const pending = resolveEdgeRefs(edges, planned);
-  const hand = createAgentHand(stage, { pace: paceFor(planned.length * 2 + pending.length) });
+  const drops = planned.filter((entry) => !entry.partOf);
+  const hand = createAgentHand(stage, { pace: paceFor(drops.length * 2 + pending.length) });
   const connections: string[] = [];
 
-  for (const { node: plannedNode, canvasPosition, name, resource } of planned) {
-    hand.say(`Adding ${name}`);
+  for (const { node: plannedNode, canvasPosition, name, resource } of drops) {
+    const contents = planned.filter((entry) => entry.partOf === plannedNode.id);
+    hand.say(contents.length ? `Adding ${name} with what it holds` : `Adding ${name}`);
     const { width, height } = sizeOf(plannedNode);
     await hand.moveTo({ x: canvasPosition.x + width / 2, y: canvasPosition.y + height / 2 });
     await hand.pause(150);
-    const { node, related } = await stage.change((doc) => {
+    const { node, related, connectedWith } = await stage.change((doc) => {
       const onCanvas = readNodes(doc);
       // Where it goes on the canvas, relative to its container as it is now (containers move as they grow)
       const parent = plannedNode.parentId ? onCanvas.get(plannedNode.parentId) : undefined;
       const origin = parent ? getAbsolutePosition(parent, onCanvas) : { x: 0, y: 0 };
       const node = { ...plannedNode, position: { x: canvasPosition.x - origin.x, y: canvasPosition.y - origin.y } };
+      // With what it holds (positioned in it), connected to each other and to what's on the canvas
+      const added = [node, ...contents.map((entry) => entry.node)];
+      const placed = [...onCanvas.values()];
+      const related: Edge[] = [];
+      for (const [index, entry] of [{ node, resource }, ...contents].entries()) {
+        if (entry.resource)
+          related.push(...getRelatedEdges(entry.resource, entry.node.id, placed, catalog.relationsByKey, entry.node.type));
+        placed.push(added[index]);
+      }
+      if (contents.length) {
+        addNodes(doc, added, related);
+        fitContainersAround(doc, node.id);
+        return { node, related: [], connectedWith: related };
+      }
       addNodes(doc, [node]);
       // The containers it's in grow to fit it
       fitContainersAround(doc, node.id);
-      const related = resource
-        ? getRelatedEdges(resource, node.id, [...onCanvas.values()], catalog.relationsByKey, node.type)
-        : [];
-      return { node, related };
+      return { node, related, connectedWith: [] };
     });
+    connections.push(...connectedWith.map((edge) => edge.id));
+    // Just what it dropped (a domain, not everything in it)
     hand.select([node.id]);
-    await hand.pause(300);
+    await hand.pause(contents.length ? 600 : 300);
 
     // Its connections to what's already there: related catalog resources, then the ones asked for
     for (const edge of related) {
@@ -229,6 +258,8 @@ export async function playAddToCanvas(
     if ('error' in outcome) errors.push(outcome.error);
   }
 
+  // Lets go of what it added, so it isn't left selected (and labelled with the agent) for everyone
+  hand.select([]);
   hand.say('Done');
   return { created: planned.map(({ ref, node, name }) => ({ ref, nodeId: node.id, name })), connections, errors };
 }
@@ -345,6 +376,43 @@ export async function playComment(
   return { threadId };
 }
 
+/** Flagging a hotspot, played out: go to the node (its top right corner, where hotspots sit) or the place, then flag it */
+export async function playHotspot(
+  stage: AgentStage,
+  {
+    severity,
+    title,
+    description,
+    nodeId,
+    x,
+    y,
+  }: { severity: HotspotSeverity; title: string; description?: string; nodeId?: string; x?: number; y?: number },
+  author: Author
+) {
+  const nodes = await stage.change(readNodes);
+  const node = nodeId ? nodes.get(nodeId) : undefined;
+  if (nodeId && !node) return { error: `No node "${nodeId}" on the canvas` };
+  const corner = node && positionOf(node, nodes);
+  const position = node && corner ? { x: corner.x + sizeOf(node).width, y: corner.y } : { x: x ?? 0, y: y ?? 0 };
+  const hand = createAgentHand(stage);
+  hand.say('Flagging a hotspot');
+  await hand.moveTo(position);
+  if (node) hand.select([node.id]);
+  await hand.pause(400);
+  const hotspotId = await stage.change((doc) =>
+    createHotspot(doc, {
+      severity,
+      title,
+      ...(description && { description }),
+      ...(node && { nodeId: node.id }),
+      position,
+      author,
+    })
+  );
+  hand.select([]);
+  return { hotspotId };
+}
+
 /** Pointing at a node while changing it (e.g. a rename) */
 export async function playOnNode<T>(stage: AgentStage, nodeId: string, activity: string, change: (doc: Y.Doc) => T) {
   const nodes = await stage.change(readNodes);
@@ -362,12 +430,12 @@ export async function playOnNode<T>(stage: AgentStage, nodeId: string, activity:
 /** Updating a node, played out: point at it to rename or re-describe it, then drag it to its new centre (x/y) */
 export async function playUpdateNode(
   stage: AgentStage,
-  { nodeId, name, summary, version, x, y }: NodeUpdate & { x?: number; y?: number }
+  { nodeId, name, summary, version, fontSize, x, y }: NodeUpdate & { x?: number; y?: number }
 ) {
   const missing = { error: `No node "${nodeId}" on the canvas` };
-  if (name !== undefined || summary !== undefined || version !== undefined) {
+  if (name !== undefined || summary !== undefined || version !== undefined || fontSize !== undefined) {
     const outcome = await playOnNode(stage, nodeId, 'Editing', (doc) =>
-      updateCanvasNode(doc, { nodeId, name, summary, version })
+      updateCanvasNode(doc, { nodeId, name, summary, version, fontSize })
     );
     if ('error' in outcome) return outcome;
   }

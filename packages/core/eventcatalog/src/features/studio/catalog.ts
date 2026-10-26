@@ -97,15 +97,17 @@ export const buildContainer = (resource: CatalogResource, center: { x: number; y
  * A domain or system as a container with everything it holds in the catalog: its systems (as containers too)
  * and services, and the messages and data stores of those services, so every level of detail (L1 to L3) has
  * something to show. Laid out with the visualiser's layout and centred on a point, with the connections between
- * them and to related resources already on the canvas. Resources already on the canvas aren't added again.
+ * them and to related resources already on the canvas. Resources already on the canvas aren't added again, nor
+ * any in `alsoAdding` (by catalog key: added some other way at the same time, e.g. by an agent in the same call).
  */
 export const buildContainerWithContents = async (
   resource: CatalogResource,
   center: { x: number; y: number },
   catalog: { resourcesByKey: Map<string, CatalogResource>; relationsByKey: Map<string, CatalogRelation[]> },
-  existing: Node[]
+  existing: Node[],
+  alsoAdding: ReadonlySet<string> = new Set()
 ): Promise<{ nodes: Node[]; edges: Edge[] }> => {
-  const onCanvas = new Set(existing.map((node) => getCatalogLink(node)?.key).filter(Boolean));
+  const onCanvas = new Set([...existing.map((node) => getCatalogLink(node)?.key).filter(Boolean), ...alsoAdding]);
   const root = buildContainer(resource, { x: 0, y: 0 });
   const nodes: Node[] = [root];
   const added = (key: string) => onCanvas.has(key) || nodes.some((node) => getCatalogLink(node)?.key === key);

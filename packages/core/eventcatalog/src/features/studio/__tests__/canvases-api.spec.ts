@@ -136,6 +136,14 @@ describe('Studio API', () => {
     expect(unknown.status).toBe(400);
     expect(await unknown.json()).toEqual({ error: 'No services resource "Nope" in the catalog' });
 
+    const fromCatalog = await call('POST', '', {
+      body: JSON.stringify({ nodes: [{ resource: { collection: 'domains', id: 'Orders' }, contents: true }] }),
+    });
+    expect(fromCatalog.status).toBe(400);
+    expect(await fromCatalog.json()).toEqual({
+      error: 'contents and connections can only be used when adding to a canvas: list the nodes instead',
+    });
+
     const badRef = await call('POST', '', {
       body: JSON.stringify({ nodes: [{ ref: 'a', type: 'service' }], edges: [{ from: 'a', to: 'b' }] }),
     });

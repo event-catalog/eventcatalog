@@ -133,6 +133,12 @@ import ShareDialog from './ShareDialog';
 import DeleteCanvasDialog from './DeleteCanvasDialog';
 import { createCanvasThroughApi, deleteCanvasThroughApi } from '../api/client';
 import ShortcutsDialog from './ShortcutsDialog';
+import {
+  ASSISTANT_DRAWING_EVENT,
+  CANVAS_FOCUS_EVENT,
+  CANVAS_HOTSPOT_EVENT,
+  OPEN_CHAT_EVENT,
+} from '../../../components/ChatPanel/assistant-events';
 
 type CanvasProps = {
   canvasId: string;
@@ -165,6 +171,8 @@ type CanvasProps = {
   asAgent?: { name: string; color: string };
   /** Signed in with the catalog's sign-in (SSO): you're shown by this name and picture, and can't change them */
   signedInAs?: { name: string; picture?: string };
+  /** The catalog's assistant (Ask AI) is on the page: "Draw with AI" opens it to draw on the canvas */
+  assistant?: boolean;
   resources: CatalogResource[];
   relations: CatalogRelation[];
 };
@@ -198,6 +206,7 @@ type Landing = {
 };
 const DELETE_KEYS = ['Backspace', 'Delete'];
 const NO_THREADS: ReadonlySet<string> = new Set();
+const NO_HOTSPOTS: ReadonlySet<string> = new Set();
 // React Flow's warnings, except that a handle has no node: the left panel's drag previews draw nodes off the canvas
 const onFlowError = (code: string, message: string) => {
   if (code !== '010') console.warn(message);
@@ -339,6 +348,9 @@ export default function StudioDesigner({ asAgent, signedInAs, ...props }: Canvas
   );
 }
 
+// The assistant's panel (ChatPanelButton, in the page header) opens on this; on a canvas it draws on it
+const openAssistant = () => window.dispatchEvent(new Event(OPEN_CHAT_EVENT));
+
 const toSocketUrl = (socketPath = DEFAULT_SOCKET_PATH) =>
   `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}${socketPath}`;
 
@@ -353,6 +365,7 @@ function Canvas({
   mcpUrl = '/docs/mcp',
   relayScriptPath,
   keptInMemory = false,
+  assistant = false,
   syncViaTools,
   followChanges = false,
   paletteCollapsed,
@@ -973,7 +986,13 @@ function Canvas({
   // Comments that are part of the selection (selecting everything selects them too): only here, like what nodes
   // are selected. While what's selected is dragged, the ones not on a node move with it by this much.
   const [selectedThreads, setSelectedThreads] = useState<ReadonlySet<string>>(NO_THREADS);
-  const clearSelectedThreads = useCallback(() => setSelectedThreads((current) => (current.size ? NO_THREADS : current)), []);
+  // Hotspots too (selecting everything selects them, and deleting it deletes them)
+  const [selectedHotspots, setSelectedHotspots] = useState<ReadonlySet<string>>(NO_HOTSPOTS);
+  /** Comments and hotspots stop being part of the selection */
+  const clearSelectedPins = useCallback(() => {
+    setSelectedThreads((current) => (current.size ? NO_THREADS : current));
+    setSelectedHotspots((current) => (current.size ? NO_HOTSPOTS : current));
+  }, []);
   const [threadsOffset, setThreadsOffset] = useState<XYPosition | null>(null);
   const threadsShown = () => comments.threads.filter((thread) => showResolved || !thread.resolved);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
@@ -1328,6 +1347,57 @@ function Canvas({
 
   const [following, setFollowing] = useState(followChanges);
   const toggleFollowing = useCallback(() => setFollowing((on) => !on), []);
+  // Asking the assistant (Ask AI) to draw on this canvas follows it while it works
+  useEffect(() => {
+    const followAssistant = (event: Event) => {
+      if ((event as CustomEvent<{ canvasId?: string }>).detail?.canvasId === canvasId) setFollowing(true);
+    };
+    window.addEventListener(ASSISTANT_DRAWING_EVENT, followAssistant);
+    return () => window.removeEventListener(ASSISTANT_DRAWING_EVENT, followAssistant);
+  }, [canvasId]);
+
+  // The assistant taking you to part of the canvas (showOnCanvas, a walkthrough's steps): zoomed to, and selected. On
+  // the canvas people edit (L3), where everything is.
+  const focusOn = useStableCallback((ids: string[]) => {
+    const nodes = lookupNodes();
+    const found = ids.filter((id) => nodes.has(id));
+    if (!found.length) return;
+    const changingLevel = levelRef.current !== 3;
+    if (changingLevel) changeLevel(3);
+    // You're looking around now: following the agent would take the camera back to its pointer a moment later
+    setFollowing(false);
+    // Once the level's switched (and drawn), if it was
+    setTimeout(
+      () => {
+        select(new Set(found));
+        void fitView({ nodes: found.map((id) => ({ id })), duration: 600, padding: 0.35, maxZoom: 1.2 });
+      },
+      changingLevel ? 400 : 0
+    );
+  });
+  useEffect(() => {
+    const focus = (event: Event) => {
+      const { canvasId: on, nodeIds } = (event as CustomEvent<{ canvasId?: string; nodeIds?: string[] }>).detail ?? {};
+      if (on === canvasId && nodeIds?.length) focusOn(nodeIds);
+    };
+    window.addEventListener(CANVAS_FOCUS_EVENT, focus);
+    return () => window.removeEventListener(CANVAS_FOCUS_EVENT, focus);
+  }, [canvasId, focusOn]);
+  // ...and to a hotspot it flagged, opened
+  const showHotspot = useStableCallback((hotspotId: string) => {
+    const hotspot = flow.hotspots.find((candidate) => candidate.id === hotspotId);
+    if (!hotspot) return;
+    setFollowing(false);
+    goToHotspot(hotspot);
+  });
+  useEffect(() => {
+    const show = (event: Event) => {
+      const { canvasId: on, hotspotId } = (event as CustomEvent<{ canvasId?: string; hotspotId?: string }>).detail ?? {};
+      if (on === canvasId && hotspotId) showHotspot(hotspotId);
+    };
+    window.addEventListener(CANVAS_HOTSPOT_EVENT, show);
+    return () => window.removeEventListener(CANVAS_HOTSPOT_EVENT, show);
+  }, [canvasId, showHotspot]);
 
   const [shareOpen, setShareOpen] = useState<false | 'choose' | 'invite'>(false);
   const openShare = useCallback(() => setShareOpen('choose'), []);
@@ -1458,6 +1528,8 @@ function Canvas({
       flow.onEdgesChange(edgesRef.current.map((edge) => ({ type: 'select', id: edge.id, selected: true })));
       // ...and the comments shown on it
       setSelectedThreads(new Set(threadsShown().map((thread) => thread.id)));
+      // ...and its hotspots (the ones on L1 and L2's own places are on those levels)
+      setSelectedHotspots(new Set(flow.hotspots.filter((hotspot) => !hotspot.level).map((hotspot) => hotspot.id)));
     },
     { preventDefault: true }
   );
@@ -1492,7 +1564,7 @@ function Canvas({
     setTool('select');
     setDraft(null);
     setOpenThreadId(null);
-    clearSelectedThreads();
+    clearSelectedPins();
     setEditingId(null);
     flow.onNodesChange(
       nodesRef.current.filter((node) => node.selected).map((node) => ({ type: 'select', id: node.id, selected: false }))
@@ -1501,11 +1573,16 @@ function Canvas({
       edgesRef.current.filter((edge) => edge.selected).map((edge) => ({ type: 'select', id: edge.id, selected: false }))
     );
   });
-  // Selected comments are deleted with what's selected (React Flow deletes the nodes and edges)
+  // Selected comments and hotspots are deleted with what's selected (React Flow deletes the nodes and edges)
   useHotkeys(DELETE_KEYS, () => {
-    if (!onCanvas() || selectedThreads.size === 0) return;
-    comments.deleteThreads([...selectedThreads]);
-    clearSelectedThreads();
+    if (!onCanvas() || (selectedThreads.size === 0 && selectedHotspots.size === 0)) return;
+    if (selectedThreads.size) comments.deleteThreads([...selectedThreads]);
+    // (hotspots, like nodes, stay on a locked canvas)
+    if (!locked) {
+      selectedHotspots.forEach((id) => flow.deleteHotspot(id));
+      if (selectedHotspots.size) setOpenHotspot(null);
+    }
+    clearSelectedPins();
   });
   /** A tool that puts something down: picked, or put back to selecting if it was already */
   const pickTool = useStableCallback((next: 'text' | 'note' | 'comment' | 'hotspot') => {
@@ -1538,7 +1615,9 @@ function Canvas({
   // A place on L1 or L2 is on that level (they're laid out on their own): what's put there says so
   const placeLevel = () => (levelRef.current === 3 ? {} : { level: levelRef.current as 1 | 2 });
   const onPaneClick = useStableCallback((event: ReactMouseEvent) => {
-    clearSelectedThreads();
+    clearSelectedPins();
+    // An open hotspot closes on a click anywhere else on the canvas
+    setOpenHotspot(null);
     if (tool === 'hand') return;
     if (commentMode && editable) return startComment(anchorAt(flowPositionOf(event)));
     // Flagging: a hotspot where it's clicked
@@ -1574,7 +1653,8 @@ function Canvas({
 
   const onNodeClick = useStableCallback((event: ReactMouseEvent, node: Node) => {
     // Clicking one node selects just it (with shift or ⌘, it's added to what's selected)
-    if (!event.shiftKey && !event.metaKey) clearSelectedThreads();
+    if (!event.shiftKey && !event.metaKey) clearSelectedPins();
+    setOpenHotspot(null);
     // Not on notes and text: they're written on, not what's being flagged or commented on
     if (isWrittenOnCanvas(node.type)) return;
     // A hotspot on it (it shows on the node, wherever it goes, on every level it's on)
@@ -1799,7 +1879,7 @@ function Canvas({
                     onNodeClick={onNodeClick}
                     onNodeDoubleClick={onNodeDoubleClick}
                     onError={onFlowError}
-                    onSelectionStart={clearSelectedThreads}
+                    onSelectionStart={clearSelectedPins}
                     onPaneContextMenu={onPaneContextMenu}
                     onNodeContextMenu={onNodeContextMenu}
                     connectionLineType={ConnectionLineType.SmoothStep}
@@ -1849,7 +1929,7 @@ function Canvas({
                       draft={hotspotDraft}
                       locked={locked}
                       movable={!locked}
-                      selectedIds={null}
+                      selectedIds={selectedHotspots.size ? selectedHotspots : null}
                       onMove={moveHotspots}
                       onDropTarget={setHotspotDropTarget}
                       onOpen={setOpenHotspot}
@@ -2033,6 +2113,7 @@ function Canvas({
                     statusHistory={flow.canvasStatus.history}
                     onStatusChange={flow.changeStatus}
                     onDelete={canvasesApiUrl ? openDelete : undefined}
+                    onDrawWithAi={assistant ? openAssistant : undefined}
                   />
 
                   {flow.deleted && !leaving && (

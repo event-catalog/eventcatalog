@@ -11,6 +11,7 @@ import { getCatalogResources } from '../catalog-resources';
 import { startStudio, STUDIO_SOCKET_PATH } from '../server/runtime';
 import { getSignedInUser, isSignedIn } from '../server/sign-in';
 import { CANVASES_API_PATH } from '../api/canvases-api';
+import { isEventCatalogChatVisible } from '@utils/feature';
 
 export const prerender = false;
 
@@ -59,6 +60,7 @@ const signedInAs = getSignedInUser(Astro.locals);
           mcpUrl={buildUrl('/docs/mcp', true)}
           relayScriptPath={buildUrl('/webmcp-relay/embed.js', true)}
           keptInMemory={keptInMemory}
+          assistant={isEventCatalogChatVisible()}
           signedInAs={signedInAs}
           resources={resources}
           relations={relations}
