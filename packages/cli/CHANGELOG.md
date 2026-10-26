@@ -1,5 +1,13 @@
 # @eventcatalog/cli
 
+## 1.4.2
+
+### Patch Changes
+
+- 9306e41: fix(core): update dependencies with known vulnerabilities (GHSA-v4v9-w7cf-4c6q). Core now needs `@scalar/api-reference-react` 0.9.82 or later (vue, axios, nanoid and `@ai-sdk/provider-utils` fixes) and expressive-code 0.44.3 or later (`postcss-selector-parser` 7). The CLI and exporters need `js-yaml` 4.3.2 or later. The lockfile also picks up fixed versions of undici, fast-uri, dompurify, fast-xml-parser, lodash, minimatch, brace-expansion, sharp and others that the existing ranges already allowed. If your project's lockfile still holds an older version, refresh it (for example `npm update`) to get them
+- Updated dependencies [9306e41]
+  - @eventcatalog/exporters@0.1.4
+
 ## 1.4.1
 
 ### Patch Changes
@@ -69,6 +77,7 @@
 - eb79ef0: Every feature is now included in EventCatalog, with no plan or license key needed. Custom documentation, resource docs, custom pages, custom styles, the schema API and `schemas.txt`, Fields Explorer lineage, schema diffs, schema and directory sources, private remote files, analytics integrations, embedding, federation, the assistant, the MCP server, authentication and governance checks all work without `EVENTCATALOG_SCALE_LICENSE_KEY`, a Starter or Scale plan, or a Backstage license key. The assistant, MCP server and authentication still need server output (`output: 'server'`) and their configuration files.
 
   Breaking changes:
+
   - The billing settings page (`/settings/billing`) and the upgrade prompts are removed.
   - The EventCatalog branding (the Discord and GitHub links in the header and the footer) is always shown. `EVENTCATALOG_SHOW_BRANDING` is no longer used.
   - `EVENTCATALOG_STARTER`, `EVENTCATALOG_SCALE` and `ENABLE_EMBED` are no longer passed to the Astro runtime, and the plan helpers (`isEventCatalogStarterEnabled`, `isEventCatalogScaleEnabled` and the features gated on them) are removed from `@utils/feature`.
@@ -111,6 +120,7 @@
 - 3b46a41: Every feature is now included in EventCatalog, with no plan or license key needed. Custom documentation, resource docs, custom pages, custom styles, the schema API and `schemas.txt`, Fields Explorer lineage, schema diffs, schema and directory sources, private remote files, analytics integrations, embedding, federation, the assistant, the MCP server, authentication and governance checks all work without `EVENTCATALOG_SCALE_LICENSE_KEY`, a Starter or Scale plan, or a Backstage license key. The assistant, MCP server and authentication still need server output (`output: 'server'`) and their configuration files.
 
   Breaking changes:
+
   - The billing settings page (`/settings/billing`) and the upgrade prompts are removed.
   - The EventCatalog branding (the Discord and GitHub links in the header and the footer) is always shown. `EVENTCATALOG_SHOW_BRANDING` is no longer used.
   - `EVENTCATALOG_STARTER`, `EVENTCATALOG_SCALE` and `ENABLE_EMBED` are no longer passed to the Astro runtime, and the plan helpers (`isEventCatalogStarterEnabled`, `isEventCatalogScaleEnabled` and the features gated on them) are removed from `@utils/feature`.
