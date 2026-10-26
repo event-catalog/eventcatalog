@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
+import dotenv from 'dotenv';
 import { ValidationError } from '../types';
 import { RULES } from '../rules';
 
@@ -66,6 +67,38 @@ const unwrapDefaultExport = (config: unknown): Record<string, any> => {
   return config as Record<string, any>;
 };
 
+const errorMessage = (error: unknown): string => {
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as { message: unknown }).message);
+  }
+  return String(error);
+};
+
+const toDependencyEntries = (entries: unknown): DependencyEntry[] => {
+  if (!Array.isArray(entries)) return [];
+  return entries
+    .filter((entry) => entry && typeof entry.id === 'string')
+    .map((entry) => ({ id: entry.id, version: entry.version }));
+};
+
+const parseDependencies = (config: Record<string, any>): CatalogDependencies => {
+  if (!config.dependencies || typeof config.dependencies !== 'object') {
+    return {};
+  }
+
+  const dependencies: CatalogDependencies = {};
+
+  for (const [pluralKey, entries] of Object.entries(config.dependencies)) {
+    const singularType = PLURAL_TO_SINGULAR[pluralKey];
+    if (!singularType || !Array.isArray(entries)) continue;
+
+    dependencies[singularType] = toDependencyEntries(entries);
+  }
+
+  return dependencies;
+};
+
+/** Reads `dependencies` from CommonJS configs synchronously. Use loadEventCatalogConfigAsync to include directory sources. */
 export const loadEventCatalogConfig = (rootDir: string): CatalogDependencies => {
   const configPath = path.join(rootDir, 'eventcatalog.config.js');
 
@@ -75,28 +108,138 @@ export const loadEventCatalogConfig = (rootDir: string): CatalogDependencies => 
 
   try {
     delete require.cache[require.resolve(configPath)];
-    const config = unwrapDefaultExport(require(configPath));
-
-    if (!config.dependencies || typeof config.dependencies !== 'object') {
-      return {};
-    }
-
-    const dependencies: CatalogDependencies = {};
-
-    for (const [pluralKey, entries] of Object.entries(config.dependencies)) {
-      const singularType = PLURAL_TO_SINGULAR[pluralKey];
-      if (!singularType || !Array.isArray(entries)) continue;
-
-      dependencies[singularType] = (entries as any[])
-        .filter((entry) => entry && typeof entry.id === 'string')
-        .map((entry) => ({ id: entry.id, version: entry.version }));
-    }
-
-    return dependencies;
+    return parseDependencies(unwrapDefaultExport(require(configPath)));
   } catch (error) {
     console.warn(`Warning: Could not load eventcatalog.config.js: ${error instanceof Error ? error.message : String(error)}`);
     return {};
   }
+};
+
+export interface EventCatalogConfigResult {
+  dependencies: CatalogDependencies;
+  /** Directory sources that could not be loaded, with no synced copy to fall back on: owners they provide can't be checked. */
+  unloadedDirectorySources: string[];
+}
+
+export const DIRECTORY_STORE_PATH = path.join('.eventcatalog', 'store', 'directory.json');
+
+// EventCatalog loads the catalog's .env before its config, so connector tokens like process.env.GH_TOKEN resolve here too
+const loadEnvFile = (rootDir: string) => {
+  const envPath = path.join(rootDir, '.env');
+  if (!fs.existsSync(envPath)) return;
+
+  const { error } = dotenv.config({ path: envPath, quiet: true });
+  if (error) console.warn(`Warning: Could not load .env: ${errorMessage(error)}`);
+};
+
+// EventCatalog records each synced entry's provider, defaulting to the source name's prefix (`github` for `github:my-org`)
+const getSourceProvider = (sourceName: string) => sourceName.split(':')[0] || sourceName;
+
+/** Users and teams EventCatalog synced from directory sources the last time it ran. */
+const readDirectoryStore = (rootDir: string): { users: unknown[]; teams: unknown[] } | undefined => {
+  const storePath = path.join(rootDir, DIRECTORY_STORE_PATH);
+  if (!fs.existsSync(storePath)) return undefined;
+
+  try {
+    const resources = JSON.parse(fs.readFileSync(storePath, 'utf8'))?.resources;
+    const asArray = (entries: unknown) => (Array.isArray(entries) ? entries : []);
+    return { users: asArray(resources?.users), teams: asArray(resources?.teams) };
+  } catch (error) {
+    console.warn(`Warning: Could not read ${DIRECTORY_STORE_PATH}: ${errorMessage(error)}`);
+    return undefined;
+  }
+};
+
+// A directory source can throw while the config is evaluated (e.g. a connector missing its secret), so the
+// sources are unknown. EventCatalog only keeps users and teams in the store while sources are configured
+const readAllSyncedOwners = (rootDir: string): CatalogDependencies => {
+  const store = readDirectoryStore(rootDir);
+  const user = toDependencyEntries(store?.users);
+  const team = toDependencyEntries(store?.teams);
+  if (user.length + team.length === 0) return {};
+
+  console.warn(`Warning: Using the users and teams last synced to ${DIRECTORY_STORE_PATH} instead`);
+  return { user, team };
+};
+
+/** Runs each directory source, as EventCatalog does, so synced users and teams count as owners. */
+const loadDirectoryOwners = async (rootDir: string, sources: unknown) => {
+  const owners: { user: DependencyEntry[]; team: DependencyEntry[] } = { user: [], team: [] };
+  const failed: { name: string; collection: 'users' | 'teams' }[] = [];
+  if (!Array.isArray(sources)) return { owners, failedSources: [] };
+
+  // Users and teams load independently, as in EventCatalog, so one failing keeps the other's live results
+  const collections = [
+    { collection: 'users', loader: 'loadUsers', type: 'user' },
+    { collection: 'teams', loader: 'loadTeams', type: 'team' },
+  ] as const;
+
+  for (const source of sources) {
+    if (!source || typeof source !== 'object') continue;
+    const name = typeof source.name === 'string' ? source.name : 'unnamed';
+
+    for (const { collection, loader, type } of collections) {
+      try {
+        owners[type].push(...toDependencyEntries(await source[loader]?.()));
+      } catch (error) {
+        console.warn(`Warning: Could not load ${collection} from directory source "${name}": ${errorMessage(error)}`);
+        failed.push({ name, collection });
+      }
+    }
+  }
+
+  if (failed.length === 0) return { owners, failedSources: [] };
+
+  // Fall back to what each failed source synced the last time EventCatalog ran
+  const store = readDirectoryStore(rootDir);
+  const unloaded = new Set<string>();
+
+  for (const { name, collection } of failed) {
+    const provider = getSourceProvider(name);
+    const synced = toDependencyEntries(store?.[collection].filter((entry: any) => entry?.source?.provider === provider));
+    if (synced.length === 0) {
+      unloaded.add(name);
+      continue;
+    }
+
+    console.warn(`Warning: Using the ${collection} "${name}" last synced to ${DIRECTORY_STORE_PATH} instead`);
+    owners[collection === 'users' ? 'user' : 'team'].push(...synced);
+  }
+
+  return { owners, failedSources: Array.from(unloaded) };
+};
+
+/** Loads `dependencies` and the owners from `directory.sources`, from CommonJS or ESM configs. */
+export const loadEventCatalogConfigAsync = async (rootDir: string): Promise<EventCatalogConfigResult> => {
+  const configPath = path.join(rootDir, 'eventcatalog.config.js');
+
+  if (!fs.existsSync(configPath)) {
+    return { dependencies: {}, unloadedDirectorySources: [] };
+  }
+
+  loadEnvFile(rootDir);
+
+  let config: Record<string, any>;
+  try {
+    delete require.cache[require.resolve(configPath)];
+    const configUrl = pathToFileURL(configPath);
+    configUrl.searchParams.set('mtime', String(fs.statSync(configPath).mtimeMs));
+    config = unwrapDefaultExport(await import(configUrl.href));
+  } catch (error) {
+    console.warn(`Warning: Could not load eventcatalog.config.js: ${errorMessage(error)}`);
+    return { dependencies: readAllSyncedOwners(rootDir), unloadedDirectorySources: [] };
+  }
+
+  const dependencies = parseDependencies(config);
+  const { owners, failedSources } = await loadDirectoryOwners(rootDir, config.directory?.sources);
+
+  for (const type of ['user', 'team'] as const) {
+    if (owners[type].length > 0) {
+      dependencies[type] = [...(dependencies[type] || []), ...owners[type]];
+    }
+  }
+
+  return { dependencies, unloadedDirectorySources: failedSources };
 };
 
 const defaultConfig = (): LinterConfig => ({
@@ -110,13 +253,6 @@ const mergeConfig = (config: Record<string, any>): LinterConfig => ({
   ignorePatterns: [...DEFAULT_IGNORE_PATTERNS, ...(config.ignorePatterns || [])],
   overrides: config.overrides || [],
 });
-
-const errorMessage = (error: unknown): string => {
-  if (error && typeof error === 'object' && 'message' in error) {
-    return String((error as { message: unknown }).message);
-  }
-  return String(error);
-};
 
 /** Loads CommonJS configs synchronously for backwards compatibility. */
 export const loadConfig = (rootDir: string): LinterConfig => {

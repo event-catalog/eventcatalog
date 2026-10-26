@@ -10,7 +10,14 @@ import { parseAllFiles } from '../parser';
 import { validateCatalog, validateUnrecognisedFiles } from '../validators';
 import { reportErrors } from '../reporters';
 import { LinterOptions } from '../types';
-import { loadConfigAsync, loadEventCatalogConfig, shouldIgnoreFile, getEffectiveRules, applyRuleSeverity } from '../config';
+import {
+  loadConfigAsync,
+  loadEventCatalogConfigAsync,
+  shouldIgnoreFile,
+  getEffectiveRules,
+  applyRuleSeverity,
+  DIRECTORY_STORE_PATH,
+} from '../config';
 import { attachLocations } from '../utils/locations';
 import { initConfig, ConfigExistsError, CONFIG_FILE_NAME } from '../init';
 
@@ -87,7 +94,8 @@ program
     try {
       // Load configuration
       const config = await loadConfigAsync(rootDir);
-      const dependencies = loadEventCatalogConfig(rootDir);
+      spinner.text = 'Loading eventcatalog.config.js...';
+      const { dependencies, unloadedDirectorySources } = await loadEventCatalogConfigAsync(rootDir);
       const ignorePatterns = config.ignorePatterns || [];
 
       spinner.text = 'Scanning EventCatalog files...';
@@ -113,7 +121,11 @@ program
       const { parsed, errors: parseErrors } = await parseAllFiles(files);
 
       spinner.text = 'Validating catalog...';
-      const rawValidationErrors = validateCatalog(parsed, dependencies, config);
+      // Owners from a directory source that couldn't be loaded are unknown, not missing
+      const skipOwnerChecks = unloadedDirectorySources.length > 0;
+      const rawValidationErrors = validateCatalog(parsed, dependencies, config).filter(
+        (error) => !skipOwnerChecks || error.rule !== 'refs/owner-exists'
+      );
 
       // Apply rule configuration to each file's errors
       const validationErrors = parsed.flatMap((parsedFile) => {
@@ -127,6 +139,15 @@ program
       const locatedErrors = attachLocations(validationErrors, parsed);
 
       spinner.stop();
+
+      if (skipOwnerChecks) {
+        const sources = unloadedDirectorySources.map((name) => `"${name}"`).join(', ');
+        console.log(
+          chalk.yellow(
+            `⚠ Skipped refs/owner-exists: could not load users and teams from directory source ${sources}, and ${DIRECTORY_STORE_PATH} has none synced from it by a previous EventCatalog run`
+          )
+        );
+      }
 
       const summary = reportErrors(locatedErrors, parseErrors, {
         verbose: options.verbose,

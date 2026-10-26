@@ -6,6 +6,7 @@ import {
   loadConfig,
   loadConfigAsync,
   loadEventCatalogConfig,
+  loadEventCatalogConfigAsync,
   shouldIgnoreFile,
   getEffectiveRules,
   applyRuleSeverity,
@@ -177,6 +178,220 @@ describe('Configuration', () => {
 
       const result = loadEventCatalogConfig(tempDir);
       expect(result.event).toEqual([{ id: 'OrderPlaced', version: undefined }]);
+    });
+  });
+
+  describe('loadEventCatalogConfigAsync', () => {
+    const writeEventCatalogConfig = (content: string) => {
+      fs.writeFileSync(path.join(tempDir, 'eventcatalog.config.js'), content);
+    };
+
+    const writeDirectoryStore = (resources: Record<string, unknown>) => {
+      const storeDir = path.join(tempDir, '.eventcatalog', 'store');
+      fs.mkdirSync(storeDir, { recursive: true });
+      fs.writeFileSync(path.join(storeDir, 'directory.json'), JSON.stringify({ version: '1', resources }));
+    };
+
+    it('returns no dependencies when no eventcatalog.config.js exists', async () => {
+      const result = await loadEventCatalogConfigAsync(tempDir);
+      expect(result).toEqual({ dependencies: {}, unloadedDirectorySources: [] });
+    });
+
+    it('adds the users and teams from directory sources to dependencies', async () => {
+      writeEventCatalogConfig(`
+export default {
+  dependencies: { users: [{ id: 'hand-listed' }] },
+  directory: {
+    sources: [
+      {
+        type: 'directory',
+        name: 'github:my-org',
+        loadUsers: async () => [{ id: 'dboyne', name: 'David Boyne' }],
+        loadTeams: async () => [{ id: 'academic-life', name: 'Academic Life' }],
+      },
+      { type: 'directory', name: 'entra:tenant', loadTeams: async () => [{ id: 'data', name: 'Data' }] },
+    ],
+  },
+};
+`);
+
+      const result = await loadEventCatalogConfigAsync(tempDir);
+
+      expect(result.unloadedDirectorySources).toEqual([]);
+      expect(result.dependencies.user).toEqual([
+        { id: 'hand-listed', version: undefined },
+        { id: 'dboyne', version: undefined },
+      ]);
+      expect(result.dependencies.team).toEqual([
+        { id: 'academic-life', version: undefined },
+        { id: 'data', version: undefined },
+      ]);
+    });
+
+    it("loads the catalog's .env before the config, so sources can read tokens from it", async () => {
+      fs.writeFileSync(path.join(tempDir, '.env'), 'LINTER_TEST_DIRECTORY_TEAM=from-env-file\n');
+      writeEventCatalogConfig(`
+const team = process.env.LINTER_TEST_DIRECTORY_TEAM;
+module.exports = {
+  directory: { sources: [{ type: 'directory', name: 'env', loadTeams: async () => [{ id: team, name: 'Team' }] }] },
+};
+`);
+
+      try {
+        const result = await loadEventCatalogConfigAsync(tempDir);
+        expect(result.dependencies.team).toEqual([{ id: 'from-env-file', version: undefined }]);
+      } finally {
+        delete process.env.LINTER_TEST_DIRECTORY_TEAM;
+      }
+    });
+
+    it('falls back to the users and teams EventCatalog last synced when a source fails', async () => {
+      writeEventCatalogConfig(`
+module.exports = {
+  directory: {
+    sources: [{
+      type: 'directory',
+      name: 'github:my-org',
+      loadUsers: async () => { throw new Error('Bad credentials'); },
+      loadTeams: async () => { throw new Error('Bad credentials'); },
+    }],
+  },
+};
+`);
+      writeDirectoryStore({
+        users: [{ id: 'dboyne', name: 'David Boyne', source: { provider: 'github' } }],
+        teams: [{ id: 'academic-life', name: 'Academic Life', source: { provider: 'github' } }],
+      });
+
+      const result = await loadEventCatalogConfigAsync(tempDir);
+
+      expect(result.unloadedDirectorySources).toEqual([]);
+      expect(result.dependencies.user).toEqual([{ id: 'dboyne', version: undefined }]);
+      expect(result.dependencies.team).toEqual([{ id: 'academic-life', version: undefined }]);
+    });
+
+    it('only falls back to the synced users and teams of the sources that failed', async () => {
+      writeEventCatalogConfig(`
+module.exports = {
+  directory: {
+    sources: [
+      { type: 'directory', name: 'github:my-org', loadUsers: async () => [{ id: 'current-github-user', name: 'Current' }] },
+      { type: 'directory', name: 'microsoft-entra:tenant', loadUsers: async () => { throw new Error('offline'); } },
+    ],
+  },
+};
+`);
+      writeDirectoryStore({
+        users: [
+          { id: 'deleted-github-user', name: 'Deleted', source: { provider: 'github' } },
+          { id: 'entra-user', name: 'Entra', source: { provider: 'microsoft-entra' } },
+        ],
+      });
+
+      const result = await loadEventCatalogConfigAsync(tempDir);
+
+      expect(result.unloadedDirectorySources).toEqual([]);
+      expect(result.dependencies.user).toEqual([
+        { id: 'current-github-user', version: undefined },
+        { id: 'entra-user', version: undefined },
+      ]);
+    });
+
+    it('treats a failed source as unloaded when the synced copy has nothing from it', async () => {
+      writeEventCatalogConfig(`
+module.exports = {
+  directory: {
+    sources: [{ type: 'directory', name: 'microsoft-entra:tenant', loadUsers: async () => { throw new Error('offline'); } }],
+  },
+};
+`);
+      writeDirectoryStore({ users: [{ id: 'github-user', name: 'GitHub', source: { provider: 'github' } }] });
+
+      const result = await loadEventCatalogConfigAsync(tempDir);
+
+      expect(result.unloadedDirectorySources).toEqual(['microsoft-entra:tenant']);
+      expect(result.dependencies.user).toBeUndefined();
+    });
+
+    it('keeps a failed source unloaded when only another failed source has synced owners', async () => {
+      writeEventCatalogConfig(`
+module.exports = {
+  directory: {
+    sources: [
+      { type: 'directory', name: 'github:my-org', loadUsers: async () => { throw new Error('Bad credentials'); } },
+      { type: 'directory', name: 'microsoft-entra:tenant', loadUsers: async () => { throw new Error('offline'); } },
+    ],
+  },
+};
+`);
+      writeDirectoryStore({ users: [{ id: 'github-user', name: 'GitHub', source: { provider: 'github' } }] });
+
+      const result = await loadEventCatalogConfigAsync(tempDir);
+
+      expect(result.unloadedDirectorySources).toEqual(['microsoft-entra:tenant']);
+      expect(result.dependencies.user).toEqual([{ id: 'github-user', version: undefined }]);
+    });
+
+    it('uses every synced user and team when a directory source throws while the config loads', async () => {
+      writeEventCatalogConfig(`
+const microsoftEntraDirectory = () => { throw new Error('Microsoft Entra directory connector requires clientSecret.'); };
+module.exports = { directory: { sources: [microsoftEntraDirectory()] } };
+`);
+      writeDirectoryStore({
+        users: [{ id: 'entra-user', name: 'Entra', source: { provider: 'microsoft-entra' } }],
+        teams: [{ id: 'platform', name: 'Platform', source: { provider: 'microsoft-entra' } }],
+      });
+
+      const result = await loadEventCatalogConfigAsync(tempDir);
+
+      expect(result.unloadedDirectorySources).toEqual([]);
+      expect(result.dependencies).toEqual({
+        user: [{ id: 'entra-user', version: undefined }],
+        team: [{ id: 'platform', version: undefined }],
+      });
+    });
+
+    it("keeps a source's live users when only its teams fail to load", async () => {
+      writeEventCatalogConfig(`
+module.exports = {
+  directory: {
+    sources: [{
+      type: 'directory',
+      name: 'custom:hr',
+      loadUsers: async () => [{ id: 'live-user', name: 'Live' }],
+      loadTeams: async () => { throw new Error('teams endpoint down'); },
+    }],
+  },
+};
+`);
+      writeDirectoryStore({
+        users: [{ id: 'stale-user', name: 'Stale', source: { provider: 'custom' } }],
+        teams: [{ id: 'synced-team', name: 'Team', source: { provider: 'custom' } }],
+      });
+
+      const result = await loadEventCatalogConfigAsync(tempDir);
+
+      expect(result.unloadedDirectorySources).toEqual([]);
+      expect(result.dependencies.user).toEqual([{ id: 'live-user', version: undefined }]);
+      expect(result.dependencies.team).toEqual([{ id: 'synced-team', version: undefined }]);
+    });
+
+    it('reports the sources it could not load when there is no synced copy to fall back on', async () => {
+      writeEventCatalogConfig(`
+module.exports = {
+  directory: {
+    sources: [
+      { type: 'directory', name: 'github:my-org', loadTeams: async () => { throw new Error('Bad credentials'); } },
+      { type: 'directory', name: 'entra:tenant', loadUsers: async () => [{ id: 'dboyne', name: 'David Boyne' }] },
+    ],
+  },
+};
+`);
+
+      const result = await loadEventCatalogConfigAsync(tempDir);
+
+      expect(result.unloadedDirectorySources).toEqual(['github:my-org']);
+      expect(result.dependencies.user).toEqual([{ id: 'dboyne', version: undefined }]);
     });
   });
 
