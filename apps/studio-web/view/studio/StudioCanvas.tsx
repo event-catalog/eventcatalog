@@ -1542,6 +1542,8 @@ function Canvas({
                   onConnectEnd={connect.onConnectEnd}
                   edgesReconnectable={editable && !locked}
                   onReconnect={editable ? flow.onReconnect : undefined}
+                  onReconnectStart={connect.onReconnectStart}
+                  onReconnectEnd={connect.onReconnectEnd}
                   reconnectRadius={RECONNECT_RADIUS}
                   onDragOver={locked ? undefined : onDragOver}
                   onDrop={locked ? undefined : onDrop}

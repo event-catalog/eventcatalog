@@ -82,12 +82,22 @@ export function useConnectNew({
   // Read when the connection ends, not followed: the handlers stay the same
   const latest = useRef({ getNode, getLevel, locked, onMake, connecting });
   latest.current = { getNode, getLevel, locked, onMake, connecting };
+  // Dragging an end of a connection already there: React Flow ends it with onConnectEnd too (before onReconnectEnd),
+  // and let go of away from a node, it stays as it was
+  const reconnecting = useRef(false);
+  const onReconnectStart = useCallback(() => {
+    reconnecting.current = true;
+  }, []);
+  const onReconnectEnd = useCallback(() => {
+    reconnecting.current = false;
+  }, []);
 
   const onConnectEnd = useCallback(
     (event: MouseEvent | TouchEvent, state: FinalConnectionState) => {
       const { fromNode, fromHandle } = state;
       if (
         latest.current.locked ||
+        reconnecting.current ||
         state.isValid ||
         state.toNode ||
         !fromNode ||
@@ -208,5 +218,12 @@ export function useConnectNew({
     };
   }
 
-  return { placeholder, chooser, onConnectEnd, cancel };
+  return {
+    placeholder,
+    chooser,
+    onConnectEnd,
+    onReconnectStart,
+    onReconnectEnd,
+    cancel,
+  };
 }

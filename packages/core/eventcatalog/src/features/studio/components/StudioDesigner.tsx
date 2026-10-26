@@ -1785,6 +1785,8 @@ function Canvas({
                     // Drag either end of a connection to another node (dropped anywhere else, it stays where it was)
                     edgesReconnectable={editable && !locked}
                     onReconnect={editable ? flow.onReconnect : undefined}
+                    onReconnectStart={connect.onReconnectStart}
+                    onReconnectEnd={connect.onReconnectEnd}
                     reconnectRadius={RECONNECT_RADIUS}
                     onDragOver={locked ? undefined : onDragOver}
                     onMoveStart={onMoveStart}

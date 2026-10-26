@@ -101,3 +101,28 @@ test('Escape (or a click away) leaves the canvas as it was', async ({ page }) =>
   expect((await canvasNodes(page)).length).toBe(before);
   expect(await edgeCount(page)).toBe(edgesBefore);
 });
+
+test('dragging the end of a connection already there onto empty canvas leaves it as it was', async ({ page }) => {
+  const edgesBefore = await edgeCount(page);
+  const end = page.locator('.react-flow__edgeupdater-target').first();
+  const box = (await end.boundingBox())!;
+  const from = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  let to: { x: number; y: number } | undefined;
+  for (let dy = 0; dy < 400 && !to; dy += 20)
+    for (const dx of [180, 220, 260, 300, 340]) {
+      const at = { x: from.x + dx, y: from.y + dy };
+      const onPane = await page.evaluate(({ x, y }) => !!document.elementFromPoint(x, y)?.classList.contains('react-flow__pane'), at);
+      if (onPane) {
+        to = at;
+        break;
+      }
+    }
+  if (!to) throw new Error('no empty canvas beside the connection');
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(to.x, to.y, { steps: 15 });
+  await page.mouse.up();
+  await expect(page.getByRole('dialog', { name: 'Connect to something new' })).toHaveCount(0);
+  await expect(nodeLocator(page, 'connect-placeholder')).toHaveCount(0);
+  expect(await edgeCount(page)).toBe(edgesBefore);
+});
