@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getNodeDiagramPath } from '@utils/node-graphs/node-resource';
+import { compactVisualiserGraph } from '@utils/node-graphs/compact-visualiser-graph';
 
 describe('getNodeDiagramPath', () => {
   it('is the diagram page of the resource a node shows', () => {
@@ -34,5 +35,20 @@ describe('getNodeDiagramPath', () => {
     expect(
       getNodeDiagramPath({ type: 'services', data: { service: { id: 'OrderService', version: '1.0.0', visualiser: false } } })
     ).toBeUndefined();
+  });
+
+  it('is still nothing for a resource with its visualiser turned off once its graph is compacted for the page', () => {
+    const { nodes } = compactVisualiserGraph(
+      [
+        {
+          id: 'svc-1.0.0',
+          type: 'services',
+          position: { x: 0, y: 0 },
+          data: { service: { id: 'svc', version: '1.0.0', visualiser: false } },
+        },
+      ],
+      []
+    );
+    expect(getNodeDiagramPath(nodes[0])).toBeUndefined();
   });
 });

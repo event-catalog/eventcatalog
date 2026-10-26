@@ -37,6 +37,8 @@ const RESOURCE_DATA_KEYS = [
   // An entity's identifier, its primary key in the Mermaid export
   'identifier',
   'sidebar',
+  // `visualiser: false`: it has no diagram page, so a node's card doesn't link to one
+  'visualiser',
 ] as const;
 
 const RESOURCE_OBJECT_KEYS = new Set([
