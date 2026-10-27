@@ -1407,7 +1407,21 @@ function Canvas({
   });
   const menuQuestions = useMemo(() => (contextMenu?.node && questionsFor ? questionsFor(contextMenu.node) : undefined), [contextMenu, questionsFor]);
 
-  /** A note to the right of a node, about it */
+  /** How big text is drawn on the canvas at a font size (written in it out of sight, as the text node draws it) */
+  const measureText = (text: string, fontSize: number) => {
+    const box = document.createElement('div');
+    box.className = 'studio-text';
+    box.style.cssText = 'position: absolute; visibility: hidden; pointer-events: none';
+    const body = document.createElement('p');
+    body.className = 'studio-text-body';
+    body.style.fontSize = `${fontSize}px`;
+    body.textContent = text;
+    box.append(body);
+    canvasRef.current!.append(box);
+    const { offsetWidth: width, offsetHeight: height } = box;
+    box.remove();
+    return { width, height };
+  };
   /**
    * Text an agent writes: above the node it's about (a heading over it), else in the middle of the canvas, on the
    * level shown, as big as asked
@@ -1423,20 +1437,26 @@ function Canvas({
       ...(nodeId && { resource: nodeId }),
       ...(levelRef.current !== 3 && { level: levelRef.current }),
     };
+    // Text is as big as what's written, but it's placed by its default size: so placed by how big it's drawn
+    const drawn = measureText(text, size);
+    const placed = getNodeDefinition('text')!.defaultSize!;
     const at = node ? getAbsolutePosition(node, lookup) : undefined;
     const width = node ? (node.measured?.width ?? node.width ?? 240) : 0;
-    // Centred over the node, clear of it by about a line of the text
-    const center = at ? { x: at.x + width / 2, y: at.y - size * 1.4 } : canvasCenter();
-    const id = flow.insertNode('text', data, center);
+    // Centred over the node, its last line clear of it by about half a line
+    const middle = at ? { x: at.x + width / 2, y: at.y - size * 0.7 - drawn.height / 2 } : canvasCenter();
+    const topLeft = { x: middle.x - drawn.width / 2, y: middle.y - drawn.height / 2 };
+    const id = flow.insertNode('text', data, { x: topLeft.x + placed.width / 2, y: topLeft.y + placed.height / 2 });
     track('text_added', { level: levelRef.current, from: 'agent' });
     return id;
   };
 
+  /** A note to the right of a node, about it */
   const addNoteBeside = (nodeId: string, extra: Record<string, unknown> = {}) => {
     // Beside where it's shown on the level shown (L1 and L2 are arranged on their own, and the note is on that level)
     const lookup = shownLookup();
     const node = lookup.get(nodeId);
-    if (!node) return addNoteAt(canvasCenter(), extra);
+    // Not shown on this level: in the middle of the canvas, still about it (so it's read back, and goes with it)
+    if (!node) return addNoteAt(canvasCenter(), { resource: nodeId, ...extra });
     const at = getAbsolutePosition(node, lookup);
     const width = node.measured?.width ?? node.width ?? 240;
     return addNoteAt({ x: at.x + width + 40 + 100, y: at.y + 88 }, { resource: nodeId, ...extra });
