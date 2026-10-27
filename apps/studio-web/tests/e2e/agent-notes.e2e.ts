@@ -53,3 +53,33 @@ test("a note an agent writes about something the level shown doesn't show is sti
   expect((await edit(page, [{ op: 'remove_resource', id: 'OrderPlaced' }])).results[0].ok).toBe(true);
   await expect(note).toHaveCount(0);
 });
+
+for (const level of [3, 2] as const) {
+  test(`text and notes about a resource added in the same edit go by it, on L${level}`, async ({ page }) => {
+    await openDiagram(page);
+    await showLevel(page, level);
+    const made = await edit(page, [
+      { op: 'add_resource', resource: { id: 'shipping-service', type: 'service', name: 'Shipping Service', parent: 'ordering' } },
+      { op: 'add_note', note: { text: 'Shipping', kind: 'text', resource: 'shipping-service' } },
+      { op: 'add_note', note: { text: 'Ships orders', resource: 'shipping-service' } },
+    ]);
+    expect(made.results.every((result) => result.ok)).toBe(true);
+
+    const text = page.locator('.react-flow__node-text', { hasText: 'Shipping' });
+    const note = page.locator('.react-flow__node-note', { hasText: 'Ships orders' });
+    await expect(text).toBeVisible();
+    await expect(note).toBeVisible();
+    // Over the new service, centred on it, and the note to its right (not in the middle of the canvas)
+    await expect
+      .poll(async () => {
+        const [box, service] = await Promise.all([text.boundingBox(), nodeLocator(page, 'shipping-service').boundingBox()]);
+        return Math.round(Math.abs(box!.x + box!.width / 2 - (service!.x + service!.width / 2)));
+      })
+      .toBeLessThan(8);
+    const [box, noteBox, service] = await Promise.all([text.boundingBox(), note.boundingBox(), nodeLocator(page, 'shipping-service').boundingBox()]);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(service!.y + 1);
+    expect(service!.y - (box!.y + box!.height)).toBeLessThan(60);
+    expect(noteBox!.x).toBeGreaterThanOrEqual(service!.x + service!.width);
+    expect(Math.abs(noteBox!.y - service!.y)).toBeLessThan(200);
+  });
+}

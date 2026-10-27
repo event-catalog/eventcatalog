@@ -34,7 +34,7 @@ import {
 import { DiagramBackground, edgeTypes, pauseEdgeAnimations } from '@eventcatalog/visualiser';
 import { getCanvasLegend, Legend, legendKeyOf } from './components/Legend';
 import { LiveCursors } from './components/LiveCursors';
-import { anchorAt, CommentLayer, CommentList, getAnchorPosition, type Author, type CommentAnchor, type Hotspot, type HotspotSeverity, type Thread as CommentThread, HotspotLayer, HotspotList, topSeverity, type HotspotDraft, type HotspotFields, type HotspotSpot, createSmoother, type LevelPlace, type Thread, CLIPBOARD_TYPE, copyNodes, pasteNodes, readClipboard, type ClipboardContent, keepUnchanged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, containerFor, findDropTargets, placeDropped, toRelativePosition, findGroupAtPoint, getAbsolutePosition, getAbsoluteRect, previewContainerGrowth, sortByHierarchy, withParent, placeNodes, getLayoutPositions, layoutGraph, getLevelGraph, LEVELS, type Level, arrangeLevel, getLevelNodeSize, levelPlaces, canGoInContainer, GROUP_TYPES, getNodeDefinition, getNodeName, getNoteLevel, isGroupType, isOnLevel, isShownOnLevel, isWrittenOnCanvas, updateResource, CanvasControls, FIT_VIEW_OPTIONS, ViewControls, DropTargetContext, nodeTypes, LockedContext, StartWritingContext, EditingContext, UpdateNodeDataContext, ContainerChooser, type ContainerChoice, type LiveMoves } from '@eventcatalog/visualiser/studio';
+import { anchorAt, CommentLayer, CommentList, getAnchorPosition, type Author, type CommentAnchor, type Hotspot, type HotspotSeverity, type Thread as CommentThread, HotspotLayer, HotspotList, topSeverity, type HotspotDraft, type HotspotFields, type HotspotSpot, createSmoother, type LevelPlace, type Thread, CLIPBOARD_TYPE, copyNodes, pasteNodes, readClipboard, type ClipboardContent, keepUnchanged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, containerFor, findDropTargets, placeDropped, toRelativePosition, findGroupAtPoint, getAbsolutePosition, getAbsoluteRect, previewContainerGrowth, sortByHierarchy, withParent, placeNodes, getLayoutPositions, layoutGraph, getLevelGraph, LEVELS, type Level, arrangeLevel, getLevelNodeSize, levelPlaces, canGoInContainer, GROUP_TYPES, getNodeDefinition, getNodeName, getNoteLevel, getCanvasMaps, isGroupType, isOnLevel, isShownOnLevel, isWrittenOnCanvas, updateResource, CanvasControls, FIT_VIEW_OPTIONS, ViewControls, DropTargetContext, nodeTypes, LockedContext, StartWritingContext, EditingContext, UpdateNodeDataContext, ContainerChooser, type ContainerChoice, type LiveMoves } from '@eventcatalog/visualiser/studio';
 import type { CursorSource, Editing, Moving, Peer } from '../collab/room';
 import type * as Y from 'yjs';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -1462,6 +1462,29 @@ function Canvas({
     return addNoteAt({ x: at.x + width + 40 + 100, y: at.y + 88 }, { resource: nodeId, ...extra });
   };
 
+  // ---- What an agent writes about a resource added in the same edit: placed once it's drawn on the level shown
+  // (what's shown is only known once it's drawn), or where it can be if it isn't soon ----
+
+  const toPlace = useRef<{ nodeId: string; place: () => void }[]>([]);
+  const placeOnceShown = (nodeId: string | undefined, place: () => void) => {
+    const node = nodeId && !shownLookup().get(nodeId)?.measured ? getCanvasMaps(flow.doc!).nodes.get(nodeId) : undefined;
+    if (!nodeId || !node || !isShownOnLevel(node.type, levelRef.current)) return place();
+    const waiting = { nodeId, place };
+    toPlace.current.push(waiting);
+    setTimeout(() => {
+      if (!toPlace.current.includes(waiting)) return;
+      toPlace.current = toPlace.current.filter((other) => other !== waiting);
+      place();
+    }, 1000);
+  };
+  useEffect(() => {
+    if (!toPlace.current.length) return;
+    const shown = shownLookup();
+    const ready = toPlace.current.filter(({ nodeId }) => shown.get(nodeId)?.measured);
+    toPlace.current = toPlace.current.filter((waiting) => !ready.includes(waiting));
+    ready.forEach(({ place }) => place());
+  }, [shownNodes]);
+
   // ---- Something just added: selected once it's on the canvas (its details open from its Edit button, or straight
   // away when asked: what a connection was let go of to make, chosen from a list, is named next) ----
 
@@ -1502,10 +1525,12 @@ function Canvas({
     pickNoteTool: () => pickTool('note'),
     addNote: ({ nodeId, text, author, kind, fontSize } = {}) => {
       if (lockedRef.current) return;
-      if (kind === 'text') return void addTextFor(nodeId, text ?? '', fontSize);
       const extra = { ...(text && { text }), ...(author && { author }) };
-      if (nodeId) addNoteBeside(nodeId, extra);
-      else addNoteAt(canvasCenter(), extra);
+      placeOnceShown(nodeId, () => {
+        if (kind === 'text') addTextFor(nodeId, text ?? '', fontSize);
+        else if (nodeId) addNoteBeside(nodeId, extra);
+        else addNoteAt(canvasCenter(), extra);
+      });
     },
     centreOn: (nodeId) => {
       if (levelRef.current !== 3 && !levelGraphRef.current?.nodes.some((node) => node.id === nodeId)) changeLevel(3);
