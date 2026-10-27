@@ -77,6 +77,27 @@
       ]
     },
     {
+      "type": "agent",
+      "id": "customer-support-agent",
+      "version": "1.0.0",
+      "name": "Customer Support Agent",
+      "contentPath": "domains/Customer/agents/customer-support-agent/index.mdx",
+      "contentHash": "sha256:a6e98f8f856d576dcb99b714df06cd80f11d633deb059b36febb2709623a5497",
+      "owners": ["customer-platform"],
+      "receives": [
+        {
+          "id": "order-cancelled",
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "ordering.order-events",
+              "version": "1.0.0"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "type": "channel",
       "id": "catalog.product-events",
       "version": "1.0.0",
@@ -901,7 +922,7 @@
       "version": "1.0.0",
       "name": "Customer",
       "contentPath": "domains/Customer/index.mdx",
-      "contentHash": "sha256:93b6cdf846a15a1866f5423de6488df27557e05b36d9929db43c03870c901127",
+      "contentHash": "sha256:e25d1fc78b14995c71e18e7e7b16ca0c93b8bfe58afe4bbfe74ac164ee884b29",
       "owners": ["customer-platform"],
       "sidecars": [
         {
@@ -943,6 +964,12 @@
         {
           "path": "domains/Customer/ubiquitous-language.mdx",
           "hash": "sha256:3e3c5f510f9807c7b83889b749414716a1669377aaa23ea79e13b38bca4237a4"
+        }
+      ],
+      "agents": [
+        {
+          "id": "customer-support-agent",
+          "version": "1.0.0"
         }
       ],
       "domains": [
