@@ -61,15 +61,23 @@ describe('hotspots', () => {
     ]);
   });
 
-  it('stay where their node was when it is deleted, and can be changed', async () => {
+  it('go with their node when it is deleted, and the others stay', async () => {
+    const content = await modelToCanvas(model);
+    const doc = new Y.Doc();
+    addNodes(doc, content.nodes, content.edges);
+    const author = { name: 'Sam', color: '#000' };
+    createHotspot(doc, { severity: 'info', title: 'Key service', nodeId: 'orders', position: { x: 0, y: 0 }, author });
+    const kept = createHotspot(doc, { severity: 'warning', title: 'Slow', nodeId: 'payments', position: { x: 0, y: 0 }, author });
+    const placed = createHotspot(doc, { severity: 'info', title: 'Here', position: { x: 10, y: 10 }, author });
+    deleteNodes(doc, ['orders']);
+    expect(readHotspots(doc).map((hotspot) => hotspot.id).sort()).toEqual([kept, placed].sort());
+  });
+
+  it('can be changed', async () => {
     const content = await modelToCanvas(model);
     const doc = new Y.Doc();
     addNodes(doc, content.nodes, content.edges);
     const id = createHotspot(doc, { severity: 'info', title: 'Key service', nodeId: 'orders', position: { x: 0, y: 0 }, author: { name: 'Sam', color: '#000' } });
-    deleteNodes(doc, ['orders']);
-    const [kept] = readHotspots(doc);
-    expect(kept.nodeId).toBeUndefined();
-    expect(kept.position.x).toBeGreaterThan(0);
     updateHotspot(doc, id, { severity: 'critical', title: 'Key service, now critical' });
     expect(readHotspots(doc)[0]).toMatchObject({ severity: 'critical', title: 'Key service, now critical', author: { name: 'Sam' } });
   });

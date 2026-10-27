@@ -5,6 +5,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { CircleHelp, FolderOpen, Plug } from "lucide-react";
 import logoSvg from "../eventcatalog-logo.svg?raw";
+import { usePaletteCollapsed } from "./Palette";
 
 type EmptyCanvasProps = {
   /** Opening a .eventcatalog file (not offered when not given, e.g. inside a chat) */
@@ -33,10 +34,24 @@ const arrow = {
 
 /** What the tools around the empty canvas are for, each with an arrow to it (on wide enough screens) */
 function Hints({ palette, live }: { palette?: boolean; live?: boolean }) {
+  // Folded away, the palette's just its tabs at the top: the hint points at them there
+  const paletteCollapsed = usePaletteCollapsed();
   return (
     <div aria-hidden className={`hidden md:block! ${hintText}`}>
+      {/* To the resources, beside the palette's tabs when it's folded away */}
+      {palette && paletteCollapsed && (
+        <div className="absolute left-[284px] top-[75px] flex items-start gap-1">
+          <svg width="56" height="32" viewBox="0 0 70 40" {...arrow}>
+            <path d="M66 30 C 45 34, 22 28, 6 12" />
+            <path d="M6 12 L15.7 14.6 M6 12 L8.6 21.7" />
+          </svg>
+          <p className="mt-4 max-w-[160px]">
+            Drag resources onto the canvas, then connect them
+          </p>
+        </div>
+      )}
       {/* To the resources, on the left (low down, clear of the levels hint) */}
-      {palette && (
+      {palette && !paletteCollapsed && (
         <div className="absolute bottom-[120px] left-[290px] flex items-start gap-1">
           <svg width="56" height="32" viewBox="0 0 70 40" {...arrow}>
             <path d="M66 8 C 45 4, 22 10, 6 26" />

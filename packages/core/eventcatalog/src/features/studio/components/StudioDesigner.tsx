@@ -94,6 +94,7 @@ import {
   isGroupType,
   type Hotspot,
   type HotspotDraft,
+  type HotspotPlace,
   type HotspotFields,
   type HotspotSeverity,
   type HotspotSpot,
@@ -1192,6 +1193,10 @@ function Canvas({
     setHotspotDraft(null);
   });
   const cancelHotspot = useCallback(() => setHotspotDraft(null), []);
+  // The hotspot being added, dragged somewhere else before it's added: onto a node, or a place on the level shown
+  const moveHotspotDraft = useStableCallback((to: HotspotPlace) =>
+    setHotspotDraft((draft) => draft && { ...(to.nodeId ? { nodeId: to.nodeId } : placeLevel()), position: to.position })
+  );
   const deleteHotspot = useStableCallback((id: string) => flow.deleteHotspot(id));
   // Dragged onto a node (they move with it), or to a place; open where it lands if it was open
   const moveHotspots = useStableCallback((ids: string[], to: { nodeId?: string; position: XYPosition }) => {
@@ -1213,8 +1218,8 @@ function Canvas({
     const width = node ? (node.measured?.width ?? node.width ?? 0) : 0;
     void setCenter(at.x + width / 2 + 120, at.y + 80, { zoom: Math.max(getZoom(), 0.8), duration: 300 });
     setHotspotDraft(null);
+    // (the list stays open, so they can go through them one by one)
     setOpenHotspot(node ? `node:${node.id}` : `place:${hotspot.id}`);
-    setListingHotspots(false);
   });
   const nameOfNode = useStableCallback((id: string) => {
     const node = nodesRef.current.find((candidate) => candidate.id === id);
@@ -1725,6 +1730,11 @@ function Canvas({
     flow.deleteNodes(menuTargets());
     setContextMenu(null);
   });
+  // Copies, then deletes, as ⌘X does: only on L3, where copying works (so it's not offered on L1 and L2)
+  const cutFromMenu = useStableCallback(() => {
+    copyFromMenu();
+    deleteFromMenu();
+  });
 
   const openThread = useStableCallback((thread: Thread) => {
     setListingComments(false);
@@ -1841,7 +1851,7 @@ function Canvas({
                   ref={canvasRef}
                   className={`eventcatalog-visualizer studio-canvas relative flex-1 min-w-0 ${commentMode ? 'comment-mode' : ''} ${
                     transitioning ? 'is-layout-transition' : ''
-                  } ${placing || tool === 'comment' || tool === 'hotspot' ? 'is-placing' : ''} ${tool === 'hand' ? 'is-panning' : ''}`}
+                  } ${placing || tool === 'comment' || tool === 'hotspot' ? 'is-placing' : ''} ${tool === 'hotspot' ? 'is-placing-hotspot' : ''} ${tool === 'hand' ? 'is-panning' : ''}`}
                   onPointerMove={trackPointer}
                   onPointerLeave={clearPointer}
                   onDoubleClick={onCanvasDoubleClick}
@@ -1938,6 +1948,7 @@ function Canvas({
                       onUpdate={flow.updateHotspot}
                       onDelete={deleteHotspot}
                       onGo={goToHotspot}
+                      onMoveDraft={moveHotspotDraft}
                     />
                   </ReactFlow>
 
@@ -2051,7 +2062,12 @@ function Canvas({
                         </button>
                       </div>
                       <div className="min-h-0 flex-1 overflow-y-auto">
-                        <HotspotList hotspots={flow.hotspots} nameOf={nameOfNode} onOpen={goToHotspot} />
+                        <HotspotList
+                          hotspots={flow.hotspots}
+                          nameOf={nameOfNode}
+                          onOpen={goToHotspot}
+                          goOnHover={!hotspotDraft}
+                        />
                       </div>
                     </div>
                   )}
@@ -2081,6 +2097,7 @@ function Canvas({
                     onAddNote={noteFromMenu}
                     onEditDetails={editFromMenu}
                     onCopy={copyFromMenu}
+                    onCut={level === 3 ? cutFromMenu : undefined}
                     onDuplicate={duplicateFromMenu}
                     onPaste={lastCopied ? pasteFromMenu : undefined}
                     onReorder={reorderFromMenu}

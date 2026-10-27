@@ -1,11 +1,15 @@
 /**
- * The canvas's right-click menu: on a node, commenting on it, flagging it, a note beside it, editing its details,
- * copying, duplicating and deleting it (or the selection it's in), and questions for an agent about it (when the
- * view is in a chat that takes them); on the canvas, putting a comment, hotspot or note there, pasting there, and
- * laying the level shown out again. What an app leaves out isn't offered.
+ * The canvas's right-click menu, in groups as design tools have them (most used first, deleting last, apart from the
+ * rest): on a note or text, writing on it, the clipboard, its colour (notes), commenting, and deleting it; on another
+ * node, questions for an agent about it (when the view is in a chat that takes them), editing its details, the
+ * clipboard, commenting on it, flagging it or a note beside it, and deleting it (or the selection it's in); on the
+ * canvas, pasting there, putting a note, comment or hotspot there, and laying the level shown out again. What an app
+ * leaves out isn't offered, nor, on a locked canvas, anything that changes it.
  */
 import {
+  Fragment,
   memo,
+  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -19,13 +23,21 @@ import {
   CopyPlus,
   MessageCircle,
   MessageCircleQuestion,
+  Palette,
   Pencil,
+  Scissors,
   SendToBack,
   StickyNote,
   Trash2,
   TriangleAlert,
 } from "lucide-react";
 import { isWrittenOnCanvas } from "../node-types";
+import {
+  LockedContext,
+  NOTE_COLORS,
+  startWriting,
+  UpdateNodeDataContext,
+} from "./canvas-nodes";
 import { STATUS } from "./status";
 
 export type ContextMenuState = {
@@ -41,10 +53,85 @@ const EDGE = 8;
 /** Something to ask the agent about the node right clicked */
 export type MenuQuestion = { label: string; onSelect: () => void };
 
+const itemClass =
+  "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] leading-5 transition-colors hover:bg-[rgb(var(--ec-page-border)/0.5)]";
+const iconClass = "flex-none text-[rgb(var(--ec-icon-color))]";
+
+function Item({
+  icon,
+  label,
+  onClick,
+  shortcut,
+  danger,
+}: {
+  icon: ReactNode;
+  label: string;
+  onClick: () => void;
+  shortcut?: string;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      className={`${itemClass} ${danger ? `${STATUS.danger.text} ${STATUS.danger.hover}` : ""}`}
+      onClick={onClick}
+    >
+      <span className={danger ? "flex-none" : iconClass}>{icon}</span>
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {shortcut && (
+        <kbd className="ml-4 flex-none font-sans text-[11px] text-[rgb(var(--ec-page-text-muted))]">
+          {shortcut}
+        </kbd>
+      )}
+    </button>
+  );
+}
+
+/** A note's colours, to pick from */
+function NoteColours({ node, onPicked }: { node: Node; onPicked: () => void }) {
+  const updateNodeData = useContext(UpdateNodeDataContext);
+  const current =
+    typeof node.data.color === "string" && NOTE_COLORS[node.data.color]
+      ? node.data.color
+      : "yellow";
+  return (
+    <div className="flex items-center gap-2.5 px-2 py-1.5 text-[13px] leading-5">
+      <Palette size={14} className={iconClass} />
+      <span className="flex-1">Colour</span>
+      <span role="radiogroup" aria-label="Note colour" className="flex gap-1">
+        {Object.entries(NOTE_COLORS).map(([name, { fill, border }]) => (
+          <button
+            key={name}
+            type="button"
+            role="radio"
+            aria-checked={name === current}
+            title={name.charAt(0).toUpperCase() + name.slice(1)}
+            onClick={() => {
+              updateNodeData(node.id, (data) => ({ ...data, color: name }));
+              onPicked();
+            }}
+            className="h-4 w-4 rounded-full border transition-transform hover:scale-110"
+            style={{
+              background: fill,
+              borderColor: border,
+              ...(name === current && {
+                boxShadow:
+                  "0 0 0 1.5px rgb(var(--ec-card-bg)), 0 0 0 3px rgb(var(--ec-page-text))",
+              }),
+            }}
+          />
+        ))}
+      </span>
+    </div>
+  );
+}
+
 export const ContextMenu = memo(function ContextMenu({
   menu,
   questions,
   onCopy,
+  onCut,
   onDuplicate,
   onPaste,
   onAddNote,
@@ -59,6 +146,8 @@ export const ContextMenu = memo(function ContextMenu({
   /** For the node right clicked */
   questions?: MenuQuestion[];
   onCopy: () => void;
+  /** Copies, then deletes, as ⌘X does (only where that works: not offered when not given) */
+  onCut?: () => void;
   onDuplicate: () => void;
   /** Paste what was last copied where the menu was opened, if anything was */
   onPaste?: () => void;
@@ -75,6 +164,7 @@ export const ContextMenu = memo(function ContextMenu({
   onDeleteNode: () => void;
   onClose: () => void;
 }) {
+  const locked = useContext(LockedContext);
   useEffect(() => {
     if (!menu) return;
     const close = (event: Event) => {
@@ -113,33 +203,189 @@ export const ContextMenu = memo(function ContextMenu({
 
   if (!menu) return null;
 
-  const itemClass =
-    "flex w-full items-center gap-2 rounded px-2.5 py-1.5 text-left text-xs hover:bg-[rgb(var(--ec-page-border)/0.5)]";
-  const shortcutClass = "ml-auto text-[rgb(var(--ec-page-text-muted))]";
-  const item = (
-    icon: ReactNode,
-    label: string,
-    onClick: () => void,
-    shortcut?: string,
-    className = "",
-  ) => (
-    <button className={`${itemClass} ${className}`} onClick={onClick}>
-      {icon}
-      {label}
-      {shortcut && <span className={shortcutClass}>{shortcut}</span>}
-    </button>
+  const node = menu.node;
+  const written = !!node && isWrittenOnCanvas(node.type);
+  const editable = !locked;
+  const clipboard = [
+    editable && onCut && (
+      <Item
+        key="cut"
+        icon={<Scissors size={14} />}
+        label="Cut"
+        onClick={onCut}
+        shortcut="⌘X"
+      />
+    ),
+    <Item
+      key="copy"
+      icon={<Copy size={14} />}
+      label="Copy"
+      onClick={onCopy}
+      shortcut="⌘C"
+    />,
+    editable && onPaste && (
+      <Item
+        key="paste"
+        icon={<ClipboardPaste size={14} />}
+        label="Paste"
+        onClick={onPaste}
+        shortcut="⌘V"
+      />
+    ),
+    editable && (
+      <Item
+        key="duplicate"
+        icon={<CopyPlus size={14} />}
+        label="Duplicate"
+        onClick={onDuplicate}
+        shortcut="⌘D"
+      />
+    ),
+  ];
+  const comment = onAddComment && (
+    <Item
+      key="comment"
+      icon={<MessageCircle size={14} />}
+      label="Add comment"
+      onClick={onAddComment}
+      shortcut="C"
+    />
   );
-  const separator = (
-    <div className="my-1 h-px bg-[rgb(var(--ec-page-border))]" />
+  const remove = editable && (
+    <Item
+      key="delete"
+      icon={<Trash2 size={14} />}
+      label="Delete"
+      onClick={onDeleteNode}
+      shortcut="⌫"
+      danger
+    />
   );
+
+  // Each group is its own section: empty ones are left out, so dividers never double up
+  const groups: ReactNode[][] = node
+    ? written
+      ? [
+          [
+            editable && (
+              <Item
+                key="edit"
+                icon={<Pencil size={14} />}
+                label="Edit text"
+                onClick={() => {
+                  startWriting(node.id);
+                  onClose();
+                }}
+              />
+            ),
+          ],
+          clipboard,
+          [
+            editable && node.type === "note" && (
+              <NoteColours key="colour" node={node} onPicked={onClose} />
+            ),
+          ],
+          [comment],
+          [remove],
+        ]
+      : [
+          (questions ?? []).map((question) => (
+            <Item
+              key={question.label}
+              icon={<MessageCircleQuestion size={14} />}
+              label={question.label}
+              onClick={question.onSelect}
+            />
+          )),
+          [
+            onEditDetails && (
+              <Item
+                key="details"
+                icon={<Pencil size={14} />}
+                label="Edit details"
+                onClick={onEditDetails}
+              />
+            ),
+          ],
+          clipboard,
+          [
+            comment,
+            onAddHotspot && (
+              <Item
+                key="hotspot"
+                icon={<TriangleAlert size={14} />}
+                label="Add hotspot"
+                onClick={onAddHotspot}
+                shortcut="A"
+              />
+            ),
+            editable && (
+              <Item
+                key="note"
+                icon={<StickyNote size={14} />}
+                label="Add note"
+                onClick={onAddNote}
+              />
+            ),
+          ],
+          [remove],
+        ]
+    : [
+        [
+          editable && onPaste && (
+            <Item
+              key="paste"
+              icon={<ClipboardPaste size={14} />}
+              label="Paste here"
+              onClick={onPaste}
+              shortcut="⌘V"
+            />
+          ),
+        ],
+        [
+          editable && (
+            <Item
+              key="note"
+              icon={<StickyNote size={14} />}
+              label="Add sticky note"
+              onClick={onAddNote}
+              shortcut="N"
+            />
+          ),
+          comment,
+          onAddHotspot && (
+            <Item
+              key="hotspot"
+              icon={<TriangleAlert size={14} />}
+              label="Add hotspot"
+              onClick={onAddHotspot}
+              shortcut="A"
+            />
+          ),
+        ],
+        [
+          onReorder && (
+            <Item
+              key="reorder"
+              icon={<SendToBack size={14} />}
+              label="Reorder diagram"
+              onClick={onReorder}
+            />
+          ),
+        ],
+      ];
+  const sections = groups
+    .map((group) => group.filter(Boolean))
+    .filter((group) => group.length > 0);
 
   return (
     <div
+      role="menu"
       // Keep the window pointerdown listener from closing the menu before a click lands
       onPointerDown={(event) => event.stopPropagation()}
       onContextMenu={(event) => event.preventDefault()}
       ref={menuRef}
-      className="fixed z-50 w-56 overflow-y-auto rounded-lg border p-1 shadow-xl bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))]"
+      className="fixed z-50 w-60 overflow-y-auto rounded-xl border p-1.5 shadow-xl bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))]"
       style={{
         left: placed?.left ?? menu.x,
         top: placed?.top ?? menu.y,
@@ -147,62 +393,17 @@ export const ContextMenu = memo(function ContextMenu({
         visibility: placed ? "visible" : "hidden",
       }}
     >
-      {menu.node && questions?.length ? (
-        <>
-          {questions.map((question) => (
-            <button
-              key={question.label}
-              className={itemClass}
-              onClick={question.onSelect}
-            >
-              <MessageCircleQuestion size={14} />
-              {question.label}
-            </button>
-          ))}
-          {separator}
-        </>
-      ) : null}
-      {menu.node && (
-        <>
-          {onAddComment &&
-            item(<MessageCircle size={14} />, "Add comment", onAddComment, "C")}
-          {onAddHotspot &&
-            !isWrittenOnCanvas(menu.node.type) &&
-            item(<TriangleAlert size={14} />, "Add hotspot", onAddHotspot, "A")}
-          {!isWrittenOnCanvas(menu.node.type) &&
-            item(<StickyNote size={14} />, "Add a note", onAddNote)}
-          {onEditDetails &&
-            !isWrittenOnCanvas(menu.node.type) &&
-            item(<Pencil size={14} />, "Edit details", onEditDetails)}
-          {item(<Copy size={14} />, "Copy", onCopy, "⌘C")}
-          {item(<CopyPlus size={14} />, "Duplicate", onDuplicate, "⌘D")}
-          {separator}
-          {item(
-            <Trash2 size={14} />,
-            "Delete",
-            onDeleteNode,
-            "⌫",
-            STATUS.danger.text,
+      {sections.map((section, index) => (
+        <Fragment key={index}>
+          {index > 0 && (
+            <div
+              role="separator"
+              className="-mx-1.5 my-1.5 h-px bg-[rgb(var(--ec-page-border))]"
+            />
           )}
-        </>
-      )}
-      {!menu.node && (
-        <>
-          {onAddComment &&
-            item(<MessageCircle size={14} />, "Add comment", onAddComment, "C")}
-          {onAddHotspot &&
-            item(<TriangleAlert size={14} />, "Add hotspot", onAddHotspot, "A")}
-          {item(<StickyNote size={14} />, "Add a sticky note", onAddNote, "N")}
-          {onPaste &&
-            item(<ClipboardPaste size={14} />, "Paste here", onPaste, "⌘V")}
-          {onReorder && (
-            <>
-              {separator}
-              {item(<SendToBack size={14} />, "Reorder diagram", onReorder)}
-            </>
-          )}
-        </>
-      )}
+          {section}
+        </Fragment>
+      ))}
     </div>
   );
 });

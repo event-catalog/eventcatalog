@@ -2,16 +2,19 @@
  * Hotspots: what an architect (or the agent) flags on the architecture so people find what matters: risks, single
  * points of failure, known problems, the key parts to understand. Each is critical, a warning or info.
  *
- * On a node, a marker sits on its top right corner with its title (and the node glows in its colour, see
- * studio.css); at a place, the marker's there. On L1 and L2 a node shows the hotspots inside it, to go and see them.
+ * On a node, a marker (its severity's icon: its title's in its tooltip, and its panel when it's opened) sits on its
+ * top right corner (and the node glows in its colour, see studio.css); at a place, the marker's there. On L1 and L2 a node shows the hotspots inside it, to go and see them.
  * In the canvas's own coordinates (React Flow's viewport portal), counter-scaled to stay the same size on screen.
  */
 import {
   memo,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
   type FormEvent,
+  type KeyboardEvent,
+  type PointerEvent,
   type ReactNode,
   type RefObject,
 } from "react";
@@ -24,6 +27,7 @@ import {
 import { CanvasPortal } from "../../utils/flow-portals";
 import {
   Info,
+  LocateFixed,
   OctagonAlert,
   Pencil,
   Trash2,
@@ -80,14 +84,13 @@ export type HotspotFields = {
 };
 
 // Markers keep their size on screen as the canvas zooms in, and shrink with it zoomed out (to half their size at
-// most), so they don't cover what they're about; zoomed well out they're just their icon
+// most), so they don't cover what they're about
 const MARKER_SCALE = "--studio-hotspot-scale";
 // What an open marker's panel is scaled by inside it, so it's always its full size on screen (to be read)
 const PANEL_SCALE = "--studio-hotspot-panel-scale";
 const MIN_SCREEN_SCALE = 0.5;
-const ICONS_ONLY_BELOW_ZOOM = 0.6;
 
-/** Keeps MARKER_SCALE (and icons only) on the layer as the canvas zooms, outside React, so markers don't re-render */
+/** Keeps MARKER_SCALE on the layer as the canvas zooms, outside React, so markers don't re-render */
 function useMarkerScale(ref: RefObject<HTMLElement | null>) {
   const store = useStoreApi();
   useLayoutEffect(() => {
@@ -99,7 +102,6 @@ function useMarkerScale(ref: RefObject<HTMLElement | null>) {
       const scale = zoom >= 1 ? 1 / zoom : Math.max(1, MIN_SCREEN_SCALE / zoom);
       element.style.setProperty(MARKER_SCALE, String(scale));
       element.style.setProperty(PANEL_SCALE, String(1 / zoom / scale));
-      element.classList.toggle("is-icons-only", zoom < ICONS_ONLY_BELOW_ZOOM);
     };
     apply(store.getState().transform[2]);
     return store.subscribe((state, previous) => {
@@ -140,7 +142,7 @@ function SpotAt({
         zIndex,
       }}
     >
-      {/* The marker's icon is centred on the corner, its title out to the right */}
+      {/* The marker's icon is centred on the corner */}
       <div className="nopan nodrag nowheel pointer-events-auto absolute left-[-14px] top-[-14px]">
         {children}
       </div>
@@ -167,9 +169,66 @@ const DRAG_THRESHOLD_PX = 4;
 // The marker's icon (where it's anchored) is this far from its top left corner
 const ICON_CENTRE_PX = 14;
 
+/** Where a marker's dragged to: the screen point its icon is over, keeping where on the marker it was grabbed */
+type MarkerDrag = (point: XYPosition, phase: "move" | "end") => void;
+
+/** A marker's pointer and keys: a click (or Enter) opens it, and dragging it moves it (when it can be moved) */
+function useMarkerDrag(onClick: () => void, onDrag?: MarkerDrag) {
+  const drag = useRef<{
+    start: XYPosition;
+    grab: XYPosition;
+    moved: boolean;
+  } | null>(null);
+  const pointOf = (
+    event: { clientX: number; clientY: number },
+    grab: XYPosition,
+  ) => ({ x: event.clientX - grab.x, y: event.clientY - grab.y });
+  return {
+    onKeyDown: (event: KeyboardEvent<HTMLElement>) =>
+      (event.key === "Enter" || event.key === " ") && onClick(),
+    onPointerDown: (event: PointerEvent<HTMLElement>) => {
+      if (event.button !== 0) return;
+      // Keeps pointer events coming while the pointer is off the marker (throws if the pointer has gone)
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch {}
+      const rect = event.currentTarget.getBoundingClientRect();
+      drag.current = {
+        start: { x: event.clientX, y: event.clientY },
+        grab: {
+          x: event.clientX - rect.left - ICON_CENTRE_PX * (rect.height / 28),
+          y: event.clientY - rect.top - rect.height / 2,
+        },
+        moved: false,
+      };
+    },
+    onPointerMove: (event: PointerEvent<HTMLElement>) => {
+      const current = drag.current;
+      if (!current || !onDrag) return;
+      if (
+        !current.moved &&
+        Math.hypot(
+          event.clientX - current.start.x,
+          event.clientY - current.start.y,
+        ) < DRAG_THRESHOLD_PX
+      )
+        return;
+      current.moved = true;
+      onDrag(pointOf(event, current.grab), "move");
+    },
+    onPointerUp: (event: PointerEvent<HTMLElement>) => {
+      const current = drag.current;
+      drag.current = null;
+      if (!current) return;
+      if (current.moved) onDrag?.(pointOf(event, current.grab), "end");
+      else onClick();
+    },
+    onPointerCancel: () => (drag.current = null),
+  };
+}
+
 /**
- * The marker: its severity's colour and icon, and its title (or how many there are). Click opens it; dragging it
- * moves it: `onDrag` gets the screen point its icon is over, keeping where on the marker it was grabbed
+ * The marker: its severity's colour and icon (and how many there are). Click opens it; dragging it moves it
  */
 function Marker({
   spot,
@@ -183,84 +242,30 @@ function Marker({
   /** Part of what's selected on the canvas (after selecting everything) */
   selected?: boolean;
   onClick: () => void;
-  onDrag?: (point: XYPosition, phase: "move" | "end") => void;
+  onDrag?: MarkerDrag;
 }) {
-  const drag = useRef<{
-    start: XYPosition;
-    grab: XYPosition;
-    moved: boolean;
-  } | null>(null);
-  const pointOf = (event: { clientX: number; clientY: number }) => ({
-    x: event.clientX - drag.current!.grab.x,
-    y: event.clientY - drag.current!.grab.y,
-  });
+  const handlers = useMarkerDrag(onClick, onDrag);
   const sorted = [...spot.hotspots].sort(bySeverity);
   const severity = sorted[0].severity;
   const count = sorted.length;
-  const label = spot.inside
-    ? `${count} hotspot${count === 1 ? "" : "s"}`
-    : count > 1
-      ? `${sorted[0].title} +${count - 1}`
+  // Just its icon (with how many, when there's more than one): the titles are in its tooltip, and opening it
+  const label =
+    count > 1 || spot.inside
+      ? `${count} hotspot${count === 1 ? "" : "s"}`
       : sorted[0].title;
   return (
     <button
       type="button"
       aria-expanded={open}
+      aria-label={label}
       title={sorted
         .map(
           (hotspot) =>
             `${SEVERITIES[hotspot.severity].label}: ${hotspot.title}`,
         )
         .join("\n")}
-      onKeyDown={(event) =>
-        (event.key === "Enter" || event.key === " ") && onClick()
-      }
-      onPointerDown={(event) => {
-        if (event.button !== 0) return;
-        // Keeps pointer events coming while the pointer is off the marker (throws if the pointer has gone)
-        try {
-          event.currentTarget.setPointerCapture(event.pointerId);
-        } catch {}
-        const rect = event.currentTarget.getBoundingClientRect();
-        drag.current = {
-          start: { x: event.clientX, y: event.clientY },
-          grab: {
-            x: event.clientX - rect.left - ICON_CENTRE_PX * (rect.height / 28),
-            y: event.clientY - rect.top - rect.height / 2,
-          },
-          moved: false,
-        };
-      }}
-      onPointerMove={(event) => {
-        const current = drag.current;
-        if (!current || !onDrag) return;
-        if (
-          !current.moved &&
-          Math.hypot(
-            event.clientX - current.start.x,
-            event.clientY - current.start.y,
-          ) < DRAG_THRESHOLD_PX
-        )
-          return;
-        current.moved = true;
-        onDrag(pointOf(event), "move");
-      }}
-      onPointerUp={(event) => {
-        const current = drag.current;
-        drag.current = null;
-        if (!current) return;
-        if (current.moved)
-          onDrag?.(
-            {
-              x: event.clientX - current.grab.x,
-              y: event.clientY - current.grab.y,
-            },
-            "end",
-          );
-        else onClick();
-      }}
-      onPointerCancel={() => (drag.current = null)}
-      className={`studio-hotspot-marker flex h-7 max-w-[240px] items-center gap-1.5 rounded-full pl-1 pr-2.5 text-[11px] font-semibold text-white ${onDrag ? "cursor-grab active:cursor-grabbing" : ""}`}
+      {...handlers}
+      className={`studio-hotspot-marker relative flex h-7 w-7 items-center justify-center rounded-full text-white ${onDrag ? "cursor-grab active:cursor-grabbing" : ""}`}
       style={{
         background: SEVERITIES[severity].color,
         touchAction: "none",
@@ -273,13 +278,38 @@ function Marker({
       <span className="flex h-5 w-5 flex-none items-center justify-center rounded-full bg-white/20">
         <SeverityIcon severity={severity} />
       </span>
-      <span className="studio-hotspot-label truncate">{label}</span>
+      {count > 1 && (
+        <span
+          aria-hidden
+          className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[rgb(var(--ec-card-bg))] px-1 text-[10px] font-bold leading-none shadow-sm"
+          style={{ color: SEVERITIES[severity].color }}
+        >
+          {count}
+        </span>
+      )}
     </button>
   );
 }
 
+// Beside the marker, to its right (12px from its 28px icon, with room for the arrow), its arrow level with the icon's
+// middle. studio.css scales it from the marker's right edge, so that stays the same on screen as the canvas zooms
 const panelClass =
-  "studio-hotspot-panel absolute left-0 top-[34px] w-80 rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] shadow-xl";
+  "studio-hotspot-panel absolute left-[40px] top-[-8px] w-80 rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] shadow-xl";
+
+/** The panel's arrow, pointing back at its marker (tinted as the header it's beside, when that is) */
+const PanelArrow = ({ tint }: { tint?: string }) => (
+  <span
+    aria-hidden
+    className="absolute left-[-6.5px] top-[16px] h-3 w-3 rotate-45 rounded-bl-[2px] border-b border-l border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))]"
+    style={
+      tint
+        ? {
+            background: `linear-gradient(${tint}14, ${tint}14), rgb(var(--ec-card-bg))`,
+          }
+        : undefined
+    }
+  />
+);
 const inputClass =
   "block w-full rounded-md border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] px-2.5 py-1.5 text-sm text-[rgb(var(--ec-input-text))] outline-none focus:border-[rgb(var(--ec-accent))]";
 
@@ -289,11 +319,14 @@ function HotspotForm({
   submitLabel,
   onSubmit,
   onCancel,
+  onSeverityChange,
 }: {
   initial?: HotspotFields;
   submitLabel: string;
   onSubmit: (fields: HotspotFields) => void;
   onCancel: () => void;
+  /** As it's picked, so its marker (or panel) shows it straight away */
+  onSeverityChange?: (severity: HotspotSeverity) => void;
 }) {
   const [severity, setSeverity] = useState<HotspotSeverity>(
     initial?.severity ?? "warning",
@@ -329,7 +362,10 @@ function HotspotForm({
               type="button"
               role="radio"
               aria-checked={picked}
-              onClick={() => setSeverity(value)}
+              onClick={() => {
+                setSeverity(value);
+                onSeverityChange?.(value);
+              }}
               className="flex flex-1 items-center justify-center gap-1 rounded-md border px-2 py-1.5 text-xs font-semibold transition-colors"
               style={
                 picked
@@ -361,14 +397,15 @@ function HotspotForm({
       <textarea
         value={description}
         maxLength={1000}
-        rows={3}
+        rows={5}
         onChange={(event) => setDescription(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "Enter" && (event.metaKey || event.ctrlKey))
             submit();
         }}
         placeholder="Why it matters, and what to do about it (optional)"
-        className={`${inputClass} resize-none`}
+        // Dragged taller (from its corner) to read or write more
+        className={`${inputClass} min-h-20 max-h-[60vh] resize-y`}
       />
       <div className="flex justify-end gap-2">
         <button
@@ -381,7 +418,7 @@ function HotspotForm({
         <button
           type="submit"
           disabled={!title.trim()}
-          className="rounded-md bg-[rgb(var(--ec-primary-bg))] px-3 py-1.5 text-xs font-semibold text-[rgb(var(--ec-primary-text))] disabled:opacity-40"
+          className="rounded-md bg-[rgb(var(--ec-button-bg))] px-3 py-1.5 text-xs font-semibold text-[rgb(var(--ec-button-text))] disabled:opacity-40"
         >
           {submitLabel}
         </button>
@@ -390,53 +427,40 @@ function HotspotForm({
   );
 }
 
-function SeverityTag({ severity }: { severity: HotspotSeverity }) {
+/** One hotspot as it reads: what, then why */
+function HotspotItem({ hotspot }: { hotspot: Hotspot }) {
   return (
-    <span
-      className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
-      style={{ background: SEVERITIES[severity].color }}
-    >
-      <SeverityIcon severity={severity} size={10} />
-      {SEVERITIES[severity].label}
-    </span>
-  );
-}
-
-/** One hotspot as it reads: how important, what, why, and who flagged it */
-function HotspotItem({
-  hotspot,
-  actions,
-}: {
-  hotspot: Hotspot;
-  actions?: ReactNode;
-}) {
-  return (
-    <div
-      className="border-l-[3px] pl-2.5"
-      style={{ borderColor: SEVERITIES[hotspot.severity].color }}
-    >
-      <div className="flex items-center gap-2">
-        <SeverityTag severity={hotspot.severity} />
-        <span className="flex min-w-0 items-center gap-1 truncate text-[11px] text-[rgb(var(--ec-page-text-muted))]">
-          {hotspot.author.agent && (
-            <AgentMark name={hotspot.author.name} size={11} />
-          )}
-          {hotspot.author.name} · {timeAgo(hotspot.createdAt)}
-        </span>
-        {actions && (
-          <span className="ml-auto flex flex-none items-center gap-0.5">
-            {actions}
-          </span>
-        )}
-      </div>
-      <p className="mt-1.5 text-sm font-semibold leading-snug">
+    <div>
+      <p className="text-[15px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
         {hotspot.title}
       </p>
       {hotspot.description && (
-        <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-[rgb(var(--ec-page-text-muted))]">
+        <p className="mt-1.5 whitespace-pre-wrap text-[13px] leading-relaxed text-[rgb(var(--ec-page-text-muted))]">
           {hotspot.description}
         </p>
       )}
+    </div>
+  );
+}
+
+/** Who flagged it, and when */
+function Flagged({
+  hotspot,
+  className = "",
+}: {
+  hotspot: Hotspot;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`flex items-center gap-1.5 text-[11px] text-[rgb(var(--ec-page-text-muted))] ${className}`}
+    >
+      {hotspot.author.agent && (
+        <AgentMark name={hotspot.author.name} size={12} />
+      )}
+      <span className="min-w-0 truncate">
+        Flagged by {hotspot.author.name} · {timeAgo(hotspot.createdAt)}
+      </span>
     </div>
   );
 }
@@ -463,7 +487,44 @@ function IconButton({
   );
 }
 
-/** The hotspots at a marker, opened: read, changed or removed (or, inside a node on L1 and L2, gone to) */
+/** A hotspot's header: its severity, in its colour (faint behind it), with what can be done to it */
+function SeverityHeader({
+  severity,
+  actions,
+  className = "",
+}: {
+  severity: HotspotSeverity;
+  actions?: ReactNode;
+  className?: string;
+}) {
+  const { label, color } = SEVERITIES[severity];
+  return (
+    <div
+      className={`flex items-center gap-2 border-b px-3 py-2.5 ${className}`}
+      // (its colour, faint: the colours are hex)
+      style={{ background: `${color}14`, borderColor: `${color}33` }}
+    >
+      <span
+        className="flex h-6 w-6 flex-none items-center justify-center rounded-full text-white"
+        style={{ background: color }}
+      >
+        <SeverityIcon severity={severity} size={13} />
+      </span>
+      <span className="text-xs font-semibold" style={{ color }}>
+        {label}
+      </span>
+      {actions && (
+        <span className="ml-auto flex items-center gap-0.5">{actions}</span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The hotspots at a marker, opened: read, changed or removed (or, inside a node on L1 and L2, gone to). Each is
+ * headed by its severity, in its colour, with its actions, then what and why, and who flagged it; several are
+ * stacked under how many there are
+ */
 function SpotPanel({
   spot,
   locked,
@@ -479,73 +540,131 @@ function SpotPanel({
   onDelete: (id: string) => void;
   onGo: (hotspot: Hotspot) => void;
 }) {
-  const [editing, setEditing] = useState<string | null>(null);
+  const [editing, setEditingId] = useState<string | null>(null);
+  // The severity picked in the form while one's being changed (its header shows it, before it's saved)
+  const [picked, setPicked] = useState<HotspotSeverity | null>(null);
+  const setEditing = (id: string | null) => {
+    setEditingId(id);
+    setPicked(null);
+  };
   const sorted = [...spot.hotspots].sort(bySeverity);
+  const single = sorted.length === 1 && !spot.inside;
+  const close = (
+    <IconButton label="Close" onClick={onClose}>
+      <X size={14} />
+    </IconButton>
+  );
+  const severityOf = (hotspot: Hotspot) =>
+    (editing === hotspot.id && picked) || hotspot.severity;
+
+  /** One hotspot: its header (with the panel's close, when it's the only one), then it, or the form changing it */
+  const section = (hotspot: Hotspot, first: boolean) => {
+    const changing = editing === hotspot.id;
+    const actions = (
+      <>
+        {!locked && !spot.inside && !changing && (
+          <>
+            <IconButton label="Edit" onClick={() => setEditing(hotspot.id)}>
+              <Pencil size={13} />
+            </IconButton>
+            <IconButton label="Remove" onClick={() => onDelete(hotspot.id)}>
+              <Trash2 size={13} />
+            </IconButton>
+          </>
+        )}
+        {single && close}
+      </>
+    );
+    const body = changing ? (
+      <HotspotForm
+        initial={hotspot}
+        submitLabel="Save"
+        onSeverityChange={setPicked}
+        onCancel={() => setEditing(null)}
+        onSubmit={(fields) => {
+          onUpdate(hotspot.id, fields);
+          setEditing(null);
+        }}
+      />
+    ) : (
+      <>
+        <div className="px-4 pb-3.5 pt-3">
+          <HotspotItem hotspot={hotspot} />
+        </div>
+        <Flagged
+          hotspot={hotspot}
+          className="border-t border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.02)] px-4 py-2.5"
+        />
+      </>
+    );
+    return (
+      <HotspotSection
+        key={hotspot.id}
+        header={
+          <SeverityHeader
+            severity={severityOf(hotspot)}
+            actions={actions}
+            className={single && first ? "rounded-t-[11px]" : ""}
+          />
+        }
+        // Inside a node on L1 or L2: goes to it on L3, where it is
+        onGo={spot.inside ? () => onGo(hotspot) : undefined}
+      >
+        {body}
+      </HotspotSection>
+    );
+  };
+
   return (
     <div className={panelClass}>
-      <div className="flex items-center justify-between border-b border-[rgb(var(--ec-page-border))] px-3 py-2">
-        <span className="text-xs font-semibold">
-          {sorted.length === 1 ? "Hotspot" : `${sorted.length} hotspots`}
-        </span>
-        <IconButton label="Close" onClick={onClose}>
-          <X size={14} />
-        </IconButton>
-      </div>
-      <div className="max-h-80 space-y-3 overflow-y-auto p-3">
-        {sorted.map((hotspot) =>
-          editing === hotspot.id ? (
-            <div key={hotspot.id} className="-m-3">
-              <HotspotForm
-                initial={hotspot}
-                submitLabel="Save"
-                onCancel={() => setEditing(null)}
-                onSubmit={(fields) => {
-                  onUpdate(hotspot.id, fields);
-                  setEditing(null);
-                }}
-              />
-            </div>
-          ) : spot.inside ? (
-            // Inside a node on L1 or L2: goes to it on L3, where it is
-            <button
-              key={hotspot.id}
-              type="button"
-              onClick={() => onGo(hotspot)}
-              className="block w-full rounded-md text-left hover:bg-[rgb(var(--ec-content-hover))]!"
-            >
-              <HotspotItem hotspot={hotspot} />
-            </button>
-          ) : (
-            <HotspotItem
-              key={hotspot.id}
-              hotspot={hotspot}
-              actions={
-                !locked && (
-                  <>
-                    <IconButton
-                      label="Edit"
-                      onClick={() => setEditing(hotspot.id)}
-                    >
-                      <Pencil size={13} />
-                    </IconButton>
-                    <IconButton
-                      label="Remove"
-                      onClick={() => onDelete(hotspot.id)}
-                    >
-                      <Trash2 size={13} />
-                    </IconButton>
-                  </>
-                )
-              }
-            />
-          ),
-        )}
+      <PanelArrow
+        tint={single ? SEVERITIES[severityOf(sorted[0])].color : undefined}
+      />
+      {!single && (
+        <div className="flex items-center justify-between border-b border-[rgb(var(--ec-page-border))] px-3 py-2.5">
+          <span className="text-xs font-semibold">
+            {sorted.length} hotspot{sorted.length === 1 ? "" : "s"}
+          </span>
+          {close}
+        </div>
+      )}
+      <div
+        className={`max-h-[min(70vh,640px)] divide-y divide-[rgb(var(--ec-page-border))] overflow-y-auto ${spot.inside ? "" : "rounded-b-[11px]"} ${single ? "rounded-t-[11px]" : ""}`}
+      >
+        {sorted.map((hotspot, index) => section(hotspot, index === 0))}
       </div>
       {spot.inside && (
-        <p className="border-t border-[rgb(var(--ec-page-border))] px-3 py-2 text-[11px] text-[rgb(var(--ec-page-text-muted))]">
+        <p className="rounded-b-[11px] border-t border-[rgb(var(--ec-page-border))] px-4 py-2 text-[11px] text-[rgb(var(--ec-page-text-muted))]">
           Inside this: click one to go to it.
         </p>
       )}
+    </div>
+  );
+}
+
+/** A hotspot in the panel: its header and what's under it (a button that goes to it, when it's inside a node) */
+function HotspotSection({
+  header,
+  onGo,
+  children,
+}: {
+  header: ReactNode;
+  onGo?: () => void;
+  children: ReactNode;
+}) {
+  return onGo ? (
+    <button
+      type="button"
+      onClick={onGo}
+      className="block w-full text-left transition-colors hover:bg-[rgb(var(--ec-accent)/0.06)]"
+    >
+      {header}
+      {children}
+    </button>
+  ) : (
+    <div>
+      {header}
+      {children}
     </div>
   );
 }
@@ -565,6 +684,7 @@ export const HotspotLayer = memo(function HotspotLayer({
   onUpdate,
   onDelete,
   onGo,
+  onMoveDraft,
   live,
 }: {
   spots: HotspotSpot[];
@@ -587,12 +707,15 @@ export const HotspotLayer = memo(function HotspotLayer({
   onUpdate: (id: string, fields: HotspotFields) => void;
   onDelete: (id: string) => void;
   onGo: (hotspot: Hotspot) => void;
+  /** The hotspot being added, dragged onto a node or to a place (its form stays open, with what's written in it) */
+  onMoveDraft?: (to: HotspotPlace) => void;
   /** In a live room: markers the others are dragging move here as they drag, and mine move for them */
   live?: LiveMoves;
 }) {
   const layer = useRef<HTMLDivElement>(null);
   useMarkerScale(layer);
   const { screenToFlowPosition } = useReactFlow();
+  const store = useStoreApi();
   // A marker being dragged follows the pointer here until it's dropped, then moves for everyone
   const [moving, setMoving] = useState<{
     key: string;
@@ -643,6 +766,66 @@ export const HotspotLayer = memo(function HotspotLayer({
           sendMove(live, "hotspot", spot.hotspots[0].id, null);
         }
       : undefined;
+  // The hotspot being added, dragged: follows the pointer here until it's dropped
+  // What the hotspot being added is (as picked in its form): its marker shows it as it's picked
+  const [draftSeverity, setDraftSeverity] =
+    useState<HotspotSeverity>("warning");
+  useEffect(() => {
+    if (!draft) setDraftSeverity("warning");
+  }, [draft]);
+  const [draftMoving, setDraftMoving] = useState<{
+    position: XYPosition;
+    over?: string;
+  } | null>(null);
+  const draftDrag: MarkerDrag | undefined =
+    onMoveDraft && !locked
+      ? (point, phase) => {
+          const position = screenToFlowPosition(point);
+          const over = nodeUnder(point);
+          if (phase === "move") {
+            if (over !== draftMoving?.over)
+              onDropTarget(
+                over ? { nodeId: over, severity: draftSeverity } : null,
+              );
+            return setDraftMoving({ position, over });
+          }
+          setDraftMoving(null);
+          onDropTarget(null);
+          onMoveDraft(over ? { nodeId: over, position } : { position });
+        }
+      : undefined;
+
+  // Delete or Backspace deletes the open marker's hotspots (not while writing in its form), as it would what's
+  // selected: opening a marker selects it instead of what was (below), and once something on the canvas is selected
+  // again the key's the canvas's. Before the canvas sees it, so it doesn't also delete something there
+  const openSpot = useRef<HotspotSpot | undefined>(undefined);
+  openSpot.current = spots.find((spot) => spot.key === openKey);
+  const deleteOpen = useRef(onDelete);
+  deleteOpen.current = onDelete;
+  const closeOpen = useRef(onOpen);
+  closeOpen.current = onOpen;
+  useEffect(() => {
+    if (!openKey || locked) return;
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== "Delete" && event.key !== "Backspace") return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest("input, textarea, select, [contenteditable]")) return;
+      const spot = openSpot.current;
+      if (!spot || spot.inside) return;
+      const { nodes, edges } = store.getState();
+      if (
+        nodes.some((node) => node.selected) ||
+        edges.some((edge) => edge.selected)
+      )
+        return;
+      event.preventDefault();
+      event.stopPropagation();
+      spot.hotspots.forEach((hotspot) => deleteOpen.current(hotspot.id));
+      closeOpen.current(null);
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [openKey, locked, store]);
   return (
     <CanvasPortal>
       {/* Over the nodes (selected ones are raised to 1000), under comments */}
@@ -674,10 +857,15 @@ export const HotspotLayer = memo(function HotspotLayer({
                   !!selectedIds &&
                   spot.hotspots.some((hotspot) => selectedIds.has(hotspot.id))
                 }
-                onClick={() => onOpen(open ? null : spot.key)}
+                onClick={() => {
+                  // Opened, it's what's selected (so Delete deletes it, not what was selected on the canvas)
+                  if (!open) store.getState().unselectNodesAndEdges();
+                  onOpen(open ? null : spot.key);
+                }}
                 onDrag={dragHandler(spot)}
               />
-              {open && !dragged && (
+              {/* (kept open while I drag it, hidden while someone else does) */}
+              {open && (!dragged || moving?.key === spot.key) && (
                 <SpotPanel
                   spot={spot}
                   locked={locked}
@@ -692,18 +880,21 @@ export const HotspotLayer = memo(function HotspotLayer({
         })}
         {draft && (
           <SpotAt
-            nodeId={draft.nodeId}
-            position={draft.nodeId ? undefined : draft.position}
+            nodeId={draftMoving ? undefined : draft.nodeId}
+            position={
+              draftMoving
+                ? draftMoving.position
+                : draft.nodeId
+                  ? undefined
+                  : draft.position
+            }
             zIndex={4}
           >
-            <span
-              className="studio-hotspot-marker flex h-7 w-7 items-center justify-center rounded-full text-white"
-              style={{ background: SEVERITIES.warning.color }}
-            >
-              <SeverityIcon severity="warning" />
-            </span>
+            <DraftMarker severity={draftSeverity} onDrag={draftDrag} />
             <div className={panelClass}>
+              <PanelArrow />
               <HotspotForm
+                onSeverityChange={setDraftSeverity}
                 submitLabel="Add hotspot"
                 onSubmit={onCreate}
                 onCancel={onCancelDraft}
@@ -716,15 +907,39 @@ export const HotspotLayer = memo(function HotspotLayer({
   );
 });
 
-/** All of them, most important first, for the panel at the bottom left: clicking one goes to it */
+/** The marker of the hotspot being added: dragged to put it somewhere else, with its form open */
+function DraftMarker({
+  severity,
+  onDrag,
+}: {
+  severity: HotspotSeverity;
+  onDrag?: MarkerDrag;
+}) {
+  const handlers = useMarkerDrag(() => {}, onDrag);
+  return (
+    <span
+      {...handlers}
+      title={onDrag ? "Drag to move it" : undefined}
+      className={`studio-hotspot-marker flex h-7 w-7 items-center justify-center rounded-full text-white ${onDrag ? "cursor-grab active:cursor-grabbing" : ""}`}
+      style={{ background: SEVERITIES[severity].color, touchAction: "none" }}
+    >
+      <SeverityIcon severity={severity} />
+    </span>
+  );
+}
+
+/** All of them, most important first, for the panel at the bottom left: clicking one goes to it (and opens it) */
 export function HotspotList({
   hotspots,
   nameOf,
   onOpen,
+  goOnHover = true,
 }: {
   hotspots: Hotspot[];
   nameOf: (nodeId: string) => string | undefined;
   onOpen: (hotspot: Hotspot) => void;
+  /** Resting the pointer on one goes to it (off while one's being added: going there would throw it away) */
+  goOnHover?: boolean;
 }) {
   const sorted = [...hotspots].sort(bySeverity);
   if (!sorted.length)
@@ -734,26 +949,81 @@ export function HotspotList({
         should know: a risk, a problem, or the key part.
       </p>
     );
+  // One row each, as the chat lists the hotspots it flagged: its severity's icon, its title (and what it's on)
   return (
-    <div className="space-y-1.5 p-3">
-      {sorted.map((hotspot) => {
-        const on = hotspot.nodeId && nameOf(hotspot.nodeId);
-        return (
-          <button
-            key={hotspot.id}
-            type="button"
-            onClick={() => onOpen(hotspot)}
-            className="w-full rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-2.5 py-2 text-left hover:border-[rgb(var(--ec-accent))]!"
-          >
-            <HotspotItem hotspot={hotspot} />
-            {on && (
-              <p className="mt-1.5 pl-[13px] text-[11px] text-[rgb(var(--ec-page-text-muted))]">
-                On {on}
-              </p>
-            )}
-          </button>
-        );
-      })}
-    </div>
+    <ul className="divide-y divide-[rgb(var(--ec-page-border))]">
+      {sorted.map((hotspot) => (
+        <HotspotRow
+          key={hotspot.id}
+          hotspot={hotspot}
+          on={hotspot.nodeId && nameOf(hotspot.nodeId)}
+          onOpen={onOpen}
+          goOnHover={goOnHover}
+        />
+      ))}
+    </ul>
+  );
+}
+
+/** How long the pointer rests on a row before it goes there (so moving across the list doesn't), as the chat's */
+const GO_ON_HOVER_MS = 250;
+
+/** A hotspot in the list: clicking it, or resting the pointer on it, goes to it (and opens it) */
+function HotspotRow({
+  hotspot,
+  on,
+  onOpen,
+  goOnHover,
+}: {
+  hotspot: Hotspot;
+  on?: string | false;
+  onOpen: (hotspot: Hotspot) => void;
+  goOnHover: boolean;
+}) {
+  const hover = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancel = () => {
+    if (hover.current !== null) clearTimeout(hover.current);
+    hover.current = null;
+  };
+  useEffect(() => cancel, []);
+  const { label, color, icon: Icon } = SEVERITIES[hotspot.severity];
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={() => {
+          cancel();
+          onOpen(hotspot);
+        }}
+        onMouseEnter={() => {
+          cancel();
+          if (goOnHover)
+            hover.current = setTimeout(() => onOpen(hotspot), GO_ON_HOVER_MS);
+        }}
+        onMouseLeave={cancel}
+        title="Show me on the canvas"
+        className="flex w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-left text-xs text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-accent)/0.06)]"
+      >
+        <Icon
+          size={14}
+          className="flex-none"
+          style={{ color }}
+          aria-label={label}
+        />
+        <span className="min-w-0 flex-1">
+          <span className="block">{hotspot.title}</span>
+          {on && (
+            <span className="mt-0.5 block truncate text-[11px] text-[rgb(var(--ec-page-text-muted))]">
+              On {on}
+            </span>
+          )}
+        </span>
+        <LocateFixed
+          size={12}
+          className="flex-none text-[rgb(var(--ec-icon-color))]"
+          aria-hidden
+        />
+      </button>
+    </li>
   );
 }

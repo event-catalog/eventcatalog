@@ -800,22 +800,10 @@ export const deleteNodes = (doc: Y.Doc, ids: string[]) =>
       thread.delete("nodeId");
       thread.delete("offset");
     });
-    // Hotspots on them stay too, where their node was (its top right corner)
+    // Hotspots on them go with them: they're about the node, so without it they'd flag nothing (comments stay, above:
+    // they're a conversation). In the same transaction, so undoing the delete puts them back on it
     hotspots.forEach((hotspot, id) => {
-      const node =
-        hotspot.nodeId && removed.has(hotspot.nodeId)
-          ? nodes.get(hotspot.nodeId)
-          : undefined;
-      if (!node) return;
-      const position = getAbsolutePosition(node, lookup);
-      const { nodeId: _, ...rest } = hotspot;
-      hotspots.set(id, {
-        ...rest,
-        position: {
-          x: position.x + (node.measured?.width ?? node.width ?? 0),
-          y: position.y,
-        },
-      });
+      if (hotspot.nodeId && removed.has(hotspot.nodeId)) hotspots.delete(id);
     });
     removed.forEach((id) => {
       nodes.delete(id);

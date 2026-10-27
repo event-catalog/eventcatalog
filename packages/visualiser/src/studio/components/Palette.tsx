@@ -8,8 +8,10 @@ import {
   memo,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type DragEvent,
   type ReactNode,
 } from "react";
@@ -67,6 +69,25 @@ const readCollapsed = () => {
     return false;
   }
 };
+
+// Whether the palette's folded away, for what points at it (the empty canvas's hint): it's shown at the top then
+let shownCollapsed = false;
+const collapsedListeners = new Set<() => void>();
+const showCollapsed = (collapsed: boolean) => {
+  if (collapsed === shownCollapsed) return;
+  shownCollapsed = collapsed;
+  collapsedListeners.forEach((listener) => listener());
+};
+/** Whether the palette is folded away (false when there's none) */
+export const usePaletteCollapsed = () =>
+  useSyncExternalStore(
+    (listener) => {
+      collapsedListeners.add(listener);
+      return () => collapsedListeners.delete(listener);
+    },
+    () => shownCollapsed,
+    () => false,
+  );
 
 /**
  * A tile in the palette: its icon, its name and what it is, picked up and dragged onto the canvas (or clicked, to
@@ -206,6 +227,9 @@ export const Palette = memo(function Palette({
       localStorage.setItem(COLLAPSED_KEY, String(next));
     } catch {}
   };
+  // Before it's painted, so what points at it doesn't show in the wrong place first
+  useLayoutEffect(() => showCollapsed(collapsed), [collapsed]);
+  useLayoutEffect(() => () => showCollapsed(false), []);
   const toggle = useCallback(() => {
     setCollapsed((current) => {
       remember(!current);

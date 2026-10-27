@@ -372,7 +372,7 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
     {
       title: 'Remove from a canvas',
       description:
-        'Removes nodes (and their connections) or connections from a canvas. Comments on removed nodes stay on the canvas. Only remove what the user asked for or what you added.',
+        'Removes nodes (and their connections and hotspots) or connections from a canvas. Comments on removed nodes stay on the canvas. Only remove what the user asked for or what you added.',
       inputSchema: z.object({
         canvasId,
         nodeIds: z.array(z.string()).optional(),

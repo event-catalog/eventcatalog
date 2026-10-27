@@ -277,7 +277,7 @@ const createCanvasTools = (get: () => CanvasWebMcpOptions, getStage: () => Agent
     defineTool({
       name: 'remove_from_canvas',
       title: 'Remove from the canvas',
-      description: 'Removes nodes (and their connections) or connections. Only remove what the user asked for.',
+      description: 'Removes nodes (and their connections and hotspots) or connections. Only remove what the user asked for.',
       input: z.object({ nodeIds: z.array(z.string()).optional(), connectionIds: z.array(z.string()).optional() }),
       annotations: { consequentialHint: true },
       execute: async ({ nodeIds = [], connectionIds = [] }) => {

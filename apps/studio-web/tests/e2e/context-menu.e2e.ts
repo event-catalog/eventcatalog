@@ -28,7 +28,7 @@ test('the menu opens inside the window, wherever the canvas is right clicked', a
     await emptyCanvasNear(page, { x: width - 240, y: height - 12 }, { x: -8, y: 0 }, { x: 0, y: -6 }),
   ]) {
     await page.mouse.click(at.x, at.y, { button: 'right' });
-    const menu = page.getByRole('button', { name: /^Add a sticky note/ }).locator('xpath=..');
+    const menu = page.getByRole('menu');
     await expect(menu).toBeVisible();
     const box = (await menu.boundingBox())!;
     expect(box.x).toBeGreaterThanOrEqual(0);

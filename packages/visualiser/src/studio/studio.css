@@ -320,6 +320,11 @@ html .studio-drag-preview.eventcatalog-visualizer .react-flow {
 /* The text tool: click anywhere on the canvas to write there */
 .studio-canvas.is-placing .react-flow__pane,
 .studio-canvas.is-placing .react-flow__node { cursor: crosshair !important; }
+/* The hotspot tool: the pointer is a faded marker (a warning's, as one starts), centred where the marker will go */
+.studio-canvas.is-placing-hotspot .react-flow__pane,
+.studio-canvas.is-placing-hotspot .react-flow__node {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg opacity='0.75'%3E%3Ccircle cx='14' cy='14' r='12.5' fill='%23d97706' stroke='white' stroke-width='2'/%3E%3Cg transform='translate(7.5 7.5) scale(0.5417)' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3'/%3E%3Cpath d='M12 9v4'/%3E%3Cpath d='M12 17h.01'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") 14 14, crosshair !important;
+}
 /* Text being written has no box around it, like Excalidraw's */
 .studio-text textarea.studio-text-body { display: block; width: 100%; border: 0; outline: none; padding: 0; resize: none; overflow: hidden; background: transparent; }
 
@@ -430,11 +435,10 @@ html .studio-drag-preview.eventcatalog-visualizer .react-flow {
   transition: transform 120ms;
 }
 .studio-hotspot-marker:hover { transform: scale(1.05); }
-/* Zoomed well out: just each marker's icon (its title is in the list, and on hover) */
-.is-icons-only .studio-hotspot-label { display: none; }
-.is-icons-only .studio-hotspot-marker { padding-right: 4px; }
-/* An open marker's panel (or the form adding one): its full size on screen however far out the canvas is */
-.studio-hotspot-panel { transform: scale(var(--studio-hotspot-panel-scale, 1)); transform-origin: 0 -34px; }
+/* An open marker's panel (or the form adding one), beside it: its full size on screen however far out the canvas is.
+   Scaled from the middle of the marker's right edge (12px to the panel's left, 22px down it, where its arrow is), which
+   shrinks with the canvas, so the panel stays the same distance from the marker with its arrow pointing at it */
+.studio-hotspot-panel { transform: scale(var(--studio-hotspot-panel-scale, 1)); transform-origin: -12px 22px; }
 
 /* A hotspot being dragged over a node: the node lights up in its colour, to show it'll go on it when dropped */
 .studio-canvas .react-flow__node.studio-hotspot-drop { --studio-hotspot-drop: 217 119 6; border-radius: 14px; }

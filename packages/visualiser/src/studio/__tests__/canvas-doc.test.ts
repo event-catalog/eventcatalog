@@ -5,6 +5,7 @@ import {
   addNodes,
   buildNode,
   connectNodes,
+  createHotspot,
   createThread,
   deleteNodes,
   deleteThread,
@@ -14,6 +15,7 @@ import {
   moveNode,
   moveThread,
   placeNode,
+  readHotspots,
   readLevelLayout,
   readThreads,
   reconnectEdge,
@@ -475,6 +477,47 @@ describe("deleteNodes", () => {
       nodeId: "outside",
       offset: { x: 1, y: 1 },
     });
+  });
+
+  it("removes the hotspots on what it removes (inside containers too), and undoing puts them back", () => {
+    const doc = setup();
+    const undo = new Y.UndoManager(Object.values(getCanvasMaps(doc)), {
+      trackedOrigins: new Set([null]),
+    });
+    const at = { x: 0, y: 0 };
+    const onInner = createHotspot(doc, {
+      severity: "critical",
+      title: "Single point of failure",
+      nodeId: "inner",
+      position: at,
+      author: claude,
+    });
+    const onOutside = createHotspot(doc, {
+      severity: "info",
+      title: "Key service",
+      nodeId: "outside",
+      position: at,
+      author: ada,
+    });
+    const placed = createHotspot(doc, {
+      severity: "warning",
+      title: "Here",
+      position: at,
+      author: ada,
+    });
+    undo.stopCapturing();
+
+    deleteNodes(doc, ["domain"]);
+    expect(
+      readHotspots(doc)
+        .map((hotspot) => hotspot.id)
+        .sort(),
+    ).toEqual([onOutside, placed].sort());
+
+    undo.undo();
+    expect(
+      readHotspots(doc).find((hotspot) => hotspot.id === onInner),
+    ).toMatchObject({ nodeId: "inner" });
   });
 
   it("removes just a node without anything inside it", () => {
