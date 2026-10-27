@@ -752,7 +752,11 @@ export function Diagram({
       const { added } = canvasRef.current!.applyAgentCanvas(target, read.ids);
       // Notes and the title as the changes left them (a note on something removed later in the same edit isn't put on)
       const notesBefore = new Set(current.notes ?? []);
-      (next.notes ?? []).filter((note) => !notesBefore.has(note)).forEach((note) => canvasRef.current?.addNote({ nodeId: note.resource, text: note.text, author: agentName }));
+      (next.notes ?? [])
+        .filter((note) => !notesBefore.has(note))
+        .forEach((note) =>
+          canvasRef.current?.addNote({ nodeId: note.resource, text: note.text, author: agentName, kind: note.kind, fontSize: note.fontSize })
+        );
       if (next.title !== current.title) {
         titleSet.current = next.title;
         setCanvasModel((model) => ({ ...(model ?? current), title: next.title }));

@@ -45,7 +45,8 @@ const HOST_CLIENTS = new Set(['openai-mcp', 'claude-user', 'claude-ai']);
  * a request is refused, or undefined
  */
 export function createMcpRateLimits() {
-  const people = createRateLimiter();
+  // A caller's requests a minute: 60, unless the server's started with more (the browser tests, all from one address)
+  const people = createRateLimiter({ perMinute: Number(process.env.MCP_REQUESTS_PER_MINUTE) || 60 });
   const hosts = createRateLimiter({ perMinute: 600, perDay: 50_000 });
   // A wait returns early for each request it carries: a few a minute, more while the agent's editing
   const waits = createRateLimiter({ perMinute: 120, perDay: Infinity });

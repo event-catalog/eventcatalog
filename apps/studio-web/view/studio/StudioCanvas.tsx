@@ -39,7 +39,7 @@ import type { CursorSource, Editing, Moving, Peer } from '../collab/room';
 import type * as Y from 'yjs';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { X } from 'lucide-react';
-import { ContextMenu, type ContextMenuState, type MenuQuestion } from '@eventcatalog/visualiser/studio';
+import { ContextMenu, type ContextMenuState, type MenuQuestion, TEXT_FONT_SIZE } from '@eventcatalog/visualiser/studio';
 import { EditButton, Palette, COMPONENT_DRAG_TYPE, RemeasureHandles } from '@eventcatalog/visualiser/studio';
 import { ConnectChooser, isCardType, newCardData, notPlaceholder, useConnectNew, type NewLink } from '@eventcatalog/visualiser/studio';
 import { useCanvasFlow, type CanvasDocument } from './use-canvas-flow';
@@ -137,7 +137,8 @@ export type StudioCanvasHandle = {
   /** Picks the sticky note tool: the next click on the canvas puts a note there */
   pickNoteTool: () => void;
   /** A sticky note: beside a node, or in the middle of what's on screen (with text, e.g. one the agent wrote) */
-  addNote: (options?: { nodeId?: string; text?: string; author?: string }) => void;
+  /** A sticky note, or text written on the canvas (kind "text", as big as fontSize): beside a node, or in the middle */
+  addNote: (options?: { nodeId?: string; text?: string; author?: string; kind?: 'sticky' | 'text'; fontSize?: number }) => void;
   /** Centres a node (selected), at a comfortable zoom */
   centreOn: (nodeId: string) => void;
   /** The canvas as it is now */
@@ -1407,6 +1408,29 @@ function Canvas({
   const menuQuestions = useMemo(() => (contextMenu?.node && questionsFor ? questionsFor(contextMenu.node) : undefined), [contextMenu, questionsFor]);
 
   /** A note to the right of a node, about it */
+  /**
+   * Text an agent writes: above the node it's about (a heading over it), else in the middle of the canvas, on the
+   * level shown, as big as asked
+   */
+  const addTextFor = (nodeId: string | undefined, text: string, fontSize?: number) => {
+    const lookup = lookupNodes();
+    const node = nodeId ? lookup.get(nodeId) : undefined;
+    const size = fontSize ?? TEXT_FONT_SIZE;
+    const data = {
+      text,
+      ...(fontSize && { fontSize }),
+      ...(nodeId && { resource: nodeId }),
+      ...(levelRef.current !== 3 && { level: levelRef.current }),
+    };
+    const at = node ? getAbsolutePosition(node, lookup) : undefined;
+    const width = node ? (node.measured?.width ?? node.width ?? 240) : 0;
+    // Centred over the node, clear of it by about a line of the text
+    const center = at ? { x: at.x + width / 2, y: at.y - size * 1.4 } : canvasCenter();
+    const id = flow.insertNode('text', data, center);
+    track('text_added', { level: levelRef.current, from: 'agent' });
+    return id;
+  };
+
   const addNoteBeside = (nodeId: string, extra: Record<string, unknown> = {}) => {
     const lookup = lookupNodes();
     const node = lookup.get(nodeId);
@@ -1454,8 +1478,9 @@ function Canvas({
 
   useImperativeHandle(handleRef, () => ({
     pickNoteTool: () => pickTool('note'),
-    addNote: ({ nodeId, text, author } = {}) => {
+    addNote: ({ nodeId, text, author, kind, fontSize } = {}) => {
       if (lockedRef.current) return;
+      if (kind === 'text') return void addTextFor(nodeId, text ?? '', fontSize);
       const extra = { ...(text && { text }), ...(author && { author }) };
       if (nodeId) addNoteBeside(nodeId, extra);
       else addNoteAt(canvasCenter(), extra);

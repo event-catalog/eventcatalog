@@ -25,6 +25,7 @@ export default defineConfig({
     url: `http://localhost:${PORT}/health`,
     // Not one left running from before: it could be serving an older build
     reuseExistingServer: false,
-    env: { PORT: String(PORT), PUBLIC_URL: `http://localhost:${PORT}`, ANALYTICS: 'off' },
+    // Every test calls the MCP endpoint from this machine: more than one person's requests a minute
+    env: { PORT: String(PORT), PUBLIC_URL: `http://localhost:${PORT}`, ANALYTICS: 'off', MCP_REQUESTS_PER_MINUTE: '600' },
   },
 });

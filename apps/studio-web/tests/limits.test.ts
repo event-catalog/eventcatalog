@@ -4,6 +4,18 @@ import { createMcpRateLimits } from '../src/lib/limits';
 describe("the MCP endpoint's rate limits", () => {
   afterEach(() => vi.useRealTimers());
 
+  it('allow a caller 60 requests a minute, unless the server is started with more (the browser tests)', () => {
+    const count = (limits: ReturnType<typeof createMcpRateLimits>) =>
+      Array.from({ length: 100 }, () => limits({ ip: '10.0.0.9', client: 'curl' })).filter((refused) => !refused).length;
+    expect(count(createMcpRateLimits())).toBe(60);
+    vi.stubEnv('MCP_REQUESTS_PER_MINUTE', '80');
+    try {
+      expect(count(createMcpRateLimits())).toBe(80);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('count per address: a different user agent never gets another quota', () => {
     const limited = createMcpRateLimits();
     for (let i = 0; i < 60; i++) expect(limited({ ip: '203.0.113.7', client: `agent-${i}` })).toBeUndefined();

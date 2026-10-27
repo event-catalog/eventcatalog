@@ -29,7 +29,11 @@ export const Change = z.discriminatedUnion('op', [
     .describe('Remove the relations from one resource to another (of one kind, if given)'),
   z.object({ op: z.literal('add_hotspot'), hotspot: Hotspot }).describe('Flag a risk, problem or key part'),
   z.object({ op: z.literal('remove_hotspot'), id: z.string().min(1).max(60) }),
-  z.object({ op: z.literal('add_note'), note: Note.pick({ text: true, resource: true }) }).describe('A sticky note (only when the user asks for one)'),
+  z
+    .object({ op: z.literal('add_note'), note: Note.pick({ text: true, resource: true, kind: true, fontSize: true }) })
+    .describe(
+      'A sticky note, or text written straight on the canvas (kind: "text", fontSize: how big, e.g. 48 for a title): only when the user asks for one'
+    ),
   z.object({ op: z.literal('set_title'), title: z.string().min(1).max(200) }),
 ]);
 export type Change = z.infer<typeof Change>;
