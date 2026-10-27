@@ -1413,7 +1413,8 @@ function Canvas({
    * level shown, as big as asked
    */
   const addTextFor = (nodeId: string | undefined, text: string, fontSize?: number) => {
-    const lookup = lookupNodes();
+    // Where it's shown on the level shown (L1 and L2 are arranged on their own, and the text is on that level)
+    const lookup = shownLookup();
     const node = nodeId ? lookup.get(nodeId) : undefined;
     const size = fontSize ?? TEXT_FONT_SIZE;
     const data = {
@@ -1432,7 +1433,8 @@ function Canvas({
   };
 
   const addNoteBeside = (nodeId: string, extra: Record<string, unknown> = {}) => {
-    const lookup = lookupNodes();
+    // Beside where it's shown on the level shown (L1 and L2 are arranged on their own, and the note is on that level)
+    const lookup = shownLookup();
     const node = lookup.get(nodeId);
     if (!node) return addNoteAt(canvasCenter(), extra);
     const at = getAbsolutePosition(node, lookup);
