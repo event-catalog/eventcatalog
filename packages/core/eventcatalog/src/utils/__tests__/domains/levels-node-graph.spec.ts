@@ -828,10 +828,19 @@ describe('collapseSystems', () => {
       ...(parentId ? { parentId } : {}),
       data,
     });
-    const event = (id: string, name: string, parentId: string) =>
-      node(`${id}-1.0.0`, 'events', parentId, { message: { id, name } });
+    const event = (id: string, name: string, parentId: string, version = '1.0.0') =>
+      node(`${id}-${version}`, 'events', parentId, { message: { id, name, version } });
+    // What a service receives, as `<id>` or `<id>@<version>`
     const service = (id: string, parentId: string, receives: string[]) =>
-      node(`${id}-1.0.0`, 'services', parentId, { service: { id, receives: receives.map((message) => ({ id: message })) } });
+      node(`${id}-1.0.0`, 'services', parentId, {
+        service: {
+          id,
+          receives: receives.map((message) => {
+            const [messageId, version] = message.split('@');
+            return { id: messageId, ...(version ? { version } : {}) };
+          }),
+        },
+      });
     const graph = (
       extra: { nodes: any[]; edges: any[] } = { nodes: [], edges: [] },
       receives: { customer: string[]; finance: string[] } = { customer: ['OrderCreated'], finance: ['OrderCreated'] }
@@ -909,6 +918,27 @@ describe('collapseSystems', () => {
 
       expect(edges).toEqual([
         { id: 'domain-Sales-1.0.0->domain-Customer-1.0.0', label: 'publishes 2 events' },
+        { id: 'domain-Sales-1.0.0->domain-Finance-1.0.0', label: 'publishes Order Created' },
+      ]);
+    });
+
+    it('matches the version of a message its consumer receives', () => {
+      // Customer publishes version 2.0.0 of OrderCreated through the same topic; Finance receives only 1.0.0
+      const edges = level1(
+        graph(
+          {
+            nodes: [event('OrderCreated', 'Order Created', 'domain-group-Customer-1.0.0', '2.0.0')],
+            edges: [
+              { id: 'publishes-v2', source: 'CustomerService-1.0.0', target: 'OrderCreated-2.0.0' },
+              { id: 'v2-through', source: 'OrderCreated-2.0.0', target: 'orders-1.0.0' },
+            ],
+          },
+          { customer: ['OrderCreated@1.0.0'], finance: ['OrderCreated@1.0.0'] }
+        )
+      );
+
+      expect(edges).toEqual([
+        { id: 'domain-Sales-1.0.0->domain-Customer-1.0.0', label: 'publishes Order Created' },
         { id: 'domain-Sales-1.0.0->domain-Finance-1.0.0', label: 'publishes Order Created' },
       ]);
     });

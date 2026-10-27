@@ -4,6 +4,7 @@ import { getNodesAndEdges as getServiceNodesAndEdges } from './services-node-gra
 import { getNodesAndEdgesForDomainSystems as getDomainContextNodesAndEdges } from './system-context-node-graph';
 import { getServices } from '@utils/collections/services';
 import { getAgents } from '@utils/collections/agents';
+import { versionMatches } from '@utils/collections/util';
 import { createTriggerMessageNode } from './message-node-graph';
 import {
   createEdge,
@@ -178,9 +179,14 @@ export const collapseSystems = (
       isMessage(sender) ? [sender] : isChannel(sender) ? messagesThrough(sender, seen) : []
     );
   };
-  const messageIdsReceivedBy = (nodeId: string) => {
+  // Whether a node says it receives a message: its id, and its version (or range, or latest)
+  const receives = (nodeId: string, messageId: string) => {
     const data = nodesById.get(nodeId)?.data;
-    return new Set(((data?.service ?? data?.agent)?.receives ?? []).map((message: any) => message.data?.id ?? message.id));
+    const message = nodesById.get(messageId)?.data?.message;
+    return ((data?.service ?? data?.agent)?.receives ?? []).some((pointer: any) => {
+      const { id, version } = pointer.data ?? pointer;
+      return id === message?.id && versionMatches(message?.version ?? '', version ?? 'latest');
+    });
   };
 
   // Where an edge is from and the messages it carries. A channel is one node for
@@ -191,8 +197,7 @@ export const collapseSystems = (
     if (isChannel(edge.target) && carries(edge.source)) return [];
     const through = isChannel(edge.source) ? messagesThrough(edge.source) : [];
     if (through.length === 0) return [{ from: edge.source, messages: [edge.source, edge.target].filter(isMessage) }];
-    const received = messageIdsReceivedBy(edge.target);
-    const sent = through.filter((messageId) => received.has(nodesById.get(messageId)?.data?.message?.id));
+    const sent = through.filter((messageId) => receives(edge.target, messageId));
     return (sent.length > 0 ? sent : through).map((messageId) => ({ from: messageId, messages: [messageId] }));
   };
 
