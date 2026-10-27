@@ -2,61 +2,90 @@ import { isSSR, isChangelogEnabled } from '@utils/feature';
 import { changelogResourceCollections } from '@utils/changelog-resource-badge';
 import { HybridPage } from '@utils/page-loaders/hybrid-page';
 import type { PageTypes } from '@types';
+import { getLatestServicePaths } from '../../../../services/_latest-version-route';
 
-export class Page extends HybridPage {
-  static get prerender(): boolean {
-    return !isSSR();
-  }
+// Services have their own route (pages/docs/services/[id]/[version]/changelog), because the
+// version-less alias /docs/services/[id]/[docType]/[docId] outranks this generic route and
+// would otherwise catch /docs/services/{id}/{version}/changelog.
+const GENERIC_ROUTE_TYPES = changelogResourceCollections.filter((type) => type !== 'services');
 
-  static async getStaticPaths(): Promise<Array<{ params: any; props: any }>> {
-    if (isSSR() || !isChangelogEnabled()) {
-      return [];
+type RouteParams = { type?: string; id?: string; version?: string };
+
+const createChangelogPage = ({
+  types,
+  toParams,
+  typeOf,
+}: {
+  types: PageTypes[];
+  toParams: (type: PageTypes, item: any) => RouteParams;
+  typeOf: (params: RouteParams) => string | undefined;
+}) =>
+  class extends HybridPage {
+    static get prerender(): boolean {
+      return !isSSR();
     }
 
-    const { pageDataLoader } = await import('@utils/page-loaders/page-data-loader');
+    static async getStaticPaths(): Promise<Array<{ params: any; props: any }>> {
+      if (isSSR() || !isChangelogEnabled()) {
+        return [];
+      }
 
-    const itemTypes: PageTypes[] = [...changelogResourceCollections];
-    const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
+      const { pageDataLoader } = await import('@utils/page-loaders/page-data-loader');
 
-    return allItems.flatMap((items, index) =>
-      items.map((item) => ({
-        params: {
-          type: itemTypes[index],
-          id: item.data.id,
-          version: item.data.version,
-        },
-        props: {
-          type: itemTypes[index],
-          allCollectionItems: items,
-          ...item,
-        },
-      }))
-    );
-  }
+      const allItems = await Promise.all(types.map((type) => pageDataLoader[type]()));
 
-  protected static async fetchData(params: any) {
-    const { type, id, version } = params;
-
-    if (!type || !id || !version || !isChangelogEnabled()) {
-      return null;
+      return allItems.flatMap((items, index) =>
+        items.map((item) => ({
+          params: toParams(types[index], item),
+          props: {
+            type: types[index],
+            allCollectionItems: items,
+            ...item,
+          },
+        }))
+      );
     }
 
-    const { pageDataLoader } = await import('@utils/page-loaders/page-data-loader');
+    protected static async fetchData(params: RouteParams) {
+      const type = typeOf(params);
+      const { id, version } = params;
 
-    // Get all items of the specified type
-    const items = await pageDataLoader[type as PageTypes]();
+      if (!type || !id || !version || !isChangelogEnabled()) {
+        return null;
+      }
 
-    // Find the specific item by id and version
-    const item = items.find((i) => i.data.id === id && i.data.version === version);
+      const { pageDataLoader } = await import('@utils/page-loaders/page-data-loader');
 
-    if (!item) {
-      return null;
+      const items = await pageDataLoader[type as PageTypes]();
+      const item = items.find((i) => i.data.id === id && i.data.version === version);
+
+      if (!item) {
+        return null;
+      }
+
+      return {
+        type,
+        allCollectionItems: items,
+        ...item,
+      };
     }
+  };
 
-    return {
-      type,
-      allCollectionItems: items,
-      ...item,
-    };
-  }
-}
+export const Page = createChangelogPage({
+  types: GENERIC_ROUTE_TYPES as PageTypes[],
+  toParams: (type, item) => ({ type, id: item.data.id, version: item.data.version }),
+  typeOf: (params) => params.type,
+});
+
+export const ServicePage = createChangelogPage({
+  types: ['services'],
+  toParams: (_type, item) => ({ id: item.data.id, version: item.data.version }),
+  typeOf: () => 'services',
+});
+
+// Static paths for the version-less /docs/services/[id]/changelog alias. The service route has no
+// [type] segment, so put it back for getLatestServicePaths, which only keeps services.
+export const getLatestServiceChangelogPaths = async () => {
+  const paths = await ServicePage.getStaticPaths();
+  return getLatestServicePaths(paths.map(({ params, props }) => ({ params: { ...params, type: 'services' }, props })));
+};
