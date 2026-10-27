@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 5.7.3
+
+### Patch Changes
+
+- cd6f625: fix(core): a domain's level 1 diagram connects each message's publisher to the consumers that receive it, rather than one consumer to the rest, when the channel it goes through was drawn with that consumer, and labels edges out of a channel with only the messages their consumer receives. The detailed diagram draws a channel with the messages sent through it, rather than in the first consumer's box (#3029)
+- 3d55c64: fix(core): the system diagram draws an agent's tools outside the system group when the agent is outside it (#3028)
+
 ## 5.7.2
 
 ### Patch Changes
