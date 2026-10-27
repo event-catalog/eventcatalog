@@ -4,6 +4,7 @@ import { getNodesAndEdges as getServiceNodesAndEdges } from './services-node-gra
 import { getNodesAndEdgesForDomainSystems as getDomainContextNodesAndEdges } from './system-context-node-graph';
 import { getServices } from '@utils/collections/services';
 import { getAgents } from '@utils/collections/agents';
+import { versionMatches } from '@utils/collections/util';
 import { createTriggerMessageNode } from './message-node-graph';
 import {
   createEdge,
@@ -97,14 +98,16 @@ const createDomainCard = (domain: any, { parentId, subdomain = false }: { parent
  * systems is shown as a card. Messages a (sub)domain sends or receives itself
  * (`domainMessages`: by message, the boxes drawn with it) fold into it, as a
  * system's do into the system, when only one does (more than one, they connect
- * through the message instead, rather than to each other).
+ * through the message instead, rather than to each other). `receivedBy` has
+ * what the services other domains stand for receive, by the node shown for them.
  */
 export const collapseSystems = (
   graph: Graph,
   systems: any[],
   contextNodes: Map<string, any>,
   subdomains: Map<string, any>,
-  domainMessages: Map<string, Set<string>> = new Map()
+  domainMessages: Map<string, Set<string>> = new Map(),
+  receivedBy: Map<string, any[]> = new Map()
 ): Graph => {
   const nodesById = new Map(graph.nodes.map((node) => [node.id, node]));
   const systemsByGroupId = new Map<string, any>(systems.map((system: any) => [systemGroupId(system), system]));
@@ -123,11 +126,32 @@ export const collapseSystems = (
     cards.set(groupId, createDomainCard(subdomain, { parentId: nodesById.get(groupId)?.parentId, subdomain: true }));
   });
 
+  const sendersOf = new Map<string, string[]>();
+  graph.edges.forEach((edge) => sendersOf.set(edge.target, [...(sendersOf.get(edge.target) ?? []), edge.source]));
+  const carries = (nodeId: string) => nodesById.has(nodeId) && isCarrier(nodesById.get(nodeId));
+  const isMessage = (nodeId: string) => MESSAGE_TYPES.has(nodesById.get(nodeId)?.type);
+  const isChannel = (nodeId: string) => nodesById.get(nodeId)?.type === 'channels';
+
+  // A message is shown as what sends it, not where it's drawn, which can be with
+  // one of its consumers. Sent from more than one, it's left as it is (connecting
+  // each sender to what receives it, rather than one to the rest). None when nothing sends it
+  const senderHomes = new Map<string, string | undefined>();
+  const senderHome = (nodeId: string): string | undefined => {
+    if (!senderHomes.has(nodeId)) {
+      const senders = new Set((sendersOf.get(nodeId) ?? []).filter((sender) => !carries(sender)).map(representative));
+      const [sender] = [...senders];
+      senderHomes.set(nodeId, senders.size > 1 ? nodeId : sender);
+    }
+    return senderHomes.get(nodeId);
+  };
+
   // The node something is shown as: its system, the card of the subdomain it's
   // in, the (sub)domain it's in, or itself
   const representative = (nodeId: string): string => {
     const boxes = domainMessages.get(nodeId);
     if (boxes?.size === 1) return representative([...boxes][0]);
+    const home = isMessage(nodeId) ? senderHome(nodeId) : undefined;
+    if (home) return home;
     for (let node = nodesById.get(nodeId); node; node = node.parentId ? nodesById.get(node.parentId) : undefined) {
       const system: any = systemsByGroupId.get(node.id);
       if (system) return generateIdForNode(system);
@@ -149,6 +173,37 @@ export const collapseSystems = (
   );
   const shownNodes = new Map([...otherNodes, ...systemNodes, ...cards.values()].map((node) => [node.id, node]));
 
+  // The messages sent through a channel (and the channels before it)
+  const messagesThrough = (channelId: string, seen = new Set<string>()): string[] => {
+    if (seen.has(channelId)) return [];
+    seen.add(channelId);
+    return (sendersOf.get(channelId) ?? []).flatMap((sender) =>
+      isMessage(sender) ? [sender] : isChannel(sender) ? messagesThrough(sender, seen) : []
+    );
+  };
+  // Whether a node (or the services another domain stands for) says it receives a
+  // message: its id, and its version (or range, or latest)
+  const receives = (nodeId: string, messageId: string) => {
+    const data = nodesById.get(nodeId)?.data;
+    const message = nodesById.get(messageId)?.data?.message;
+    return ((data?.service ?? data?.agent)?.receives ?? receivedBy.get(nodeId) ?? []).some((pointer: any) => {
+      const { id, version } = pointer.data ?? pointer;
+      return id === message?.id && versionMatches(message?.version ?? '', version ?? 'latest');
+    });
+  };
+
+  // Where an edge is from and the messages it carries. A channel is one node for
+  // all its messages, so an edge out of one is from each message sent through it
+  // that its target receives (all of them when that isn't known), as those
+  // messages are shown. Edges into a channel are shown by the edges out of it
+  const edgeSources = (edge: any): { from: string; messages: string[] }[] => {
+    if (isChannel(edge.target) && carries(edge.source)) return [];
+    const through = isChannel(edge.source) ? messagesThrough(edge.source) : [];
+    if (through.length === 0) return [{ from: edge.source, messages: [edge.source, edge.target].filter(isMessage) }];
+    const sent = through.filter((messageId) => receives(edge.target, messageId));
+    return (sent.length > 0 ? sent : through).map((messageId) => ({ from: messageId, messages: [messageId] }));
+  };
+
   // Edges between systems / actors / domains: context relationships as they
   // are, edges to nodes kept as their first label, the rest labelled with the
   // messages they carry
@@ -156,28 +211,30 @@ export const collapseSystems = (
     string,
     { source: string; target: string; messages: Map<string, string>; relationship?: any; label?: string; crossDomain?: boolean }
   >();
-  graph.edges.forEach((edge) => {
-    const source = representative(edge.source);
-    const target = representative(edge.target);
-    if (
-      source === target ||
-      !shownNodes.has(source) ||
-      !shownNodes.has(target) ||
-      // One shown node inside another (e.g. a system in its domain)
-      isInside(shownNodes, source, target) ||
-      isInside(shownNodes, target, source)
-    )
-      return;
-    const key = `${source}->${target}`;
-    const connection = connections.get(key) ?? { source, target, messages: new Map<string, string>() };
-    if (edge.id.startsWith(CONTEXT_EDGE_PREFIX)) connection.relationship = edge;
-    if (edge.data?.crossDomain) connection.crossDomain = true;
-    [edge.source, edge.target].forEach((nodeId) => {
-      const node = nodesById.get(nodeId);
-      if (MESSAGE_TYPES.has(node?.type)) connection.messages.set(node.data?.message?.name ?? nodeId, node.type);
-    });
-    connections.set(key, connection);
-  });
+  graph.edges.forEach((edge) =>
+    edgeSources(edge).forEach(({ from, messages }) => {
+      const source = representative(from);
+      const target = representative(edge.target);
+      if (
+        source === target ||
+        !shownNodes.has(source) ||
+        !shownNodes.has(target) ||
+        // One shown node inside another (e.g. a system in its domain)
+        isInside(shownNodes, source, target) ||
+        isInside(shownNodes, target, source)
+      )
+        return;
+      const key = `${source}->${target}`;
+      const connection = connections.get(key) ?? { source, target, messages: new Map<string, string>() };
+      if (edge.id.startsWith(CONTEXT_EDGE_PREFIX)) connection.relationship = edge;
+      if (edge.data?.crossDomain) connection.crossDomain = true;
+      messages.forEach((messageId) => {
+        const node = nodesById.get(messageId);
+        connection.messages.set(node.data?.message?.name ?? messageId, node.type);
+      });
+      connections.set(key, connection);
+    })
+  );
 
   // A relationship already connects the pair (either way), so skip messages
   const related = new Set(
@@ -298,8 +355,10 @@ export const buildDomainGraph = ({
     ])
   );
   const edges: any[] = [];
-  // Nodes replaced by another (services in other domains become the domain)
+  // Nodes replaced by another (services in other domains become the domain),
+  // and what each of them receives
   const replacedBy = new Map<string, string>();
+  const replacedReceives = new Map<string, any[]>();
 
   // Other domains are shown as a single card, with counts of what's in them. A
   // subdomain of another domain is shown inside a box for that domain (and
@@ -364,6 +423,7 @@ export const buildDomainGraph = ({
       const owner = SERVICE_TYPES.has(node.type) ? owners.get(node.id) : undefined;
       if (owner && !groupOfDomain.has(owner.domain.data.id)) {
         replacedBy.set(node.id, addOtherDomain(owner.domain));
+        replacedReceives.set(node.id, (node.data?.service ?? node.data?.agent)?.receives ?? []);
         return;
       }
       if (owner && owner.system) {
@@ -440,11 +500,17 @@ export const buildDomainGraph = ({
 
   const graphEdges = connectEdges(edges, new Map([...cardBoxes, ...replacedBy]), nodes);
   placeMessagesWithPublishers(nodes, graphEdges, new Set(domainMessages.keys()));
+  // What the services each other domain stands for receive, by the node shown for the domain
+  const receivedBy = new Map<string, any[]>();
+  replacedBy.forEach((nodeId, replaced) =>
+    receivedBy.set(nodeId, [...(receivedBy.get(nodeId) ?? []), ...(replacedReceives.get(replaced) ?? [])])
+  );
   return {
     nodes,
     edges: graphEdges,
     otherDomainIds: new Set([...replacedBy.values(), ...[...otherDomainIds].map((id) => cardBoxes.get(id) ?? id)]),
     domainMessages,
+    receivedBy,
   };
 };
 
@@ -609,7 +675,8 @@ const addDomainMessages = ({
 /**
  * Messages are placed in the first graph they appear in, which can be a
  * system consuming them. Moves each message into the system (or domain) of the
- * services publishing it, when they're all in the same one. Messages a domain
+ * services publishing it, when they're all in the same one, and each channel
+ * with the messages sent through it. Messages a domain
  * sends or receives itself (`kept`) stay outside its box, where its edge to them
  * is drawn.
  */
@@ -630,6 +697,22 @@ export const placeMessagesWithPublishers = (nodes: Map<string, any>, edges: any[
       nodes.set(messageId, { ...message, parentId, extent: undefined });
     }
   });
+
+  // Channels go with what sends through them (messages, or channels before them), when that's all in one place
+  const sendersOf = new Map<string, string[]>();
+  edges.forEach((edge) => sendersOf.set(edge.target, [...(sendersOf.get(edge.target) ?? []), edge.source]));
+  for (let moved = true; moved; ) {
+    moved = false;
+    nodes.forEach((channel, channelId) => {
+      if (channel.type !== 'channels' || kept.has(channelId)) return;
+      const groups = new Set((sendersOf.get(channelId) ?? []).map((sender) => nodes.get(sender)?.parentId));
+      const [parentId] = [...groups];
+      if (groups.size === 1 && parentId && channel.parentId !== parentId) {
+        nodes.set(channelId, { ...channel, parentId, extent: undefined });
+        moved = true;
+      }
+    });
+  }
 };
 
 /**
@@ -860,7 +943,7 @@ const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: No
     ),
   ]);
 
-  const { nodes, edges, otherDomainIds, domainMessages } = buildDomainGraph({
+  const { nodes, edges, otherDomainIds, domainMessages, receivedBy } = buildDomainGraph({
     tree,
     owners,
     parentDomainOf,
@@ -888,7 +971,8 @@ const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: No
     systems.map(({ system }) => system),
     context.contextNodesById,
     new Map(tree.filter((entry) => entry.parentId).map((entry) => [entry.groupId, entry.domain])),
-    domainMessages
+    domainMessages,
+    receivedBy
   );
   const overview = hideMessageNodes(collapsed.nodes, collapsed.edges);
 
