@@ -10,6 +10,19 @@ const container = model.resources.find((resource) => resource.id === service.par
 const event = model.resources.find((resource) => resource.type === 'event')!;
 
 describe('applyChanges', () => {
+  it('adds text written on the canvas as well as sticky notes, as the agent asks', () => {
+    const changes = Changes.parse([
+      { op: 'add_note', note: { text: 'Order flow', kind: 'text', fontSize: 48 } },
+      { op: 'add_note', note: { text: 'Kafka: ordered events', resource: service.id } },
+    ]);
+    const { model: next, results } = applyChanges(model, changes);
+    expect(results.every((result) => result.ok)).toBe(true);
+    expect(next.notes?.slice(-2)).toEqual([
+      { text: 'Order flow', kind: 'text', fontSize: 48 },
+      { text: 'Kafka: ordered events', resource: service.id },
+    ]);
+  });
+
   it('applies changes in order, each building on the last', () => {
     const { model: next, results } = applyChanges(model, [
       { op: 'add_resource', resource: { id: 'billing', type: 'domain', name: 'Billing' } },

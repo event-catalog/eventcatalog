@@ -287,7 +287,7 @@ test('edits that arrive together all stay, and a change is kept when the view go
   await agent.close();
 });
 
-test("a locked diagram turns the agent's edits down, and a note on something removed in the same edit isn't put on", async ({ page, baseURL }) => {
+test("the agent writes text and notes, a locked diagram turns its edits down, and a note on something removed in the same edit isn't put on", async ({ page, baseURL }) => {
   test.setTimeout(60_000);
   const host = await connect(baseURL!);
   const agent = await connect(baseURL!);
@@ -302,8 +302,24 @@ test("a locked diagram turns the agent's edits down, and a note on something rem
   await expect(view.locator('.ec-build-skip')).toHaveCount(0, { timeout: 60_000 });
   const edit = async (changes: unknown[]) => agent.callTool({ name: 'edit_diagram', arguments: { diagramId, changes } });
 
-  // A note on a resource, and the resource removed, in one edit: neither is on the canvas after
   const service = model.resources.find((resource: { type: string }) => resource.type === 'service').id;
+
+  // Text written on the canvas, as big as asked and over what it's about, and a sticky note beside it (on another
+  // resource than the one removed below: its notes go with it)
+  const event = model.resources.find((resource: { type: string }) => resource.type === 'event').id;
+  const written = await edit([
+    { op: 'add_note', note: { text: 'Order flow', kind: 'text', fontSize: 48, resource: event } },
+    { op: 'add_note', note: { text: 'Kafka: ordered events', resource: event } },
+  ]);
+  expect(textOf(written).note).toContain('Made 2 of 2');
+  const text = view.locator('.react-flow__node-text', { hasText: 'Order flow' });
+  await expect(text).toBeVisible({ timeout: 10_000 });
+  await expect(view.locator('.react-flow__node-note', { hasText: 'Kafka: ordered events' })).toBeVisible();
+  expect(await text.locator('[style*="font-size"]').first().evaluate((element) => getComputedStyle(element).fontSize)).toBe('48px');
+  const [textBox, eventBox] = await Promise.all([text.boundingBox(), view.locator(`.react-flow__node[data-id="${event}"]`).boundingBox()]);
+  expect(textBox!.y + textBox!.height).toBeLessThanOrEqual(eventBox!.y + 1);
+
+  // A note on a resource, and the resource removed, in one edit: neither is on the canvas after
   const notesBefore = (await nodes()).filter((node) => node.type === 'note').length;
   expect(textOf(await edit([{ op: 'add_note', note: { text: 'Gone soon', resource: service } }, { op: 'remove_resource', id: service }])).note).toContain('Made 2 of 2');
   await page.waitForTimeout(800);
