@@ -98,14 +98,16 @@ const createDomainCard = (domain: any, { parentId, subdomain = false }: { parent
  * systems is shown as a card. Messages a (sub)domain sends or receives itself
  * (`domainMessages`: by message, the boxes drawn with it) fold into it, as a
  * system's do into the system, when only one does (more than one, they connect
- * through the message instead, rather than to each other).
+ * through the message instead, rather than to each other). `receivedBy` has
+ * what the services other domains stand for receive, by the node shown for them.
  */
 export const collapseSystems = (
   graph: Graph,
   systems: any[],
   contextNodes: Map<string, any>,
   subdomains: Map<string, any>,
-  domainMessages: Map<string, Set<string>> = new Map()
+  domainMessages: Map<string, Set<string>> = new Map(),
+  receivedBy: Map<string, any[]> = new Map()
 ): Graph => {
   const nodesById = new Map(graph.nodes.map((node) => [node.id, node]));
   const systemsByGroupId = new Map<string, any>(systems.map((system: any) => [systemGroupId(system), system]));
@@ -179,11 +181,12 @@ export const collapseSystems = (
       isMessage(sender) ? [sender] : isChannel(sender) ? messagesThrough(sender, seen) : []
     );
   };
-  // Whether a node says it receives a message: its id, and its version (or range, or latest)
+  // Whether a node (or the services another domain stands for) says it receives a
+  // message: its id, and its version (or range, or latest)
   const receives = (nodeId: string, messageId: string) => {
     const data = nodesById.get(nodeId)?.data;
     const message = nodesById.get(messageId)?.data?.message;
-    return ((data?.service ?? data?.agent)?.receives ?? []).some((pointer: any) => {
+    return ((data?.service ?? data?.agent)?.receives ?? receivedBy.get(nodeId) ?? []).some((pointer: any) => {
       const { id, version } = pointer.data ?? pointer;
       return id === message?.id && versionMatches(message?.version ?? '', version ?? 'latest');
     });
@@ -352,8 +355,10 @@ export const buildDomainGraph = ({
     ])
   );
   const edges: any[] = [];
-  // Nodes replaced by another (services in other domains become the domain)
+  // Nodes replaced by another (services in other domains become the domain),
+  // and what each of them receives
   const replacedBy = new Map<string, string>();
+  const replacedReceives = new Map<string, any[]>();
 
   // Other domains are shown as a single card, with counts of what's in them. A
   // subdomain of another domain is shown inside a box for that domain (and
@@ -418,6 +423,7 @@ export const buildDomainGraph = ({
       const owner = SERVICE_TYPES.has(node.type) ? owners.get(node.id) : undefined;
       if (owner && !groupOfDomain.has(owner.domain.data.id)) {
         replacedBy.set(node.id, addOtherDomain(owner.domain));
+        replacedReceives.set(node.id, (node.data?.service ?? node.data?.agent)?.receives ?? []);
         return;
       }
       if (owner && owner.system) {
@@ -494,11 +500,17 @@ export const buildDomainGraph = ({
 
   const graphEdges = connectEdges(edges, new Map([...cardBoxes, ...replacedBy]), nodes);
   placeMessagesWithPublishers(nodes, graphEdges, new Set(domainMessages.keys()));
+  // What the services each other domain stands for receive, by the node shown for the domain
+  const receivedBy = new Map<string, any[]>();
+  replacedBy.forEach((nodeId, replaced) =>
+    receivedBy.set(nodeId, [...(receivedBy.get(nodeId) ?? []), ...(replacedReceives.get(replaced) ?? [])])
+  );
   return {
     nodes,
     edges: graphEdges,
     otherDomainIds: new Set([...replacedBy.values(), ...[...otherDomainIds].map((id) => cardBoxes.get(id) ?? id)]),
     domainMessages,
+    receivedBy,
   };
 };
 
@@ -931,7 +943,7 @@ const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: No
     ),
   ]);
 
-  const { nodes, edges, otherDomainIds, domainMessages } = buildDomainGraph({
+  const { nodes, edges, otherDomainIds, domainMessages, receivedBy } = buildDomainGraph({
     tree,
     owners,
     parentDomainOf,
@@ -959,7 +971,8 @@ const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: No
     systems.map(({ system }) => system),
     context.contextNodesById,
     new Map(tree.filter((entry) => entry.parentId).map((entry) => [entry.groupId, entry.domain])),
-    domainMessages
+    domainMessages,
+    receivedBy
   );
   const overview = hideMessageNodes(collapsed.nodes, collapsed.edges);
 

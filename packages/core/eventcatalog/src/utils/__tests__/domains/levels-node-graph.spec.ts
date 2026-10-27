@@ -543,7 +543,7 @@ describe('domain-level messages', () => {
     const domains = (catalog.domains ?? allDomains).map((d) => (d.data.id === domain.data.id ? domain : d));
     const tree = buildDomainTree(domain, (id) => domains.find((d) => d.data.id === id));
     const { owners, parentDomainOf } = collectOwners(domains);
-    const { nodes, edges, otherDomainIds, domainMessages } = buildDomainGraph({
+    const { nodes, edges, otherDomainIds, domainMessages, receivedBy } = buildDomainGraph({
       tree,
       owners,
       parentDomainOf,
@@ -555,8 +555,32 @@ describe('domain-level messages', () => {
       domains,
       catalogServices: catalog.catalogServices ?? catalogServices,
     });
-    return { nodes, edges: edges.map((edge: any) => `${edge.source}->${edge.target}`), otherDomainIds, domainMessages };
+    return {
+      nodes,
+      edges: edges.map((edge: any) => `${edge.source}->${edge.target}`),
+      otherDomainIds,
+      domainMessages,
+      receivedBy,
+    };
   };
+
+  it('keeps what the services another domain stands for receive, by that domain', () => {
+    // The Payment service's diagram has the Accounts service (in Accounts), which receives PaymentTaken
+    const graph = {
+      nodes: [
+        {
+          id: 'AccountsService-1.0.0',
+          type: 'services',
+          position: { x: 0, y: 0 },
+          data: { service: { id: 'AccountsService', receives: [{ id: 'PaymentTaken', version: '1.0.0' }] } },
+        },
+      ],
+      edges: [],
+    };
+    const { receivedBy } = build(payments, [{ service: entry('services', 'PaymentService'), graph }]);
+
+    expect(receivedBy.get('domain-Accounts-1.0.0')).toEqual([{ id: 'PaymentTaken', version: '1.0.0' }]);
+  });
 
   it('connects the messages a domain sends and receives itself to its box, and to the other side outside it', () => {
     const { nodes, edges, otherDomainIds } = build(payments);
@@ -863,8 +887,15 @@ describe('collapseSystems', () => {
         ...extra.edges,
       ],
     });
-    const level1 = (g: { nodes: any[]; edges: any[] }) => {
-      const collapsed = collapseSystems(g, [], new Map(), new Map(subdomains.map((d) => [`domain-group-${d.data.id}-1.0.0`, d])));
+    const level1 = (g: { nodes: any[]; edges: any[] }, receivedBy: Map<string, any[]> = new Map()) => {
+      const collapsed = collapseSystems(
+        g,
+        [],
+        new Map(),
+        new Map(subdomains.map((d) => [`domain-group-${d.data.id}-1.0.0`, d])),
+        new Map(),
+        receivedBy
+      );
       return hideMessageNodes(collapsed.nodes, collapsed.edges).edges.map((edge: any) => ({
         // Plain edges between the subdomains, not bridged through a message or channel
         id: edge.id,
@@ -919,6 +950,31 @@ describe('collapseSystems', () => {
       expect(edges).toEqual([
         { id: 'domain-Sales-1.0.0->domain-Customer-1.0.0', label: 'publishes 2 events' },
         { id: 'domain-Sales-1.0.0->domain-Finance-1.0.0', label: 'publishes Order Created' },
+      ]);
+    });
+
+    it('connects another domain to the publishers of only what its services receive', () => {
+      // Customer publishes CustomerUpdated through the same topic, and the Shipping domain (shown as a card
+      // in place of its service) consumes only OrderCreated from it
+      const edges = level1(
+        graph({
+          nodes: [
+            event('CustomerUpdated', 'Customer Updated', 'domain-group-Customer-1.0.0'),
+            node('domain-Shipping-1.0.0', 'context-domain'),
+          ],
+          edges: [
+            { id: 'updates', source: 'CustomerService-1.0.0', target: 'CustomerUpdated-1.0.0' },
+            { id: 'updates-through', source: 'CustomerUpdated-1.0.0', target: 'orders-1.0.0' },
+            { id: 'shipping', source: 'orders-1.0.0', target: 'domain-Shipping-1.0.0' },
+          ],
+        }),
+        new Map([['domain-Shipping-1.0.0', [{ id: 'OrderCreated' }]]])
+      );
+
+      expect(edges).toEqual([
+        { id: 'domain-Sales-1.0.0->domain-Customer-1.0.0', label: 'publishes Order Created' },
+        { id: 'domain-Sales-1.0.0->domain-Finance-1.0.0', label: 'publishes Order Created' },
+        { id: 'domain-Sales-1.0.0->domain-Shipping-1.0.0', label: 'publishes Order Created' },
       ]);
     });
 
