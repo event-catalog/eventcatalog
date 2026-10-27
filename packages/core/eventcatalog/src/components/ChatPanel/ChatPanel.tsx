@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState, useMemo, memo } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo, memo, type RefObject } from 'react';
 import {
   X,
   Square,
@@ -28,6 +28,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import * as Popover from '@radix-ui/react-popover';
 import { buildUrl } from '@utils/url-builder';
 import OfflineReply, { ConfigurationErrorReply, getChatError, offlineReplyText } from './OfflineReply';
+import { clampPanelWidth, MAX_PANEL_WIDTH, MIN_PANEL_WIDTH, PANEL_WIDTH, readPanelWidth, savePanelWidth } from './panel-width';
 import {
   ASSISTANT_DRAWING_EVENT,
   CANVAS_FOCUS_EVENT,
@@ -487,7 +488,15 @@ interface ChatPanelProps {
   onClose: () => void;
 }
 
-const PANEL_WIDTH = 400;
+/** The window's width without its scrollbar, which the panel (fixed, on the right) sits inside of (or the window's, where
+ * that isn't known) */
+const viewportWidth = () => document.documentElement.clientWidth || window.innerWidth;
+
+/** What the panel pushes over to make room for it (looked up each time: ClientRouter navigations swap in new pages) */
+const pageBesidePanel = () =>
+  [document.getElementById('eventcatalog-application'), document.getElementById('eventcatalog-header')].filter(
+    Boolean
+  ) as HTMLElement[];
 
 // Staggered fade-in animation styles (delays account for 420ms panel slide)
 const fadeInStyles = {
@@ -793,6 +802,84 @@ const FlaggedHotspots = memo(({ hotspots }: { hotspots: FlaggedHotspot[] }) => (
 ));
 FlaggedHotspots.displayName = 'FlaggedHotspots';
 
+/** The panel's left edge: dragged to make it wider or narrower (or with the arrow keys), double-clicked back to the default */
+const PanelResizeHandle = memo(
+  ({ panel, width, onResize }: { panel: RefObject<HTMLDivElement | null>; width: number; onResize: (width: number) => void }) => {
+    // Pressed, and whether it's moved since (a click, or each click of a double click, changes nothing)
+    const dragging = useRef<{ moved: boolean } | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const widthAt = (clientX: number) => clampPanelWidth(viewportWidth() - clientX, viewportWidth());
+    // While dragging, the panel and the page beside it are sized here, outside React, so the messages don't re-render
+    // on every move (and the page follows the pointer, without its slide)
+    const show = (next: number) => {
+      if (panel.current) panel.current.style.width = `min(${next}px, 100vw)`;
+      pageBesidePanel().forEach((el) => (el.style.paddingRight = `${next}px`));
+    };
+    const stop = (next: number) => {
+      const moved = dragging.current?.moved;
+      dragging.current = null;
+      setIsDragging(false);
+      show(moved ? next : width);
+      pageBesidePanel().forEach((el) => (el.style.transition = ''));
+      if (moved) onResize(next);
+    };
+    return (
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize the assistant"
+        aria-valuemin={MIN_PANEL_WIDTH}
+        aria-valuemax={MAX_PANEL_WIDTH}
+        aria-valuenow={width}
+        tabIndex={0}
+        title="Drag to resize"
+        onPointerDown={(event) => {
+          if (event.button !== 0) return;
+          event.preventDefault();
+          // Keeps pointer events coming while the pointer is over the page (throws if the pointer has gone)
+          try {
+            event.currentTarget.setPointerCapture(event.pointerId);
+          } catch {}
+          dragging.current = { moved: false };
+          setIsDragging(true);
+          pageBesidePanel().forEach((el) => (el.style.transition = 'none'));
+        }}
+        onPointerMove={(event) => {
+          if (!dragging.current) return;
+          dragging.current.moved = true;
+          show(widthAt(event.clientX));
+        }}
+        onPointerUp={(event) => dragging.current && stop(widthAt(event.clientX))}
+        onPointerCancel={() => {
+          if (!dragging.current) return;
+          // Put back as it was
+          dragging.current.moved = false;
+          stop(width);
+        }}
+        onDoubleClick={() => onResize(PANEL_WIDTH)}
+        onKeyDown={(event) => {
+          const step = event.shiftKey ? 64 : 16;
+          if (event.key === 'ArrowLeft') onResize(clampPanelWidth(width + step, viewportWidth()));
+          else if (event.key === 'ArrowRight') onResize(clampPanelWidth(width - step, viewportWidth()));
+          else return;
+          event.preventDefault();
+        }}
+        className="group absolute inset-y-0 left-0 z-10 hidden w-1.5 cursor-col-resize outline-hidden lg:block"
+      >
+        <span
+          aria-hidden="true"
+          className={`absolute inset-y-0 left-0 w-0.5 transition-colors ${
+            isDragging
+              ? 'bg-[rgb(var(--ec-accent))]'
+              : 'group-hover:bg-[rgb(var(--ec-accent)/0.6)] group-focus-visible:bg-[rgb(var(--ec-accent))]'
+          }`}
+        />
+      </div>
+    );
+  }
+);
+PanelResizeHandle.displayName = 'PanelResizeHandle';
+
 const markdownComponents = {
   a: ({ node: _node, ...props }: any) => {
     const nodeIds = nodesInFocusLink(props.href);
@@ -989,6 +1076,24 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [pathname, setPathname] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // How wide they made the panel: the default until the width they left it at is read, after hydrating (within the
+  // panel's own limits: the window's are applied as it's shown, so it's back to that width when the window's wide again)
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const [panelWidth, setPanelWidth] = useState(PANEL_WIDTH);
+  useEffect(() => setPanelWidth(readPanelWidth(Infinity)), []);
+  // How wide it's shown: that, leaving room for the page in this window (checked again as the window's resized; it only
+  // re-renders when this changes)
+  const [shownWidth, setShownWidth] = useState(PANEL_WIDTH);
+  useEffect(() => {
+    const fit = () => setShownWidth(clampPanelWidth(panelWidth, viewportWidth()));
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, [panelWidth]);
+  const resizePanel = useCallback((width: number) => {
+    setPanelWidth(width);
+    savePanelWidth(width);
+  }, []);
   const [tools, setTools] = useState<ToolMetadata[]>([]);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const chatApiUrl = useMemo(() => buildUrl('/api/chat', true), []);
@@ -1186,9 +1291,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
     // Looked up each time: the panel stays open across ClientRouter navigations (the header persists), but each one
     // swaps in a new page that needs pushing over too
     const getElements = () => ({
-      elements: [document.getElementById('eventcatalog-application'), document.getElementById('eventcatalog-header')].filter(
-        Boolean
-      ) as HTMLElement[],
+      elements: pageBesidePanel(),
       docsSidebarEl: document.getElementById('eventcatalog-docs-sidebar'),
     });
 
@@ -1200,7 +1303,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
         if (!el.style.transition) {
           el.style.transition = 'padding-right 420ms cubic-bezier(0.16, 1, 0.3, 1)';
         }
-        el.style.paddingRight = pushContent ? `${PANEL_WIDTH}px` : '0';
+        el.style.paddingRight = pushContent ? `${shownWidth}px` : '0';
       });
       if (docsSidebarEl) docsSidebarEl.style.display = pushContent ? 'none' : '';
     };
@@ -1221,7 +1324,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
         docsSidebarEl.style.display = '';
       }
     };
-  }, [isOpen, isFullscreen]);
+  }, [isOpen, isFullscreen, shownWidth]);
 
   // Submit message handler
   const submitMessage = useCallback(
@@ -1342,12 +1445,13 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
       {!isFullscreen && (
         <div
           ref={(element) => {
+            panelRef.current = element;
             element?.toggleAttribute('inert', !isOpen);
           }}
           aria-hidden={!isOpen}
           className="ec-chat-surface fixed top-0 right-0 h-[100dvh] z-[200] border-l border-[rgb(var(--ec-page-border))] flex flex-col overflow-hidden"
           style={{
-            width: `min(${PANEL_WIDTH}px, 100vw)`,
+            width: `min(${shownWidth}px, 100vw)`,
             transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
             transition: 'transform 420ms cubic-bezier(0.16, 1, 0.3, 1)',
             background: `
@@ -1356,6 +1460,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
             `,
           }}
         >
+          <PanelResizeHandle panel={panelRef} width={shownWidth} onResize={resizePanel} />
           {/* Header */}
           <div className="flex-none shrink-0 border-b border-[rgb(var(--ec-page-border))]">
             <div className="flex items-center justify-between px-4 py-3">

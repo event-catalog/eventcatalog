@@ -58,6 +58,26 @@ export const DropTargetContext = createContext<string | null>(null);
 // Text just put on the canvas with the text tool: written straight away
 export const StartWritingContext = createContext<string | null>(null);
 
+// Writing on a note or text from outside it (its right-click menu's "Edit text"), as double clicking it does
+const START_WRITING_EVENT = "studio:start-writing";
+/** Starts writing on the note or text with this id */
+export const startWriting = (id: string) =>
+  window.dispatchEvent(
+    new CustomEvent<string>(START_WRITING_EVENT, { detail: id }),
+  );
+/** Calls `start` when writing on this node is asked for */
+function useStartWriting(id: string, start: () => void) {
+  const latest = useRef(start);
+  latest.current = start;
+  useEffect(() => {
+    const listener = (event: Event) => {
+      if ((event as CustomEvent<string>).detail === id) latest.current();
+    };
+    window.addEventListener(START_WRITING_EVENT, listener);
+    return () => window.removeEventListener(START_WRITING_EVENT, listener);
+  }, [id]);
+}
+
 // The canvas locked: looked at, not changed (nothing written, scaled, turned or resized)
 export const LockedContext = createContext(false);
 
@@ -183,7 +203,7 @@ function Writing({
 }
 
 /** A sticky note's colours: soft paper colours, readable in light and dark themes (the names are the visualiser's) */
-const NOTE_COLORS: Record<string, { fill: string; border: string }> = {
+export const NOTE_COLORS: Record<string, { fill: string; border: string }> = {
   yellow: { fill: "#fef9c3", border: "#fde047" },
   blue: { fill: "#dbeafe", border: "#93c5fd" },
   green: { fill: "#dcfce7", border: "#86efac" },
@@ -203,6 +223,7 @@ const StickyNote = memo(function StickyNote({ id, data, selected }: NodeProps) {
     useContext(StartWritingContext) === id,
   );
   const locked = useContext(LockedContext);
+  useStartWriting(id, () => !locked && setEditing(true));
   const colorName =
     typeof data.color === "string" && NOTE_COLORS[data.color]
       ? data.color
@@ -390,6 +411,7 @@ const TextNode = memo(function TextNode({ id, data, selected }: NodeProps) {
     if (!text.trim()) void deleteElements({ nodes: [{ id }] });
   };
   const locked = useContext(LockedContext);
+  useStartWriting(id, () => !locked && setEditing(true));
   const framed =
     (selected || scaling !== null || turning !== null) && !editing && !locked;
   return (
