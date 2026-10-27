@@ -126,17 +126,21 @@ export const getNodesAndEdges = async ({
 
   // Wrap the graph in one parent "system group" boundary node. Messages,
   // channels and data stores stay in it. With confineToMembers, only this
-  // system's own services are children; other services are left outside.
+  // system's own services are children; other services (and their agent tools)
+  // are left outside.
+  const graphNodes = [...nodes.values()];
+  const graphEdges = [...edges.values()];
   const graph = {
     nodes:
       wrapInSystemGroup && nodes.size > 0
         ? wrapNodesInSystemGroup(
-            [...nodes.values()],
+            graphNodes,
+            graphEdges,
             system,
             confineToMembers ? memberServiceNodeIds(system, serviceMap) : undefined
           )
-        : [...nodes.values()],
-    edges: [...edges.values()],
+        : graphNodes,
+    edges: graphEdges,
   };
 
   return layout ? layoutNodeGraph(graph) : graph;
@@ -167,10 +171,21 @@ const withoutGroupParent = (node: any) => {
  * Wraps a system's nodes in one parent `system-group` node (sized to fit them
  * when the graph is laid out), so they visibly belong to the system.
  * When `memberIds` is set, service and agent nodes that aren't members are
- * left outside the group.
+ * left outside the group, and so are the tools of agents left outside.
  */
-const wrapNodesInSystemGroup = (systemNodes: any[], system: any, memberIds?: Set<string>) => {
+const wrapNodesInSystemGroup = (systemNodes: any[], systemEdges: any[], system: any, memberIds?: Set<string>) => {
   const groupId = `system-group-${system.data.id}-${system.data.version}`;
+
+  const outside = new Set<string>(
+    memberIds
+      ? systemNodes.filter((node) => SERVICE_NODE_TYPES.has(node.type) && !memberIds.has(node.id)).map((node) => node.id)
+      : []
+  );
+  // An agent's tools sit wherever the agent does
+  const toolIds = new Set(systemNodes.filter((node) => node.type === 'agentTool').map((node) => node.id));
+  for (const edge of systemEdges) {
+    if (outside.has(edge.source) && toolIds.has(edge.target)) outside.add(edge.target);
+  }
 
   const groupNode = {
     id: groupId,
@@ -188,9 +203,8 @@ const wrapNodesInSystemGroup = (systemNodes: any[], system: any, memberIds?: Set
   // Parent must come before its children in the array for React Flow
   return [
     groupNode,
-    ...systemNodes.map((node) => {
-      if (memberIds && SERVICE_NODE_TYPES.has(node.type) && !memberIds.has(node.id)) return withoutGroupParent(node);
-      return { ...node, parentId: groupId, extent: 'parent' };
-    }),
+    ...systemNodes.map((node) =>
+      outside.has(node.id) ? withoutGroupParent(node) : { ...node, parentId: groupId, extent: 'parent' }
+    ),
   ];
 };

@@ -1,0 +1,42 @@
+---
+id: customer-support-agent
+name: Customer Support Agent
+version: 1.0.0
+summary: |
+  AI agent that reaches out to customers when their order is cancelled, explains why, and suggests what they can do next.
+owners:
+  - customer-platform
+model:
+  provider: Anthropic
+  name: claude-sonnet-5-5
+tools:
+  - name: Web Search
+    type: function
+    description: Looks up carrier and product availability updates to explain why an order could not be fulfilled.
+  - name: Get Current Date
+    type: function
+    description: Returns today's date so replies give accurate refund and delivery timelines.
+receives:
+  - id: order-cancelled
+    version: 1.0.0
+    from:
+      - id: ordering.order-events
+        version: 1.0.0
+badges:
+  - content: AI agent
+    backgroundColor: purple
+    textColor: purple
+    icon: SparklesIcon
+---
+
+## Overview
+
+The **Customer Support Agent** listens for [[event|order-cancelled]] from the [[system|order-management-system]] and gets in touch with the customer straight away, so they hear about the cancellation from us before they have to ask.
+
+It belongs to the Customer domain and is not part of any system.
+
+<NodeGraph />
+
+## Tools
+
+<AgentTools />
