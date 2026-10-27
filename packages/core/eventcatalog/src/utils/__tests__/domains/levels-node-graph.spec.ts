@@ -859,7 +859,7 @@ describe('collapseSystems', () => {
       return hideMessageNodes(collapsed.nodes, collapsed.edges).edges.map((edge: any) => ({
         // Plain edges between the subdomains, not bridged through a message or channel
         id: edge.id,
-        label: String(edge.label).replace('\n', ' '),
+        label: String(edge.label).replaceAll('\n', ' '),
       }));
     };
 
