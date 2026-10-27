@@ -1,0 +1,12 @@
+---
+import ChangelogPage from '../../../../[type]/[id]/[version]/changelog/_ChangelogPage.astro';
+import { ServicePage } from '../../../../[type]/[id]/[version]/changelog/_index.data';
+
+export const prerender = ServicePage.prerender;
+export const getStaticPaths = ServicePage.getStaticPaths;
+
+const changelogOwner = await ServicePage.getData(Astro);
+if (!changelogOwner) return Astro.rewrite('/404');
+---
+
+<ChangelogPage changelogOwner={changelogOwner} />
