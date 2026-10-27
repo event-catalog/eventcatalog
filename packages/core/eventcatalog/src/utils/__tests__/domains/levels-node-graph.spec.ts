@@ -9,6 +9,7 @@ import {
   placeMessagesWithPublishers,
 } from '@utils/node-graphs/domain-levels-node-graph';
 import { getDomains } from '@utils/collections/domains';
+import { hideMessageNodes } from '@eventcatalog/visualiser/layout';
 
 const entry = (collection: string, id: string, data: Record<string, any> = {}) => ({
   id: `${collection}/${id}`,
@@ -497,6 +498,24 @@ describe('placeMessagesWithPublishers', () => {
 
     expect(nodes.get('Message').parentId).toBe('publisher-group');
   });
+  it('moves a channel to where the messages sent through it are', () => {
+    const nodes = new Map<string, any>([
+      ['consumer-group', { id: 'consumer-group', type: 'system-group' }],
+      ['publisher-group', { id: 'publisher-group', type: 'system-group' }],
+      ['Publisher', { id: 'Publisher', type: 'services', parentId: 'publisher-group' }],
+      ['Consumer', { id: 'Consumer', type: 'services', parentId: 'consumer-group' }],
+      ['Message', { id: 'Message', type: 'events', parentId: 'consumer-group' }],
+      ['Topic', { id: 'Topic', type: 'channels', parentId: 'consumer-group' }],
+    ]);
+
+    placeMessagesWithPublishers(nodes, [
+      { id: 'publishes', source: 'Publisher', target: 'Message' },
+      { id: 'through', source: 'Message', target: 'Topic' },
+      { id: 'consumes', source: 'Topic', target: 'Consumer' },
+    ]);
+
+    expect(nodes.get('Topic').parentId).toBe('publisher-group');
+  });
 });
 
 describe('domain-level messages', () => {
@@ -797,5 +816,115 @@ describe('collapseSystems', () => {
       'domain-group-Refunds-1.0.0->PaymentTaken-1.0.0',
       'PaymentTaken-1.0.0->domain-Ledger-1.0.0',
     ]);
+  });
+  // E-Commerce's Sales subdomain publishes OrderCreated through a topic drawn in
+  // Customer (the first diagram it's in), consumed in Customer and Finance
+  describe('a channel drawn with one of its consumers', () => {
+    const subdomains = ['Sales', 'Customer', 'Finance'].map((name) => entry('domains', name));
+    const node = (id: string, type: string, parentId?: string, data: any = {}) => ({
+      id,
+      type,
+      position: { x: 0, y: 0 },
+      ...(parentId ? { parentId } : {}),
+      data,
+    });
+    const event = (id: string, name: string, parentId: string) =>
+      node(`${id}-1.0.0`, 'events', parentId, { message: { id, name } });
+    const service = (id: string, parentId: string, receives: string[]) =>
+      node(`${id}-1.0.0`, 'services', parentId, { service: { id, receives: receives.map((message) => ({ id: message })) } });
+    const graph = (
+      extra: { nodes: any[]; edges: any[] } = { nodes: [], edges: [] },
+      receives: { customer: string[]; finance: string[] } = { customer: ['OrderCreated'], finance: ['OrderCreated'] }
+    ) => ({
+      nodes: [
+        node('domain-group-ECommerce-1.0.0', 'domain-group'),
+        ...subdomains.map((d) => node(`domain-group-${d.data.id}-1.0.0`, 'domain-group', 'domain-group-ECommerce-1.0.0')),
+        service('OrderService', 'domain-group-Sales-1.0.0', []),
+        event('OrderCreated', 'Order Created', 'domain-group-Sales-1.0.0'),
+        node('orders-1.0.0', 'channels', 'domain-group-Customer-1.0.0'),
+        service('CustomerService', 'domain-group-Customer-1.0.0', receives.customer),
+        service('FinanceService', 'domain-group-Finance-1.0.0', receives.finance),
+        ...extra.nodes,
+      ],
+      edges: [
+        { id: 'publishes', source: 'OrderService-1.0.0', target: 'OrderCreated-1.0.0' },
+        { id: 'through', source: 'OrderCreated-1.0.0', target: 'orders-1.0.0' },
+        { id: 'customer', source: 'orders-1.0.0', target: 'CustomerService-1.0.0' },
+        { id: 'finance', source: 'orders-1.0.0', target: 'FinanceService-1.0.0' },
+        ...extra.edges,
+      ],
+    });
+    const level1 = (g: { nodes: any[]; edges: any[] }) => {
+      const collapsed = collapseSystems(g, [], new Map(), new Map(subdomains.map((d) => [`domain-group-${d.data.id}-1.0.0`, d])));
+      return hideMessageNodes(collapsed.nodes, collapsed.edges).edges.map((edge: any) => ({
+        // Plain edges between the subdomains, not bridged through a message or channel
+        id: edge.id,
+        label: String(edge.label).replace('\n', ' '),
+      }));
+    };
+
+    it('connects the publisher to each consumer, not the consumer it is drawn with to the rest', () => {
+      expect(level1(graph())).toEqual([
+        { id: 'domain-Sales-1.0.0->domain-Customer-1.0.0', label: 'publishes Order Created' },
+        { id: 'domain-Sales-1.0.0->domain-Finance-1.0.0', label: 'publishes Order Created' },
+      ]);
+    });
+
+    it('connects each publisher to the consumers of what it publishes, when more than one publishes through it', () => {
+      // Customer publishes CustomerUpdated through the same topic, which Finance receives too
+      const edges = level1(
+        graph(
+          {
+            nodes: [event('CustomerUpdated', 'Customer Updated', 'domain-group-Customer-1.0.0')],
+            edges: [
+              { id: 'updates', source: 'CustomerService-1.0.0', target: 'CustomerUpdated-1.0.0' },
+              { id: 'updates-through', source: 'CustomerUpdated-1.0.0', target: 'orders-1.0.0' },
+            ],
+          },
+          { customer: ['OrderCreated'], finance: ['OrderCreated', 'CustomerUpdated'] }
+        )
+      );
+
+      expect(edges).toEqual([
+        { id: 'domain-Sales-1.0.0->domain-Customer-1.0.0', label: 'publishes Order Created' },
+        { id: 'domain-Sales-1.0.0->domain-Finance-1.0.0', label: 'publishes Order Created' },
+        { id: 'domain-Customer-1.0.0->domain-Finance-1.0.0', label: 'publishes Customer Updated' },
+      ]);
+    });
+
+    it('labels an edge out of a channel with only the messages its consumer receives', () => {
+      // Sales publishes OrderShipped through the same topic, which only Customer receives
+      const edges = level1(
+        graph(
+          {
+            nodes: [event('OrderShipped', 'Order Shipped', 'domain-group-Sales-1.0.0')],
+            edges: [
+              { id: 'ships', source: 'OrderService-1.0.0', target: 'OrderShipped-1.0.0' },
+              { id: 'ships-through', source: 'OrderShipped-1.0.0', target: 'orders-1.0.0' },
+            ],
+          },
+          { customer: ['OrderCreated', 'OrderShipped'], finance: ['OrderCreated'] }
+        )
+      );
+
+      expect(edges).toEqual([
+        { id: 'domain-Sales-1.0.0->domain-Customer-1.0.0', label: 'publishes 2 events' },
+        { id: 'domain-Sales-1.0.0->domain-Finance-1.0.0', label: 'publishes Order Created' },
+      ]);
+    });
+
+    it('leaves a message published from more than one subdomain as it is, bridging each publisher to its consumers', () => {
+      // Customer publishes OrderCreated too
+      const edges = level1(
+        graph({ nodes: [], edges: [{ id: 'also-publishes', source: 'CustomerService-1.0.0', target: 'OrderCreated-1.0.0' }] })
+      );
+
+      // Through the message (bridged), rather than folding it into one publisher and connecting that one to the other
+      expect(edges.sort((a, b) => a.id.localeCompare(b.id))).toEqual([
+        { id: 'bridged-domain-Customer-1.0.0-domain-Finance-1.0.0', label: 'publishes Order Created' },
+        { id: 'bridged-domain-Sales-1.0.0-domain-Customer-1.0.0', label: 'publishes Order Created' },
+        { id: 'bridged-domain-Sales-1.0.0-domain-Finance-1.0.0', label: 'publishes Order Created' },
+      ]);
+    });
   });
 });

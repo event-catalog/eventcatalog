@@ -71,10 +71,6 @@ one draws or derives something, change the other to match (or record the differe
 
 - Users, flow steps, entities and other nodes that are neither catalog resources nor actors aren't copied to
   Studio.
-- The visualiser's L1 counts a channel from another domain as inside the first domain that consumes from it, so it
-  can show an edge from that domain to the channel's other consumers (e.g. Customer Notifications -> Loyalty System
-  on the Customer domain, from Ordering's `order-events`). Studio doesn't: that edge isn't a real connection. Fix it
-  in the visualiser (`collapseSystems`) rather than copying it.
 - Studio's L1 can only use what's on the canvas: catalog knowledge the visualiser looks up (e.g. a domain's
   subdomains it doesn't show) has to be on the canvas (in node data, or as nodes and edges) to be shown.
 - Messages sitting in a domain (not a system) connect the systems either side on Studio's L1, because catalog
