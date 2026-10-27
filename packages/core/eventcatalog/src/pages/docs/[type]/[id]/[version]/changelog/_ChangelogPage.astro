@@ -1,17 +1,19 @@
 ---
 import Footer from '@layouts/Footer.astro';
 import { getChangeLogs } from '@utils/collections/changelogs';
-import { getChangelogResourceBadge } from '@utils/changelog-resource-badge';
 import { render, getEntry } from 'astro:content';
 import mdxComponents from '@components/MDX/components';
 import 'diff2html/bundles/css/diff2html.min.css';
+import { getDiffDarkStyles } from '@components/SchemaExplorer/diff-dark-styles';
 
 import { buildUrl } from '@utils/url-builder';
-import { getPreviousVersion } from '@utils/collections/util';
+import { getPreviousVersion, getResourceNoun } from '@utils/collections/util';
 import { getDiffsForCurrentAndPreviousVersion } from '@utils/file-diffs';
+import { isIconPath, resolveIconUrl } from '@utils/icon';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Badge from '@components/Badge.astro';
 import { ClientRouter } from 'astro:transitions';
+import { HistoryIcon } from 'lucide-react';
 
 interface Props {
   changelogOwner: any;
@@ -36,14 +38,17 @@ const renderedLogs = logs.map(async (log) => {
 
 const logsToRender = await Promise.all(renderedLogs);
 
-const logListPromise = logsToRender.map(async (log, index) => {
+const logListPromise = logsToRender.map(async (log) => {
   const currentLogVersion = log.data.version;
   const previousLogVersion = log.data.version ? getPreviousVersion(log.data.version, data.versions || []) : '';
   return {
     id: log.id,
-    url: buildUrl(`/docs/${props.collection}/${props.data.id}`),
+    // Anchor for the version, linked from the "Versions" list on the right
+    anchor: `v${log.data.version}`,
+    url: buildUrl(`/docs/${props.collection}/${props.data.id}/${log.data.version}`),
     isLatest: log.data.version === latestVersion,
     version: log.data.version,
+    previousVersion: previousLogVersion,
     createdAt: log.data.createdAt,
     badges: log.data.badges || [],
     Content: log.Content,
@@ -61,113 +66,232 @@ const logListPromise = logsToRender.map(async (log, index) => {
 
 const logList = await Promise.all(logListPromise);
 
-const badges = [getChangelogResourceBadge(props.collection)].filter((badge) => badge != null);
+const friendlyCollectionName = getResourceNoun(props.collection);
+const headerIconSrc = isIconPath(props.data.styles?.icon) ? resolveIconUrl(props.data.styles!.icon!) : null;
+
+const formatDate = (date?: Date) =>
+  date?.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+
+const releaseCount = `${logList.length} ${logList.length === 1 ? 'release' : 'releases'}`;
 ---
 
-<VerticalSideBarLayout title="ChangeLog">
-  <main class="w-full md:pt-4 px-8 overflow-y-auto h-full max-w-[95%]">
-    <nav aria-label="Breadcrumb" class="flex">
-      <ol role="list" class="flex items-center space-x-2">
-        <li>
-          <div>
-            <a
-              href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`)}
-              class="text-sm font-medium text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
-            >
-              {props.data.name}
-            </a>
+<VerticalSideBarLayout title={`${props.data.name} | Changelog`} description={props.data.summary}>
+  <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]">
+    <div class="flex docs-layout w-full">
+      <div class="w-full min-w-0 lg:mr-2 xl:pr-12 py-8 bg-[rgb(var(--ec-page-bg))]">
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-4">
+          <div class="flex flex-col gap-4">
+            <span class="text-xs md:text-sm font-semibold text-[rgb(var(--ec-accent))]">Changelog</span>
+            <div class="flex items-center gap-3">
+              {
+                headerIconSrc && (
+                  <img src={headerIconSrc} alt={props.data.name} class="w-8 h-8 md:w-10 md:h-10 object-contain rounded-md shrink-0" />
+                )
+              }
+              <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">
+                {props.data.name}
+              </h2>
+            </div>
           </div>
-        </li>
-        <li>
-          <div class="flex items-center">
-            <svg
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              aria-hidden="true"
-              class="h-5 w-5 flex-shrink-0 text-[rgb(var(--ec-page-border))]"
-            >
-              <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z"></path>
-            </svg>
-            <a
-              href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`)}
-              class="text-sm font-medium text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
-            >
-              Changelog
-            </a>
+          <p class="text-base pt-4 text-[rgb(var(--ec-page-text-muted))] font-light">
+            What changed in each version of {props.data.name}, newest first.
+          </p>
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-2 pt-5 text-xs text-[rgb(var(--ec-page-text-muted))]">
+            <span>{releaseCount}</span>
+            {
+              latestVersion && (
+                <>
+                  <span aria-hidden="true" class="h-3 w-px bg-[rgb(var(--ec-page-border))]" />
+                  <span>Latest v{latestVersion}</span>
+                </>
+              )
+            }
           </div>
-        </li>
-      </ol>
-    </nav>
-    <div class="border-b border-[rgb(var(--ec-page-border))] flex justify-between items-start py-4 w-full">
-      <div>
-        <h2 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{props.data.name} (Changelog)</h2>
-        <h2 class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</h2>
+        </div>
+
         {
-          badges.length > 0 && (
-            <div class="flex flex-wrap py-2 pt-4">
-              {badges.map((badge) => (
-                <Badge badge={badge} className="mr-2 px-2 py-1 rounded-md" />
-              ))}
+          logList.length === 0 && (
+            <div class="mt-8 rounded-lg border border-dashed border-[rgb(var(--ec-page-border))] px-6 py-10 text-center">
+              <HistoryIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]" strokeWidth={1.5} />
+              <p class="mt-3 text-sm font-semibold text-[rgb(var(--ec-page-text))]">No changelogs yet</p>
+              <p class="mt-1 text-sm text-[rgb(var(--ec-page-text-muted))]">
+                Add a <code>changelog.mdx</code> file next to this {friendlyCollectionName} to record what changed.
+              </p>
             </div>
           )
         }
-      </div>
-    </div>
-    {
-      logList.length === 0 && (
-        <div class="py-4 text-[rgb(var(--ec-page-text-muted))] prose prose-md">
-          <p>No changelogs found.</p>
-        </div>
-      )
-    }
-    <div class="flow-root py-8 w-full">
-      <ul role="list" class="-mb-8">
-        {
-          logList.map((log, index) => (
-            <li>
-              <div class="relative pb-8">
-                {index !== logList.length - 1 ? (
-                  <span aria-hidden="true" class="absolute left-6 top-4 -ml-px h-full w-0.5 bg-[rgb(var(--ec-page-border))]" />
-                ) : null}
-                <div class="relative flex space-x-3">
-                  <div>
-                    <a
-                      href={buildUrl(`${log.url}/${log.version}`)}
-                      class="bg-primary hover:bg-primary/80 text-white flex h-8 w-14 items-center justify-center rounded-full ring-8 ring-[rgb(var(--ec-page-bg))]"
-                    >
-                      {log.version}
-                    </a>
-                  </div>
-                </div>
-                <div class="pl-[70px] py-2 -mt-10">
-                  {log.createdAt && (
-                    <div class="pb-2">
-                      <h3 class="text-2xl text-[rgb(var(--ec-page-text))] font-bold">
-                        <span>
-                          {log.createdAt.toISOString().split('T')[0]} {`${log.isLatest ? '(latest)' : ''}`}
-                        </span>
-                      </h3>
-                    </div>
+
+        <ol class="changelog-timeline pt-4">
+          {
+            logList.map((log, index) => (
+              <li id={log.anchor} class="changelog-release relative scroll-mt-20 pl-8 pt-8">
+                {index !== logList.length - 1 && (
+                  <span aria-hidden="true" class="absolute left-[5px] top-[2.9rem] -bottom-[2.6rem] w-px bg-[rgb(var(--ec-page-border))]" />
+                )}
+                <span
+                  aria-hidden="true"
+                  class={`absolute left-0 top-[2.6rem] h-[11px] w-[11px] rounded-full ring-4 ring-[rgb(var(--ec-page-bg))] ${
+                    log.isLatest ? 'bg-[rgb(var(--ec-accent))]' : 'bg-[rgb(var(--ec-page-border))]'
+                  }`}
+                />
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <a
+                    href={log.url}
+                    class="text-xl font-bold text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))] transition-colors"
+                  >
+                    v{log.version}
+                  </a>
+                  {log.isLatest && (
+                    <span class="rounded-full bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 text-xs font-medium text-[rgb(var(--ec-accent))]">
+                      Latest
+                    </span>
                   )}
-                  {log.badges && (
-                    <div class="flex flex-wrap">
-                      {log.badges.filter(Boolean).map((badge: any) => (
-                        <Badge badge={badge} className="mr-2 px-2 py-1 rounded-md" />
+                  {log.createdAt && (
+                    <time datetime={log.createdAt.toISOString()} class="text-sm text-[rgb(var(--ec-page-text-muted))]">
+                      {formatDate(log.createdAt)}
+                    </time>
+                  )}
+                </div>
+                {log.badges.filter(Boolean).length > 0 && (
+                  <div class="flex flex-wrap gap-1.5 pt-3">
+                    {log.badges.filter(Boolean).map((badge: any) => (
+                      <Badge badge={badge} />
+                    ))}
+                  </div>
+                )}
+                <div class="prose prose-md pt-2 pb-4 w-full text-[15px]">
+                  <log.Content components={mdxComponents(props)} />
+                </div>
+                {log.diffs && log.diffs.length > 0 && (
+                  <details class="changelog-diffs group mb-4 rounded-lg border border-[rgb(var(--ec-page-border))] overflow-hidden">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-3 bg-[rgb(var(--ec-content-hover))] px-4 py-2.5 text-sm">
+                      <span class="text-[rgb(var(--ec-page-text))]">
+                        <span class="font-semibold">v{log.previousVersion}</span>
+                        <span class="mx-2 text-[rgb(var(--ec-page-text-muted))]">&rarr;</span>
+                        <span class="font-semibold">v{log.version}</span>
+                      </span>
+                      <span class="text-xs text-[rgb(var(--ec-page-text-muted))]">
+                        {log.diffs.length} {log.diffs.length === 1 ? 'file changed' : 'files changed'}
+                        <span class="ml-1 inline-block transition-transform group-open:rotate-90">&rsaquo;</span>
+                      </span>
+                    </summary>
+                    <div class="space-y-4 border-t border-[rgb(var(--ec-page-border))] p-2">
+                      {log.diffs.map((diff) => (
+                        <div set:html={diff} />
                       ))}
                     </div>
-                  )}
-                  <div class="prose prose-md max-w-none! py-2">
-                    <log.Content components={mdxComponents(props)} />
-                  </div>
-                  {log.diffs && log.diffs.map((diff) => <div class="bg-white rounded-lg p-2 my-2" set:html={diff} />)}
-                </div>
-              </div>
-            </li>
-          ))
-        }
-      </ul>
+                  </details>
+                )}
+              </li>
+            ))
+          }
+        </ol>
+        <Footer />
+      </div>
+      {
+        logList.length > 0 && (
+          <aside class="hidden xl:block sticky top-[4rem] self-start w-[280px] max-h-[calc(100vh-4rem)] overflow-y-auto py-2 flex-shrink-0 pr-4 bg-[rgb(var(--ec-page-bg))]">
+            <div class="mt-8">
+              <h3 class="text-xs text-[rgb(var(--ec-page-text))] font-semibold capitalize flex items-center gap-2 mb-4">
+                <HistoryIcon className="w-4 h-4" />
+                Versions
+              </h3>
+              <nav id="changelog-versions" class="text-xs border-l border-[rgb(var(--ec-page-border))]">
+                {logList.map((log) => (
+                  <a
+                    href={`#${log.anchor}`}
+                    data-version-anchor={log.anchor}
+                    class="flex items-center justify-between gap-2 py-1.5 pl-3 pr-2.5 leading-5 text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] border-l-2 border-transparent -ml-px transition-all duration-200"
+                  >
+                    <span>
+                      v{log.version}
+                      {log.isLatest && <span class="ml-1 text-[rgb(var(--ec-page-text-muted))]">(latest)</span>}
+                    </span>
+                    {log.createdAt && (
+                      <span class="shrink-0 text-[11px] text-[rgb(var(--ec-page-text-muted))]">
+                        {log.createdAt.toISOString().split('T')[0]}
+                      </span>
+                    )}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          </aside>
+        )
+      }
     </div>
-    <Footer />
+
+    <style is:global set:html={getDiffDarkStyles(":root[data-theme='dark'] .changelog-diffs")} />
+    <style is:global>
+      .docs-layout .prose {
+        max-width: none;
+        overflow: auto;
+      }
+      .changelog-diffs summary::-webkit-details-marker {
+        display: none;
+      }
+      #changelog-versions a.is-active {
+        color: rgb(var(--ec-accent));
+        border-color: rgb(var(--ec-accent));
+        font-weight: 500;
+      }
+    </style>
+
+    <script>
+      declare global {
+        interface Window {
+          __changelogVersionsScroll?: (event: Event) => void;
+        }
+      }
+
+      // Highlight the version in view in the "Versions" list, like "On this page" does for headings.
+      function setupVersionList() {
+        if (window.__changelogVersionsScroll) {
+          document.removeEventListener('scroll', window.__changelogVersionsScroll, true);
+          window.__changelogVersionsScroll = undefined;
+        }
+
+        const nav = document.getElementById('changelog-versions');
+        if (!nav) return;
+
+        const links = Array.from(nav.querySelectorAll<HTMLAnchorElement>('a[data-version-anchor]'));
+        const setActive = (anchor: string) => {
+          links.forEach((link) => link.classList.toggle('is-active', link.dataset.versionAnchor === anchor));
+        };
+
+        let paused = false;
+        links.forEach((link) =>
+          link.addEventListener('click', () => {
+            setActive(link.dataset.versionAnchor!);
+            paused = true;
+            setTimeout(() => (paused = false), 800);
+          })
+        );
+
+        // Each release is one tall block, so pick the last one whose top has scrolled past the
+        // top third of the screen, or the last release once the page is scrolled to the bottom.
+        const releases = Array.from(document.querySelectorAll<HTMLElement>('.changelog-release'));
+        const onScroll = (event: Event) => {
+          // Ignore other scrolling areas, like the sidebar
+          if (paused || (event.target instanceof HTMLElement && !event.target.contains(releases[0]))) return;
+          const scroller =
+            event.target instanceof HTMLElement ? event.target : (document.scrollingElement as HTMLElement | null);
+          const atBottom = scroller && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4;
+          const current = atBottom
+            ? releases[releases.length - 1]
+            : releases.filter((release) => release.getBoundingClientRect().top <= window.innerHeight / 3).pop();
+          setActive((current ?? releases[0])?.id ?? '');
+        };
+
+        window.__changelogVersionsScroll = onScroll;
+        document.addEventListener('scroll', onScroll, { capture: true, passive: true });
+
+        setActive(decodeURIComponent(location.hash.slice(1)) || links[0]?.dataset.versionAnchor || '');
+      }
+
+      // The page uses the ClientRouter, so this fires on the first load and after every navigation.
+      document.addEventListener('astro:page-load', setupVersionList);
+    </script>
   </main>
   <ClientRouter />
 </VerticalSideBarLayout>
