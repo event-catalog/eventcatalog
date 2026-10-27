@@ -39,6 +39,11 @@ describe('remembering the width', () => {
     expect(readPanelWidth(1000)).toBe(520);
   });
 
+  it("is only kept within the panel's own limits when read without a window (the window's are applied as it is shown)", () => {
+    savePanelWidth(780);
+    expect(readPanelWidth(Infinity)).toBe(780);
+  });
+
   it('forgets it when they put it back to the default', () => {
     savePanelWidth(640);
     savePanelWidth(PANEL_WIDTH);

@@ -699,6 +699,8 @@ function Canvas({
   const selectedIds = () => nodesRef.current.filter((node) => node.selected).map((node) => node.id);
   const [lastCopied, setLastCopied] = useState<ClipboardContent | null>(null);
   const copyOnly = useRef<string[] | null>(null);
+  // Whether the menu's copy got onto the clipboard (Cut only deletes once it has)
+  const copiedFromMenu = useRef(false);
 
   /** Adds copies (one change, so one undo takes them back) and selects them instead of what was selected */
   const paste = useStableCallback((content: ClipboardContent, place: { at: XYPosition } | { offset: XYPosition }) => {
@@ -727,6 +729,7 @@ function Canvas({
       event.clipboardData.setData('text/plain', content.nodes.map((node) => getNodeName(node.type, node.data)).join('\n'));
       pastes.current = 0;
       setLastCopied(content);
+      if (fromMenu) copiedFromMenu.current = true;
       if (event.type === 'cut' && !lockedRef.current) flow.deleteNodes(ids);
     };
     const onPaste = (event: ClipboardEvent) => {
@@ -1404,8 +1407,10 @@ function Canvas({
   });
   // Copies, then deletes, as ⌘X does: only on L3, where copying works (so it's not offered on L1 and L2)
   const cutFromMenu = useStableCallback(() => {
+    copiedFromMenu.current = false;
     copyFromMenu();
-    deleteFromMenu();
+    // Not copied (the browser refused, or there was nothing to copy): nothing's deleted, as with ⌘X
+    if (copiedFromMenu.current) deleteFromMenu();
   });
   const noteFromMenu = useStableCallback(() => {
     if (!contextMenu) return;

@@ -488,6 +488,10 @@ interface ChatPanelProps {
   onClose: () => void;
 }
 
+/** The window's width without its scrollbar, which the panel (fixed, on the right) sits inside of (or the window's, where
+ * that isn't known) */
+const viewportWidth = () => document.documentElement.clientWidth || window.innerWidth;
+
 /** What the panel pushes over to make room for it (looked up each time: ClientRouter navigations swap in new pages) */
 const pageBesidePanel = () =>
   [document.getElementById('eventcatalog-application'), document.getElementById('eventcatalog-header')].filter(
@@ -804,8 +808,6 @@ const PanelResizeHandle = memo(
     // Pressed, and whether it's moved since (a click, or each click of a double click, changes nothing)
     const dragging = useRef<{ moved: boolean } | null>(null);
     const [isDragging, setIsDragging] = useState(false);
-    // The window's width without its scrollbar, which the panel (fixed, on the right) sits inside of
-    const viewportWidth = () => document.documentElement.clientWidth;
     const widthAt = (clientX: number) => clampPanelWidth(viewportWidth() - clientX, viewportWidth());
     // While dragging, the panel and the page beside it are sized here, outside React, so the messages don't re-render
     // on every move (and the page follows the pointer, without its slide)
@@ -1074,10 +1076,20 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [pathname, setPathname] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  // How wide the panel is: the default until the width they left it at is read, after hydrating
+  // How wide they made the panel: the default until the width they left it at is read, after hydrating (within the
+  // panel's own limits: the window's are applied as it's shown, so it's back to that width when the window's wide again)
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [panelWidth, setPanelWidth] = useState(PANEL_WIDTH);
-  useEffect(() => setPanelWidth(readPanelWidth(document.documentElement.clientWidth)), []);
+  useEffect(() => setPanelWidth(readPanelWidth(Infinity)), []);
+  // How wide it's shown: that, leaving room for the page in this window (checked again as the window's resized; it only
+  // re-renders when this changes)
+  const [shownWidth, setShownWidth] = useState(PANEL_WIDTH);
+  useEffect(() => {
+    const fit = () => setShownWidth(clampPanelWidth(panelWidth, viewportWidth()));
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, [panelWidth]);
   const resizePanel = useCallback((width: number) => {
     setPanelWidth(width);
     savePanelWidth(width);
@@ -1291,7 +1303,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
         if (!el.style.transition) {
           el.style.transition = 'padding-right 420ms cubic-bezier(0.16, 1, 0.3, 1)';
         }
-        el.style.paddingRight = pushContent ? `${panelWidth}px` : '0';
+        el.style.paddingRight = pushContent ? `${shownWidth}px` : '0';
       });
       if (docsSidebarEl) docsSidebarEl.style.display = pushContent ? 'none' : '';
     };
@@ -1312,7 +1324,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
         docsSidebarEl.style.display = '';
       }
     };
-  }, [isOpen, isFullscreen, panelWidth]);
+  }, [isOpen, isFullscreen, shownWidth]);
 
   // Submit message handler
   const submitMessage = useCallback(
@@ -1439,7 +1451,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
           aria-hidden={!isOpen}
           className="ec-chat-surface fixed top-0 right-0 h-[100dvh] z-[200] border-l border-[rgb(var(--ec-page-border))] flex flex-col overflow-hidden"
           style={{
-            width: `min(${panelWidth}px, 100vw)`,
+            width: `min(${shownWidth}px, 100vw)`,
             transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
             transition: 'transform 420ms cubic-bezier(0.16, 1, 0.3, 1)',
             background: `
@@ -1448,7 +1460,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
             `,
           }}
         >
-          <PanelResizeHandle panel={panelRef} width={panelWidth} onResize={resizePanel} />
+          <PanelResizeHandle panel={panelRef} width={shownWidth} onResize={resizePanel} />
           {/* Header */}
           <div className="flex-none shrink-0 border-b border-[rgb(var(--ec-page-border))]">
             <div className="flex items-center justify-between px-4 py-3">
