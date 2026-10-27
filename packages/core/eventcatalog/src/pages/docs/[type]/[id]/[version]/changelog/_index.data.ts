@@ -2,7 +2,11 @@ import { isSSR, isChangelogEnabled } from '@utils/feature';
 import { changelogResourceCollections } from '@utils/changelog-resource-badge';
 import { HybridPage } from '@utils/page-loaders/hybrid-page';
 import type { PageTypes } from '@types';
+import { getLatestServicePaths } from '../../../../services/_latest-version-route';
 
+// Services have their own route (pages/docs/services/[id]/[version]/changelog), because the
+// version-less alias /docs/services/[id]/[docType]/[docId] outranks this generic route and
+// would otherwise catch /docs/services/{id}/{version}/changelog.
 const GENERIC_ROUTE_TYPES = changelogResourceCollections.filter((type) => type !== 'services');
 
 type RouteParams = { type?: string; id?: string; version?: string };
@@ -78,3 +82,10 @@ export const ServicePage = createChangelogPage({
   toParams: (_type, item) => ({ id: item.data.id, version: item.data.version }),
   typeOf: () => 'services',
 });
+
+// Static paths for the version-less /docs/services/[id]/changelog alias. The service route has no
+// [type] segment, so put it back for getLatestServicePaths, which only keeps services.
+export const getLatestServiceChangelogPaths = async () => {
+  const paths = await ServicePage.getStaticPaths();
+  return getLatestServicePaths(paths.map(({ params, props }) => ({ params: { ...params, type: 'services' }, props })));
+};

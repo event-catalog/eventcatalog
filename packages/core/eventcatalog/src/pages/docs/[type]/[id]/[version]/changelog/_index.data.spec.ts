@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Page, ServicePage } from './_index.data';
+import { getLatestServiceChangelogPaths, Page, ServicePage } from './_index.data';
 
 const COLLECTIONS = ['agents', 'events', 'commands', 'queries', 'services', 'domains', 'systems', 'flows', 'containers'];
 
@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   isSSR: vi.fn(),
   isChangelogEnabled: vi.fn(),
   loaders: {} as Record<string, ReturnType<typeof vi.fn>>,
+  getServices: vi.fn(),
 }));
 
 vi.mock('@utils/feature', () => ({
@@ -15,6 +16,9 @@ vi.mock('@utils/feature', () => ({
 }));
 vi.mock('@utils/changelog-resource-badge', () => ({
   changelogResourceCollections: ['agents', 'events', 'commands', 'queries', 'services', 'domains', 'systems', 'flows', 'containers'],
+}));
+vi.mock('@utils/collections/services', () => ({
+  getServices: () => mocks.getServices(),
 }));
 vi.mock('@utils/page-loaders/page-data-loader', () => ({
   pageDataLoader: new Proxy({}, { get: (_target, type: string) => mocks.loaders[type] }),
@@ -81,5 +85,17 @@ describe('Changelog routes', () => {
 
     mocks.isChangelogEnabled.mockReturnValue(false);
     await expect(ServicePage.getData({ params: { id: 'Orders', version: '1.0.0' }, props: {} } as any)).resolves.toBeUndefined();
+  });
+
+  it('gives the version-less service changelog alias a path for the latest version of each service', async () => {
+    mocks.loaders.services.mockResolvedValue([item('Orders', '1.0.0'), item('Orders', '2.0.0'), item('Billing', '1.0.0')]);
+    mocks.getServices.mockResolvedValue([item('Orders', '2.0.0'), item('Billing', '1.0.0')]);
+
+    const paths = await getLatestServiceChangelogPaths();
+
+    expect(paths.map(({ params, props }) => ({ params, redirectVersion: props?.redirectVersion }))).toEqual([
+      { params: { id: 'Orders' }, redirectVersion: '2.0.0' },
+      { params: { id: 'Billing' }, redirectVersion: '1.0.0' },
+    ]);
   });
 });

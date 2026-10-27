@@ -2,11 +2,11 @@
 import LatestVersionRedirect from '@components/LatestVersionRedirect.astro';
 import { isChangelogEnabled, isSSR } from '@utils/feature';
 import { buildUrl } from '@utils/url-builder';
-import { Page as VersionedPage } from '../../../[type]/[id]/[version]/changelog/_index.data';
-import { getLatestServicePaths, getLatestServiceVersion } from '../../_latest-version-route';
+import { getLatestServiceChangelogPaths } from '../../../[type]/[id]/[version]/changelog/_index.data';
+import { getLatestServiceVersion } from '../../_latest-version-route';
 
 export const prerender = !isSSR();
-export const getStaticPaths = async () => getLatestServicePaths(await VersionedPage.getStaticPaths());
+export const getStaticPaths = getLatestServiceChangelogPaths;
 
 const { id } = Astro.params;
 const version = Astro.props.redirectVersion ?? (id ? await getLatestServiceVersion(id) : undefined);

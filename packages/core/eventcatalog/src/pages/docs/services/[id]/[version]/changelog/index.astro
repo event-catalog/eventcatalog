@@ -1,4 +1,6 @@
 ---
+// Services need their own Changelog route: /docs/services/[id]/[docType]/[docId] outranks
+// the generic /docs/[type]/[id]/[version]/changelog route and would catch these URLs.
 import ChangelogPage from '../../../../[type]/[id]/[version]/changelog/_ChangelogPage.astro';
 import { ServicePage } from '../../../../[type]/[id]/[version]/changelog/_index.data';
 
