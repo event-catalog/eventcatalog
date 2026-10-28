@@ -38,4 +38,24 @@ describe('orders fixture', () => {
     expect(parentOf.get('ProcessPayment')).toBe(nodeIdFor({ id: 'payments', type: 'system' }));
     expect(parentOf.get('payments-queue')).toBe(nodeIdFor({ id: 'payments', type: 'system' }));
   });
+
+  it('places a command with the agent receiving it', () => {
+    // The Orders service (Ordering) asks the Refund agent (Payments) to review a refund
+    const withAgent = Model.parse({
+      ...fixture,
+      resources: [
+        ...fixture.resources,
+        { id: 'refund-agent', type: 'agent', name: 'Refund Agent', parent: 'payments' },
+        { id: 'ReviewRefund', type: 'command', name: 'Review Refund' },
+      ],
+      relations: [
+        ...fixture.relations,
+        { from: 'orders-service', to: 'ReviewRefund', kind: 'sends' },
+        { from: 'refund-agent', to: 'ReviewRefund', kind: 'receives' },
+      ],
+    });
+    const parentOf = new Map(buildDetailedGraph(withAgent).nodes.map((n) => [n.id, n.parentId]));
+
+    expect(parentOf.get('ReviewRefund')).toBe(nodeIdFor({ id: 'payments', type: 'system' }));
+  });
 });

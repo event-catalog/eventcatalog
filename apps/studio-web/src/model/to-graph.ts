@@ -136,7 +136,8 @@ export function buildDetailedGraph(model: Model, focus?: string): Graph {
   const addUser = (id: string, group: string | undefined) => usersOf.set(id, (usersOf.get(id) ?? new Set()).add(group));
   for (const relation of model.relations) {
     const from = byId.get(relation.from);
-    if (from?.type !== 'service') continue;
+    // Services and agents (as core places them)
+    if (from?.type !== 'service' && from?.type !== 'agent') continue;
     // Events go with their senders, commands and queries with their receivers (they handle them); data stores with
     // their readers and writers
     const receiverOwned = ['command', 'query'].includes(byId.get(relation.to)?.type ?? '');
