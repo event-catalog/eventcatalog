@@ -785,6 +785,31 @@ describe('domain-level messages', () => {
     expect(edges).not.toContain('ProcessPayment-1.0.0->domain-Payments-1.0.0');
   });
 
+  it("connects another domain receiving a message itself when its service receiving it isn't drawn", () => {
+    // The catalog's Payment service receives ProcessPayment, but the Order service's diagram doesn't draw it (e.g.
+    // Payments pins a version of it the latest no longer matches)
+    const paymentService = entry('services', 'PaymentService', { receives: [processPayment] });
+    const withService = { ...payments, data: { ...payments.data, services: [paymentService] } };
+    const { edges } = build(
+      orders,
+      [
+        {
+          service: orderService,
+          graph: {
+            nodes: [
+              { id: 'OrderService-1.0.0', type: 'services', position: { x: 0, y: 0 }, data: {} },
+              { id: 'ProcessPayment-1.0.0', type: 'commands', position: { x: 0, y: 0 }, data: {} },
+            ],
+            edges: [{ id: 'pays', source: 'OrderService-1.0.0', target: 'ProcessPayment-1.0.0' }],
+          },
+        },
+      ],
+      { domains: [withService, orders, ledger, accounts], catalogServices: [...catalogServices, paymentService] }
+    );
+
+    expect(edges).toContain('ProcessPayment-1.0.0->domain-Payments-1.0.0');
+  });
+
   it('leaves out other domains only receiving the same message as the domain', () => {
     // Accounts' service receives PaymentTaken, which Ledger receives too
     const { edges } = build(accounts, [

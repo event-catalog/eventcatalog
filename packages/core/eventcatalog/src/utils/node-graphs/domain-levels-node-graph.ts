@@ -500,7 +500,7 @@ export const buildDomainGraph = ({
     if (boxId) replacedBy.set(replaced, boxId);
   });
 
-  const graphEdges = connectEdges(edges, new Map([...cardBoxes, ...replacedBy]), nodes);
+  const graphEdges = dropReceivesThroughChannels(connectEdges(edges, new Map([...cardBoxes, ...replacedBy]), nodes), nodes);
   placeMessagesWithOwners(nodes, graphEdges, new Set(domainMessages.keys()));
   // What the services each other domain stands for receive, by the node shown for the domain
   const receivedBy = new Map<string, any[]>();
@@ -523,8 +523,7 @@ export const buildDomainGraph = ({
  * domains (shown as those domains) and services in no domain. A message one of
  * the domain's services already sends (or receives) is left as it is. Other
  * domains sending a message the domain receives themselves (or receiving one it
- * sends) are connected to it, as those domains, unless a service of theirs
- * already is. Returns the other domains added
+ * sends) are connected to it, as those domains. Returns the other domains added
  * and, by message, the (sub)domain boxes it's drawn sent from or received by.
  */
 const addDomainMessages = ({
@@ -664,23 +663,13 @@ const addDomainMessages = ({
         })
       )
     );
-  // Other domains with a service of their own sending (or receiving) the message are already drawn doing it, as
-  // that domain
-  const drawnFor = (domain: any, key: 'sends' | 'receives', messageId: string) =>
-    catalogServices.some(
-      (service) => lists(service, key, messageId) && owners.get(generateIdForNode(service))?.domain.data.id === domain.data.id
-    );
   const rootGroupId = tree[0].groupId;
   listed.forEach(({ message, sends, receives }, messageId) => {
     if (!MESSAGE_TYPES.has(nodes.get(messageId)?.type)) return;
     if (sends.length && reaches(messageId, 'receivers', rootGroupId))
-      sends
-        .filter((domain) => !drawnFor(domain, 'sends', messageId))
-        .forEach((domain) => edges.push(sendEdge(addOther(domain), message)));
+      sends.forEach((domain) => edges.push(sendEdge(addOther(domain), message)));
     if (receives.length && reaches(messageId, 'senders', rootGroupId))
-      receives
-        .filter((domain) => !drawnFor(domain, 'receives', messageId))
-        .forEach((domain) => edges.push(receiveEdge(message, addOther(domain))));
+      receives.forEach((domain) => edges.push(receiveEdge(message, addOther(domain))));
   });
   return { otherDomainIds, domainMessages };
 };
@@ -743,6 +732,27 @@ export const placeMessagesWithOwners = (nodes: Map<string, any>, edges: any[], k
       }
     });
   }
+};
+
+/**
+ * Drops the edges drawn for domains receiving a message themselves (`domain-receives-`)
+ * when the message already reaches them through its channels, e.g. another
+ * domain listing a command in its `receives` whose service receives it from a
+ * queue: the domain is drawn receiving it from the queue, not from the command too.
+ */
+const dropReceivesThroughChannels = (edges: any[], nodes: Map<string, any>) => {
+  const isChannel = (nodeId: string) => nodes.get(nodeId)?.type === 'channels';
+  const reachesThroughChannels = (messageId: string, targetId: string) => {
+    const seen = new Set<string>();
+    for (let current = [messageId]; current.length > 0; ) {
+      const next = edges.filter((edge) => current.includes(edge.source) && isChannel(edge.target) && !seen.has(edge.target));
+      if (next.some((edge) => edges.some((out) => out.source === edge.target && out.target === targetId))) return true;
+      next.forEach((edge) => seen.add(edge.target));
+      current = next.map((edge) => edge.target);
+    }
+    return false;
+  };
+  return edges.filter((edge) => !edge.id.startsWith('domain-receives-') || !reachesThroughChannels(edge.source, edge.target));
 };
 
 /**
