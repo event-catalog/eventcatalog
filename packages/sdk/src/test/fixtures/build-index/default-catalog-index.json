@@ -159,6 +159,18 @@
     },
     {
       "type": "channel",
+      "id": "fulfilment.inventory-reservations",
+      "version": "1.0.0",
+      "name": "Inventory Reservations",
+      "contentPath": "channels/fulfilment.inventory-reservations/index.mdx",
+      "contentHash": "sha256:791b5e511b8e1519df007804afe7fb4c60345d4de9a014ce34a887ca759de9d2",
+      "owners": ["fulfilment-platform"],
+      "address": "/reservations",
+      "protocols": ["http"],
+      "deliveryGuarantee": "at-least-once"
+    },
+    {
+      "type": "channel",
       "id": "fulfilment.returns",
       "version": "1.0.0",
       "name": "Returns",
@@ -1017,7 +1029,7 @@
       "version": "1.0.0",
       "name": "Fulfilment",
       "contentPath": "domains/Fulfilment/index.mdx",
-      "contentHash": "sha256:66e6b0867eda31368db59df85241d6d50ef7ade42c6abfff201649f8cb69c3de",
+      "contentHash": "sha256:d785c259ec5844d1282633029532f2f093819748b5207bd4dc082c3f3053cf42",
       "owners": ["fulfilment-platform"],
       "specifications": [
         {
@@ -1063,6 +1075,12 @@
         {
           "path": "domains/Fulfilment/ubiquitous-language.mdx",
           "hash": "sha256:513c1fd12c9612c7f8903004aeb8914408fa4355219bb4499f62636d55cc3f69"
+        }
+      ],
+      "receives": [
+        {
+          "id": "reserve-inventory",
+          "version": "1.0.0"
         }
       ],
       "domains": [
@@ -3863,12 +3881,18 @@
       "version": "1.0.0",
       "name": "Checkout Orchestrator",
       "contentPath": "domains/Ordering/systems/checkout-system/services/CheckoutOrchestrator/index.mdx",
-      "contentHash": "sha256:71bffdf03696cfc7103373e98e8f7225b55710f2e9fa28dcabcb08ffff3989a5",
+      "contentHash": "sha256:c5e2add75bdaf1651174758d87662c219a0b9e2fbd206d4c1debcde5b1af0791",
       "owners": ["ordering-platform"],
       "sends": [
         {
           "id": "reserve-inventory",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "fulfilment.inventory-reservations",
+              "version": "1.0.0"
+            }
+          ]
         },
         {
           "id": "authorize-payment",
@@ -3976,7 +4000,7 @@
       "version": "1.0.0",
       "name": "Inventory Service",
       "contentPath": "domains/Fulfilment/systems/inventory-system/services/InventoryService/index.mdx",
-      "contentHash": "sha256:806a7be353cb03ae618e834cdbf6c2c27e6e5cf17e82ae622e025dfa045ce156",
+      "contentHash": "sha256:60e57c5dcfe517b35ae75ccfd6a4800a57c04a4cbff2ac75bfb82737876ee282",
       "owners": ["fulfilment-platform"],
       "sends": [
         {
@@ -3992,6 +4016,12 @@
         {
           "id": "reserve-inventory",
           "version": "1.0.0",
+          "from": [
+            {
+              "id": "fulfilment.inventory-reservations",
+              "version": "1.0.0"
+            }
+          ],
           "triggers": [
             {
               "id": "inventory-reserved",

@@ -597,6 +597,34 @@ describe('commands between domains', () => {
     expect(byId.get('reservations')).toMatchObject({ parentId: undefined, data: { otherDomain: true, crossDomain: true } });
   });
 
+  it('draws every channel a command goes through outside the sending domain, when its routes split and join again', () => {
+    // ReserveInventory -> gateway -> (east, west) -> reservations -> Fulfilment
+    const byId = draw(
+      [
+        node('ordering', 'domain-group'),
+        node('checkout', 'system-group', 'ordering'),
+        node('CheckoutService', 'services', 'checkout'),
+        node('ReserveInventory', 'commands', 'checkout'),
+        ...['gateway', 'east', 'west', 'reservations'].map((id) => node(id, 'channels', 'checkout')),
+        node('domain-Fulfilment', 'context-domain'),
+      ],
+      [
+        edge('CheckoutService', 'ReserveInventory'),
+        edge('ReserveInventory', 'gateway'),
+        edge('gateway', 'east'),
+        edge('gateway', 'west'),
+        edge('east', 'reservations'),
+        edge('west', 'reservations'),
+        edge('reservations', 'domain-Fulfilment'),
+      ],
+      'domain-Fulfilment'
+    );
+
+    ['ReserveInventory', 'gateway', 'east', 'west', 'reservations'].forEach((id) =>
+      expect(byId.get(id)).toMatchObject({ parentId: undefined, data: { otherDomain: true } })
+    );
+  });
+
   it('keeps an event, and its channel, with the domain publishing it', () => {
     const byId = draw(
       [

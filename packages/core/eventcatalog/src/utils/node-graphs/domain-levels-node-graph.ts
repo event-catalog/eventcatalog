@@ -849,14 +849,20 @@ export const markCrossDomain = (graph: Graph, otherDomainIds: Set<string>): Grap
     (receiversOf.get(nodeId) || []).some((receiver) => reached.has(receiver))
   );
 
-  // A command or query, or a channel only they're sent through
-  const isReceiverOwned = (nodeId: string, seen = new Set<string>()): boolean => {
+  // A command or query, or a channel only they're sent through (by channel, worked out once: routes can split and
+  // join again)
+  const receiverOwnedChannels = new Map<string, boolean>();
+  const isReceiverOwned = (nodeId: string): boolean => {
     const node = nodesById.get(nodeId);
     if (MESSAGE_TYPES.has(node?.type)) return RECEIVER_OWNED_TYPES.has(node.type);
-    if (node?.type !== 'channels' || seen.has(nodeId)) return false;
-    seen.add(nodeId);
-    const carried = (sendersOf.get(nodeId) || []).filter((sender) => nodesById.has(sender) && isCarrier(nodesById.get(sender)));
-    return carried.length > 0 && carried.every((sender) => isReceiverOwned(sender, seen));
+    if (node?.type !== 'channels') return false;
+    if (!receiverOwnedChannels.has(nodeId)) {
+      // Not the receiver's while it's being worked out, so a loop of channels ends
+      receiverOwnedChannels.set(nodeId, false);
+      const carried = (sendersOf.get(nodeId) || []).filter((sender) => nodesById.has(sender) && isCarrier(nodesById.get(sender)));
+      receiverOwnedChannels.set(nodeId, carried.length > 0 && carried.every(isReceiverOwned));
+    }
+    return receiverOwnedChannels.get(nodeId)!;
   };
   const isExternalCarrier = (node: any) =>
     isCarrier(node) && !otherDomainIds.has(node.id) && (isReceiverOwned(node.id) ? receivedByOthers : sentByOthers).has(node.id);
