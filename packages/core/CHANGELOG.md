@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 5.7.4
+
+### Patch Changes
+
+- 2cbfd10: feat(core): redesign the changelog page to match the rest of the docs, with a versions list to jump between releases
+- 2cbfd10: fix(core): serve versioned service changelog pages in server mode
+
 ## 5.7.3
 
 ### Patch Changes
