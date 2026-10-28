@@ -42,6 +42,17 @@ one draws or derives something, change the other to match (or record the differe
   diagram doesn't have are unavailable on the canvas too, with the diagram's reason (`getDiagramLevelUnavailable`),
   e.g. L1 of a domain without systems or subdomains. Don't recompute what the visualiser already gives you.
 
+- **Messages are drawn in the domain (and system) that owns them.** An event belongs to the service that
+  publishes it: it announces something that happened there, and consumers subscribe. A command or query belongs
+  to the service that receives it: it's that service's API, and senders are its clients. A channel goes with the
+  messages sent through it (a queue only commands go through is the receiver's inbox). So on a domain's diagram,
+  an event another domain publishes sits outside the box, but a command another domain sends to this domain sits
+  inside it, next to the service handling it, and one this domain sends to another sits outside. The
+  visualiser does this in `placeMessagesWithOwners` and `markCrossDomain`
+  (`utils/node-graphs/domain-levels-node-graph.ts`), and Studio on the web in `buildDetailedGraph`
+  (`apps/studio-web/src/model/to-graph.ts`): change them together. Messages a domain sends or receives itself
+  (its own `sends`/`receives`, with no service of its own doing it) are the exception: they're drawn outside its
+  box, joined to it.
 - **Same place:** a copied card keeps the diagram's top-left corner, containers their size; edges keep their routes.
 - **Nesting:** domains and systems are containers holding what's in them. A domain inside another is a subdomain
   (badged "Subdomain"). On L1 a domain container stays a container while something is shown in it (a system or a

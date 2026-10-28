@@ -131,14 +131,18 @@ export function buildDetailedGraph(model: Model, focus?: string): Graph {
   };
 
   // Messages, channels and data stores have no parent: they go in the group of the services that use them,
-  // when they're all in the same one (like placeMessagesWithPublishers), else between the groups
+  // when they're all in the same one (like placeMessagesWithOwners), else between the groups
   const usersOf = new Map<string, Set<string | undefined>>();
   const addUser = (id: string, group: string | undefined) => usersOf.set(id, (usersOf.get(id) ?? new Set()).add(group));
   for (const relation of model.relations) {
     const from = byId.get(relation.from);
     if (from?.type !== 'service') continue;
-    // Messages go with their senders; data stores with their readers and writers
-    if (relation.kind === 'sends' || relation.kind === 'reads' || relation.kind === 'writes') addUser(relation.to, groupOf(from));
+    // Events go with their senders, commands and queries with their receivers (they handle them); data stores with
+    // their readers and writers
+    const receiverOwned = ['command', 'query'].includes(byId.get(relation.to)?.type ?? '');
+    const owns =
+      relation.kind === 'sends' ? !receiverOwned : relation.kind === 'receives' ? receiverOwned : relation.kind === 'reads' || relation.kind === 'writes';
+    if (owns) addUser(relation.to, groupOf(from));
   }
   // Channels go where all the messages through them go
   const placed = new Map<string, string | undefined>();

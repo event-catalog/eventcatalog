@@ -333,6 +333,10 @@ pnpm run format       # Formats all packages
 - `.github/workflows/release.yml` - Publishes packages via changesets
 - Turbo caches builds and tests (only runs what changed)
 
+## Diagrams
+
+Messages are drawn in the domain (and system) that owns them: an event with the service that publishes it, a command or query with the service that receives it (it's that service's API), and a channel with the messages sent through it. So a command another domain sends to this one sits inside this domain's box, next to its handler. The `visualiser-studio-parity` skill has the full rule and where it's implemented.
+
 ## Development Tips
 
 - The example catalog at `/examples/default` is used when running `pnpm run start:catalog`

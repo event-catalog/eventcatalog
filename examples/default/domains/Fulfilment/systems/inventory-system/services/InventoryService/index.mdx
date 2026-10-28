@@ -11,6 +11,9 @@ owners:
 receives:
   - id: reserve-inventory
     version: 1.0.0
+    from:
+      - id: fulfilment.inventory-reservations
+        version: 1.0.0
     triggers:
       - id: inventory-reserved
         version: 1.0.0

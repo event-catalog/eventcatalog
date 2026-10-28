@@ -60,6 +60,8 @@ Visualiser diagrams use the same three levels of detail everywhere, shown as L1,
 
 The toolbar always shows all three. Levels a diagram doesn't have are greyed out, e.g. a service's diagram (or a domain without systems) opens at L2 with L1 greyed out, and a context diagram is L1 with L2 and L3 greyed out. When adding or changing a diagram, decide which levels it has and keep its content to what each level describes.
 
+Messages are drawn in the domain (and system) that owns them: an event with the service that publishes it, a command or query with the service that receives it (it's that service's API), and a channel with the messages sent through it. So a command another domain sends to this one sits inside this domain's box, next to its handler. The full rule, and where it's implemented (core's domain diagrams and Studio on the web), is in `.claude/skills/visualiser-studio-parity/SKILL.md`.
+
 ## Studio
 Studio's canvas is shared by two products, through `@eventcatalog/visualiser/studio` (`packages/visualiser/src/studio/`):
 - EventCatalog's Studio in core (`packages/core/eventcatalog/src/features/studio/`, at `/studio` in a catalog).

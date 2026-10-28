@@ -416,5 +416,18 @@ describe('Channels NodeGraph', () => {
         ])
       );
     });
+
+    it('labels the edge into the target accepts for a command or query, and consumes for an event', () => {
+      const lastLabel = (collection: string) =>
+        getNodesAndEdgesForChannelChain({
+          source: { ...mockEvents[0], collection } as any,
+          target: mockServices[1],
+          channelChain: mockChannels.slice(0, 1) as any,
+        }).edges.at(-1)!.label;
+
+      expect(lastLabel('commands')).toBe('accepts');
+      expect(lastLabel('queries')).toBe('accepts');
+      expect(lastLabel('events')).toBe('consumes');
+    });
   });
 });

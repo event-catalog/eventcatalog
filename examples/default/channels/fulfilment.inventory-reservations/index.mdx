@@ -1,0 +1,23 @@
+---
+id: fulfilment.inventory-reservations
+name: Inventory Reservations
+version: 1.0.0
+summary: |
+  HTTP endpoint on the Inventory System that takes inventory reservation commands.
+owners:
+  - fulfilment-platform
+address: /reservations
+protocols:
+  - http
+deliveryGuarantee: at-least-once
+---
+
+## Overview
+
+The Fulfilment domain owns this endpoint. Other domains send [[command|reserve-inventory]] to it to hold stock, and the [[service|inventory-service]] handles each command. During checkout, the [[service|checkout-orchestrator]] in the Ordering domain sends commands to it.
+
+<ChannelInformation />
+
+## Architecture diagram
+
+<NodeGraph />
