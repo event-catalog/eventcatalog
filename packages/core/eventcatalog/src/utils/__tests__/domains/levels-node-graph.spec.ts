@@ -625,6 +625,43 @@ describe('commands between domains', () => {
     );
   });
 
+  it("doesn't count a consumer of another message on the same channel as receiving the command", () => {
+    // One bus carries ReserveInventory (to Fulfilment) and OrderPlaced (to Ordering's own Audit service)
+    const message = (id: string, type: string) => ({
+      ...node(id, type, 'checkout'),
+      data: { message: { id, version: '1.0.0' } },
+    });
+    const byId = draw(
+      [
+        node('ordering', 'domain-group'),
+        node('checkout', 'system-group', 'ordering'),
+        node('audit', 'system-group', 'ordering'),
+        node('CheckoutService', 'services', 'checkout'),
+        {
+          ...node('AuditService', 'services', 'audit'),
+          data: { service: { id: 'AuditService', receives: [{ id: 'OrderPlaced', version: '1.0.0' }] } },
+        },
+        message('ReserveInventory', 'commands'),
+        message('OrderPlaced', 'events'),
+        node('bus', 'channels', 'checkout'),
+        node('domain-Fulfilment', 'context-domain'),
+      ],
+      [
+        edge('CheckoutService', 'ReserveInventory'),
+        edge('CheckoutService', 'OrderPlaced'),
+        edge('ReserveInventory', 'bus'),
+        edge('OrderPlaced', 'bus'),
+        edge('bus', 'domain-Fulfilment'),
+        edge('bus', 'AuditService'),
+      ],
+      'domain-Fulfilment'
+    );
+
+    // Fulfilment's, so outside, rather than with the Audit service
+    expect(byId.get('ReserveInventory')).toMatchObject({ parentId: undefined, data: { otherDomain: true } });
+    expect(byId.get('OrderPlaced')?.parentId).toBe('checkout');
+  });
+
   it('keeps an event, and its channel, with the domain publishing it', () => {
     const byId = draw(
       [
