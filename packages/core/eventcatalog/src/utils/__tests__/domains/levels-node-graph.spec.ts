@@ -1029,7 +1029,7 @@ describe('agents outside the domain', () => {
     ],
   };
 
-  const build = (focused = ordering, graph = systemGraph) => {
+  const build = (focused: any = ordering, graph = systemGraph) => {
     const all = domains.map((d) => (d.data.id === focused.data.id ? focused : d));
     const tree = buildDomainTree(focused, (id) => all.find((d) => d.data.id === id));
     const { owners, parentDomainOf } = collectOwners(all);
