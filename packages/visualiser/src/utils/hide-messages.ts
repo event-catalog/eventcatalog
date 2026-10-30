@@ -57,6 +57,11 @@ export const getMessagesLabel = (messages: Map<string, string>) => {
 export const isCarrier = (node: Node) =>
   isMessageNode(node) || node.type === "channels";
 
+// What level 2 leaves out: messages and channels, and agents' tools (how an
+// agent works, L3 detail like its messages)
+export const isLevel3Detail = (node: Node) =>
+  isCarrier(node) || node.type === "agentTool";
+
 const isCrossDomain = (edge: Edge) =>
   !!(edge.data as { crossDomain?: boolean } | undefined)?.crossDomain;
 
@@ -203,8 +208,8 @@ export const hideNodes = (
 
 /**
  * Removes message nodes (events, commands, queries) and the channels they
- * travel through, connecting the nodes on either side directly.
+ * travel through, connecting the nodes on either side directly, and agents' tools.
  * e.g. ServiceA -> OrderPlaced -> orders-topic -> ServiceB becomes ServiceA -> ServiceB
  */
 export const hideMessageNodes = (nodes: Node[], edges: Edge[]) =>
-  hideNodes(nodes, edges, isCarrier);
+  hideNodes(nodes, edges, isLevel3Detail);

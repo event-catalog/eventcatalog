@@ -95,7 +95,7 @@ import {
 } from "../utils/message-animation";
 import {
   hideMessageNodes,
-  isCarrier,
+  isLevel3Detail,
   isMessageNode,
 } from "../utils/hide-messages";
 import VisualizerDropdownContent from "./VisualizerDropdownContent";
@@ -1028,6 +1028,11 @@ const NodeGraphBuilder = ({
     () => initialNodes.some(isMessageNode),
     [initialNodes],
   );
+  // What level 3 adds to level 2: messages, channels and agents' tools
+  const hasLevel3Detail = useMemo(
+    () => initialNodes.some(isLevel3Detail),
+    [initialNodes],
+  );
   // A flow (its steps are joined by flow edges). Levels don't apply to flows.
   const isFlowGraph = useMemo(
     () => initialEdges.some((edge: Edge) => edge.type === "flow-edge"),
@@ -1112,7 +1117,7 @@ const NodeGraphBuilder = ({
     setNodes,
     setEdges,
     hasChannels,
-    hasMessages,
+    hasLevel3Detail,
     transitionFrom,
     nodeOrigin: NODE_ORIGIN,
     // The Mermaid view would draw every step of the animation between levels
@@ -1173,7 +1178,7 @@ const NodeGraphBuilder = ({
       {
         description: "services and data stores",
         active:
-          !isOverview && !isContextGraph && (hideMessages || !hasMessages),
+          !isOverview && !isContextGraph && (hideMessages || !hasLevel3Detail),
         disabledReason: hasDetail
           ? undefined
           : "Not available here: this diagram only shows domains, systems and their relationships",
@@ -1181,12 +1186,12 @@ const NodeGraphBuilder = ({
       },
       {
         description: "messages and channels",
-        active: !isOverview && hasMessages && !hideMessages,
+        active: !isOverview && hasLevel3Detail && !hideMessages,
         // The overview doesn't know if the detail has messages, so allows it
         disabledReason:
-          isOverview || hasMessages
+          isOverview || hasLevel3Detail
             ? undefined
-            : "Not available here: this diagram has no messages or channels",
+            : "Not available here: this diagram has no messages, channels or agent tools",
         onSelect: () => selectDetailLevel(3),
       },
     ];
@@ -1197,7 +1202,7 @@ const NodeGraphBuilder = ({
     hasLevels,
     isFlowGraph,
     hideMessages,
-    hasMessages,
+    hasLevel3Detail,
     setDetailLevel,
     switchGraph,
   ]);
@@ -2230,13 +2235,13 @@ const NodeGraphBuilder = ({
         nodes,
         edges: prepareEdges(edges),
       });
-      // Level 2 as the diagram lays it out: the one it was given, or the full graph without its messages and
-      // channels (the full graph itself when it has none)
+      // Level 2 as the diagram lays it out: the one it was given, or the full graph without its messages,
+      // channels and agents' tools (the full graph itself when it has none)
       const levelTwo = async (): Promise<LevelGraph> => {
         if (level === 2) return shown;
         if (hiddenMessages) return asDrawn(hiddenMessages);
         const full = level === 3 ? shown : detail;
-        if (!full.nodes.some(isCarrier)) return asDrawn(full);
+        if (!full.nodes.some(isLevel3Detail)) return asDrawn(full);
         return asDrawn(
           await layoutWithElk(hideMessageNodes(full.nodes, full.edges)),
         );

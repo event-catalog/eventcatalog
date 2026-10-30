@@ -81,7 +81,10 @@ one draws or derives something, change the other to match (or record the differe
   keep those the same (the CSS is the visualiser's).
 
 - Users, flow steps, entities and other nodes that are neither catalog resources nor actors aren't copied to
-  Studio.
+  Studio (agents' tools included).
+- Agents on L2: the visualiser's L2 keeps an agent and leaves out only its tools (`isLevel3Detail`), while Studio's
+  own L2 (`levels.ts`) connects past the agent as through a message. A canvas opened from a diagram matches until
+  its structure changes.
 - Studio's L1 can only use what's on the canvas: catalog knowledge the visualiser looks up (e.g. a domain's
   subdomains it doesn't show) has to be on the canvas (in node data, or as nodes and edges) to be shown.
 - Messages sitting in a domain (not a system) connect the systems either side on Studio's L1, because catalog

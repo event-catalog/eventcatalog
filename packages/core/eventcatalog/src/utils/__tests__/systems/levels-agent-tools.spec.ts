@@ -48,17 +48,15 @@ const toolIds = ['support-agent-1.0.0-tool-web-search-function', 'support-agent-
 const node = (nodes: any[], id: string) => nodes.find((item) => item.id === id);
 
 describe('System diagram agent tools', () => {
-  it('keeps the tools of an agent outside the system group with the agent', async () => {
+  it("leaves an outside agent's tools off the diagram, with the agent outside the system group", async () => {
     const { nodes, hiddenMessages } = await getNodesAndEdges({ id: 'orders-system', version: '1.0.0' });
 
     expect(node(nodes, 'orders-api-1.0.0')?.parentId).toBe(group);
     expect(node(nodes, 'support-agent-1.0.0')?.parentId).toBeUndefined();
 
     for (const graph of [nodes, hiddenMessages.nodes]) {
-      for (const toolId of toolIds) {
-        expect(node(graph, toolId)).toBeDefined();
-        expect(node(graph, toolId)?.parentId).toBeUndefined();
-      }
+      expect(node(graph, 'support-agent-1.0.0')).toBeDefined();
+      for (const toolId of toolIds) expect(node(graph, toolId)).toBeUndefined();
     }
   });
 });

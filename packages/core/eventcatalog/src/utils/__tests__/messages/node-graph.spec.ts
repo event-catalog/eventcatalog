@@ -164,7 +164,7 @@ describe('Message NodeGraph', () => {
   });
 
   describe('getNodesAndEdgesForConsumedMessage', () => {
-    it('renders tools for agent consumers', async () => {
+    it("draws an agent consumer without its tools (they're shown on the agent's own diagram)", async () => {
       const message = mockEvents[0] as unknown as CollectionEntry<CollectionMessageTypes>;
 
       const { nodes, edges } = await getNodesAndEdgesForProducedMessage({
@@ -177,26 +177,7 @@ describe('Message NodeGraph', () => {
         source: mockServices[2] as any,
       });
 
-      expect(nodes).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: 'FraudReviewAgent-1.0.0',
-            type: 'agents',
-          }),
-          expect.objectContaining({
-            id: 'FraudReviewAgent-1.0.0-tool-risk-profile-lookup-mcp',
-            type: 'agentTool',
-            data: expect.objectContaining({
-              agentTool: expect.objectContaining({
-                name: 'Risk profile lookup',
-                type: 'mcp',
-                icon: '/icons/tools/datadog.svg',
-              }),
-            }),
-          }),
-        ])
-      );
-
+      expect(nodes).toEqual(expect.arrayContaining([expect.objectContaining({ id: 'FraudReviewAgent-1.0.0', type: 'agents' })]));
       expect(edges).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
@@ -204,15 +185,10 @@ describe('Message NodeGraph', () => {
             source: 'PaymentProcessed-0.0.1',
             target: 'FraudReviewAgent-1.0.0',
           }),
-          expect.objectContaining({
-            id: 'FraudReviewAgent-1.0.0-FraudReviewAgent-1.0.0-tool-risk-profile-lookup-mcp',
-            source: 'FraudReviewAgent-1.0.0',
-            target: 'FraudReviewAgent-1.0.0-tool-risk-profile-lookup-mcp',
-            label: 'calls tool',
-            type: 'step',
-          }),
         ])
       );
+      expect(nodes.filter((node: any) => node.type === 'agentTool')).toEqual([]);
+      expect(edges.filter((edge: any) => edge.label === 'calls tool')).toEqual([]);
     });
 
     describe('when the message is consumed by the consumer and the producer and consumer have no channels defined', () => {

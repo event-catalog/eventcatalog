@@ -82,79 +82,6 @@ const getRoutableNodeData = (resource: RoutableResource, mode: 'simple' | 'full'
   contextMenu: getRoutableContextMenu(resource),
 });
 
-const sanitizeToolId = (name: string) =>
-  name
-    .replace(/[^a-zA-Z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
-    .toLowerCase();
-
-const generateIdForAgentToolNode = (agent: RoutableResource, tool: { name: string; type: string }) =>
-  `${generateIdForNode(agent)}-tool-${sanitizeToolId(`${tool.name}-${tool.type}`)}`;
-
-const appendAgentToolNodesAndEdges = ({
-  agent,
-  nodes,
-  edges,
-  mode,
-}: {
-  agent: RoutableResource;
-  nodes: Node[];
-  edges: Edge[];
-  mode: 'simple' | 'full';
-}) => {
-  if (!isAgent(agent)) return;
-
-  (agent.data.tools || []).forEach((tool) => {
-    const toolNodeId = generateIdForAgentToolNode(agent, tool);
-
-    nodes.push(
-      createNode({
-        id: toolNodeId,
-        type: 'agentTool',
-        data: {
-          mode,
-          agentTool: {
-            id: sanitizeToolId(`${tool.name}-${tool.type}`),
-            name: tool.name,
-            type: tool.type,
-            icon: tool.icon,
-            url: tool.url,
-            description: tool.description,
-          },
-          contextMenu: tool.url
-            ? [
-                {
-                  label: 'Open tool endpoint',
-                  href: tool.url,
-                  external: true,
-                },
-              ]
-            : undefined,
-        },
-        position: { x: 0, y: 0 },
-      })
-    );
-
-    edges.push(
-      createEdge({
-        id: `${generateIdForNode(agent)}-${toolNodeId}`,
-        source: generateIdForNode(agent),
-        target: toolNodeId,
-        label: 'calls tool',
-        type: 'step',
-        animated: false,
-        data: { animated: false },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: '#666',
-          width: 20,
-          height: 20,
-        },
-      })
-    );
-  });
-};
-
 const getDataProductNodeData = (resource: CollectionEntry<'data-products'>, mode: 'simple' | 'full') => ({
   title: resource.data.id,
   mode,
@@ -293,9 +220,6 @@ const getNodesAndEdges = async ({
       data: isDataProduct(producer) ? getDataProductNodeData(producer, mode) : getRoutableNodeData(producer, mode),
       position: { x: 0, y: 0 },
     });
-    if (!isDataProduct(producer)) {
-      appendAgentToolNodesAndEdges({ agent: producer, nodes, edges, mode });
-    }
 
     // Data products don't have channel configuration, so connect directly to the message
     if (isDataProduct(producer)) {
@@ -424,9 +348,6 @@ const getNodesAndEdges = async ({
       position: { x: 0, y: 0 },
       type: isDataProduct(consumer) ? 'data-products' : consumer.collection,
     });
-    if (!isDataProduct(consumer)) {
-      appendAgentToolNodesAndEdges({ agent: consumer, nodes, edges, mode });
-    }
 
     // Data products don't have channel configuration, so connect directly from the message
     if (isDataProduct(consumer)) {
@@ -656,10 +577,6 @@ const getNodesAndEdges = async ({
         position: { x: 0, y: 0 },
       })
     );
-
-    if (receiver.collection !== 'domains') {
-      appendAgentToolNodesAndEdges({ agent: receiver, nodes, edges, mode });
-    }
   };
 
   // Complete both sides of a trigger chain around the focused message:
@@ -779,7 +696,6 @@ export const getNodesAndEdgesForConsumedMessage = ({
       position: { x: 0, y: 0 },
     })
   );
-  appendAgentToolNodesAndEdges({ agent: target, nodes, edges, mode });
 
   const targetMessageConfiguration = target.data.receives?.find(
     (receive) => receive.id === message.data.id && versionMatches(receive.version, message.data.version)
@@ -889,7 +805,6 @@ export const getNodesAndEdgesForConsumedMessage = ({
         position: { x: 0, y: 0 },
       })
     );
-    appendAgentToolNodesAndEdges({ agent: producer, nodes, edges, mode });
 
     // The message is always connected directly to the producer
     edges.push(
@@ -1115,7 +1030,6 @@ export const getNodesAndEdgesForProducedMessage = ({
       position: { x: 0, y: 0 },
     })
   );
-  appendAgentToolNodesAndEdges({ agent: source, nodes, edges, mode });
 
   // Render the edge from the producer to the message
   edges.push(
@@ -1214,7 +1128,6 @@ export const getNodesAndEdgesForProducedMessage = ({
         position: { x: 0, y: 0 },
       })
     );
-    appendAgentToolNodesAndEdges({ agent: consumer, nodes, edges, mode });
 
     // Check if the consumer is consuming the message from a channel
     const consumerConfigurationForMessage = consumer.data.receives?.find(

@@ -18,7 +18,7 @@ import { DIAGRAM_FIT_VIEW_OPTIONS } from "../utils/fit-view";
 import {
   hideMessageNodes,
   hideNodes,
-  isMessageNode,
+  isLevel3Detail,
 } from "../utils/hide-messages";
 import {
   animateLayout,
@@ -41,7 +41,8 @@ interface NodeVisibilityProps {
   setNodes: (nodes: Node[]) => void;
   setEdges: Dispatch<SetStateAction<Edge[]>>;
   hasChannels: boolean;
-  hasMessages: boolean;
+  /** Whether there's anything level 2 hides: messages, channels or agents' tools */
+  hasLevel3Detail: boolean;
   /** The graph switched away from to show this one, to animate from */
   transitionFrom?: GraphTransition;
   /** React Flow's node origin, to line up nodes when animating */
@@ -152,7 +153,7 @@ export const useNodeVisibility = ({
   setNodes,
   setEdges,
   hasChannels,
-  hasMessages,
+  hasLevel3Detail,
   transitionFrom,
   nodeOrigin,
   disableAnimation = false,
@@ -202,7 +203,7 @@ export const useNodeVisibility = ({
 
   // Only hide things that actually exist in the graph.
   // Channels carry messages, so hiding messages hides channels too.
-  const messagesHidden = hideMessages && hasMessages;
+  const messagesHidden = hideMessages && hasLevel3Detail;
   const channelsHidden = hasChannels && (hideChannels || messagesHidden);
 
   // Legend entries whose nodes are hidden (clicking an entry hides or shows them)
@@ -251,7 +252,7 @@ export const useNodeVisibility = ({
     const containsHiddenNodes = nodes.some(
       (node) =>
         (channelsHidden && node.type === "channels") ||
-        (messagesHidden && isMessageNode(node)) ||
+        (messagesHidden && isLevel3Detail(node)) ||
         (legendHidden && isHiddenByLegend(node)),
     );
     if (

@@ -38,6 +38,27 @@ describe("hideMessageNodes", () => {
     });
   });
 
+  it("removes an agent's tools, keeping the agent and what it receives", () => {
+    const { nodes, edges } = hideMessageNodes(
+      [
+        node("OrderService", "services"),
+        node("OrderCancelled", "events", "Order Cancelled"),
+        node("SupportAgent", "agents"),
+        node("WebSearch", "agentTool"),
+      ],
+      [
+        edge("OrderService", "OrderCancelled"),
+        edge("OrderCancelled", "SupportAgent"),
+        edge("SupportAgent", "WebSearch"),
+      ],
+    );
+
+    expect(nodes.map((n) => n.id)).toEqual(["OrderService", "SupportAgent"]);
+    expect(edges.map((e) => `${e.source}->${e.target}`)).toEqual([
+      "OrderService->SupportAgent",
+    ]);
+  });
+
   it("removes channels and follows routed channels to the consumer", () => {
     const { nodes, edges } = hideMessageNodes(
       [
