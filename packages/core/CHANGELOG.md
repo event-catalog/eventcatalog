@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 5.7.5
+
+### Patch Changes
+
+- 71a0a25: fix(core): an agent's tools are drawn only on the agent's own diagram, not wherever the agent sends or receives a message. A domain's diagram shows an agent from another domain as that domain and one in no domain outside its systems, and draws an agent the domain lists itself in its box
+- 9a6cbd2: fix(core): domain diagrams draw a command or query, and the channel it's delivered on, in the domain that receives it, not the one that sends it (events still go with their publisher). A domain listing a message in its own `receives` no longer gets a second edge from the message when the message already reaches it through a channel, and the edge from a channel to whatever receives a command or query through it reads "accepts", not "consumes" (#3002)
+- Updated dependencies [71a0a25]
+  - @eventcatalog/visualiser@5.2.3
+
 ## 5.7.4
 
 ### Patch Changes
