@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 5.2.3
+
+### Patch Changes
+
+- 71a0a25: fix(visualiser): an agent's tools are level 3 detail, so level 2 leaves them out along with messages and channels
+
 ## 5.2.2
 
 ### Patch Changes
