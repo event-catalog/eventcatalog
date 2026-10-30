@@ -1002,6 +1002,104 @@ describe('domain-level messages', () => {
   });
 });
 
+describe('agents outside the domain', () => {
+  // The Orders system's service publishes OrderCancelled. SupportAgent (in the Support
+  // domain) and AuditAgent (in no domain) receive it, so the system's graph has both,
+  // in its group (the domain diagram builds system graphs without confineToMembers)
+  const orderService = entry('services', 'OrderService');
+  const supportAgent = entry('agents', 'SupportAgent');
+  const auditAgent = entry('agents', 'AuditAgent');
+  const ordersSystem = entry('systems', 'OrdersSystem', { services: [orderService] });
+  const ordering = entry('domains', 'Ordering', { systems: [ordersSystem], services: [] });
+  const support = entry('domains', 'Support', { systems: [], services: [], agents: [supportAgent] });
+  const domains = [ordering, support];
+  const groupId = 'system-group-OrdersSystem-1.0.0';
+  const systemGraph = {
+    nodes: [
+      { id: groupId, type: 'system-group', position: { x: 0, y: 0 }, data: { isFocused: true } },
+      { id: 'OrderService-1.0.0', type: 'services', parentId: groupId, position: { x: 0, y: 0 }, data: {} },
+      { id: 'OrderCancelled-1.0.0', type: 'events', parentId: groupId, position: { x: 0, y: 0 }, data: {} },
+      { id: 'SupportAgent-1.0.0', type: 'agents', parentId: groupId, position: { x: 0, y: 0 }, data: {} },
+      { id: 'AuditAgent-1.0.0', type: 'agents', parentId: groupId, position: { x: 0, y: 0 }, data: {} },
+    ],
+    edges: [
+      { id: 'publishes', source: 'OrderService-1.0.0', target: 'OrderCancelled-1.0.0' },
+      { id: 'to-support', source: 'OrderCancelled-1.0.0', target: 'SupportAgent-1.0.0' },
+      { id: 'to-audit', source: 'OrderCancelled-1.0.0', target: 'AuditAgent-1.0.0' },
+    ],
+  };
+
+  const build = (focused: any = ordering, graph = systemGraph) => {
+    const all = domains.map((d) => (d.data.id === focused.data.id ? focused : d));
+    const tree = buildDomainTree(focused, (id) => all.find((d) => d.data.id === id));
+    const { owners, parentDomainOf } = collectOwners(all);
+    const { nodes, edges } = buildDomainGraph({
+      tree,
+      owners,
+      parentDomainOf,
+      systems: [{ system: ordersSystem, groupId: tree[0].groupId }],
+      systemGraphs: [graph],
+      looseServices: [],
+      serviceGraphs: [],
+      mode: 'full',
+      domains: all,
+      catalogServices: [orderService, supportAgent, auditAgent],
+    });
+    return { nodes, edges: edges.map((edge: any) => `${edge.source}->${edge.target}`) };
+  };
+
+  it('shows an agent in another domain as that domain, outside the system', () => {
+    const { nodes, edges } = build();
+
+    expect(nodes.has('SupportAgent-1.0.0')).toBe(false);
+    expect(nodes.get('domain-Support-1.0.0')?.parentId).toBeUndefined();
+    expect(edges).toContain('OrderCancelled-1.0.0->domain-Support-1.0.0');
+  });
+
+  it('leaves an agent in no domain outside the system', () => {
+    const { nodes } = build();
+
+    expect(nodes.get('AuditAgent-1.0.0')).toBeDefined();
+    expect(nodes.get('AuditAgent-1.0.0').parentId).toBeUndefined();
+  });
+
+  it('keeps the system its own service', () => {
+    const { nodes } = build();
+
+    expect(nodes.get('OrderService-1.0.0').parentId).toBe(groupId);
+  });
+
+  it('moves the event an agent in no domain publishes out of the system, with the agent and its channel', () => {
+    // AuditAgent publishes AuditLogged through the audit topic, and OrderService consumes it
+    const graph = {
+      nodes: [
+        ...systemGraph.nodes,
+        { id: 'AuditLogged-1.0.0', type: 'events', parentId: groupId, position: { x: 0, y: 0 }, data: {} },
+        { id: 'audit-topic-1.0.0', type: 'channels', parentId: groupId, position: { x: 0, y: 0 }, data: {} },
+      ],
+      edges: [
+        ...systemGraph.edges,
+        { id: 'logs', source: 'AuditAgent-1.0.0', target: 'AuditLogged-1.0.0' },
+        { id: 'through', source: 'AuditLogged-1.0.0', target: 'audit-topic-1.0.0' },
+        { id: 'consumes', source: 'audit-topic-1.0.0', target: 'OrderService-1.0.0' },
+      ],
+    };
+    const { nodes } = build(ordering, graph);
+
+    expect(nodes.get('AuditLogged-1.0.0').parentId).toBeUndefined();
+    expect(nodes.get('audit-topic-1.0.0').parentId).toBeUndefined();
+    // Still in the system: OrderService publishes it
+    expect(nodes.get('OrderCancelled-1.0.0').parentId).toBe(groupId);
+  });
+
+  it("draws an agent the domain lists itself in the domain's box, outside the system", () => {
+    // Ordering lists AuditAgent itself
+    const { nodes } = build({ ...ordering, data: { ...ordering.data, agents: [auditAgent] } });
+
+    expect(nodes.get('AuditAgent-1.0.0').parentId).toBe('domain-group-Ordering-1.0.0');
+  });
+});
+
 describe('collapseSystems', () => {
   it('folds the messages a domain sends or receives itself into its box, connecting it to the other side directly', () => {
     const graph = {

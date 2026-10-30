@@ -312,7 +312,7 @@ export const buildDomainTree = (domain: any, findDomain: (id: string, version?: 
   return tree;
 };
 
-/** Which domain (and system) each service belongs to, and the domain each subdomain is in */
+/** Which domain (and system) each service or agent belongs to, and the domain each subdomain is in */
 export const collectOwners = (domains: any[]) => {
   const owners: Owners = new Map();
   const parentDomainOf = new Map<string, any>();
@@ -324,9 +324,9 @@ export const collectOwners = (domains: any[]) => {
       if (!parentDomainOf.has(subdomain.data.id)) parentDomainOf.set(subdomain.data.id, d);
     });
   });
-  // Services outside systems, unless a system already claims them
+  // Services outside systems, unless a system already claims them, and agents (systems don't have them)
   domains.forEach((d: any) =>
-    (d.data.services || []).forEach((service: any) => {
+    [...(d.data.services || []), ...(d.data.agents || [])].forEach((service: any) => {
       const serviceId = generateIdForNode(service);
       if (!owners.has(serviceId)) owners.set(serviceId, { domain: d });
     })
@@ -477,7 +477,12 @@ export const buildDomainGraph = ({
       }
       // Messages, channels, data stores: kept in the first graph they appear in
       if (nodes.has(node.id)) return;
-      nodes.set(node.id, node.parentId || !inside || SERVICE_TYPES.has(node.type) ? node : { ...node, parentId: inside });
+      // A service or agent in no domain isn't in the system whose graph it came from
+      if (SERVICE_TYPES.has(node.type)) {
+        nodes.set(node.id, { ...node, parentId: undefined, extent: undefined });
+        return;
+      }
+      nodes.set(node.id, node.parentId || !inside ? node : { ...node, parentId: inside });
     });
 
   systems.forEach(({ system, groupId: domainGroup }, index) => {
@@ -579,14 +584,6 @@ const addDomainMessages = ({
   const treeDomainIds = new Set(tree.map((entry) => entry.domain.data.id));
   const otherDomainIds = new Set<string>();
   const domainMessages = new Map<string, Set<string>>();
-  // The domain each agent is in (owners only has services): the tree's versions first
-  const agentOwners = new Map<string, any>();
-  [...tree.map((entry) => entry.domain), ...domains].forEach((domain) =>
-    (domain.data.agents || []).forEach((agent: any) => {
-      const agentId = generateIdForNode(agent);
-      if (!agentOwners.has(agentId)) agentOwners.set(agentId, domain);
-    })
-  );
   // Whether a domain or service sends (or receives) the message (their messages are already looked up)
   const lists = (resource: any, key: 'sends' | 'receives', messageId: string) =>
     (resource.data[key] || []).some((message: any) => message.data && generateIdForNode(message) === messageId);
@@ -612,19 +609,19 @@ const addDomainMessages = ({
     return false;
   };
   // Whether a service in a (sub)domain's box says it sends (or receives) the message: e.g. one it sends in a
-  // message group, which its graph shows as the group rather than the message. Services only: agents in a
-  // domain aren't drawn on its diagram
+  // message group, which its graph shows as the group rather than the message. Services only: a domain's
+  // agents are only drawn when another graph brings them in
   const groupOfTreeDomain = new Map(tree.map((entry) => [entry.domain.data.id, entry.groupId]));
   const declaredIn = (groupId: string, key: 'sends' | 'receives', messageId: string) =>
     catalogServices.some((service) => {
-      if (!lists(service, key, messageId)) return false;
+      if (service.collection === 'agents' || !lists(service, key, messageId)) return false;
       const ownerGroup = groupOfTreeDomain.get(owners.get(generateIdForNode(service))?.domain.data.id);
       return !!ownerGroup && (ownerGroup === groupId || isInside(nodes, ownerGroup, groupId));
     });
   // The node standing for a service (or agent) on the other side, or none when it's in the domain
   const otherSide = (service: any) => {
     const serviceId = generateIdForNode(service);
-    const ownerDomain = owners.get(serviceId)?.domain ?? agentOwners.get(serviceId);
+    const ownerDomain = owners.get(serviceId)?.domain;
     if (ownerDomain) return treeDomainIds.has(ownerDomain.data.id) ? undefined : addOther(ownerDomain);
     if (!nodes.has(serviceId)) {
       nodes.set(serviceId, {
@@ -736,7 +733,8 @@ export const placeMessagesWithOwners = (nodes: Map<string, any>, edges: any[], k
     if (kept.has(messageId)) return;
     const [parentId] = [...groups];
     const message = nodes.get(messageId);
-    if (groups.size === 1 && parentId && message.parentId !== parentId) {
+    // Owners are drawn nodes, so no parent means outside every box (e.g. a service or agent in no domain)
+    if (groups.size === 1 && message.parentId !== parentId) {
       nodes.set(messageId, { ...message, parentId, extent: undefined });
     }
   });
@@ -748,9 +746,10 @@ export const placeMessagesWithOwners = (nodes: Map<string, any>, edges: any[], k
     moved = false;
     nodes.forEach((channel, channelId) => {
       if (channel.type !== 'channels' || kept.has(channelId)) return;
-      const groups = new Set((sendersOf.get(channelId) ?? []).map((sender) => nodes.get(sender)?.parentId));
+      const senders = (sendersOf.get(channelId) ?? []).filter((sender) => nodes.has(sender));
+      const groups = new Set(senders.map((sender) => nodes.get(sender).parentId));
       const [parentId] = [...groups];
-      if (groups.size === 1 && parentId && channel.parentId !== parentId) {
+      if (groups.size === 1 && channel.parentId !== parentId) {
         nodes.set(channelId, { ...channel, parentId, extent: undefined });
         moved = true;
       }
@@ -955,11 +954,8 @@ export const getNodesAndEdges = (props: NodesAndEdgesProps): Promise<DomainLevel
  * or its latest when no domain has it: who sends or receives a domain's own
  * messages is matched against these.
  */
-const inVersionsUsed = (resources: any[], domains: any[], owners: Owners) => {
-  const used = new Set([
-    ...owners.keys(),
-    ...domains.flatMap((domain) => (domain.data.agents || []).map((agent: any) => generateIdForNode(agent))),
-  ]);
+const inVersionsUsed = (resources: any[], owners: Owners) => {
+  const used = new Set(owners.keys());
   const key = (resource: any) => `${resource.collection}:${resource.data.id}`;
   const usedKeys = new Set(resources.filter((resource) => used.has(generateIdForNode(resource))).map(key));
   return resources.filter((resource) =>
@@ -989,11 +985,11 @@ const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: No
   const tree = buildDomainTree(domain, findDomain);
   // The tree's domains last, so the versions shown own their services
   const { owners, parentDomainOf } = collectOwners([...domains, ...tree.map((entry) => entry.domain)]);
-  // A service the domain (or a subdomain) lists itself is shown as its own,
-  // even when a system in another domain has it too
+  // A service (or agent) the domain or a subdomain lists itself is shown as its
+  // own, even when a system in another domain has it too
   const treeDomainIds = new Set(tree.map((entry) => entry.domain.data.id));
   tree.forEach(({ domain: d }) =>
-    (d.data.services || []).forEach((service: any) => {
+    [...(d.data.services || []), ...(d.data.agents || [])].forEach((service: any) => {
       const serviceId = generateIdForNode(service);
       if (!treeDomainIds.has(owners.get(serviceId)?.domain.data.id)) owners.set(serviceId, { domain: d });
     })
@@ -1050,7 +1046,7 @@ const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: No
     serviceGraphs,
     mode,
     domains,
-    catalogServices: inVersionsUsed([...services, ...agents], [...domains, ...tree.map((entry) => entry.domain)], owners),
+    catalogServices: inVersionsUsed([...services, ...agents], owners),
   });
   const context = addContext(contexts, systems, nodes);
   const graph = { nodes: [...nodes.values(), ...context.nodes], edges: [...edges, ...context.edges] };
