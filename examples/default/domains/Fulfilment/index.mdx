@@ -18,6 +18,10 @@ systems:
 domains:
   - id: returns
     version: 1.0.0
+# Fulfilment handles reserve-inventory, so the command (and the endpoint it's sent to) belongs here
+receives:
+  - id: reserve-inventory
+    version: 1.0.0
 entities:
   - id: stock-item
     version: 1.0.0

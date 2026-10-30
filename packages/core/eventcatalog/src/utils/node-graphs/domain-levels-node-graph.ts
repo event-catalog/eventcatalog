@@ -29,6 +29,8 @@ type Tree = { domain: any; groupId: string; parentId?: string }[];
 type Owners = Map<string, { domain: any; system?: any }>;
 
 const MESSAGE_TYPES = new Set(['events', 'commands', 'queries']);
+// Commands and queries belong to what receives them (it handles them), as events do to what sends them
+const RECEIVER_OWNED_TYPES = new Set(['commands', 'queries']);
 const SERVICE_TYPES = new Set(['services', 'agents']);
 
 const systemGroupId = (system: any) => `system-group-${system.data.id}-${system.data.version}`;
@@ -42,6 +44,45 @@ const isInside = (nodes: Map<string, any>, nodeId: string, groupId: string) => {
     if (node.parentId === groupId) return true;
   }
   return false;
+};
+
+/**
+ * Whether a node (or the services another domain stands for, `receivedBy`) says
+ * it receives a message: its id, and its version (or range, or latest). Undefined
+ * when it doesn't say what it receives
+ */
+const saysItReceives = (node: any, message: any, receivedBy?: any[]): boolean | undefined => {
+  const receives = (node?.data?.service ?? node?.data?.agent)?.receives ?? receivedBy;
+  if (!receives) return undefined;
+  const { id, version } = message?.data?.message ?? {};
+  return receives.some((pointer: any) => {
+    const received = pointer.data ?? pointer;
+    return received.id === id && versionMatches(version ?? '', received.version ?? 'latest');
+  });
+};
+
+/**
+ * What a message reaches, through any channels (not the channels themselves).
+ * Past a channel, only what doesn't say it receives something else: a channel
+ * can carry other messages, to consumers of their own
+ */
+const receiversThroughChannels = (messageId: string, nodes: Map<string, any>, receiversOf: Map<string, string[]>) => {
+  const message = nodes.get(messageId);
+  const receivers: string[] = [];
+  const seen = new Set([messageId]);
+  for (let current = [messageId]; current.length > 0; ) {
+    const throughChannel = current[0] !== messageId;
+    const next = current.flatMap((nodeId) => receiversOf.get(nodeId) ?? []).filter((nodeId) => !seen.has(nodeId));
+    next.forEach((nodeId) => seen.add(nodeId));
+    receivers.push(
+      ...next.filter(
+        (nodeId) =>
+          nodes.get(nodeId)?.type !== 'channels' && (!throughChannel || saysItReceives(nodes.get(nodeId), message) !== false)
+      )
+    );
+    current = next.filter((nodeId) => nodes.get(nodeId)?.type === 'channels');
+  }
+  return receivers;
 };
 
 /** A system shown as a single node (not expanded into what's inside it) */
@@ -181,16 +222,8 @@ export const collapseSystems = (
       isMessage(sender) ? [sender] : isChannel(sender) ? messagesThrough(sender, seen) : []
     );
   };
-  // Whether a node (or the services another domain stands for) says it receives a
-  // message: its id, and its version (or range, or latest)
-  const receives = (nodeId: string, messageId: string) => {
-    const data = nodesById.get(nodeId)?.data;
-    const message = nodesById.get(messageId)?.data?.message;
-    return ((data?.service ?? data?.agent)?.receives ?? receivedBy.get(nodeId) ?? []).some((pointer: any) => {
-      const { id, version } = pointer.data ?? pointer;
-      return id === message?.id && versionMatches(message?.version ?? '', version ?? 'latest');
-    });
-  };
+  const receives = (nodeId: string, messageId: string) =>
+    saysItReceives(nodesById.get(nodeId), nodesById.get(messageId), receivedBy.get(nodeId)) ?? false;
 
   // Where an edge is from and the messages it carries. A channel is one node for
   // all its messages, so an edge out of one is from each message sent through it
@@ -498,8 +531,8 @@ export const buildDomainGraph = ({
     if (boxId) replacedBy.set(replaced, boxId);
   });
 
-  const graphEdges = connectEdges(edges, new Map([...cardBoxes, ...replacedBy]), nodes);
-  placeMessagesWithPublishers(nodes, graphEdges, new Set(domainMessages.keys()));
+  const graphEdges = dropReceivesThroughChannels(connectEdges(edges, new Map([...cardBoxes, ...replacedBy]), nodes), nodes);
+  placeMessagesWithOwners(nodes, graphEdges, new Set(domainMessages.keys()));
   // What the services each other domain stands for receive, by the node shown for the domain
   const receivedBy = new Map<string, any[]>();
   replacedBy.forEach((nodeId, replaced) =>
@@ -675,21 +708,31 @@ const addDomainMessages = ({
 /**
  * Messages are placed in the first graph they appear in, which can be a
  * system consuming them. Moves each message into the system (or domain) of the
- * services publishing it, when they're all in the same one, and each channel
- * with the messages sent through it. Messages a domain
+ * services it belongs to, when they're all in the same one: an event's
+ * publishers, a command's or query's receivers (through any channels). Each
+ * channel goes with the messages sent through it. Messages a domain
  * sends or receives itself (`kept`) stay outside its box, where its edge to them
  * is drawn.
  */
-export const placeMessagesWithPublishers = (nodes: Map<string, any>, edges: any[], kept: Set<string> = new Set()) => {
-  const publisherGroups = new Map<string, Set<string | undefined>>();
+export const placeMessagesWithOwners = (nodes: Map<string, any>, edges: any[], kept: Set<string> = new Set()) => {
+  const ownerGroups = new Map<string, Set<string | undefined>>();
+  const addOwner = (messageId: string, owner: any) =>
+    ownerGroups.set(messageId, (ownerGroups.get(messageId) ?? new Set()).add(owner.parentId));
+  const receiversOf = new Map<string, string[]>();
+  edges.forEach((edge) => receiversOf.set(edge.source, [...(receiversOf.get(edge.source) ?? []), edge.target]));
   edges.forEach((edge) => {
     const publisher = nodes.get(edge.source);
-    if (!MESSAGE_TYPES.has(nodes.get(edge.target)?.type) || !SERVICE_TYPES.has(publisher?.type)) return;
-    const groups = publisherGroups.get(edge.target) || new Set();
-    groups.add(publisher.parentId);
-    publisherGroups.set(edge.target, groups);
+    const type = nodes.get(edge.target)?.type;
+    if (!MESSAGE_TYPES.has(type) || RECEIVER_OWNED_TYPES.has(type) || !SERVICE_TYPES.has(publisher?.type)) return;
+    addOwner(edge.target, publisher);
   });
-  publisherGroups.forEach((groups, messageId) => {
+  nodes.forEach((message, messageId) => {
+    if (!RECEIVER_OWNED_TYPES.has(message.type)) return;
+    receiversThroughChannels(messageId, nodes, receiversOf)
+      .filter((nodeId) => SERVICE_TYPES.has(nodes.get(nodeId)?.type))
+      .forEach((nodeId) => addOwner(messageId, nodes.get(nodeId)));
+  });
+  ownerGroups.forEach((groups, messageId) => {
     if (kept.has(messageId)) return;
     const [parentId] = [...groups];
     const message = nodes.get(messageId);
@@ -713,6 +756,27 @@ export const placeMessagesWithPublishers = (nodes: Map<string, any>, edges: any[
       }
     });
   }
+};
+
+/**
+ * Drops the edges drawn for domains receiving a message themselves (`domain-receives-`)
+ * when the message already reaches them through its channels, e.g. another
+ * domain listing a command in its `receives` whose service receives it from a
+ * queue: the domain is drawn receiving it from the queue, not from the command too.
+ */
+const dropReceivesThroughChannels = (edges: any[], nodes: Map<string, any>) => {
+  const isChannel = (nodeId: string) => nodes.get(nodeId)?.type === 'channels';
+  const reachesThroughChannels = (messageId: string, targetId: string) => {
+    const seen = new Set<string>();
+    for (let current = [messageId]; current.length > 0; ) {
+      const next = edges.filter((edge) => current.includes(edge.source) && isChannel(edge.target) && !seen.has(edge.target));
+      if (next.some((edge) => edges.some((out) => out.source === edge.target && out.target === targetId))) return true;
+      next.forEach((edge) => seen.add(edge.target));
+      current = next.map((edge) => edge.target);
+    }
+    return false;
+  };
+  return edges.filter((edge) => !edge.id.startsWith('domain-receives-') || !reachesThroughChannels(edge.source, edge.target));
 };
 
 /**
@@ -766,15 +830,19 @@ export const addContext = (contexts: Graph[], systems: { system: any }[], nodes:
 };
 
 /**
- * Marks cross-domain communication. Messages and channels only other domains
- * send to (e.g. a message this domain consumes, and the topic it comes
+ * Marks cross-domain communication. Events and channels only other domains
+ * send to (e.g. an event this domain consumes, and the topic it comes
  * through) are another domain's: they sit outside this domain, between the
  * domain sending them and their consumers, rather than in the system that
- * consumes them. They, and this domain's messages and channels that reach
+ * consumes them. Commands and queries belong to what receives them, so those
+ * (and the channels only they're sent through) only other domains receive are
+ * another domain's, and those this domain receives are its own, whoever sends
+ * them. Messages and channels other domains send, and this domain's that reach
  * other domains, are on a cross-domain path (`data.crossDomain`), as are the
  * edges to and from them and other domains.
  */
 export const markCrossDomain = (graph: Graph, otherDomainIds: Set<string>): Graph => {
+  const nodesById = new Map(graph.nodes.map((node) => [node.id, node]));
   const sendersOf = new Map<string, string[]>();
   const receiversOf = new Map<string, string[]>();
   graph.edges.forEach((edge) => {
@@ -801,16 +869,45 @@ export const markCrossDomain = (graph: Graph, otherDomainIds: Set<string>): Grap
     return reached;
   };
   // Sent only by other domains (or their messages and channels)
-  const external = spread(new Set(otherDomainIds), (nodeId, reached) => {
+  const sentByOthers = spread(new Set(otherDomainIds), (nodeId, reached) => {
     const senders = sendersOf.get(nodeId) || [];
     return senders.length > 0 && senders.every((sender) => reached.has(sender));
   });
+  // Received only by other domains (or their messages and channels)
+  const receivedByOthers = spread(new Set(otherDomainIds), (nodeId, reached) => {
+    const receivers = receiversOf.get(nodeId) || [];
+    return receivers.length > 0 && receivers.every((receiver) => reached.has(receiver));
+  });
   // Reaching other domains (directly, or through messages and channels that do)
-  const outgoing = spread(new Set(external), (nodeId, reached) =>
+  const outgoing = spread(new Set(sentByOthers), (nodeId, reached) =>
     (receiversOf.get(nodeId) || []).some((receiver) => reached.has(receiver))
   );
 
-  const isExternalCarrier = (node: any) => external.has(node.id) && !otherDomainIds.has(node.id);
+  // A command or query, or a channel only they're sent through (by channel, worked out once: routes can split and
+  // join again)
+  const receiverOwnedChannels = new Map<string, boolean>();
+  const isReceiverOwned = (nodeId: string): boolean => {
+    const node = nodesById.get(nodeId);
+    if (MESSAGE_TYPES.has(node?.type)) return RECEIVER_OWNED_TYPES.has(node.type);
+    if (node?.type !== 'channels') return false;
+    if (!receiverOwnedChannels.has(nodeId)) {
+      // Not the receiver's while it's being worked out, so a loop of channels ends
+      receiverOwnedChannels.set(nodeId, false);
+      const carried = (sendersOf.get(nodeId) || []).filter((sender) => nodesById.has(sender) && isCarrier(nodesById.get(sender)));
+      receiverOwnedChannels.set(nodeId, carried.length > 0 && carried.every(isReceiverOwned));
+    }
+    return receiverOwnedChannels.get(nodeId)!;
+  };
+  // A command or query only other domains receive (not counting consumers of other messages on its channels)
+  const receivedOnlyByOthers = (messageId: string) => {
+    const receivers = receiversThroughChannels(messageId, nodesById, receiversOf);
+    return receivers.length > 0 && receivers.every((receiver) => otherDomainIds.has(receiver));
+  };
+  const isExternalCarrier = (node: any) => {
+    if (!isCarrier(node) || otherDomainIds.has(node.id)) return false;
+    if (RECEIVER_OWNED_TYPES.has(node.type)) return receivedOnlyByOthers(node.id);
+    return (isReceiverOwned(node.id) ? receivedByOthers : sentByOthers).has(node.id);
+  };
   const onCrossDomainPath = (nodeId: string) => outgoing.has(nodeId);
   return {
     nodes: graph.nodes.map((node) => {
@@ -964,8 +1061,8 @@ const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: No
   // by services not in one) are hidden too, with the nodes either side connected
   // directly. A domain without systems or subdomains has no level 1.
   if (systems.length === 0 && tree.length === 1) return layoutLevels(detailedGraph);
-  // Built from the graph before messages only other domains send were moved
-  // out of the systems consuming them, so they collapse into those systems
+  // Built from the graph before other domains' messages were moved out of the
+  // systems they were drawn in, so they collapse into those systems
   const collapsed = collapseSystems(
     { ...graph, edges: detailedGraph.edges },
     systems.map(({ system }) => system),

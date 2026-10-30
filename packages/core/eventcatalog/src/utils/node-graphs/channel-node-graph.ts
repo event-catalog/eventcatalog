@@ -85,13 +85,13 @@ export const getNodesAndEdgesForChannelChain = ({
     }
   }
 
-  // Connect the last channel to the target
+  // Connect the last channel to the target, which accepts a command or query (it handles them) and consumes an event
   edges.push(
     createEdge({
       id: generatedIdForEdge(channelChain[channelChain.length - 1], target),
       source: generateIdForNode(channelChain[channelChain.length - 1]),
       target: generateIdForNode(target),
-      label: 'consumes',
+      label: ['commands', 'queries'].includes(source.collection) ? 'accepts' : 'consumes',
       data: { customColor: getColorFromString(source.data.id) },
     })
   );

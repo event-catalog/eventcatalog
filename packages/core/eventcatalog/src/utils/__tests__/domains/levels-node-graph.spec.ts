@@ -6,7 +6,7 @@ import {
   collectOwners,
   getNodesAndEdges,
   markCrossDomain,
-  placeMessagesWithPublishers,
+  placeMessagesWithOwners,
 } from '@utils/node-graphs/domain-levels-node-graph';
 import { getDomains } from '@utils/collections/domains';
 import { hideMessageNodes } from '@eventcatalog/visualiser/layout';
@@ -481,7 +481,7 @@ describe('markCrossDomain', () => {
   });
 });
 
-describe('placeMessagesWithPublishers', () => {
+describe('placeMessagesWithOwners', () => {
   it('moves a message from the system consuming it to the system publishing it', () => {
     const nodes = new Map<string, any>([
       ['consumer-group', { id: 'consumer-group', type: 'system-group' }],
@@ -491,7 +491,7 @@ describe('placeMessagesWithPublishers', () => {
       ['Message', { id: 'Message', type: 'events', parentId: 'consumer-group' }],
     ]);
 
-    placeMessagesWithPublishers(nodes, [
+    placeMessagesWithOwners(nodes, [
       { id: 'publishes', source: 'Publisher', target: 'Message' },
       { id: 'consumes', source: 'Message', target: 'Consumer' },
     ]);
@@ -508,13 +508,176 @@ describe('placeMessagesWithPublishers', () => {
       ['Topic', { id: 'Topic', type: 'channels', parentId: 'consumer-group' }],
     ]);
 
-    placeMessagesWithPublishers(nodes, [
+    placeMessagesWithOwners(nodes, [
       { id: 'publishes', source: 'Publisher', target: 'Message' },
       { id: 'through', source: 'Message', target: 'Topic' },
       { id: 'consumes', source: 'Topic', target: 'Consumer' },
     ]);
 
     expect(nodes.get('Topic').parentId).toBe('publisher-group');
+  });
+  it('moves a command, and the channel it is sent through, to the system receiving it', () => {
+    const nodes = new Map<string, any>([
+      ['sender-group', { id: 'sender-group', type: 'system-group' }],
+      ['receiver-group', { id: 'receiver-group', type: 'system-group' }],
+      ['Sender', { id: 'Sender', type: 'services', parentId: 'sender-group' }],
+      ['Receiver', { id: 'Receiver', type: 'services', parentId: 'receiver-group' }],
+      ['DoWork', { id: 'DoWork', type: 'commands', parentId: 'sender-group' }],
+      ['GetWork', { id: 'GetWork', type: 'queries', parentId: 'sender-group' }],
+      ['Queue', { id: 'Queue', type: 'channels', parentId: 'sender-group' }],
+    ]);
+
+    placeMessagesWithOwners(nodes, [
+      { id: 'sends', source: 'Sender', target: 'DoWork' },
+      { id: 'through', source: 'DoWork', target: 'Queue' },
+      { id: 'accepts', source: 'Queue', target: 'Receiver' },
+      { id: 'asks', source: 'Sender', target: 'GetWork' },
+      { id: 'answers', source: 'GetWork', target: 'Receiver' },
+    ]);
+
+    expect(nodes.get('DoWork').parentId).toBe('receiver-group');
+    expect(nodes.get('Queue').parentId).toBe('receiver-group');
+    expect(nodes.get('GetWork').parentId).toBe('receiver-group');
+  });
+});
+
+// Ordering's Checkout service sends ReserveInventory through Fulfilment's queue to Fulfilment's Inventory service
+describe('commands between domains', () => {
+  const node = (id: string, type: string, parentId?: string) => ({ id, type, parentId, data: {} });
+  const edge = (source: string, target: string) => ({ id: `${source}-${target}`, source, target });
+  // A domain's diagram, from what its system's graph drew: the other side shown as its domain
+  const draw = (nodes: any[], edges: any[], otherDomainId: string) => {
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+    placeMessagesWithOwners(byId, edges);
+    return new Map(markCrossDomain({ nodes: [...byId.values()], edges }, new Set([otherDomainId])).nodes.map((n) => [n.id, n]));
+  };
+
+  it("draws the command and its channel in the receiving domain, on the receiving domain's diagram", () => {
+    const byId = draw(
+      [
+        node('fulfilment', 'domain-group'),
+        node('inventory', 'system-group', 'fulfilment'),
+        node('InventoryService', 'services', 'inventory'),
+        node('ReserveInventory', 'commands', 'inventory'),
+        node('reservations', 'channels', 'inventory'),
+        node('domain-Ordering', 'context-domain'),
+      ],
+      [
+        edge('domain-Ordering', 'ReserveInventory'),
+        edge('ReserveInventory', 'reservations'),
+        edge('reservations', 'InventoryService'),
+      ],
+      'domain-Ordering'
+    );
+
+    expect(byId.get('ReserveInventory')).toMatchObject({ parentId: 'inventory', data: { crossDomain: true } });
+    expect(byId.get('ReserveInventory')!.data.otherDomain).toBeUndefined();
+    expect(byId.get('reservations')).toMatchObject({ parentId: 'inventory', data: { crossDomain: true } });
+  });
+
+  it("draws the command and its channel outside the sending domain, on the sending domain's diagram", () => {
+    const byId = draw(
+      [
+        node('ordering', 'domain-group'),
+        node('checkout', 'system-group', 'ordering'),
+        node('CheckoutService', 'services', 'checkout'),
+        node('ReserveInventory', 'commands', 'checkout'),
+        node('reservations', 'channels', 'checkout'),
+        node('domain-Fulfilment', 'context-domain'),
+      ],
+      [
+        edge('CheckoutService', 'ReserveInventory'),
+        edge('ReserveInventory', 'reservations'),
+        edge('reservations', 'domain-Fulfilment'),
+      ],
+      'domain-Fulfilment'
+    );
+
+    expect(byId.get('ReserveInventory')).toMatchObject({ parentId: undefined, data: { otherDomain: true, crossDomain: true } });
+    expect(byId.get('reservations')).toMatchObject({ parentId: undefined, data: { otherDomain: true, crossDomain: true } });
+  });
+
+  it('draws every channel a command goes through outside the sending domain, when its routes split and join again', () => {
+    // ReserveInventory -> gateway -> (east, west) -> reservations -> Fulfilment
+    const byId = draw(
+      [
+        node('ordering', 'domain-group'),
+        node('checkout', 'system-group', 'ordering'),
+        node('CheckoutService', 'services', 'checkout'),
+        node('ReserveInventory', 'commands', 'checkout'),
+        ...['gateway', 'east', 'west', 'reservations'].map((id) => node(id, 'channels', 'checkout')),
+        node('domain-Fulfilment', 'context-domain'),
+      ],
+      [
+        edge('CheckoutService', 'ReserveInventory'),
+        edge('ReserveInventory', 'gateway'),
+        edge('gateway', 'east'),
+        edge('gateway', 'west'),
+        edge('east', 'reservations'),
+        edge('west', 'reservations'),
+        edge('reservations', 'domain-Fulfilment'),
+      ],
+      'domain-Fulfilment'
+    );
+
+    ['ReserveInventory', 'gateway', 'east', 'west', 'reservations'].forEach((id) =>
+      expect(byId.get(id)).toMatchObject({ parentId: undefined, data: { otherDomain: true } })
+    );
+  });
+
+  it("doesn't count a consumer of another message on the same channel as receiving the command", () => {
+    // One bus carries ReserveInventory (to Fulfilment) and OrderPlaced (to Ordering's own Audit service)
+    const message = (id: string, type: string) => ({
+      ...node(id, type, 'checkout'),
+      data: { message: { id, version: '1.0.0' } },
+    });
+    const byId = draw(
+      [
+        node('ordering', 'domain-group'),
+        node('checkout', 'system-group', 'ordering'),
+        node('audit', 'system-group', 'ordering'),
+        node('CheckoutService', 'services', 'checkout'),
+        {
+          ...node('AuditService', 'services', 'audit'),
+          data: { service: { id: 'AuditService', receives: [{ id: 'OrderPlaced', version: '1.0.0' }] } },
+        },
+        message('ReserveInventory', 'commands'),
+        message('OrderPlaced', 'events'),
+        node('bus', 'channels', 'checkout'),
+        node('domain-Fulfilment', 'context-domain'),
+      ],
+      [
+        edge('CheckoutService', 'ReserveInventory'),
+        edge('CheckoutService', 'OrderPlaced'),
+        edge('ReserveInventory', 'bus'),
+        edge('OrderPlaced', 'bus'),
+        edge('bus', 'domain-Fulfilment'),
+        edge('bus', 'AuditService'),
+      ],
+      'domain-Fulfilment'
+    );
+
+    // Fulfilment's, so outside, rather than with the Audit service
+    expect(byId.get('ReserveInventory')).toMatchObject({ parentId: undefined, data: { otherDomain: true } });
+    expect(byId.get('OrderPlaced')?.parentId).toBe('checkout');
+  });
+
+  it('keeps an event, and its channel, with the domain publishing it', () => {
+    const byId = draw(
+      [
+        node('ordering', 'domain-group'),
+        node('checkout', 'system-group', 'ordering'),
+        node('CheckoutService', 'services', 'checkout'),
+        node('OrderPlaced', 'events', 'checkout'),
+        node('orders', 'channels', 'checkout'),
+        node('domain-Fulfilment', 'context-domain'),
+      ],
+      [edge('CheckoutService', 'OrderPlaced'), edge('OrderPlaced', 'orders'), edge('orders', 'domain-Fulfilment')],
+      'domain-Fulfilment'
+    );
+
+    expect(byId.get('OrderPlaced')).toMatchObject({ parentId: 'checkout', data: { crossDomain: true } });
+    expect(byId.get('orders')).toMatchObject({ parentId: 'checkout', data: { crossDomain: true } });
   });
 });
 
@@ -626,6 +789,62 @@ describe('domain-level messages', () => {
     const { edges } = build(ledger);
 
     expect(edges).toContain('domain-Payments-1.0.0->PaymentTaken-1.0.0');
+  });
+
+  it('connects another domain receiving a message itself only through its service, when one of its services receives it', () => {
+    // Payments receives ProcessPayment itself, and so does its Payment service, through a queue
+    const paymentService = entry('services', 'PaymentService', { receives: [processPayment] });
+    const withService = { ...payments, data: { ...payments.data, services: [paymentService] } };
+    const { edges } = build(
+      orders,
+      [
+        {
+          service: orderService,
+          graph: {
+            nodes: [
+              { id: 'OrderService-1.0.0', type: 'services', position: { x: 0, y: 0 }, data: {} },
+              { id: 'ProcessPayment-1.0.0', type: 'commands', position: { x: 0, y: 0 }, data: {} },
+              { id: 'payments-queue-1.0.0', type: 'channels', position: { x: 0, y: 0 }, data: {} },
+              { id: 'PaymentService-1.0.0', type: 'services', position: { x: 0, y: 0 }, data: {} },
+            ],
+            edges: [
+              { id: 'pays', source: 'OrderService-1.0.0', target: 'ProcessPayment-1.0.0' },
+              { id: 'queued', source: 'ProcessPayment-1.0.0', target: 'payments-queue-1.0.0' },
+              { id: 'pulls', source: 'payments-queue-1.0.0', target: 'PaymentService-1.0.0' },
+            ],
+          },
+        },
+      ],
+      { domains: [withService, orders, ledger, accounts], catalogServices: [...catalogServices, paymentService] }
+    );
+
+    expect(edges).toContain('payments-queue-1.0.0->domain-Payments-1.0.0');
+    expect(edges).not.toContain('ProcessPayment-1.0.0->domain-Payments-1.0.0');
+  });
+
+  it("connects another domain receiving a message itself when its service receiving it isn't drawn", () => {
+    // The catalog's Payment service receives ProcessPayment, but the Order service's diagram doesn't draw it (e.g.
+    // Payments pins a version of it the latest no longer matches)
+    const paymentService = entry('services', 'PaymentService', { receives: [processPayment] });
+    const withService = { ...payments, data: { ...payments.data, services: [paymentService] } };
+    const { edges } = build(
+      orders,
+      [
+        {
+          service: orderService,
+          graph: {
+            nodes: [
+              { id: 'OrderService-1.0.0', type: 'services', position: { x: 0, y: 0 }, data: {} },
+              { id: 'ProcessPayment-1.0.0', type: 'commands', position: { x: 0, y: 0 }, data: {} },
+            ],
+            edges: [{ id: 'pays', source: 'OrderService-1.0.0', target: 'ProcessPayment-1.0.0' }],
+          },
+        },
+      ],
+      { domains: [withService, orders, ledger, accounts], catalogServices: [...catalogServices, paymentService] }
+    );
+
+    expect(edges).toContain('ProcessPayment-1.0.0->domain-Payments-1.0.0');
   });
 
   it('leaves out other domains only receiving the same message as the domain', () => {
