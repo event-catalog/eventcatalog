@@ -1029,7 +1029,7 @@ describe('agents outside the domain', () => {
     ],
   };
 
-  const build = (focused = ordering) => {
+  const build = (focused = ordering, graph = systemGraph) => {
     const all = domains.map((d) => (d.data.id === focused.data.id ? focused : d));
     const tree = buildDomainTree(focused, (id) => all.find((d) => d.data.id === id));
     const { owners, parentDomainOf } = collectOwners(all);
@@ -1038,7 +1038,7 @@ describe('agents outside the domain', () => {
       owners,
       parentDomainOf,
       systems: [{ system: ordersSystem, groupId: tree[0].groupId }],
-      systemGraphs: [systemGraph],
+      systemGraphs: [graph],
       looseServices: [],
       serviceGraphs: [],
       mode: 'full',
@@ -1067,6 +1067,29 @@ describe('agents outside the domain', () => {
     const { nodes } = build();
 
     expect(nodes.get('OrderService-1.0.0').parentId).toBe(groupId);
+  });
+
+  it('moves the event an agent in no domain publishes out of the system, with the agent and its channel', () => {
+    // AuditAgent publishes AuditLogged through the audit topic, and OrderService consumes it
+    const graph = {
+      nodes: [
+        ...systemGraph.nodes,
+        { id: 'AuditLogged-1.0.0', type: 'events', parentId: groupId, position: { x: 0, y: 0 }, data: {} },
+        { id: 'audit-topic-1.0.0', type: 'channels', parentId: groupId, position: { x: 0, y: 0 }, data: {} },
+      ],
+      edges: [
+        ...systemGraph.edges,
+        { id: 'logs', source: 'AuditAgent-1.0.0', target: 'AuditLogged-1.0.0' },
+        { id: 'through', source: 'AuditLogged-1.0.0', target: 'audit-topic-1.0.0' },
+        { id: 'consumes', source: 'audit-topic-1.0.0', target: 'OrderService-1.0.0' },
+      ],
+    };
+    const { nodes } = build(ordering, graph);
+
+    expect(nodes.get('AuditLogged-1.0.0').parentId).toBeUndefined();
+    expect(nodes.get('audit-topic-1.0.0').parentId).toBeUndefined();
+    // Still in the system: OrderService publishes it
+    expect(nodes.get('OrderCancelled-1.0.0').parentId).toBe(groupId);
   });
 
   it("draws an agent the domain lists itself in the domain's box, outside the system", () => {

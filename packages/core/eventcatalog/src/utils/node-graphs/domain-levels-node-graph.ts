@@ -733,7 +733,8 @@ export const placeMessagesWithOwners = (nodes: Map<string, any>, edges: any[], k
     if (kept.has(messageId)) return;
     const [parentId] = [...groups];
     const message = nodes.get(messageId);
-    if (groups.size === 1 && parentId && message.parentId !== parentId) {
+    // Owners are drawn nodes, so no parent means outside every box (e.g. a service or agent in no domain)
+    if (groups.size === 1 && message.parentId !== parentId) {
       nodes.set(messageId, { ...message, parentId, extent: undefined });
     }
   });
@@ -745,9 +746,10 @@ export const placeMessagesWithOwners = (nodes: Map<string, any>, edges: any[], k
     moved = false;
     nodes.forEach((channel, channelId) => {
       if (channel.type !== 'channels' || kept.has(channelId)) return;
-      const groups = new Set((sendersOf.get(channelId) ?? []).map((sender) => nodes.get(sender)?.parentId));
+      const senders = (sendersOf.get(channelId) ?? []).filter((sender) => nodes.has(sender));
+      const groups = new Set(senders.map((sender) => nodes.get(sender).parentId));
       const [parentId] = [...groups];
-      if (groups.size === 1 && parentId && channel.parentId !== parentId) {
+      if (groups.size === 1 && channel.parentId !== parentId) {
         nodes.set(channelId, { ...channel, parentId, extent: undefined });
         moved = true;
       }
