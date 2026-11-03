@@ -2,6 +2,7 @@ import type { APIContext, APIRoute } from 'astro';
 import type { SpecificationType } from '@utils/collections/util';
 import {
   getRawSpecificationResponse,
+  isRawSpecificationFile,
   notFound,
   toRawSpecificationPaths,
   type SpecificationPage,
@@ -27,7 +28,7 @@ export const createLatestServiceRawSpecificationRoute = (type: SpecificationType
       props,
     });
 
-    if (!pageData || pageData.filename !== params.file) return notFound('Specification not found');
+    if (!pageData || !isRawSpecificationFile(pageData, params.file)) return notFound('Specification not found');
 
     return getRawSpecificationResponse(type, pageData);
   };

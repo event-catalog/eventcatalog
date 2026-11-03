@@ -31,6 +31,16 @@ export type SpecificationPage = {
 };
 
 /**
+ * The name a specification's file has in its URL: a remote specification's file name without the URL's query
+ * or fragment (orders.yaml?token=abc is orders.yaml), which would otherwise end the URL's path
+ */
+export const getRawSpecificationFileName = (filename: string) => filename.split(/[?#]/, 1)[0];
+
+/** Whether a raw specification URL's `file` names this specification's file */
+export const isRawSpecificationFile = (pageData: SpecificationPageData, file: string | undefined) =>
+  getRawSpecificationFileName(pageData.filename) === file;
+
+/**
  * The URL of a specification's file, as written (JSON, YAML, GraphQL...): its page's URL followed by the
  * file's name, e.g. /docs/services/Orders/1.0.0/asyncapi/orders/orders.yaml
  */
@@ -50,7 +60,7 @@ export const getRawSpecificationUrl = ({
   filenameWithoutExtension: string;
 }) =>
   buildUrl(
-    `/docs/${collection}/${id}/${version}/${PAGE_SEGMENT_BY_SPECIFICATION_TYPE[type]}/${filenameWithoutExtension}/${filename}`,
+    `/docs/${collection}/${id}/${version}/${PAGE_SEGMENT_BY_SPECIFICATION_TYPE[type]}/${filenameWithoutExtension}/${getRawSpecificationFileName(filename)}`,
     true
   );
 
@@ -95,7 +105,7 @@ export const getRawSpecificationResponse = async (
 export const toRawSpecificationPaths = (paths: StaticPath[]): StaticPath[] =>
   paths
     .filter(({ props }) => isRemote(props.path) || resourceFileExists(props, props.path))
-    .map(({ params, props }) => ({ params: { ...params, file: props.filename }, props }));
+    .map(({ params, props }) => ({ params: { ...params, file: getRawSpecificationFileName(props.filename) }, props }));
 
 /**
  * The route that serves a specification's file next to its page:
@@ -107,7 +117,7 @@ export const createRawSpecificationRoute = (type: SpecificationType, Page: Speci
   const GET: APIRoute = async ({ params, props }: APIContext) => {
     const pageData: SpecificationPageData | undefined = await Page.getData({ params, props });
 
-    if (!pageData || pageData.filename !== params.file) return notFound('Specification not found');
+    if (!pageData || !isRawSpecificationFile(pageData, params.file)) return notFound('Specification not found');
 
     return getRawSpecificationResponse(type, pageData);
   };

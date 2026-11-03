@@ -72,6 +72,19 @@ describe('getRawSpecificationUrl', () => {
     ).toBe('/docs/services/Orders/1.0.0/asyncapi/orders-asyncapi/orders-asyncapi.yaml');
   });
 
+  it("leaves a remote specification's query off its file name, so it stays part of the URL's path", () => {
+    expect(
+      getRawSpecificationUrl({
+        collection: 'services',
+        id: 'Orders',
+        version: '1.0.0',
+        type: 'asyncapi',
+        filename: 'payments.yml?token=abc#v2',
+        filenameWithoutExtension: 'payments',
+      })
+    ).toBe('/docs/services/Orders/1.0.0/asyncapi/payments/payments.yml');
+  });
+
   it('puts OpenAPI files under /spec, where OpenAPI pages live', () => {
     expect(
       getRawSpecificationUrl({
@@ -212,5 +225,32 @@ describe('createRawSpecificationRoute', () => {
     } as any);
 
     expect(response.status).toBe(404);
+  });
+
+  it('serves a remote specification whose URL has a query at its file name without the query', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('asyncapi: 2.6.0\n')));
+    const remotePath = 'https://specs.example.com/payments.yml?token=abc';
+    const remote = {
+      ...pageDataFor(remotePath),
+      data: { ...service.data, specifications: [{ type: 'asyncapi', path: remotePath }] },
+      filename: 'payments.yml?token=abc',
+      filenameWithoutExtension: 'payments',
+    };
+    const RemotePage = {
+      getStaticPaths: vi
+        .fn()
+        .mockResolvedValue([
+          { params: { type: 'services', id: 'Orders', version: '1.0.0', filename: 'payments' }, props: remote },
+        ]),
+      getData: vi.fn(async ({ props }: { props: any }) => props),
+    };
+    const { getStaticPaths, GET } = createRawSpecificationRoute('asyncapi', RemotePage);
+
+    const [staticPath] = await getStaticPaths();
+    const response = await GET({ params: staticPath.params, props: remote } as any);
+
+    expect(staticPath.params.file).toBe('payments.yml');
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('asyncapi: 2.6.0\n');
   });
 });

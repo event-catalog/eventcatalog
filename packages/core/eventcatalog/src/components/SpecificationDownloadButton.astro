@@ -1,14 +1,16 @@
 ---
 import { Download } from 'lucide-react';
+import { getRawSpecificationFileName } from '@utils/raw-specification';
 
 interface Props {
   /** The specification file's URL, from getRawSpecificationUrl */
   href: string;
-  /** The name the file is saved as */
+  /** The specification's file name; a remote one's query or fragment is left off the name it's saved as */
   filename: string;
 }
 
-const { href, filename } = Astro.props;
+const filename = getRawSpecificationFileName(Astro.props.filename);
+const { href } = Astro.props;
 ---
 
 <a
