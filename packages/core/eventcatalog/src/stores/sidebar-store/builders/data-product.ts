@@ -119,9 +119,13 @@ export const buildDataProductSections = (
     context.resourceDocCategories
   );
 
-  // Resolve inputs and outputs to their proper sidebar references
-  const resolvedInputs = inputs.map((input) => resolvePointerToRef(input, context)).filter(Boolean) as string[];
-  const resolvedOutputs = outputs.map((output) => resolvePointerToRef(output, context)).filter(Boolean) as string[];
+  // Resolve inputs and outputs to their proper sidebar references. The same resource can be
+  // listed more than once (e.g. one output per data contract), so show each resource only once.
+  const resolveRefs = (pointers: { id: string; version?: string }[]) => [
+    ...new Set(pointers.map((pointer) => resolvePointerToRef(pointer, context)).filter((ref): ref is string => !!ref)),
+  ];
+  const resolvedInputs = resolveRefs(inputs);
+  const resolvedOutputs = resolveRefs(outputs);
 
   // Extract data contracts from outputs that have a contract field
   const dataContracts = outputs

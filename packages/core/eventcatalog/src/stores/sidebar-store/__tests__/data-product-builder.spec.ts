@@ -319,6 +319,41 @@ describe('buildDataProductNode', () => {
       expect((outputsSection as any)?.pages).toContain('service:ReportingService:1.0.0');
     });
 
+    it('lists a resource once when several outputs point at it (one per data contract), keeping every contract', () => {
+      const dataProduct = createMockDataProduct({
+        inputs: [
+          { id: 'service-db', version: '1.0.0' },
+          { id: 'service-db', version: '1.0.0' },
+        ],
+        outputs: [
+          {
+            id: 'data-warehouse',
+            version: '1.0.0',
+            contract: { path: 'table_1.json', name: 'table 1', type: 'json-schema' },
+          },
+          {
+            id: 'data-warehouse',
+            version: '1.0.0',
+            contract: { path: 'table_2.json', name: 'table 2', type: 'json-schema' },
+          },
+        ],
+      }) as any;
+      const context = {
+        ...emptyContext,
+        containers: [createMockContainer('service-db', '1.0.0'), createMockContainer('data-warehouse', '1.0.0')],
+      };
+
+      const result = buildDataProductNode(dataProduct, [], context);
+      const pages = result.pages as any[];
+
+      expect(pages.find((p: any) => p.title === 'Inputs')?.pages).toEqual(['container:service-db:1.0.0']);
+      expect(pages.find((p: any) => p.title === 'Outputs')?.pages).toEqual(['container:data-warehouse:1.0.0']);
+      expect(pages.find((p: any) => p.title === 'Data Contracts')?.pages.map((p: any) => p.title)).toEqual([
+        'table 1 (JSON)',
+        'table 2 (JSON)',
+      ]);
+    });
+
     it('does not render Outputs section when no outputs are defined', () => {
       const dataProduct = createMockDataProduct({ outputs: [] });
       const result = buildDataProductNode(dataProduct, [], emptyContext);
