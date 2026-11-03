@@ -282,6 +282,13 @@ function resolvePointer(pointer: { id: string; version?: string }) {
   };
 }
 
+// Resolve a list of pointers, listing each resource once (a data product can point at the
+// same resource more than once, e.g. one output per data contract)
+function resolvePointers(pointers: { id: string; version?: string }[] = []) {
+  const resolved = pointers.map(resolvePointer).filter((item) => item !== null);
+  return [...new Map(resolved.map((item) => [`${item.collection}:${item.data.id}:${item.data.version}`, item])).values()];
+}
+
 // Build a Set of subdomain IDs (domains that are nested within other domains)
 const allSubdomainIds = new Set(
   domains.flatMap((d: any) => (d.data?.domains || []).map((sd: any) => sd.data?.id || sd.id)).filter(Boolean)
@@ -368,8 +375,8 @@ const tableData = enrichedData.map((d: any) => ({
     flows: d.data?.flows?.map(mapToItem) ?? [],
     servicesThatWriteToContainer: d.data?.servicesThatWriteToContainer?.map(mapToItem) ?? [],
     servicesThatReadFromContainer: d.data?.servicesThatReadFromContainer?.map(mapToItem) ?? [],
-    inputs: d.data?.inputs?.map(resolvePointer).filter(Boolean) ?? [],
-    outputs: d.data?.outputs?.map(resolvePointer).filter(Boolean) ?? [],
+    inputs: resolvePointers(d.data?.inputs),
+    outputs: resolvePointers(d.data?.outputs),
   },
 }));
 
