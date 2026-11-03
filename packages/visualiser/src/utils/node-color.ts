@@ -98,8 +98,12 @@ export function resolveNodeColor(color?: string): NodeColor | undefined {
   if (!value) return undefined;
 
   // `blue`, or `blue-600`: the shade is dropped, a node needs the colour's whole range
-  const tailwind = TAILWIND_COLORS[value.replace(/-\d{2,3}$/, "")];
-  if (tailwind) return { ...tailwind, rgb: rgbOf(tailwind["500"]) };
+  const name = value.replace(/-\d{2,3}$/, "");
+  // Own names only: `constructor` or `__proto__` aren't colours
+  if (Object.prototype.hasOwnProperty.call(TAILWIND_COLORS, name)) {
+    const tailwind = TAILWIND_COLORS[name];
+    return { ...tailwind, rgb: rgbOf(tailwind["500"]) };
+  }
 
   const hex = value.startsWith("#") ? parseHex(value) : undefined;
   if (hex) {

@@ -28,12 +28,18 @@ describe("resolveNodeColor", () => {
     expect(resolveNodeColor("#f00")?.["500"]).toBe("#ff0000");
   });
 
-  it.each([undefined, "", "not-a-colour", "rgb(1, 2, 3)", "#12345"])(
-    "returns undefined for %s",
-    (value) => {
-      expect(resolveNodeColor(value)).toBeUndefined();
-    },
-  );
+  it.each([
+    undefined,
+    "",
+    "not-a-colour",
+    "rgb(1, 2, 3)",
+    "#12345",
+    "constructor",
+    "__proto__",
+    "toString",
+  ])("returns undefined for %s", (value) => {
+    expect(resolveNodeColor(value)).toBeUndefined();
+  });
 });
 
 describe("getNodeCardStyle", () => {
