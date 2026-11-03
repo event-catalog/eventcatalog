@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { type CSSProperties, memo, useMemo } from "react";
 import { Bot } from "lucide-react";
 import { Node, Handle, Position } from "@xyflow/react";
 import { useNodeHasConnections } from "../utils/node-connections";
@@ -11,13 +11,20 @@ import {
 } from "./OwnerIndicator";
 import { LINE_CLAMP_STYLE, useDarkMode, HANDLE_GLOW } from "./shared-styles";
 import { CustomIcon, isIconPath, resolveIconUrl } from "../utils/custom-icon";
+import { getNodeCardStyle, useNodeColorStyles } from "../utils/node-color";
 import { TruncatedResourceName } from "./TruncatedResourceName";
 
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(" ");
 }
 
-function GlowHandle({ side }: { side: "left" | "right" }) {
+function GlowHandle({
+  side,
+  colorStyle,
+}: {
+  side: "left" | "right";
+  colorStyle?: CSSProperties;
+}) {
   return (
     <div
       className="ec-handle-glow"
@@ -33,6 +40,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.dataProduct,
+        ...colorStyle,
         pointerEvents: "none",
       }}
     />
@@ -93,15 +101,17 @@ function Agent(props: AgentNode) {
   } = props.data.agent;
   const mode = props.data.mode || "simple";
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
+  const nodeColor = useNodeColorStyles(styles?.node?.color);
+  const typeLabel = styles?.node?.label || "Agent";
   const normalizedOwners = useMemo(() => normalizeOwners(owners), [owners]);
   const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
     : "rgba(239,68,68,0.1)";
-  const draftStripe = isDark
-    ? "rgba(14,165,233,0.25)"
-    : "rgba(14,165,233,0.15)";
+  const draftStripe =
+    nodeColor?.draftStripe ??
+    (isDark ? "rgba(14,165,233,0.25)" : "rgba(14,165,233,0.15)");
   const providerLabel = model?.provider;
   const providerIconSrc = getProviderIconSrc(providerLabel, isDark);
   const modelLabel = model?.name;
@@ -124,6 +134,7 @@ function Agent(props: AgentNode) {
             ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), var(--ec-agent-node-bg, rgb(var(--ec-card-bg)))`
             : "var(--ec-agent-node-bg, rgb(var(--ec-card-bg)))",
         boxShadow: "0 2px 12px rgba(14, 165, 233, 0.15)",
+        ...(nodeColor && getNodeCardStyle(nodeColor, { deprecated, draft })),
       }}
     >
       <Handle
@@ -139,8 +150,12 @@ function Agent(props: AgentNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {connected.target && <GlowHandle side="left" />}
-      {connected.source && <GlowHandle side="right" />}
+      {connected.target && (
+        <GlowHandle side="left" colorStyle={nodeColor?.glow} />
+      )}
+      {connected.source && (
+        <GlowHandle side="right" colorStyle={nodeColor?.glow} />
+      )}
 
       <div className="absolute -top-2.5 left-2.5 flex items-center gap-1.5 z-10">
         <span
@@ -148,9 +163,10 @@ function Agent(props: AgentNode) {
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
             deprecated ? "bg-red-500" : "bg-sky-500",
           )}
+          style={deprecated ? undefined : nodeColor?.badge}
         >
           <Bot className="w-2.5 h-2.5" strokeWidth={2.5} />
-          Agent
+          {typeLabel}
           {draft && " (Draft)"}
           {deprecated && " (Deprecated)"}
         </span>
@@ -172,7 +188,7 @@ function Agent(props: AgentNode) {
           <div className="flex items-baseline gap-1 min-w-0">
             <TruncatedResourceName
               value={name}
-              tooltipBorderColor="#0ea5e9"
+              tooltipBorderColor={nodeColor?.tooltipBorder ?? "#0ea5e9"}
               className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
             >
               {name}
@@ -221,8 +237,10 @@ function Agent(props: AgentNode) {
         <OwnerIndicator
           owners={normalizedOwners}
           accentColor="bg-sky-400"
-          borderColor="rgba(14,165,233,0.08)"
+          borderColor={nodeColor?.ownerBorder ?? "rgba(14,165,233,0.08)"}
           iconClass="text-sky-300"
+          accentStyle={nodeColor?.ownerAccent}
+          iconStyle={nodeColor?.ownerIcon}
         />
       </div>
     </div>

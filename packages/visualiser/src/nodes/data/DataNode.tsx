@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { type CSSProperties, memo, useMemo } from "react";
 import { Database } from "lucide-react";
 import {
   OwnerIndicator,
@@ -17,10 +17,17 @@ import {
   HANDLE_GLOW,
 } from "../shared-styles";
 import { CustomIcon, isIconPath } from "../../utils/custom-icon";
+import { getNodeCardStyle, useNodeColorStyles } from "../../utils/node-color";
 import { TruncatedResourceName } from "../TruncatedResourceName";
 import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
 
-function GlowHandle({ side }: { side: "left" | "right" }) {
+function GlowHandle({
+  side,
+  colorStyle,
+}: {
+  side: "left" | "right";
+  colorStyle?: CSSProperties;
+}) {
   return (
     <div
       className="ec-handle-glow"
@@ -36,6 +43,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.data,
+        ...colorStyle,
         pointerEvents: "none",
       }}
     />
@@ -87,6 +95,8 @@ function PostItData(props: DataNode) {
   } = props.data.data;
   const mode = props.data.mode || "simple";
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
+  const nodeColor = useNodeColorStyles(styles?.node?.color);
+  const typeLabel = styles?.node?.label || "Data";
 
   return (
     <div
@@ -94,6 +104,7 @@ function PostItData(props: DataNode) {
         "relative min-w-44 max-w-56 min-h-[120px]",
         props?.selected ? "ring-2 ring-indigo-400/60 ring-offset-1" : "",
       )}
+      style={nodeColor?.ring}
     >
       {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
@@ -114,6 +125,7 @@ function PostItData(props: DataNode) {
         className="absolute inset-0"
         style={{
           background:
+            nodeColor?.paper ??
             "linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 40%, #6366f1 100%)",
           boxShadow:
             "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
@@ -121,7 +133,7 @@ function PostItData(props: DataNode) {
           border: deprecated
             ? "2px dashed rgba(239, 68, 68, 0.5)"
             : draft
-              ? "2px dashed rgba(99, 102, 241, 0.5)"
+              ? `2px dashed ${nodeColor?.paperDraftBorder ?? "rgba(99, 102, 241, 0.5)"}`
               : "none",
         }}
       >
@@ -136,7 +148,7 @@ function PostItData(props: DataNode) {
             height: 0,
             borderStyle: "solid",
             borderWidth: "18px 0 0 18px",
-            borderColor: "#4f46e5 transparent transparent transparent",
+            borderColor: `${nodeColor?.corner ?? "#4f46e5"} transparent transparent transparent`,
             opacity: 0.3,
           }}
         />
@@ -150,9 +162,13 @@ function PostItData(props: DataNode) {
             <Database
               className="w-3 h-3 text-indigo-950/50"
               strokeWidth={2.5}
+              style={nodeColor?.muted}
             />
-            <span className="text-[8px] font-bold text-indigo-950/50 uppercase tracking-widest">
-              Data
+            <span
+              className="text-[8px] font-bold text-indigo-950/50 uppercase tracking-widest"
+              style={nodeColor?.muted}
+            >
+              {typeLabel}
             </span>
           </div>
           {draft && (
@@ -183,7 +199,11 @@ function PostItData(props: DataNode) {
           <TruncatedResourceName
             as="div"
             value={name}
-            tooltipBorderColor="#6366f1"
+            tooltipBorderColor={nodeColor?.tooltipBorder ?? "#6366f1"}
+            style={
+              nodeColor &&
+              (deprecated ? nodeColor.nameDeprecated : nodeColor.name)
+            }
             className={classNames(
               "text-[13px] font-bold leading-snug min-w-0 truncate",
               deprecated
@@ -197,7 +217,10 @@ function PostItData(props: DataNode) {
 
         {/* Version */}
         {version && (
-          <div className="text-[9px] text-indigo-950/40 font-semibold mt-0.5">
+          <div
+            className="text-[9px] text-indigo-950/40 font-semibold mt-0.5"
+            style={nodeColor?.version}
+          >
             v{version}
           </div>
         )}
@@ -206,7 +229,11 @@ function PostItData(props: DataNode) {
         {mode === "full" && summary && (
           <div
             className="mt-2 pt-1.5 border-t border-indigo-950/10 text-[9px] text-indigo-950/60 leading-relaxed overflow-hidden"
-            style={LINE_CLAMP_STYLE}
+            style={
+              nodeColor
+                ? { ...LINE_CLAMP_STYLE, ...nodeColor.summary }
+                : LINE_CLAMP_STYLE
+            }
             title={summary}
           >
             {summary}
@@ -235,12 +262,17 @@ function DefaultData(props: DataNode) {
 
   const mode = props.data.mode || "simple";
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
+  const nodeColor = useNodeColorStyles(styles?.node?.color);
+  const badgeLabel = styles?.node?.label || "Data";
   const ownersNormalized = useMemo(() => normalizeOwners(owners), [owners]);
   const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
     : "rgba(239,68,68,0.1)";
+  const draftStripe =
+    nodeColor?.draftStripe ??
+    (isDark ? "rgba(99,102,241,0.25)" : "rgba(99,102,241,0.15)");
 
   return (
     <div
@@ -257,9 +289,10 @@ function DefaultData(props: DataNode) {
         background: deprecated
           ? `repeating-linear-gradient(135deg, transparent, transparent 6px, ${deprecatedStripe} 6px, ${deprecatedStripe} 7px), var(--ec-data-node-bg, rgb(var(--ec-card-bg)))`
           : draft
-            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${isDark ? "rgba(99,102,241,0.25)" : "rgba(99,102,241,0.15)"} 4px, ${isDark ? "rgba(99,102,241,0.25)" : "rgba(99,102,241,0.15)"} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${isDark ? "rgba(99,102,241,0.25)" : "rgba(99,102,241,0.15)"} 4px, ${isDark ? "rgba(99,102,241,0.25)" : "rgba(99,102,241,0.15)"} 4.5px), var(--ec-data-node-bg, rgb(var(--ec-card-bg)))`
+            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), var(--ec-data-node-bg, rgb(var(--ec-card-bg)))`
             : "var(--ec-data-node-bg, rgb(var(--ec-card-bg)))",
         boxShadow: "0 2px 12px rgba(99, 102, 241, 0.15)",
+        ...(nodeColor && getNodeCardStyle(nodeColor, { deprecated, draft })),
       }}
     >
       {props.data.isFocused && <FocusedResourceIndicator />}
@@ -276,8 +309,12 @@ function DefaultData(props: DataNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {connected.target && <GlowHandle side="left" />}
-      {connected.source && <GlowHandle side="right" />}
+      {connected.target && (
+        <GlowHandle side="left" colorStyle={nodeColor?.glow} />
+      )}
+      {connected.source && (
+        <GlowHandle side="right" colorStyle={nodeColor?.glow} />
+      )}
 
       {/* Type badge top-left */}
       <div className="absolute -top-2.5 left-2.5 z-10">
@@ -286,16 +323,23 @@ function DefaultData(props: DataNode) {
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
             deprecated ? "bg-red-500" : "bg-indigo-500",
           )}
+          style={deprecated ? undefined : nodeColor?.badge}
         >
           <Database className="w-2.5 h-2.5" strokeWidth={2.5} />
-          Data{draft && " (Draft)"}
+          {badgeLabel}
+          {draft && " (Draft)"}
           {deprecated && " (Deprecated)"}
         </span>
       </div>
       {typeLabel && (
         <span
           className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-indigo-500 rounded-full px-1.5 py-0.5 uppercase tracking-wide"
-          style={{ position: "absolute", top: -8, right: 10 }}
+          style={{
+            position: "absolute",
+            top: -8,
+            right: 10,
+            ...nodeColor?.outline,
+          }}
         >
           {typeLabel}
         </span>
@@ -318,7 +362,7 @@ function DefaultData(props: DataNode) {
           <div className="flex items-baseline gap-1 min-w-0">
             <TruncatedResourceName
               value={name}
-              tooltipBorderColor="#6366f1"
+              tooltipBorderColor={nodeColor?.tooltipBorder ?? "#6366f1"}
               className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
             >
               {name}
@@ -346,8 +390,10 @@ function DefaultData(props: DataNode) {
         <OwnerIndicator
           owners={ownersNormalized}
           accentColor="bg-indigo-400"
-          borderColor="rgba(99,102,241,0.08)"
+          borderColor={nodeColor?.ownerBorder ?? "rgba(99,102,241,0.08)"}
           iconClass="text-indigo-300"
+          accentStyle={nodeColor?.ownerAccent}
+          iconStyle={nodeColor?.ownerIcon}
         />
       </div>
     </div>

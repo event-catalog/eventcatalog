@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, type CSSProperties } from "react";
 import { UserIcon, UsersIcon } from "lucide-react";
 import { OWNER_ICON_SIZE_STYLE } from "./shared-styles";
 
@@ -22,17 +22,23 @@ export function normalizeOwners(raw: any[] | undefined): string[] {
  * @param accentColor - Tailwind color class for the pill, e.g. "bg-pink-400"
  * @param borderColor - CSS color string for the top border
  * @param iconClass   - Tailwind text color for the icon, e.g. "text-pink-300"
+ * @param accentStyle - Inline style for the pill, for a node drawn in its resource's own colour
+ * @param iconStyle   - Inline style for the icon, for a node drawn in its resource's own colour
  */
 export const OwnerIndicator = memo(function OwnerIndicator({
   owners,
   accentColor = "bg-pink-400",
   borderColor = "rgba(236,72,153,0.08)",
   iconClass = "text-pink-300",
+  accentStyle,
+  iconStyle,
 }: {
   owners: string[];
   accentColor?: string;
   borderColor?: string;
   iconClass?: string;
+  accentStyle?: CSSProperties;
+  iconStyle?: CSSProperties;
 }) {
   if (owners.length === 0) return null;
 
@@ -50,13 +56,21 @@ export const OwnerIndicator = memo(function OwnerIndicator({
       {isLikelyTeam ? (
         <UsersIcon
           className={`${iconClass} shrink-0`}
-          style={OWNER_ICON_SIZE_STYLE}
+          style={
+            iconStyle
+              ? { ...OWNER_ICON_SIZE_STYLE, ...iconStyle }
+              : OWNER_ICON_SIZE_STYLE
+          }
           strokeWidth={2.5}
         />
       ) : (
         <UserIcon
           className={`${iconClass} shrink-0`}
-          style={OWNER_ICON_SIZE_STYLE}
+          style={
+            iconStyle
+              ? { ...OWNER_ICON_SIZE_STYLE, ...iconStyle }
+              : OWNER_ICON_SIZE_STYLE
+          }
           strokeWidth={2.5}
         />
       )}
@@ -70,6 +84,7 @@ export const OwnerIndicator = memo(function OwnerIndicator({
       {remaining > 0 && (
         <span
           className={`shrink-0 inline-flex items-center justify-center text-[7px] font-bold text-white ${accentColor} rounded-full px-1 py-[1px] leading-none`}
+          style={accentStyle}
           title={owners.slice(1).join(", ")}
         >
           +{remaining}

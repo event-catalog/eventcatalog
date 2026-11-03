@@ -16,10 +16,11 @@ import {
   HANDLE_GLOW,
 } from "../shared-styles";
 import { CustomIcon, isIconPath } from "../../utils/custom-icon";
+import { getNodeCardStyle, useNodeColorStyles } from "../../utils/node-color";
 import { TruncatedResourceName } from "../TruncatedResourceName";
 import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
 
-import { memo, useMemo } from "react";
+import { type CSSProperties, memo, useMemo } from "react";
 
 const DELIVERY_GUARANTEE_LABELS: Record<string, string> = {
   "at-most-once": "At most once",
@@ -92,7 +93,13 @@ function GuaranteeDot({
   );
 }
 
-function GlowHandle({ side }: { side: "left" | "right" }) {
+function GlowHandle({
+  side,
+  colorStyle,
+}: {
+  side: "left" | "right";
+  colorStyle?: CSSProperties;
+}) {
   return (
     <div
       className="ec-handle-glow"
@@ -108,6 +115,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.channel,
+        ...colorStyle,
         pointerEvents: "none",
       }}
     />
@@ -140,6 +148,8 @@ function PostItChannel(props: ChannelNode) {
   const mode = props.data.mode || "simple";
   const guarantee = getGuarantee(deliveryGuarantee);
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
+  const nodeColor = useNodeColorStyles(styles?.node?.color);
+  const typeLabel = styles?.node?.label || "Channel";
 
   return (
     <div
@@ -147,6 +157,7 @@ function PostItChannel(props: ChannelNode) {
         "relative min-w-44 max-w-56 min-h-[120px]",
         props?.selected ? "ring-2 ring-gray-400/60 ring-offset-1" : "",
       )}
+      style={nodeColor?.ring}
     >
       {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
@@ -166,6 +177,7 @@ function PostItChannel(props: ChannelNode) {
         className="absolute inset-0"
         style={{
           background:
+            nodeColor?.paper ??
             "linear-gradient(135deg, #e5e7eb 0%, #d1d5db 40%, #6b7280 100%)",
           boxShadow:
             "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
@@ -173,7 +185,7 @@ function PostItChannel(props: ChannelNode) {
           border: deprecated
             ? "2px dashed rgba(239, 68, 68, 0.5)"
             : draft
-              ? "2px dashed rgba(107, 114, 128, 0.5)"
+              ? `2px dashed ${nodeColor?.paperDraftBorder ?? "rgba(107, 114, 128, 0.5)"}`
               : "none",
         }}
       >
@@ -188,7 +200,7 @@ function PostItChannel(props: ChannelNode) {
             height: 0,
             borderStyle: "solid",
             borderWidth: "18px 0 0 18px",
-            borderColor: "#374151 transparent transparent transparent",
+            borderColor: `${nodeColor?.corner ?? "#374151"} transparent transparent transparent`,
             opacity: 0.3,
           }}
         />
@@ -201,9 +213,13 @@ function PostItChannel(props: ChannelNode) {
             <ArrowRightLeft
               className="w-3 h-3 text-gray-900/50"
               strokeWidth={2.5}
+              style={nodeColor?.muted}
             />
-            <span className="text-[8px] font-bold text-gray-900/50 uppercase tracking-widest">
-              Channel
+            <span
+              className="text-[8px] font-bold text-gray-900/50 uppercase tracking-widest"
+              style={nodeColor?.muted}
+            >
+              {typeLabel}
             </span>
           </div>
           <div className="flex items-center gap-1">
@@ -237,7 +253,11 @@ function PostItChannel(props: ChannelNode) {
             <TruncatedResourceName
               as="div"
               value={name}
-              tooltipBorderColor="#6b7280"
+              tooltipBorderColor={nodeColor?.tooltipBorder ?? "#6b7280"}
+              style={
+                nodeColor &&
+                (deprecated ? nodeColor.nameDeprecated : nodeColor.name)
+              }
               className={classNames(
                 "text-[13px] font-bold leading-snug truncate",
                 deprecated ? "text-gray-950/40 line-through" : "text-gray-950",
@@ -246,7 +266,10 @@ function PostItChannel(props: ChannelNode) {
               {name}
             </TruncatedResourceName>
             {version && (
-              <span className="text-[9px] text-gray-900/30 font-medium shrink-0">
+              <span
+                className="text-[9px] text-gray-900/30 font-medium shrink-0"
+                style={nodeColor?.version}
+              >
                 v{version}
               </span>
             )}
@@ -257,7 +280,11 @@ function PostItChannel(props: ChannelNode) {
         {mode === "full" && summary && (
           <div
             className="mt-1 text-[9px] text-gray-950/50 leading-relaxed overflow-hidden"
-            style={LINE_CLAMP_STYLE}
+            style={
+              nodeColor
+                ? { ...LINE_CLAMP_STYLE, color: nodeColor.summary.color }
+                : LINE_CLAMP_STYLE
+            }
             title={summary}
           >
             {summary}
@@ -308,6 +335,8 @@ function DefaultChannel(props: ChannelNode) {
   } = data.channel;
   const mode = props.data.mode || "simple";
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
+  const nodeColor = useNodeColorStyles(styles?.node?.color);
+  const typeLabel = styles?.node?.label || "Channel";
   const owners = useMemo(
     () => normalizeOwners(data.channel?.owners),
     [data.channel?.owners],
@@ -317,6 +346,9 @@ function DefaultChannel(props: ChannelNode) {
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
     : "rgba(239,68,68,0.1)";
+  const draftStripe =
+    nodeColor?.draftStripe ??
+    (isDark ? "rgba(107,114,128,0.25)" : "rgba(107,114,128,0.15)");
   const guarantee = getGuarantee(deliveryGuarantee);
 
   return (
@@ -336,9 +368,10 @@ function DefaultChannel(props: ChannelNode) {
         background: deprecated
           ? `repeating-linear-gradient(135deg, transparent, transparent 6px, ${deprecatedStripe} 6px, ${deprecatedStripe} 7px), var(--ec-channel-node-bg, rgb(var(--ec-card-bg)))`
           : draft
-            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${isDark ? "rgba(107,114,128,0.25)" : "rgba(107,114,128,0.15)"} 4px, ${isDark ? "rgba(107,114,128,0.25)" : "rgba(107,114,128,0.15)"} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${isDark ? "rgba(107,114,128,0.25)" : "rgba(107,114,128,0.15)"} 4px, ${isDark ? "rgba(107,114,128,0.25)" : "rgba(107,114,128,0.15)"} 4.5px), var(--ec-channel-node-bg, rgb(var(--ec-card-bg)))`
+            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), var(--ec-channel-node-bg, rgb(var(--ec-card-bg)))`
             : "var(--ec-channel-node-bg, rgb(var(--ec-card-bg)))",
         boxShadow: "0 2px 12px rgba(107, 114, 128, 0.15)",
+        ...(nodeColor && getNodeCardStyle(nodeColor, { deprecated, draft })),
       }}
     >
       {props.data.isFocused && <FocusedResourceIndicator />}
@@ -355,8 +388,12 @@ function DefaultChannel(props: ChannelNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {connected.target && <GlowHandle side="left" />}
-      {connected.source && <GlowHandle side="right" />}
+      {connected.target && (
+        <GlowHandle side="left" colorStyle={nodeColor?.glow} />
+      )}
+      {connected.source && (
+        <GlowHandle side="right" colorStyle={nodeColor?.glow} />
+      )}
 
       {/* Type badge top-left */}
       <div className="absolute -top-2.5 left-2.5 z-10">
@@ -365,9 +402,11 @@ function DefaultChannel(props: ChannelNode) {
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
             deprecated ? "bg-red-500" : "bg-gray-500",
           )}
+          style={deprecated ? undefined : nodeColor?.badge}
         >
           <ArrowRightLeft className="w-2.5 h-2.5" strokeWidth={2.5} />
-          Channel{draft && " (Draft)"}
+          {typeLabel}
+          {draft && " (Draft)"}
           {deprecated && " (Deprecated)"}
         </span>
       </div>
@@ -390,7 +429,7 @@ function DefaultChannel(props: ChannelNode) {
           <div className="flex items-baseline gap-1.5 min-w-0">
             <TruncatedResourceName
               value={name}
-              tooltipBorderColor="#6b7280"
+              tooltipBorderColor={nodeColor?.tooltipBorder ?? "#6b7280"}
               className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
             >
               {name}
@@ -466,8 +505,10 @@ function DefaultChannel(props: ChannelNode) {
         <OwnerIndicator
           owners={owners}
           accentColor="bg-gray-400"
-          borderColor="rgba(107,114,128,0.08)"
+          borderColor={nodeColor?.ownerBorder ?? "rgba(107,114,128,0.08)"}
           iconClass="text-gray-300"
+          accentStyle={nodeColor?.ownerAccent}
+          iconStyle={nodeColor?.ownerIcon}
         />
       </div>
     </div>

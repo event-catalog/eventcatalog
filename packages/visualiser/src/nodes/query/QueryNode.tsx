@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { type CSSProperties, memo, useMemo } from "react";
 import { Search } from "lucide-react";
 import {
   OwnerIndicator,
@@ -11,6 +11,7 @@ import { Message, EventCatalogResource } from "../../types";
 import { NotesIndicator } from "../NotesIndicator";
 import { MethodBadge, ApiPath, StatusCodes } from "../ApiInfo";
 import { CustomIcon, isIconPath } from "../../utils/custom-icon";
+import { getNodeCardStyle, useNodeColorStyles } from "../../utils/node-color";
 import {
   LINE_CLAMP_STYLE,
   FOLDED_CORNER_SHADOW_STYLE,
@@ -22,8 +23,10 @@ import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
 
 const GlowHandle = memo(function GlowHandle({
   side,
+  colorStyle,
 }: {
   side: "left" | "right";
+  colorStyle?: CSSProperties;
 }) {
   return (
     <div
@@ -40,6 +43,7 @@ const GlowHandle = memo(function GlowHandle({
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.query,
+        ...colorStyle,
         pointerEvents: "none",
       }}
     />
@@ -61,6 +65,8 @@ function PostItQuery(props: QueryNode) {
     props.data.message;
   const mode = props.data.mode || "simple";
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
+  const nodeColor = useNodeColorStyles(styles?.node?.color);
+  const typeLabel = styles?.node?.label || "Query";
 
   return (
     <div
@@ -68,6 +74,7 @@ function PostItQuery(props: QueryNode) {
         "relative min-w-44 max-w-56 min-h-[120px]",
         props?.selected ? "ring-2 ring-green-400/60 ring-offset-1" : "",
       )}
+      style={nodeColor?.ring}
     >
       {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
@@ -87,6 +94,7 @@ function PostItQuery(props: QueryNode) {
         className="absolute inset-0"
         style={{
           background:
+            nodeColor?.paper ??
             "linear-gradient(135deg, #bbf7d0 0%, #86efac 40%, #22c55e 100%)",
           boxShadow:
             "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
@@ -94,7 +102,7 @@ function PostItQuery(props: QueryNode) {
           border: deprecated
             ? "2px dashed rgba(239, 68, 68, 0.5)"
             : draft
-              ? "2px dashed rgba(34, 197, 94, 0.5)"
+              ? `2px dashed ${nodeColor?.paperDraftBorder ?? "rgba(34, 197, 94, 0.5)"}`
               : "none",
         }}
       >
@@ -109,7 +117,7 @@ function PostItQuery(props: QueryNode) {
             height: 0,
             borderStyle: "solid",
             borderWidth: "18px 0 0 18px",
-            borderColor: "#16a34a transparent transparent transparent",
+            borderColor: `${nodeColor?.corner ?? "#16a34a"} transparent transparent transparent`,
             opacity: 0.3,
           }}
         />
@@ -118,9 +126,16 @@ function PostItQuery(props: QueryNode) {
       <div className="relative px-3.5 py-3">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
-            <Search className="w-3 h-3 text-green-900/50" strokeWidth={2.5} />
-            <span className="text-[8px] font-bold text-green-900/50 uppercase tracking-widest">
-              Query
+            <Search
+              className="w-3 h-3 text-green-900/50"
+              strokeWidth={2.5}
+              style={nodeColor?.muted}
+            />
+            <span
+              className="text-[8px] font-bold text-green-900/50 uppercase tracking-widest"
+              style={nodeColor?.muted}
+            >
+              {typeLabel}
             </span>
           </div>
           {draft && (
@@ -150,7 +165,11 @@ function PostItQuery(props: QueryNode) {
           <TruncatedResourceName
             as="div"
             value={name}
-            tooltipBorderColor="#22c55e"
+            tooltipBorderColor={nodeColor?.tooltipBorder ?? "#22c55e"}
+            style={
+              nodeColor &&
+              (deprecated ? nodeColor.nameDeprecated : nodeColor.name)
+            }
             className={classNames(
               "text-[13px] font-bold leading-snug min-w-0 truncate",
               deprecated ? "text-green-950/40 line-through" : "text-green-950",
@@ -161,7 +180,10 @@ function PostItQuery(props: QueryNode) {
         </div>
 
         {version && (
-          <div className="text-[9px] text-green-900/40 font-semibold mt-0.5">
+          <div
+            className="text-[9px] text-green-900/40 font-semibold mt-0.5"
+            style={nodeColor?.version}
+          >
             v{version}
           </div>
         )}
@@ -169,7 +191,11 @@ function PostItQuery(props: QueryNode) {
         {mode === "full" && summary && (
           <div
             className="mt-2 pt-1.5 border-t border-green-900/10 text-[9px] text-green-950/60 leading-relaxed overflow-hidden"
-            style={LINE_CLAMP_STYLE}
+            style={
+              nodeColor
+                ? { ...LINE_CLAMP_STYLE, ...nodeColor.summary }
+                : LINE_CLAMP_STYLE
+            }
             title={summary}
           >
             {summary}
@@ -197,6 +223,8 @@ function DefaultQuery(props: QueryNode) {
   const mode = props.data.mode || "simple";
   const hasApiInfo = !!(method || path);
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
+  const nodeColor = useNodeColorStyles(styles?.node?.color);
+  const typeLabel = styles?.node?.label || "Query";
   const owners = useMemo(
     () => normalizeOwners(props.data.message?.owners),
     [props.data.message?.owners],
@@ -206,6 +234,9 @@ function DefaultQuery(props: QueryNode) {
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
     : "rgba(239,68,68,0.1)";
+  const draftStripe =
+    nodeColor?.draftStripe ??
+    (isDark ? "rgba(34,197,94,0.25)" : "rgba(34,197,94,0.15)");
 
   return (
     <div
@@ -222,9 +253,10 @@ function DefaultQuery(props: QueryNode) {
         background: deprecated
           ? `repeating-linear-gradient(135deg, transparent, transparent 6px, ${deprecatedStripe} 6px, ${deprecatedStripe} 7px), var(--ec-query-node-bg, rgb(var(--ec-card-bg)))`
           : draft
-            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${isDark ? "rgba(34,197,94,0.25)" : "rgba(34,197,94,0.15)"} 4px, ${isDark ? "rgba(34,197,94,0.25)" : "rgba(34,197,94,0.15)"} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${isDark ? "rgba(34,197,94,0.25)" : "rgba(34,197,94,0.15)"} 4px, ${isDark ? "rgba(34,197,94,0.25)" : "rgba(34,197,94,0.15)"} 4.5px), var(--ec-query-node-bg, rgb(var(--ec-card-bg)))`
+            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), var(--ec-query-node-bg, rgb(var(--ec-card-bg)))`
             : "var(--ec-query-node-bg, rgb(var(--ec-card-bg)))",
         boxShadow: "0 2px 12px rgba(34, 197, 94, 0.15)",
+        ...(nodeColor && getNodeCardStyle(nodeColor, { deprecated, draft })),
       }}
     >
       {props.data.isFocused && <FocusedResourceIndicator />}
@@ -241,8 +273,12 @@ function DefaultQuery(props: QueryNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {connected.target && <GlowHandle side="left" />}
-      {connected.source && <GlowHandle side="right" />}
+      {connected.target && (
+        <GlowHandle side="left" colorStyle={nodeColor?.glow} />
+      )}
+      {connected.source && (
+        <GlowHandle side="right" colorStyle={nodeColor?.glow} />
+      )}
 
       {/* Type badge top-left */}
       <div className="absolute -top-2.5 left-2.5 z-10">
@@ -251,9 +287,11 @@ function DefaultQuery(props: QueryNode) {
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
             deprecated ? "bg-red-500" : "bg-green-500",
           )}
+          style={deprecated ? undefined : nodeColor?.badge}
         >
           <Search className="w-2.5 h-2.5" strokeWidth={2.5} />
-          Query{draft && " (Draft)"}
+          {typeLabel}
+          {draft && " (Draft)"}
           {deprecated && " (Deprecated)"}
         </span>
       </div>
@@ -261,7 +299,12 @@ function DefaultQuery(props: QueryNode) {
       {schema && (
         <span
           className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-green-500 rounded-full px-1.5 py-0.5 uppercase tracking-wide"
-          style={{ position: "absolute", top: -8, right: 10 }}
+          style={{
+            position: "absolute",
+            top: -8,
+            right: 10,
+            ...nodeColor?.outline,
+          }}
         >
           {schema.includes(".") ? schema.split(".").pop() : schema}
         </span>
@@ -293,7 +336,7 @@ function DefaultQuery(props: QueryNode) {
             <div className="flex items-baseline gap-1 min-w-0">
               <TruncatedResourceName
                 value={name}
-                tooltipBorderColor="#22c55e"
+                tooltipBorderColor={nodeColor?.tooltipBorder ?? "#22c55e"}
                 className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
               >
                 {name}
@@ -327,8 +370,10 @@ function DefaultQuery(props: QueryNode) {
         <OwnerIndicator
           owners={owners}
           accentColor="bg-green-400"
-          borderColor="rgba(34,197,94,0.08)"
+          borderColor={nodeColor?.ownerBorder ?? "rgba(34,197,94,0.08)"}
           iconClass="text-green-300"
+          accentStyle={nodeColor?.ownerAccent}
+          iconStyle={nodeColor?.ownerIcon}
         />
       </div>
     </div>

@@ -1,6 +1,7 @@
-import { memo, useMemo } from "react";
+import { type CSSProperties, memo, useMemo } from "react";
 import { ServerIcon, Globe } from "lucide-react";
 import { CustomIcon, isIconPath } from "../../utils/custom-icon";
+import { getNodeCardStyle, useNodeColorStyles } from "../../utils/node-color";
 import {
   OwnerIndicator,
   normalizeOwners,
@@ -174,9 +175,11 @@ const ServiceMessageFlow = memo(function ServiceMessageFlow({
 const GlowHandle = memo(function GlowHandle({
   side,
   external,
+  colorStyle,
 }: {
   side: "left" | "right";
   external?: boolean;
+  colorStyle?: CSSProperties;
 }) {
   return (
     <div
@@ -195,6 +198,7 @@ const GlowHandle = memo(function GlowHandle({
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...(external ? HANDLE_GLOW.external : HANDLE_GLOW.service),
+        ...colorStyle,
         pointerEvents: "none",
       }}
     />
@@ -332,6 +336,8 @@ function PostItService(props: ServiceNode) {
   const isDark = useDarkMode();
   const p = externalSystem ? POST_IT_EXTERNAL : POST_IT_SERVICE;
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
+  const nodeColor = useNodeColorStyles(styles?.node?.color);
+  const typeLabel = styles?.node?.label || p.label;
 
   return (
     <div
@@ -339,6 +345,7 @@ function PostItService(props: ServiceNode) {
         "relative min-w-44 max-w-56 min-h-[120px]",
         props?.selected ? p.ring : "",
       )}
+      style={nodeColor?.ring}
     >
       {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
@@ -358,14 +365,14 @@ function PostItService(props: ServiceNode) {
       <div
         className="absolute inset-0"
         style={{
-          background: p.gradient,
+          background: nodeColor?.paper ?? p.gradient,
           boxShadow:
             "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
           transform: "rotate(1deg)",
           border: deprecated
             ? "2px dashed rgba(239, 68, 68, 0.5)"
             : draft
-              ? `2px dashed ${p.draftBorder}`
+              ? `2px dashed ${nodeColor?.paperDraftBorder ?? p.draftBorder}`
               : "none",
         }}
       >
@@ -380,7 +387,7 @@ function PostItService(props: ServiceNode) {
             height: 0,
             borderStyle: "solid",
             borderWidth: "18px 0 0 18px",
-            borderColor: `${p.corner} transparent transparent transparent`,
+            borderColor: `${nodeColor?.corner ?? p.corner} transparent transparent transparent`,
             opacity: 0.3,
           }}
         />
@@ -389,8 +396,14 @@ function PostItService(props: ServiceNode) {
       <div className="relative px-3.5 py-3">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
-            <p.Icon className={p.iconClass} strokeWidth={2.5} />
-            <span className={p.labelClass}>{p.label}</span>
+            <p.Icon
+              className={p.iconClass}
+              strokeWidth={2.5}
+              style={nodeColor?.muted}
+            />
+            <span className={p.labelClass} style={nodeColor?.muted}>
+              {typeLabel}
+            </span>
           </div>
           {draft && (
             <span className="text-[8px] font-extrabold text-amber-900 bg-amber-100 border border-dashed border-amber-400 px-1.5 py-0.5 rounded uppercase">
@@ -419,7 +432,13 @@ function PostItService(props: ServiceNode) {
           <TruncatedResourceName
             as="div"
             value={name}
-            tooltipBorderColor={p.tooltipBorderColor}
+            tooltipBorderColor={
+              nodeColor?.tooltipBorder ?? p.tooltipBorderColor
+            }
+            style={
+              nodeColor &&
+              (deprecated ? nodeColor.nameDeprecated : nodeColor.name)
+            }
             className={classNames(
               "text-[13px] font-bold leading-snug min-w-0 truncate",
               deprecated ? p.nameTextDeprecated : p.nameText,
@@ -429,12 +448,20 @@ function PostItService(props: ServiceNode) {
           </TruncatedResourceName>
         </div>
 
-        {version && <div className={p.versionClass}>v{version}</div>}
+        {version && (
+          <div className={p.versionClass} style={nodeColor?.version}>
+            v{version}
+          </div>
+        )}
 
         {mode === "full" && summary && (
           <div
             className={p.summaryClass}
-            style={LINE_CLAMP_STYLE}
+            style={
+              nodeColor
+                ? { ...LINE_CLAMP_STYLE, ...nodeColor.summary }
+                : LINE_CLAMP_STYLE
+            }
             title={summary}
           >
             {summary}
@@ -465,6 +492,7 @@ function DefaultService(props: ServiceNode) {
   } = props.data.service;
   const mode = props.data.mode || "simple";
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
+  const nodeColor = useNodeColorStyles(styles?.node?.color);
   const owners = useMemo(
     () => normalizeOwners(props.data.service.owners),
     [props.data.service.owners],
@@ -476,7 +504,9 @@ function DefaultService(props: ServiceNode) {
     : "rgba(239,68,68,0.1)";
 
   const p = externalSystem ? DEFAULT_EXTERNAL : DEFAULT_SERVICE;
-  const draftStripe = isDark ? p.draftStripeDark : p.draftStripeLight;
+  const typeLabel = styles?.node?.label || p.label;
+  const draftStripe =
+    nodeColor?.draftStripe ?? (isDark ? p.draftStripeDark : p.draftStripeLight);
   const borderDraft = isDark ? p.borderDraftDark : p.borderDraftLight;
 
   return (
@@ -497,6 +527,7 @@ function DefaultService(props: ServiceNode) {
             ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), ${p.nodeBgVar}`
             : p.nodeBgVar,
         boxShadow: `0 2px 12px ${p.shadowColor}`,
+        ...(nodeColor && getNodeCardStyle(nodeColor, { deprecated, draft })),
       }}
     >
       {props.data.isFocused && <FocusedResourceIndicator />}
@@ -513,9 +544,19 @@ function DefaultService(props: ServiceNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {connected.target && <GlowHandle side="left" external={externalSystem} />}
+      {connected.target && (
+        <GlowHandle
+          side="left"
+          colorStyle={nodeColor?.glow}
+          external={externalSystem}
+        />
+      )}
       {connected.source && (
-        <GlowHandle side="right" external={externalSystem} />
+        <GlowHandle
+          side="right"
+          colorStyle={nodeColor?.glow}
+          external={externalSystem}
+        />
       )}
 
       <div className="absolute -top-2.5 left-2.5 flex items-center gap-1.5 z-10">
@@ -524,9 +565,10 @@ function DefaultService(props: ServiceNode) {
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
             deprecated ? "bg-red-500" : p.badgeBg,
           )}
+          style={deprecated ? undefined : nodeColor?.badge}
         >
           <p.Icon className="w-2.5 h-2.5" strokeWidth={2.5} />
-          {p.label}
+          {typeLabel}
           {draft && " (Draft)"}
           {deprecated && " (Deprecated)"}
         </span>
@@ -548,7 +590,9 @@ function DefaultService(props: ServiceNode) {
           <div className="flex items-baseline gap-1 min-w-0">
             <TruncatedResourceName
               value={name}
-              tooltipBorderColor={p.tooltipBorderColor}
+              tooltipBorderColor={
+                nodeColor?.tooltipBorder ?? p.tooltipBorderColor
+              }
               className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
             >
               {name}
@@ -575,8 +619,10 @@ function DefaultService(props: ServiceNode) {
           <OwnerIndicator
             owners={owners}
             accentColor={p.ownerAccent}
-            borderColor={p.ownerBorder}
+            borderColor={nodeColor?.ownerBorder ?? p.ownerBorder}
             iconClass={p.ownerIcon}
+            accentStyle={nodeColor?.ownerAccent}
+            iconStyle={nodeColor?.ownerIcon}
           />
           {!!specifications && (
             <SpecBadges specifications={specifications} isDark={isDark} />

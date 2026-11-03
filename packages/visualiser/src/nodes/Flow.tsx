@@ -5,6 +5,7 @@ import * as ContextMenu from "@radix-ui/react-context-menu";
 import { usePortalContainer } from "../context/PortalContainerContext";
 import { buildUrl } from "../utils/url-builder";
 import { getIcon } from "../utils/badges";
+import { resolveNodeColor } from "../utils/node-color";
 import {
   NODE_WIDTH_STYLE,
   ROTATED_LABEL_STYLE,
@@ -60,8 +61,19 @@ export default memo(function FlowNode({
     (data as any).expandedNodes.length > 0;
 
   const { id, version, owners = EMPTY_ARRAY, name, styles } = flow.data;
-  const { node: { color = "teal", label } = {}, icon = "QueueListIcon" } =
-    styles || {};
+  const { node: { color, label } = {}, icon = "QueueListIcon" } = styles || {};
+  // Drawn inline: Tailwind can't generate classes for a colour chosen at runtime
+  const { borderStyle, stripStyle, tooltipBorder } = useMemo(() => {
+    const shades = resolveNodeColor(color) ?? resolveNodeColor("teal")!;
+    return {
+      borderStyle: { borderColor: shades["400"] },
+      stripStyle: {
+        background: `linear-gradient(to bottom, ${shades["500"]}, ${shades["700"]})`,
+        borderRightColor: shades["500"],
+      },
+      tooltipBorder: shades["500"],
+    };
+  }, [color]);
 
   const Icon = useMemo(() => getIcon(icon), [icon]);
   const portalContainer = usePortalContainer();
@@ -79,28 +91,34 @@ export default memo(function FlowNode({
           {canExpand && (
             <>
               <div
-                className={`absolute inset-0 rounded-md border border-${color}-400 bg-[rgb(var(--ec-card-bg))]`}
-                style={{ transform: "translate(6px, 6px)", opacity: 0.5 }}
+                className="absolute inset-0 rounded-md border bg-[rgb(var(--ec-card-bg))]"
+                style={{
+                  ...borderStyle,
+                  transform: "translate(6px, 6px)",
+                  opacity: 0.5,
+                }}
                 aria-hidden
               />
               <div
-                className={`absolute inset-0 rounded-md border border-${color}-400 bg-[rgb(var(--ec-card-bg))]`}
-                style={{ transform: "translate(3px, 3px)", opacity: 0.7 }}
+                className="absolute inset-0 rounded-md border bg-[rgb(var(--ec-card-bg))]"
+                style={{
+                  ...borderStyle,
+                  transform: "translate(3px, 3px)",
+                  opacity: 0.7,
+                }}
                 aria-hidden
               />
             </>
           )}
           <div
             className={classNames(
-              `relative rounded-md border flex justify-start bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] border-${color}-400`,
+              "relative rounded-md border flex justify-start bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))]",
             )}
-            style={NODE_WIDTH_STYLE}
+            style={{ ...NODE_WIDTH_STYLE, ...borderStyle }}
           >
             <div
-              className={classNames(
-                `bg-gradient-to-b from-${color}-500 to-${color}-700 relative flex flex-col items-center w-5 justify-between rounded-l-sm text-${color}-100`,
-                `border-r-[1px] border-${color}-500`,
-              )}
+              className="relative flex flex-col items-center w-5 justify-between rounded-l-sm border-r-[1px]"
+              style={stripStyle}
             >
               {Icon && <Icon className="w-4 h-4 opacity-90 text-white mt-1" />}
               {mode === "full" && (
@@ -129,7 +147,7 @@ export default memo(function FlowNode({
                 <TruncatedResourceName
                   as="div"
                   value={name}
-                  tooltipBorderColor="#14b8a6"
+                  tooltipBorderColor={tooltipBorder}
                   className="text-xs font-bold truncate pt-0.5 pb-0.5"
                 >
                   {name}
