@@ -1,0 +1,22 @@
+---
+import { Download } from 'lucide-react';
+
+interface Props {
+  /** The specification file's URL, from getRawSpecificationUrl */
+  href: string;
+  /** The name the file is saved as */
+  filename: string;
+}
+
+const { href, filename } = Astro.props;
+---
+
+<a
+  href={href}
+  download={filename}
+  title={`Download ${filename}`}
+  class="not-prose inline-flex h-8 items-center gap-2 whitespace-nowrap rounded-md border border-[rgb(var(--ec-dropdown-border)/0.75)] bg-[rgb(var(--ec-page-bg))] px-3 text-sm font-medium text-[rgb(var(--ec-dropdown-text))] no-underline transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover)/0.75)] focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent))]"
+>
+  <Download className="h-4 w-4" />
+  Download
+</a>

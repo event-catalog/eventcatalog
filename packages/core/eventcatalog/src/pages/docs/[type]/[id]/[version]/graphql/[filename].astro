@@ -10,6 +10,8 @@ import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
 import Admonition from '@components/MDX/Admonition';
 import NewVersionBanner from '@components/NewVersionBanner.astro';
 import Badge from '@components/Badge.astro';
+import SpecificationDownloadButton from '@components/SpecificationDownloadButton.astro';
+import { getRawSpecificationUrl } from '@utils/raw-specification';
 import { getResourceTypeBadge } from '@utils/collections/resource-type-badge';
 import { getResourceNoun } from '@utils/collections/util';
 
@@ -19,7 +21,7 @@ export const getStaticPaths = Page.getStaticPaths;
 // Get data
 const pageData = await Page.getData(Astro);
 if (!pageData) return Astro.rewrite('/404');
-const { collection, data, filePath, filename, path: relativeSpecPath } = pageData;
+const { collection, data, filePath, filename, filenameWithoutExtension, path: relativeSpecPath } = pageData;
 
 const fileName = filename || 'schema.graphql';
 const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, fileName);
@@ -35,6 +37,15 @@ if (isRemote) {
   // Fetch the content from the remote path
   content = await fetch(relativeSpecPath).then((res) => res.text());
 }
+
+const downloadUrl = getRawSpecificationUrl({
+  collection,
+  id: data.id,
+  version: data.version,
+  type: 'graphql',
+  filename,
+  filenameWithoutExtension,
+});
 
 // Create comprehensive page title
 const pageTitle = `${collection} | ${data.name} | GraphQL Schema`.replace(/^\w/, (c) => c.toUpperCase());
@@ -79,6 +90,13 @@ const pagefindAttributes =
                 </h1>
                 <h2 class="text-lg text-[rgb(var(--ec-page-text-muted))] font-medium mb-1">GraphQL Schema</h2>
               </div>
+              {
+                (fileExists || isRemote) && (
+                  <div data-pagefind-ignore>
+                    <SpecificationDownloadButton href={downloadUrl} filename={filename} />
+                  </div>
+                )
+              }
             </div>
 
             {

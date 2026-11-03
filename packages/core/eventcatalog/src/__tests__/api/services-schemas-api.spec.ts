@@ -34,6 +34,20 @@ const mockServices = [
       specifications: [{ type: 'openapi', path: 'test-openapi.yml' }],
     },
   },
+  {
+    collection: 'services',
+    filePath: path.join(__dirname, 'schemas', 'test-openapi.yml'),
+    data: {
+      name: 'Payment Service',
+      id: 'PaymentService',
+      version: '1.0.0',
+      summary: 'Two OpenAPI specifications',
+      specifications: [
+        { type: 'openapi', path: 'test-openapi.yml' },
+        { type: 'openapi', path: 'test-asyncapi.yml' },
+      ],
+    },
+  },
 ];
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -59,7 +73,7 @@ vi.mock('@utils/feature', () => {
 describe('api/schemas/services/[id]/[version]/[specification]/index.ts', () => {
   describe('getStaticPaths', () => {
     it('returns static paths for services that have a schema', async () => {
-      const staticPaths = await getStaticPaths();
+      const staticPaths = (await getStaticPaths()).filter((path) => path.params.id === 'OrderService');
       expect(staticPaths).toHaveLength(3);
 
       // Check all the params
@@ -74,6 +88,19 @@ describe('api/schemas/services/[id]/[version]/[specification]/index.ts', () => {
         fs.readFileSync(path.join(__dirname, 'schemas', 'test-asyncapi.yml'), 'utf8'),
         fs.readFileSync(path.join(__dirname, 'schemas', 'test-openapi.yml'), 'utf8'),
       ]);
+      expect(staticPaths.map((path) => path.props.contentType)).toEqual([
+        'application/yaml',
+        'application/yaml',
+        'application/yaml',
+      ]);
+    });
+
+    it('serves only the first specification of each type, so a service with two OpenAPI files gets one path', async () => {
+      const staticPaths = (await getStaticPaths()).filter((path) => path.params.id === 'PaymentService');
+
+      expect(staticPaths).toHaveLength(1);
+      expect(staticPaths[0].params.specification).toBe('openapi');
+      expect(staticPaths[0].props.schema).toEqual(fs.readFileSync(path.join(__dirname, 'schemas', 'test-openapi.yml'), 'utf8'));
     });
   });
 
