@@ -1,34 +1,32 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
-import path from 'node:path';
-import fs from 'node:fs';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import { getSpecificationsForService } from '@utils/collections/services';
+import { getSpecificationMediaType } from '@utils/collections/util';
 import { resourceFileExists, readResourceFile } from '@utils/resource-files';
+
+// The Schema API: kept for the API consumers that already use it. It finds a specification by its type, so it
+// serves the first of each type. The file of every specification is also served next to its page:
+// /docs/{type}/{id}/{version}/{asyncapi|spec|graphql|generic}/{filename}/{file}
+const getFirstSpecificationOfEachType = (service: CollectionEntry<'services'>) =>
+  getSpecificationsForService(service).filter(
+    (specification, index, specifications) => specifications.findIndex((spec) => spec.type === specification.type) === index
+  );
 
 export async function getStaticPaths() {
   const services = await getCollection('services');
-  const servicesWithSpecifications = services.filter((service) => getSpecificationsForService(service).length > 0);
-  return servicesWithSpecifications.reduce<
-    { params: { collection: string; id: string; version: string; specification: string }; props: { schema: string } }[]
-  >(
-    (acc, service) => {
-      const specifications = getSpecificationsForService(service);
-      return [
-        ...acc,
-        ...specifications.map((specification) => ({
-          params: {
-            collection: service.collection,
-            id: service.data.id,
-            version: service.data.version,
-            specification: specification.type,
-          },
-          props: {
-            schema: fs.readFileSync(path.join(path.dirname(service.filePath ?? ''), specification.path ?? ''), 'utf8'),
-          },
-        })),
-      ];
-    },
-    [] as { params: { collection: string; id: string; version: string; specification: string }; props: { schema: string } }[]
+  return services.flatMap((service) =>
+    getFirstSpecificationOfEachType(service).map((specification) => ({
+      params: {
+        collection: service.collection,
+        id: service.data.id,
+        version: service.data.version,
+        specification: specification.type,
+      },
+      props: {
+        schema: readResourceFile(service, specification.path),
+        contentType: getSpecificationMediaType(specification),
+      },
+    }))
   );
 }
 
@@ -36,7 +34,7 @@ export const GET: APIRoute = async ({ props, params }) => {
   // In static mode, props are pre-computed by getStaticPaths
   if (props.schema) {
     return new Response(props.schema, {
-      headers: { 'Content-Type': 'text/plain' },
+      headers: { 'Content-Type': props.contentType },
     });
   }
 
@@ -80,6 +78,6 @@ export const GET: APIRoute = async ({ props, params }) => {
   }
 
   return new Response(schema, {
-    headers: { 'Content-Type': 'text/plain' },
+    headers: { 'Content-Type': getSpecificationMediaType(spec) },
   });
 };
