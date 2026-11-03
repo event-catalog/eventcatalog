@@ -27,7 +27,7 @@ const Page = {
     { params: { type: 'services', id: 'Orders', version: '2.0.0', filename: 'orders' }, props: pageDataFor('2.0.0') },
     { params: { type: 'services', id: 'Orders', version: '1.0.0', filename: 'orders' }, props: pageDataFor('1.0.0') },
   ]),
-  getData: vi.fn(async ({ params }: { params: Record<string, string> }) => pageDataFor(params.version)),
+  getData: vi.fn(async ({ params }: { params: Record<string, string | undefined> }) => pageDataFor(params.version ?? '')),
 };
 
 describe('latest service raw specification route', () => {
