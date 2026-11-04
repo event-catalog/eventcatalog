@@ -104,6 +104,13 @@ const program = new Commander.Command(packageJson.name)
   Initialize the project with an empty template.
 `
   )
+  .option(
+    '--no-github-actions',
+    `
+
+  Don't add a GitHub Actions workflow to the project.
+`
+  )
   .allowUnknownOption()
   .parse(process.argv);
 
@@ -195,6 +202,7 @@ async function run(): Promise<void> {
 
   const options = program.opts();
   const initEmptyProject = options.empty ?? false;
+  const githubActions = options.githubActions ?? true;
 
   try {
     await createApp({
@@ -208,6 +216,7 @@ async function run(): Promise<void> {
       organizationName: organizationName,
       initEmptyProject,
       installSkills,
+      githubActions,
       template: template,
     });
   } catch (reason) {
@@ -236,6 +245,7 @@ async function run(): Promise<void> {
       experimentalApp: program.experimentalApp,
       initEmptyProject,
       installSkills,
+      githubActions,
     });
   }
 }
