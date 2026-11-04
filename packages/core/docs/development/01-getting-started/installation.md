@@ -31,6 +31,7 @@ This creates a `my-catalog` directory with:
 - sample architecture resources
 - an `eventcatalog.config.js` file
 - a `package.json` file with scripts for local development and builds
+- a `.github/workflows/eventcatalog.yml` GitHub Actions workflow that runs the linter, fitness functions and build on every pull request
 
 Now move into your new project directory:
 
@@ -75,6 +76,16 @@ npx @eventcatalog/create-eventcatalog@latest my-catalog --template asyncapi
 ```
 
 Templates are useful when you already know which integration you want to use, such as AsyncAPI, OpenAPI, EventBridge, GitHub, or a schema registry.
+
+### Leave out the GitHub Actions workflow
+
+Use `--no-github-actions` if you don't use GitHub Actions.
+
+```bash
+npx @eventcatalog/create-eventcatalog@latest my-catalog --no-github-actions
+```
+
+The workflow is also left out when you create a catalog in a subfolder of an existing repository, because GitHub only runs workflows from the top of a repository.
 
 ## Generate a catalog from an existing codebase
 

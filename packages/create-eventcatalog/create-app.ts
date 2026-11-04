@@ -2,7 +2,8 @@
 import chalk from 'chalk';
 import path from 'path';
 import { makeDir } from './helpers/make-dir';
-import { tryGitInit } from './helpers/git';
+import { isInRepositorySubfolder, tryGitInit } from './helpers/git';
+import { WORKFLOW_PATH, writeGitHubActionsWorkflow } from './helpers/github-actions';
 import { installEventCatalogSkills } from './helpers/install-skills';
 
 import { isFolderEmpty } from './helpers/is-folder-empty';
@@ -25,6 +26,7 @@ export async function createApp({
   organizationName,
   initEmptyProject,
   installSkills,
+  githubActions,
   template: templateName,
 }: {
   appPath: string;
@@ -37,6 +39,7 @@ export async function createApp({
   organizationName: string;
   initEmptyProject: boolean;
   installSkills: boolean;
+  githubActions: boolean;
   template?: TemplateType;
 }): Promise<void> {
   let repoInfo: any | undefined;
@@ -83,6 +86,14 @@ export async function createApp({
 
   const skillsInstalled = installSkills ? await installEventCatalogSkills(root) : false;
 
+  // GitHub only runs workflows from the top level of a repository, so one in a subfolder would never run
+  const workflowSkipped = githubActions && isInRepositorySubfolder(root);
+  const workflowAdded = githubActions && !workflowSkipped;
+  if (workflowAdded) {
+    writeGitHubActionsWorkflow(root, packageManager);
+  }
+
+  // After the workflow, so it's part of the initial commit
   const gitInitialized = tryGitInit(root);
 
   let cdpath: string;
@@ -100,6 +111,14 @@ export async function createApp({
   if (skillsInstalled) {
     console.log(`    ${chalk.dim('■')} EventCatalog Skills installed`);
   }
+  if (workflowAdded) {
+    console.log(`    ${chalk.dim('■')} GitHub Actions workflow added`);
+  }
+  if (workflowSkipped) {
+    console.log(
+      `    ${chalk.dim('■')} GitHub Actions workflow skipped (GitHub only runs workflows from the top of a repository)`
+    );
+  }
   if (gitInitialized) {
     console.log(`    ${chalk.dim('■')} Git initialized`);
   }
@@ -111,6 +130,11 @@ export async function createApp({
   console.log(`    ${chalk.dim('■')} ${chalk.cyan('cd ' + cdpath)}`);
   console.log(`    ${chalk.dim('■')} Run ${chalk.cyan(`${packageManager} run dev`)} to start the dev server.`);
   console.log();
+  if (workflowAdded) {
+    console.log(`  ${chalk.cyan(WORKFLOW_PATH)} runs your linter, fitness functions and build on every pull request.`);
+    console.log(`  A pull request fails if, for example, it adds a message with no owner.`);
+    console.log();
+  }
   console.log(`  ${chalk.dim('Star us on GitHub:')} ${chalk.underline('https://github.com/event-catalog/eventcatalog')}`);
   console.log(`  ${chalk.dim('Join our Discord:')}  ${chalk.underline('https://eventcatalog.dev/discord')}`);
   console.log();

@@ -19,6 +19,22 @@ function isInMercurialRepository(): boolean {
   return false;
 }
 
+/**
+ * Whether `root` sits below the top level of an existing git repository, as a catalog in a monorepo does.
+ */
+export function isInRepositorySubfolder(root: string): boolean {
+  try {
+    // The path from the top level of the repository to `root`: empty at the top level, an error outside a repository
+    return (
+      execSync('git rev-parse --show-prefix', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] })
+        .toString()
+        .trim() !== ''
+    );
+  } catch (_) {
+    return false;
+  }
+}
+
 export function tryGitInit(root: string): boolean {
   let didInit = false;
   try {

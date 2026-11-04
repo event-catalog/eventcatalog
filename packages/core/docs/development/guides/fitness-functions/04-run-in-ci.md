@@ -167,6 +167,8 @@ The report is written again on every run, so add `.eventcatalog/fitness/` to you
 
 ## GitHub Actions
 
+Catalogs created with `create-eventcatalog` already run the check in `.github/workflows/eventcatalog.yml`. For any other catalog, add a workflow:
+
 ```yaml title=".github/workflows/fitness.yml"
 name: Architecture fitness
 on:
