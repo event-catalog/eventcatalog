@@ -118,7 +118,7 @@ Run the linter again and the warning is gone. The three values are `'error'`, `'
 
 ## 5. Add the check to your pipeline
 
-The linter exits with code `1` when it finds errors, which is all a CI system needs. Catalogs created with `create-eventcatalog` already run it in `.github/workflows/eventcatalog.yml`. For any other catalog on GitHub Actions:
+The linter exits with code `1` when it finds errors, which is all a CI system needs. For GitHub Actions:
 
 ```yaml title=".github/workflows/lint-catalog.yml"
 name: Lint catalog
