@@ -445,15 +445,22 @@ export type DomainGlossary = {
   terms: UbiquitousLanguageTerm[];
 };
 
-export type OrganizationGlossaryDomain = DomainGlossary & { subdomains: DomainGlossary[] };
+export type SubdomainGlossary = DomainGlossary & { parentId: string };
+
+export type OrganizationGlossaryDomain = DomainGlossary & { subdomains: SubdomainGlossary[] };
 
 /**
  * The ubiquitous language of the whole catalog: every domain with terms (or with a subdomain that has
- * them), with its subdomains nested under it. Terms stay with their domain and are never merged, because
- * the same word can mean something different in another domain.
+ * them), with all of its subdomains, at any depth, listed under it. Terms stay with their domain and are
+ * never merged, because the same word can mean something different in another domain.
  */
 export const getUbiquitousLanguageGlossary = async (): Promise<OrganizationGlossaryDomain[]> => {
-  const [rootDomains, ubiquitousLanguages] = await Promise.all([getRootDomains(), getCollection('ubiquitousLanguages')]);
+  const [domains, rootDomains, ubiquitousLanguages] = await Promise.all([
+    getDomains({ getAllVersions: false }),
+    getRootDomains(),
+    getCollection('ubiquitousLanguages'),
+  ]);
+  const domainsById = new Map(domains.map((domain) => [domain.data.id, domain]));
 
   const toGlossary = (domain: Domain): DomainGlossary => ({
     id: domain.data.id,
@@ -464,21 +471,33 @@ export const getUbiquitousLanguageGlossary = async (): Promise<OrganizationGloss
     ),
   });
 
-  // A subdomain shared by several domains is only listed once
-  const listedSubdomains = new Set<string>();
+  // Each domain is only listed once, whether several domains share it or domains point at each other
+  const listedDomains = new Set<string>();
 
-  return rootDomains
-    .map((domain) => {
-      const subdomains = ((domain.data.domains as unknown as Domain[]) || []).filter((subdomain) => {
-        if (listedSubdomains.has(subdomain.data.id)) return false;
-        listedSubdomains.add(subdomain.data.id);
-        return true;
-      });
+  const getDescendants = (parent: Domain): SubdomainGlossary[] =>
+    ((parent.data.domains as unknown as Domain[]) || []).flatMap((subdomain) => {
+      if (listedDomains.has(subdomain.data.id)) return [];
+      listedDomains.add(subdomain.data.id);
 
-      return {
-        ...toGlossary(domain),
-        subdomains: subdomains.map(toGlossary).filter((subdomain) => subdomain.terms.length > 0),
-      };
+      // Only the domains in the collection have their own subdomains resolved
+      return [
+        { ...toGlossary(subdomain), parentId: parent.data.id },
+        ...getDescendants(domainsById.get(subdomain.data.id) || subdomain),
+      ];
+    });
+
+  // Root domains go first. Any domain still not listed after them points in a loop, so has no root.
+  return [...rootDomains, ...domains]
+    .flatMap((domain) => {
+      if (listedDomains.has(domain.data.id)) return [];
+      listedDomains.add(domain.data.id);
+
+      return [
+        {
+          ...toGlossary(domain),
+          subdomains: getDescendants(domain).filter((subdomain) => subdomain.terms.length > 0),
+        },
+      ];
     })
     .filter((domain) => domain.terms.length > 0 || domain.subdomains.length > 0);
 };

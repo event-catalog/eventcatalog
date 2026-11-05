@@ -956,7 +956,7 @@ export async function explainUbiquitousLanguageTerms(params: {
       .flatMap((domain) => [
         ...domain.terms.map((term) => toUbiquitousLanguageTermResult(term, domain, isDuplicate(term))),
         ...domain.subdomains.flatMap((subdomain) =>
-          subdomain.terms.map((term) => toUbiquitousLanguageTermResult(term, subdomain, isDuplicate(term), domain.id))
+          subdomain.terms.map((term) => toUbiquitousLanguageTermResult(term, subdomain, isDuplicate(term), subdomain.parentId))
         ),
       ])
       .filter(matchesSearch);

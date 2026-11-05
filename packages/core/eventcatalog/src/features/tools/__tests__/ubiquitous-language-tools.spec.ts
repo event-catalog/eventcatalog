@@ -20,7 +20,27 @@ const collections = vi.hoisted(() => ({
       id: 'fulfilment-1.0.0',
       collection: 'domains',
       filePath: 'domains/order-management/subdomains/fulfilment/index.mdx',
-      data: { id: 'fulfilment', name: 'Fulfilment', version: '1.0.0' },
+      data: { id: 'fulfilment', name: 'Fulfilment', version: '1.0.0', domains: [{ id: 'carriers', version: '1.0.0' }] },
+    },
+    // A subdomain of a subdomain, linked by a pointer from its own top-level folder
+    {
+      id: 'carriers-1.0.0',
+      collection: 'domains',
+      filePath: 'domains/carriers/index.mdx',
+      data: { id: 'carriers', name: 'Carriers', version: '1.0.0' },
+    },
+    // Two domains pointing at each other, so neither is a root domain
+    {
+      id: 'loop-a-1.0.0',
+      collection: 'domains',
+      filePath: 'domains/loop-a/index.mdx',
+      data: { id: 'loop-a', name: 'Loop A', version: '1.0.0', domains: [{ id: 'loop-b', version: '1.0.0' }] },
+    },
+    {
+      id: 'loop-b-1.0.0',
+      collection: 'domains',
+      filePath: 'domains/loop-b/index.mdx',
+      data: { id: 'loop-b', name: 'Loop B', version: '1.0.0', domains: [{ id: 'loop-a', version: '1.0.0' }] },
     },
     {
       id: 'payments-1.0.0',
@@ -70,6 +90,24 @@ const collections = vi.hoisted(() => ({
           { id: 'refund', name: 'Refund', description: 'Money returned to a customer.' },
         ],
       },
+    },
+    {
+      id: 'carriers-language',
+      collection: 'ubiquitousLanguages',
+      filePath: 'domains/carriers/ubiquitous-language.mdx',
+      data: { dictionary: [{ id: 'carrier', name: 'Carrier', summary: 'A company that delivers packages.' }] },
+    },
+    {
+      id: 'loop-a-language',
+      collection: 'ubiquitousLanguages',
+      filePath: 'domains/loop-a/ubiquitous-language.mdx',
+      data: { dictionary: [{ id: 'loop-a-term', name: 'Loop A Term', summary: 'A term in a domain with no root.' }] },
+    },
+    {
+      id: 'loop-b-language',
+      collection: 'ubiquitousLanguages',
+      filePath: 'domains/loop-b/ubiquitous-language.mdx',
+      data: { dictionary: [{ id: 'loop-b-term', name: 'Loop B Term', summary: 'Another term in a domain with no root.' }] },
     },
   ],
 }));
@@ -154,13 +192,33 @@ describe('explainUbiquitousLanguageTerms', () => {
     it('returns the terms of every domain and subdomain when no domain is given', async () => {
       const result = await getTerms({});
 
-      expect(result.totalCount).toBe(5);
+      expect(result.totalCount).toBe(8);
       expect(result.terms?.map((term: any) => `${term.domainId}:${term.id}`)).toEqual([
         'order-management:order',
         'order-management:customer',
         'fulfilment:shipment',
+        'carriers:carrier',
         'payments:customer',
         'payments:refund',
+        'loop-a:loop-a-term',
+        'loop-b:loop-b-term',
+      ]);
+    });
+
+    it('includes the subdomain of a subdomain, under its direct parent', async () => {
+      const result = await getTerms({ term: 'carrier' });
+
+      expect(result.terms).toEqual([
+        expect.objectContaining({ id: 'carrier', domainId: 'carriers', isSubdomain: true, parentDomainId: 'fulfilment' }),
+      ]);
+    });
+
+    it('lists domains that point at each other once, rather than leaving them out', async () => {
+      const result = await getTerms({ term: 'loop' });
+
+      expect(result.terms?.map((term: any) => [term.domainId, term.parentDomainId])).toEqual([
+        ['loop-a', undefined],
+        ['loop-b', 'loop-a'],
       ]);
     });
 
@@ -199,11 +257,11 @@ describe('explainUbiquitousLanguageTerms', () => {
       try {
         const firstPage = await getTerms({});
         expect(firstPage.terms).toHaveLength(DEFAULT_PAGE_SIZE);
-        expect(firstPage.totalCount).toBe(DEFAULT_PAGE_SIZE + 5);
+        expect(firstPage.totalCount).toBe(DEFAULT_PAGE_SIZE + 8);
         expect(firstPage.nextCursor).toBeDefined();
 
         const secondPage = await getTerms({ cursor: firstPage.nextCursor });
-        expect(secondPage.terms).toHaveLength(5);
+        expect(secondPage.terms).toHaveLength(8);
         expect(secondPage.nextCursor).toBeUndefined();
       } finally {
         dictionary.splice(-manyTerms.length);
