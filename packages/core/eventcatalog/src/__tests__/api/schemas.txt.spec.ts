@@ -86,13 +86,13 @@ describe('api/schemas.txt', () => {
 List of schemas for events, commands, queries, and services in EventCatalog.
 
 ## Events
-- [Order Placed - OrderPlaced - 1.0.0](http://localhost:4321/api/schemas/events/OrderPlaced/1.0.0)} - Order Placed summary
+- [Order Placed - OrderPlaced - 1.0.0](http://localhost:4321/api/schemas/events/OrderPlaced/1.0.0) - Order Placed summary
 
 ## Commands
-- [Create Order - CreateOrder - 1.0.0](http://localhost:4321/api/schemas/commands/CreateOrder/1.0.0)} - Create Order summary
+- [Create Order - CreateOrder - 1.0.0](http://localhost:4321/api/schemas/commands/CreateOrder/1.0.0) - Create Order summary
 
 ## Queries
-- [Get Order - GetOrder - 1.0.0](http://localhost:4321/api/schemas/queries/GetOrder/1.0.0)} - Get Order summary
+- [Get Order - GetOrder - 1.0.0](http://localhost:4321/api/schemas/queries/GetOrder/1.0.0) - Get Order summary
 
 ## Services
 - [OrderService - 1.0.0 - openapi specification](http://localhost:4321/api/schemas/services/OrderService/1.0.0/openapi) - Specification for Order Service summary

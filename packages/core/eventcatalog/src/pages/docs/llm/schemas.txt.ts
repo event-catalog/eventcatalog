@@ -52,7 +52,7 @@ export const GET: APIRoute = async ({ params, request }) => {
 
   const formatVersionedItem = (item: (typeof schemas)[number]) => {
     const message = item.data.message;
-    return `- [${message.name || message.id} - ${message.id} - ${message.version}](${baseUrl}/api/schemas/${message.collectionName}/${message.id}/${message.version})} ${message.summary ? `- ${message.summary.trim()}` : ''}`;
+    return `- [${message.name || message.id} - ${message.id} - ${message.version}](${baseUrl}/api/schemas/${message.collectionName}/${message.id}/${message.version}) ${message.summary ? `- ${message.summary.trim()}` : ''}`;
   };
 
   const formatServiceWithSchema = (item: ServiceWithSchema) => {

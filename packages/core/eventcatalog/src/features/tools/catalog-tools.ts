@@ -11,7 +11,12 @@ import {
   processSpecifications,
   versionMatches,
 } from '@utils/collections/util';
-import { getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains';
+import {
+  getDomains,
+  getTermsDefinedInSeveralDomains,
+  getUbiquitousLanguageGlossary,
+  getUbiquitousLanguageWithSubdomains,
+} from '@utils/collections/domains';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import fs from 'node:fs';
 import { getArchitectureDiagramGraph } from '@utils/node-graphs/architecture-diagram';
@@ -910,12 +915,71 @@ export async function findMessageBySchemaId(params: {
 // Ubiquitous Language (DDD)
 // ============================================
 
+const toUbiquitousLanguageTermResult = (
+  term: any,
+  domain: { id: string; name: string },
+  isDuplicate: boolean,
+  parentDomainId?: string
+) => ({
+  id: term.id,
+  term: term.name,
+  summary: term.summary,
+  description: term.description || term.summary,
+  icon: term.icon,
+  domainId: domain.id,
+  domainName: domain.name,
+  ...(parentDomainId ? { isSubdomain: true, parentDomainId } : {}),
+  isDuplicate,
+});
+
 /**
- * Get ubiquitous language terms for a domain (including subdomains)
- * Returns the domain's language/glossary if defined
+ * Get ubiquitous language terms, optionally filtered to the terms matching `term`.
+ * With a domainId, returns that domain's terms and its subdomains' terms.
+ * Without one, returns the terms of every domain (paginated), keeping each domain's meaning of a term separate.
  */
-export async function explainUbiquitousLanguageTerms(params: { domainId: string; domainVersion?: string }) {
-  const domains = await getCollection('domains');
+export async function explainUbiquitousLanguageTerms(params: {
+  domainId?: string;
+  domainVersion?: string;
+  term?: string;
+  cursor?: string;
+}) {
+  const search = params.term?.trim().toLowerCase();
+  const matchesSearch = (term: { id: string; term: string }) =>
+    !search || term.term.toLowerCase().includes(search) || term.id.toLowerCase().includes(search);
+
+  if (!params.domainId) {
+    const glossary = await getUbiquitousLanguageGlossary();
+    const definedInSeveralDomains = getTermsDefinedInSeveralDomains(glossary);
+    const isDuplicate = (term: { name: string }) => definedInSeveralDomains.has(term.name.toLowerCase());
+
+    const terms = glossary
+      .flatMap((domain) => [
+        ...domain.terms.map((term) => toUbiquitousLanguageTermResult(term, domain, isDuplicate(term))),
+        ...domain.subdomains.flatMap((subdomain) =>
+          subdomain.terms.map((term) => toUbiquitousLanguageTermResult(term, subdomain, isDuplicate(term), domain.id))
+        ),
+      ])
+      .filter(matchesSearch);
+
+    const page = paginate(terms, params.cursor);
+    if ('error' in page) return page;
+
+    return {
+      terms: page.items,
+      nextCursor: page.nextCursor,
+      totalCount: page.totalCount,
+      duplicateTerms: Array.from(new Set(page.items.filter((term) => term.isDuplicate).map((term) => term.term.toLowerCase()))),
+      message:
+        terms.length === 0
+          ? search
+            ? `No ubiquitous language terms match "${params.term}"`
+            : 'No ubiquitous language terms are defined in this catalog'
+          : undefined,
+    };
+  }
+
+  // getDomains resolves subdomains to their entries, which is what finds the subdomains' terms
+  const domains = await getDomains({ getAllVersions: true });
 
   // Use the existing utility to find the domain by id and version (or latest)
   const matches = getItemsFromCollectionByIdAndSemverOrLatest(domains, params.domainId, params.domainVersion);
@@ -930,31 +994,32 @@ export async function explainUbiquitousLanguageTerms(params: { domainId: string;
   // Get ubiquitous language including subdomains
   const ubiquitousLanguageData = await getUbiquitousLanguageWithSubdomains(domain as any);
   const { domain: domainUL, subdomains, duplicateTerms } = ubiquitousLanguageData;
+  const domainName = (domain.data as any).name || params.domainId;
 
   // Extract terms from domain's ubiquitous language
-  const domainTerms =
-    domainUL?.data?.dictionary?.map((term: any) => ({
-      term: term.name,
-      description: term.summary,
-      icon: term.icon,
-      domainId: params.domainId,
-      domainName: (domain.data as any).name || params.domainId,
-      isDuplicate: duplicateTerms.has(term.name.toLowerCase()),
-    })) || [];
+  const domainTerms = (domainUL?.data?.dictionary || [])
+    .map((term: any) =>
+      toUbiquitousLanguageTermResult(
+        term,
+        { id: params.domainId!, name: domainName },
+        duplicateTerms.has(term.name.toLowerCase())
+      )
+    )
+    .filter(matchesSearch);
 
   // Extract terms from subdomains
-  const subdomainTerms = subdomains.flatMap(({ subdomain, ubiquitousLanguage }) => {
-    if (!ubiquitousLanguage?.data?.dictionary) return [];
-    return ubiquitousLanguage.data.dictionary.map((term: any) => ({
-      term: term.name,
-      description: term.summary,
-      icon: term.icon,
-      domainId: (subdomain.data as any).id,
-      domainName: (subdomain.data as any).name || (subdomain.data as any).id,
-      isSubdomain: true,
-      isDuplicate: duplicateTerms.has(term.name.toLowerCase()),
-    }));
-  });
+  const subdomainTerms = subdomains
+    .flatMap(({ subdomain, ubiquitousLanguage }) =>
+      (ubiquitousLanguage?.data?.dictionary || []).map((term: any) =>
+        toUbiquitousLanguageTermResult(
+          term,
+          { id: (subdomain.data as any).id, name: (subdomain.data as any).name || (subdomain.data as any).id },
+          duplicateTerms.has(term.name.toLowerCase()),
+          params.domainId
+        )
+      )
+    )
+    .filter(matchesSearch);
 
   const allTerms = [...domainTerms, ...subdomainTerms];
 
@@ -962,8 +1027,10 @@ export async function explainUbiquitousLanguageTerms(params: { domainId: string;
     return {
       domainId: params.domainId,
       domainVersion: (domain.data as any).version,
-      domainName: (domain.data as any).name || params.domainId,
-      message: 'No ubiquitous language terms defined for this domain or its subdomains',
+      domainName,
+      message: search
+        ? `No ubiquitous language terms match "${params.term}" in this domain or its subdomains`
+        : 'No ubiquitous language terms defined for this domain or its subdomains',
       terms: [],
       subdomainCount: subdomains.length,
     };
@@ -972,7 +1039,7 @@ export async function explainUbiquitousLanguageTerms(params: { domainId: string;
   return {
     domainId: params.domainId,
     domainVersion: (domain.data as any).version,
-    domainName: (domain.data as any).name || params.domainId,
+    domainName,
     terms: allTerms,
     totalCount: allTerms.length,
     domainTermCount: domainTerms.length,
@@ -1359,7 +1426,7 @@ export const toolDescriptions = {
   findMessageBySchemaId:
     'Use this tool when a user shares a schema file (Avro, JSON Schema, Protobuf) and wants to find it in EventCatalog. Look for "x-eventcatalog-id" and "x-eventcatalog-version" in the schema - these may be properties in the schema OR in comments (e.g. // x-eventcatalog-id: OrderCreated). Pass the id as messageId. If version exists, pass it as messageVersion, otherwise omit it to get the latest version. Returns the message resource along with its producers and consumers.',
   explainUbiquitousLanguageTerms:
-    'Use this tool to explain ubiquitous language terms from Domain-Driven Design for a specific domain. Returns the glossary of terms defined for the domain and its subdomains, including duplicate term detection.',
+    "Use this tool to find out what a business term means, or to get the ubiquitous language (Domain-Driven Design glossary) of a domain or of every domain. Pass domainId for a domain's terms and its subdomains' terms, term to find a term by name, or neither for the whole glossary. The same term can mean different things in different domains: each domain's meaning is returned separately and duplicates are flagged.",
   getDataProductInputs:
     'Use this tool to get the inputs (resources consumed) for a data product. Returns fully hydrated input resources with their id, version, name, summary, and collection type.',
   getDataProductOutputs:

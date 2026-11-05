@@ -1,0 +1,219 @@
+import { describe, expect, it, vi } from 'vitest';
+import { DEFAULT_PAGE_SIZE, explainUbiquitousLanguageTerms } from '../catalog-tools';
+
+// Only astro:content is mocked, and domains point at their subdomains with { id, version } as they do
+// in a real catalog, so these tests run through the real collection helpers.
+const collections = vi.hoisted(() => ({
+  domains: [
+    {
+      id: 'order-management-1.0.0',
+      collection: 'domains',
+      filePath: 'domains/order-management/index.mdx',
+      data: {
+        id: 'order-management',
+        name: 'Order Management',
+        version: '1.0.0',
+        domains: [{ id: 'fulfilment', version: '1.0.0' }],
+      },
+    },
+    {
+      id: 'fulfilment-1.0.0',
+      collection: 'domains',
+      filePath: 'domains/order-management/subdomains/fulfilment/index.mdx',
+      data: { id: 'fulfilment', name: 'Fulfilment', version: '1.0.0' },
+    },
+    {
+      id: 'payments-1.0.0',
+      collection: 'domains',
+      filePath: 'domains/payments/index.mdx',
+      data: { id: 'payments', name: 'Payments', version: '1.0.0' },
+    },
+    {
+      id: 'empty-1.0.0',
+      collection: 'domains',
+      filePath: 'domains/empty/index.mdx',
+      data: { id: 'empty', name: 'Empty', version: '1.0.0' },
+    },
+    // Shares a subdomain with order-management: its terms must only be listed once
+    {
+      id: 'returns-1.0.0',
+      collection: 'domains',
+      filePath: 'domains/returns/index.mdx',
+      data: { id: 'returns', name: 'Returns', version: '1.0.0', domains: [{ id: 'fulfilment', version: '1.0.0' }] },
+    },
+  ],
+  ubiquitousLanguages: [
+    {
+      id: 'order-management-language',
+      collection: 'ubiquitousLanguages',
+      filePath: 'domains/order-management/ubiquitous-language.mdx',
+      data: {
+        dictionary: [
+          { id: 'order', name: 'Order', summary: 'A request to buy goods.', description: 'The long definition of an order.' },
+          { id: 'customer', name: 'Customer', summary: 'The person placing an order.' },
+        ],
+      },
+    },
+    {
+      id: 'fulfilment-language',
+      collection: 'ubiquitousLanguages',
+      filePath: 'domains/order-management/subdomains/fulfilment/ubiquitous-language.mdx',
+      data: { dictionary: [{ id: 'shipment', name: 'Shipment', summary: 'A package on its way.' }] },
+    },
+    {
+      id: 'payments-language',
+      collection: 'ubiquitousLanguages',
+      filePath: 'domains/payments/ubiquitous-language.mdx',
+      data: {
+        dictionary: [
+          { id: 'customer', name: 'customer', summary: 'The party being charged.' },
+          { id: 'refund', name: 'Refund', description: 'Money returned to a customer.' },
+        ],
+      },
+    },
+  ],
+}));
+
+vi.mock('astro:content', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('astro:content')>()),
+  getCollection: (key: keyof typeof collections, filter?: (entry: any) => boolean) => {
+    const entries: any[] = collections[key] ?? [];
+    return Promise.resolve(filter ? entries.filter(filter) : entries);
+  },
+}));
+
+/** Calls the tool for a test that expects terms back, so it fails with the error if there is one */
+const getTerms = async (params: Parameters<typeof explainUbiquitousLanguageTerms>[0]) => {
+  const result = await explainUbiquitousLanguageTerms(params);
+  if ('error' in result) throw new Error(result.error);
+  return result;
+};
+
+describe('explainUbiquitousLanguageTerms', () => {
+  describe('for one domain', () => {
+    it('returns the terms of the domain and its subdomains', async () => {
+      const result = await getTerms({ domainId: 'order-management' });
+
+      expect(result.domainTermCount).toBe(2);
+      expect(result.subdomainTermCount).toBe(1);
+      expect(result.terms).toContainEqual(
+        expect.objectContaining({
+          id: 'shipment',
+          term: 'Shipment',
+          domainId: 'fulfilment',
+          domainName: 'Fulfilment',
+          parentDomainId: 'order-management',
+          isSubdomain: true,
+        })
+      );
+    });
+
+    it('returns the id, the summary and the long description of a term', async () => {
+      const result = await getTerms({ domainId: 'order-management' });
+
+      expect(result.terms).toContainEqual(
+        expect.objectContaining({
+          id: 'order',
+          term: 'Order',
+          summary: 'A request to buy goods.',
+          description: 'The long definition of an order.',
+        })
+      );
+    });
+
+    it('falls back to the summary when a term has no long description', async () => {
+      const result = await getTerms({ domainId: 'order-management' });
+
+      expect(result.terms).toContainEqual(
+        expect.objectContaining({ term: 'Customer', description: 'The person placing an order.' })
+      );
+    });
+
+    it('only returns the terms matching the term filter', async () => {
+      const result = await getTerms({ domainId: 'order-management', term: 'SHIP' });
+
+      expect(result.terms?.map((term: any) => term.term)).toEqual(['Shipment']);
+      expect(result.totalCount).toBe(1);
+    });
+
+    it('explains when nothing matches the term filter', async () => {
+      const result = await getTerms({ domainId: 'order-management', term: 'invoice' });
+
+      expect(result.terms).toEqual([]);
+      expect(result.message).toContain('invoice');
+    });
+
+    it('returns an error when the domain does not exist', async () => {
+      const result = await explainUbiquitousLanguageTerms({ domainId: 'missing' });
+
+      expect(result).toEqual({ error: 'Domain not found: missing' });
+    });
+  });
+
+  describe('across the organization', () => {
+    it('returns the terms of every domain and subdomain when no domain is given', async () => {
+      const result = await getTerms({});
+
+      expect(result.totalCount).toBe(5);
+      expect(result.terms?.map((term: any) => `${term.domainId}:${term.id}`)).toEqual([
+        'order-management:order',
+        'order-management:customer',
+        'fulfilment:shipment',
+        'payments:customer',
+        'payments:refund',
+      ]);
+    });
+
+    it('returns each domain meaning of a term, without merging them', async () => {
+      const result = await getTerms({ term: 'customer' });
+
+      expect(result.terms?.map((term: any) => [term.domainName, term.description])).toEqual([
+        ['Order Management', 'The person placing an order.'],
+        ['Payments', 'The party being charged.'],
+      ]);
+    });
+
+    it('flags the terms defined in more than one domain, ignoring case', async () => {
+      const result = await getTerms({});
+
+      expect(result.duplicateTerms).toEqual(['customer']);
+      expect(result.terms?.filter((term: any) => term.isDuplicate).map((term: any) => term.domainId)).toEqual([
+        'order-management',
+        'payments',
+      ]);
+    });
+
+    it('explains when no term matches', async () => {
+      const result = await getTerms({ term: 'invoice' });
+
+      expect(result.terms).toEqual([]);
+      expect(result.totalCount).toBe(0);
+      expect(result.message).toContain('invoice');
+    });
+
+    it('paginates the terms with a cursor', async () => {
+      const manyTerms = Array.from({ length: DEFAULT_PAGE_SIZE }, (_, index) => ({ id: `term-${index}`, name: `Term ${index}` }));
+      const dictionary = collections.ubiquitousLanguages[2].data.dictionary as any[];
+      dictionary.push(...manyTerms);
+
+      try {
+        const firstPage = await getTerms({});
+        expect(firstPage.terms).toHaveLength(DEFAULT_PAGE_SIZE);
+        expect(firstPage.totalCount).toBe(DEFAULT_PAGE_SIZE + 5);
+        expect(firstPage.nextCursor).toBeDefined();
+
+        const secondPage = await getTerms({ cursor: firstPage.nextCursor });
+        expect(secondPage.terms).toHaveLength(5);
+        expect(secondPage.nextCursor).toBeUndefined();
+      } finally {
+        dictionary.splice(-manyTerms.length);
+      }
+    });
+
+    it('returns an error for an invalid cursor', async () => {
+      const result = await explainUbiquitousLanguageTerms({ cursor: 'not-a-cursor' });
+
+      expect(result).toEqual({ error: 'Invalid or malformed cursor' });
+    });
+  });
+});

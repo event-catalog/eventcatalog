@@ -12,10 +12,19 @@ interface Props {
   apiBase: string;
   llmsTxtUrl: string;
   llmsFullTxtUrl: string;
+  ubiquitousLanguageTxtUrl: string;
   schemasTxtUrl: string;
 }
 
-export const LlmAccessSettingsForm = ({ canEdit, initial, apiBase, llmsTxtUrl, llmsFullTxtUrl, schemasTxtUrl }: Props) => {
+export const LlmAccessSettingsForm = ({
+  canEdit,
+  initial,
+  apiBase,
+  llmsTxtUrl,
+  llmsFullTxtUrl,
+  schemasTxtUrl,
+  ubiquitousLanguageTxtUrl,
+}: Props) => {
   const [llmsTxtEnabled, setLlmsTxtEnabled] = useState(initial.llmsTxtEnabled);
   const [pristine, setPristine] = useState(initial.llmsTxtEnabled);
   const [saving, setSaving] = useState(false);
@@ -94,7 +103,9 @@ export const LlmAccessSettingsForm = ({ canEdit, initial, apiBase, llmsTxtUrl, l
             disabled={!canEdit}
             onChange={setLlmsTxtEnabled}
           />
-          {llmsTxtEnabled && <LlmsTxtPreview url={llmsTxtUrl} fullUrl={llmsFullTxtUrl} />}
+          {llmsTxtEnabled && (
+            <LlmsTxtPreview url={llmsTxtUrl} fullUrl={llmsFullTxtUrl} ubiquitousLanguageUrl={ubiquitousLanguageTxtUrl} />
+          )}
         </Row>
 
         <Row
@@ -110,10 +121,19 @@ export const LlmAccessSettingsForm = ({ canEdit, initial, apiBase, llmsTxtUrl, l
   );
 };
 
-const LlmsTxtPreview = ({ url, fullUrl }: { url: string; fullUrl: string }) => {
+const LlmsTxtPreview = ({
+  url,
+  fullUrl,
+  ubiquitousLanguageUrl,
+}: {
+  url: string;
+  fullUrl: string;
+  ubiquitousLanguageUrl: string;
+}) => {
   const variants = [
     { label: 'Index', path: url },
     { label: 'Full', path: fullUrl },
+    { label: 'Ubiquitous Language', path: ubiquitousLanguageUrl },
   ];
   return (
     <div className="rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg)/0.4)] px-4 py-3">

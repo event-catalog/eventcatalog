@@ -89,6 +89,7 @@ export function getPublicRoutes(isLLMSTextEnabled: boolean) {
     '/docs/llm/llms.txt',
     '/docs/llm/llms-full.txt',
     '/docs/llm/schemas.txt',
+    '/docs/llm/ubiquitous-language.txt',
   ];
 }
 

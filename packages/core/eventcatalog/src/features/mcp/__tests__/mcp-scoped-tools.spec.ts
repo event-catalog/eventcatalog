@@ -3,18 +3,50 @@ import { createScopedCatalogTools } from '../mcp-scoped-tools';
 import { McpScope } from '../mcp-scope';
 
 // The wider catalog has a newer version of the payment service that is not part of the payments domain
-vi.mock('astro:content', () => ({
-  getCollection: vi.fn((collection: string) =>
-    Promise.resolve(
-      collection === 'services'
-        ? [
-            { id: 'payment-service-1.0.0', collection: 'services', data: { id: 'payment-service', version: '1.0.0' } },
-            { id: 'payment-service-2.0.0', collection: 'services', data: { id: 'payment-service', version: '2.0.0' } },
-          ]
-        : []
-    )
-  ),
-}));
+vi.mock('astro:content', () => {
+  const collections: Record<string, any[]> = {
+    services: [
+      { id: 'payment-service-1.0.0', collection: 'services', data: { id: 'payment-service', version: '1.0.0' } },
+      { id: 'payment-service-2.0.0', collection: 'services', data: { id: 'payment-service', version: '2.0.0' } },
+    ],
+    domains: [
+      {
+        id: 'payments-1.0.0',
+        collection: 'domains',
+        filePath: 'domains/payments/index.mdx',
+        data: { id: 'payments', version: '1.0.0', name: 'Payments' },
+      },
+      {
+        id: 'ordering-1.0.0',
+        collection: 'domains',
+        filePath: 'domains/ordering/index.mdx',
+        data: { id: 'ordering', version: '1.0.0', name: 'Ordering' },
+      },
+    ],
+    ubiquitousLanguages: [
+      {
+        filePath: 'domains/payments/ubiquitous-language.mdx',
+        data: {
+          dictionary: [
+            { id: 'refund', name: 'Refund', summary: 'Money returned to a customer.' },
+            { id: 'customer', name: 'Customer', summary: 'The party being charged.' },
+          ],
+        },
+      },
+      {
+        filePath: 'domains/ordering/ubiquitous-language.mdx',
+        data: { dictionary: [{ id: 'customer', name: 'Customer', summary: 'The person placing an order.' }] },
+      },
+    ],
+  };
+
+  return {
+    getCollection: vi.fn((collection: string, filter?: (entry: any) => boolean) => {
+      const entries = collections[collection] ?? [];
+      return Promise.resolve(filter ? entries.filter(filter) : entries);
+    }),
+  };
+});
 
 const domain = {
   id: 'payments-1.0.0',
@@ -41,6 +73,35 @@ const createScope = () => {
 };
 
 describe('createScopedCatalogTools', () => {
+  describe('explainUbiquitousLanguageTerms', () => {
+    it('uses the scoped domain, not the whole catalog, when no domain is given', async () => {
+      const tools = createScopedCatalogTools(createScope());
+
+      const result = await tools.explainUbiquitousLanguageTerms({});
+
+      expect('terms' in result && result.terms?.map((term: any) => `${term.domainId}:${term.id}`)).toEqual([
+        'payments:refund',
+        'payments:customer',
+      ]);
+    });
+
+    it('only finds a term in the scoped domain', async () => {
+      const tools = createScopedCatalogTools(createScope());
+
+      const result = await tools.explainUbiquitousLanguageTerms({ term: 'customer' });
+
+      expect('terms' in result && result.terms?.map((term: any) => term.description)).toEqual(['The party being charged.']);
+    });
+
+    it('fails closed for a domain outside the scope', async () => {
+      const tools = createScopedCatalogTools(createScope());
+
+      await expect(tools.explainUbiquitousLanguageTerms({ domainId: 'ordering' })).resolves.toEqual({
+        error: 'Resource not found: domains/ordering',
+      });
+    });
+  });
+
   it('lists only resources included in the scope', async () => {
     const tools = createScopedCatalogTools(createScope());
 
