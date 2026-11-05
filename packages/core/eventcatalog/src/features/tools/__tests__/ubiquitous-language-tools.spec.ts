@@ -29,6 +29,25 @@ const collections = vi.hoisted(() => ({
       filePath: 'domains/carriers/index.mdx',
       data: { id: 'carriers', name: 'Carriers', version: '1.0.0' },
     },
+    // Pins its subdomain to an old version, while the glossary lives with the current version
+    {
+      id: 'warehouse-1.0.0',
+      collection: 'domains',
+      filePath: 'domains/warehouse/index.mdx',
+      data: { id: 'warehouse', name: 'Warehouse', version: '1.0.0', domains: [{ id: 'inventory', version: '1.0.0' }] },
+    },
+    {
+      id: 'inventory-1.0.0',
+      collection: 'domains',
+      filePath: 'domains/inventory/versioned/1.0.0/index.mdx',
+      data: { id: 'inventory', name: 'Inventory', version: '1.0.0' },
+    },
+    {
+      id: 'inventory-2.0.0',
+      collection: 'domains',
+      filePath: 'domains/inventory/index.mdx',
+      data: { id: 'inventory', name: 'Inventory', version: '2.0.0' },
+    },
     // Two domains pointing at each other, so neither is a root domain
     {
       id: 'loop-a-1.0.0',
@@ -96,6 +115,12 @@ const collections = vi.hoisted(() => ({
       collection: 'ubiquitousLanguages',
       filePath: 'domains/carriers/ubiquitous-language.mdx',
       data: { dictionary: [{ id: 'carrier', name: 'Carrier', summary: 'A company that delivers packages.' }] },
+    },
+    {
+      id: 'inventory-language',
+      collection: 'ubiquitousLanguages',
+      filePath: 'domains/inventory/ubiquitous-language.mdx',
+      data: { dictionary: [{ id: 'stock-level', name: 'Stock Level', summary: 'How many of an item are available.' }] },
     },
     {
       id: 'loop-a-language',
@@ -192,7 +217,7 @@ describe('explainUbiquitousLanguageTerms', () => {
     it('returns the terms of every domain and subdomain when no domain is given', async () => {
       const result = await getTerms({});
 
-      expect(result.totalCount).toBe(8);
+      expect(result.totalCount).toBe(9);
       expect(result.terms?.map((term: any) => `${term.domainId}:${term.id}`)).toEqual([
         'order-management:order',
         'order-management:customer',
@@ -200,6 +225,7 @@ describe('explainUbiquitousLanguageTerms', () => {
         'carriers:carrier',
         'payments:customer',
         'payments:refund',
+        'inventory:stock-level',
         'loop-a:loop-a-term',
         'loop-b:loop-b-term',
       ]);
@@ -210,6 +236,14 @@ describe('explainUbiquitousLanguageTerms', () => {
 
       expect(result.terms).toEqual([
         expect.objectContaining({ id: 'carrier', domainId: 'carriers', isSubdomain: true, parentDomainId: 'fulfilment' }),
+      ]);
+    });
+
+    it('finds the terms of a subdomain pinned to an old version, which live with its current version', async () => {
+      const result = await getTerms({ term: 'stock' });
+
+      expect(result.terms).toEqual([
+        expect.objectContaining({ id: 'stock-level', domainId: 'inventory', isSubdomain: true, parentDomainId: 'warehouse' }),
       ]);
     });
 
@@ -257,11 +291,11 @@ describe('explainUbiquitousLanguageTerms', () => {
       try {
         const firstPage = await getTerms({});
         expect(firstPage.terms).toHaveLength(DEFAULT_PAGE_SIZE);
-        expect(firstPage.totalCount).toBe(DEFAULT_PAGE_SIZE + 8);
+        expect(firstPage.totalCount).toBe(DEFAULT_PAGE_SIZE + 9);
         expect(firstPage.nextCursor).toBeDefined();
 
         const secondPage = await getTerms({ cursor: firstPage.nextCursor });
-        expect(secondPage.terms).toHaveLength(8);
+        expect(secondPage.terms).toHaveLength(9);
         expect(secondPage.nextCursor).toBeUndefined();
       } finally {
         dictionary.splice(-manyTerms.length);

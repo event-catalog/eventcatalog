@@ -479,11 +479,11 @@ export const getUbiquitousLanguageGlossary = async (): Promise<OrganizationGloss
       if (listedDomains.has(subdomain.data.id)) return [];
       listedDomains.add(subdomain.data.id);
 
-      // Only the domains in the collection have their own subdomains resolved
-      return [
-        { ...toGlossary(subdomain), parentId: parent.data.id },
-        ...getDescendants(domainsById.get(subdomain.data.id) || subdomain),
-      ];
+      // Use the current version even when the parent pins an old one: only current versions have glossaries,
+      // and their own subdomains resolved
+      const currentSubdomain = domainsById.get(subdomain.data.id) || subdomain;
+
+      return [{ ...toGlossary(currentSubdomain), parentId: parent.data.id }, ...getDescendants(currentSubdomain)];
     });
 
   // Root domains go first. Any domain still not listed after them points in a loop, so has no root.
