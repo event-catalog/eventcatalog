@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 5.2.5
+
+### Patch Changes
+
+- 542e365: fix(visualiser): clicking the background of a diagram no longer zooms out to fit the whole graph, so an accidental click on a large diagram keeps your place. It still clears what's highlighted or selected, and Fit view in the bottom bar still fits the graph.
+
 ## 5.2.4
 
 ### Patch Changes
