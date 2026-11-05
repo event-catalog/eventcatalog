@@ -2147,8 +2147,7 @@ const NodeGraphBuilder = ({
   const handlePaneClick = useCallback(() => {
     searchRef.current?.hideSuggestions();
     resetNodesAndEdges();
-    fitView({ maxZoom: 1, duration: 800 });
-  }, [resetNodesAndEdges, fitView]);
+  }, [resetNodesAndEdges]);
 
   const handleNodeSelect = useCallback(
     (node: Node) => {
