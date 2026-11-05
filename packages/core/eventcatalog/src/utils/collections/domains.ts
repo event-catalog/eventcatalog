@@ -436,6 +436,90 @@ export const getRootDomains = async (): Promise<Domain[]> => {
   return domains.filter((d) => !allSubDomains.some((sd) => sd.data.id === d.data.id));
 };
 
+export type UbiquitousLanguageTerm = NonNullable<UbiquitousLanguage['data']['dictionary']>[number];
+
+export type DomainGlossary = {
+  id: string;
+  version: string;
+  name: string;
+  terms: UbiquitousLanguageTerm[];
+};
+
+export type SubdomainGlossary = DomainGlossary & { parentId: string };
+
+export type OrganizationGlossaryDomain = DomainGlossary & { subdomains: SubdomainGlossary[] };
+
+/**
+ * The ubiquitous language of the whole catalog: every domain with terms (or with a subdomain that has
+ * them), with all of its subdomains, at any depth, listed under it. Terms stay with their domain and are
+ * never merged, because the same word can mean something different in another domain.
+ */
+export const getUbiquitousLanguageGlossary = async (): Promise<OrganizationGlossaryDomain[]> => {
+  const [domains, rootDomains, ubiquitousLanguages] = await Promise.all([
+    getDomains({ getAllVersions: false }),
+    getRootDomains(),
+    getCollection('ubiquitousLanguages'),
+  ]);
+  const domainsById = new Map(domains.map((domain) => [domain.data.id, domain]));
+
+  const toGlossary = (domain: Domain): DomainGlossary => ({
+    id: domain.data.id,
+    version: domain.data.version,
+    name: domain.data.name || domain.data.id,
+    terms: getUbiquitousLanguageFromCollection(domain, ubiquitousLanguages).flatMap(
+      (ubiquitousLanguage) => ubiquitousLanguage.data.dictionary || []
+    ),
+  });
+
+  // Each domain is only listed once, whether several domains share it or domains point at each other
+  const listedDomains = new Set<string>();
+
+  const getDescendants = (parent: Domain): SubdomainGlossary[] =>
+    ((parent.data.domains as unknown as Domain[]) || []).flatMap((subdomain) => {
+      if (listedDomains.has(subdomain.data.id)) return [];
+      listedDomains.add(subdomain.data.id);
+
+      // Use the current version even when the parent pins an old one: only current versions have glossaries,
+      // and their own subdomains resolved
+      const currentSubdomain = domainsById.get(subdomain.data.id) || subdomain;
+
+      return [{ ...toGlossary(currentSubdomain), parentId: parent.data.id }, ...getDescendants(currentSubdomain)];
+    });
+
+  // Root domains go first. Any domain still not listed after them points in a loop, so has no root.
+  return [...rootDomains, ...domains]
+    .flatMap((domain) => {
+      if (listedDomains.has(domain.data.id)) return [];
+      listedDomains.add(domain.data.id);
+
+      return [
+        {
+          ...toGlossary(domain),
+          subdomains: getDescendants(domain).filter((subdomain) => subdomain.terms.length > 0),
+        },
+      ];
+    })
+    .filter((domain) => domain.terms.length > 0 || domain.subdomains.length > 0);
+};
+
+/** The terms defined in more than one domain, keyed by their lowercase name */
+export const getTermsDefinedInSeveralDomains = (glossary: OrganizationGlossaryDomain[]) => {
+  const definitions = new Map<string, { domain: DomainGlossary; term: UbiquitousLanguageTerm }[]>();
+
+  for (const domain of glossary.flatMap((domain) => [domain, ...domain.subdomains])) {
+    for (const term of domain.terms) {
+      const key = term.name.toLowerCase();
+      definitions.set(key, [...(definitions.get(key) || []), { domain, term }]);
+    }
+  }
+
+  return new Map([...definitions].filter(([, termDefinitions]) => new Set(termDefinitions.map((d) => d.domain.id)).size > 1));
+};
+
+/** A term's definition on one line, for the text files we generate for LLMs */
+export const getTermSummary = (term: UbiquitousLanguageTerm) =>
+  (term.summary || term.description || '').replace(/\s+/g, ' ').trim();
+
 export const getDomainsForService = async (service: Service): Promise<Domain[]> => {
   const domains = await getDomains({ getAllVersions: false });
   return domains.filter((d) => {

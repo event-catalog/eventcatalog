@@ -196,10 +196,13 @@ export function createScopedCatalogTools(scope: McpScope) {
       return { ...result, scope: scope.ref };
     },
 
-    async explainUbiquitousLanguageTerms(params: { domainId: string; domainVersion?: string }) {
-      const entry = scope.find('domains', params.domainId, params.domainVersion);
-      if (!entry) return notFound('domains', params.domainId, params.domainVersion);
-      return explainUbiquitousLanguageTerms({ ...params, domainVersion: entry.data.version });
+    async explainUbiquitousLanguageTerms(params: { domainId?: string; domainVersion?: string; term?: string; cursor?: string }) {
+      // Without a domain, look in the scoped domain rather than across the whole catalog
+      const domainId = params.domainId || scope.ref.id;
+      const domainVersion = params.domainId ? params.domainVersion : scope.ref.version;
+      const entry = scope.find('domains', domainId, domainVersion);
+      if (!entry) return notFound('domains', domainId, domainVersion);
+      return explainUbiquitousLanguageTerms({ ...params, domainId, domainVersion: entry.data.version });
     },
   };
 }

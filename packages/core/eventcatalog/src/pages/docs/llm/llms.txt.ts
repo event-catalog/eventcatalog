@@ -3,7 +3,7 @@ import config from '@config';
 import type { APIRoute } from 'astro';
 
 import { isLLMSTxtEnabled } from '@utils/feature';
-import { getUbiquitousLanguage } from '@utils/collections/domains';
+import { getTermSummary, getUbiquitousLanguage } from '@utils/collections/domains';
 import { getResourceDocs } from '@utils/collections/resource-docs';
 
 const events = await getCollection('events');
@@ -32,8 +32,8 @@ const ubiquitousLanguages: Record<string, { id: string; version: string; propert
 for (const domain of domains) {
   const ubiquitousLanguagesForDomain = await getUbiquitousLanguage(domain);
   if (ubiquitousLanguagesForDomain.length > 0) {
-    ubiquitousLanguages[domain.id] = ubiquitousLanguagesForDomain.map((item) => ({
-      id: domain.id,
+    ubiquitousLanguages[domain.data.id] = ubiquitousLanguagesForDomain.map((item) => ({
+      id: domain.data.id,
       version: domain.data.version,
       properties: item.data.dictionary,
     }));
@@ -44,15 +44,15 @@ for (const domain of domains) {
 const renderUbiquitousLanguages = (baseUrl: string) => {
   return Object.entries(ubiquitousLanguages)
     .map(([domainId, items]) => {
-      const domainName = domains.find((domain) => domain.id === domainId)?.data.name || domainId;
+      const domainName = domains.find((domain) => domain.data.id === domainId)?.data.name || domainId;
       const itemsList = items
         .map((item) => {
           // @ts-ignore
           const propertiesList = Object.entries(item.properties)
-            .map(
-              ([key, value]: any) =>
-                `    - [${value.name}: - ${value.summary}](${baseUrl}/docs/domains/${domainId.split('-')[0]}/language.mdx)`
-            )
+            .map(([key, value]: any) => {
+              const summary = getTermSummary(value);
+              return `    - [${value.name}${summary ? `: - ${summary}` : ''}](${baseUrl}/docs/domains/${domainId}/language.mdx)`;
+            })
             .join('\n');
           return propertiesList;
         })
@@ -93,7 +93,8 @@ export const GET: APIRoute = async ({ params, request }) => {
 
   const formatVersionedItem = (item: any, type: string, extraParams?: string | string[]) => {
     const params = Array.isArray(extraParams) ? extraParams.join('&') : extraParams || '';
-    return `- [${item.data.name} - ${item.data.id} - ${item.data.version} ${params ? `- ${params}` : ''}](${baseUrl}/docs/${type}/${item.data.id}/${item.data.version}.mdx) ${item.data.summary ? `- ${item.data.summary}` : ''}`;
+    const summary = item.data.summary?.trim();
+    return `- [${item.data.name} - ${item.data.id} - ${item.data.version} ${params ? `- ${params}` : ''}](${baseUrl}/docs/${type}/${item.data.id}/${item.data.version}.mdx) ${summary ? `- ${summary}` : ''}`;
   };
 
   const formatSimpleItem = (item: any, type: string) =>
@@ -136,19 +137,19 @@ export const GET: APIRoute = async ({ params, request }) => {
     `# ${config.organizationName} EventCatalog Documentation\n`,
     `> ${config.tagline}\n`,
     '## Events',
-    events.map((item) => formatVersionedItem(item, 'events')).join(''),
+    events.map((item) => formatVersionedItem(item, 'events')).join('\n'),
     '\n## Commands',
-    commands.map((item) => formatVersionedItem(item, 'commands')).join(''),
+    commands.map((item) => formatVersionedItem(item, 'commands')).join('\n'),
     '\n## Queries',
-    queries.map((item) => formatVersionedItem(item, 'queries')).join(''),
+    queries.map((item) => formatVersionedItem(item, 'queries')).join('\n'),
     '\n## Agents',
-    agents.map((item) => formatVersionedItem(item, 'agents')).join(''),
+    agents.map((item) => formatVersionedItem(item, 'agents')).join('\n'),
     '\n## Services',
-    services.map((item) => formatVersionedItem(item, 'services')).join(''),
+    services.map((item) => formatVersionedItem(item, 'services')).join('\n'),
     '\n## Data Products',
     dataProducts.map((item) => formatVersionedItem(item, 'data-products')).join('\n'),
     '\n## Domains',
-    domains.map((item) => formatVersionedItem(item, 'domains')).join(''),
+    domains.map((item) => formatVersionedItem(item, 'domains')).join('\n'),
     '\n## Flows',
     flows.map((item) => formatVersionedItem(item, 'flows')).join('\n'),
     '\n## Channels',
@@ -156,8 +157,14 @@ export const GET: APIRoute = async ({ params, request }) => {
       .map((item) =>
         formatVersionedItem(item, 'channels', item.data.protocols?.map((protocol) => `protocol - ${protocol}`).join('&'))
       )
-      .join(''),
-    ...(Object.keys(ubiquitousLanguages).length > 0 ? ['## Ubiquitous Language', renderUbiquitousLanguages(baseUrl)] : []),
+      .join('\n'),
+    ...(Object.keys(ubiquitousLanguages).length > 0
+      ? [
+          '\n## Ubiquitous Language',
+          `The whole glossary, with terms defined in more than one domain listed together: ${baseUrl}/docs/llm/ubiquitous-language.txt`,
+          renderUbiquitousLanguages(baseUrl),
+        ]
+      : []),
     '\n## Containers (Databases, External Systems)',
     containers.map((item) => formatVersionedItem(item, 'containers')).join('\n'),
     '\n## Entities',

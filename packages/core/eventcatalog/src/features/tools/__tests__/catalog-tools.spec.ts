@@ -50,6 +50,7 @@ vi.mock('@utils/collections/util', async (importOriginal) => ({
 
 // Mock getUbiquitousLanguageWithSubdomains
 vi.mock('@utils/collections/domains', () => ({
+  getDomains: vi.fn(() => Promise.resolve(mockCollections.domains)),
   getUbiquitousLanguageWithSubdomains: vi.fn((domain) => {
     // Return mock ubiquitous language data based on domain
     if (domain.data.id === 'OrderDomain') {

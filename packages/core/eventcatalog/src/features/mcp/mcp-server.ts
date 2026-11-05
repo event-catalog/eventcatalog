@@ -130,6 +130,11 @@ function getServerInstructions(scope?: McpScope) {
     'When the user wants to see or understand how something works or fits together (e.g. "show me how the Order Service works"), call showResource with view "architecture": it shows them an interactive diagram. Do not draw your own diagram of the architecture.',
     'When the user wants to see a schema, payload or the fields of a message (e.g. "show me the schema for OrderCreated"), call showResource with view "schema", not getSchemaForResource: it shows them an interactive schema viewer. Do not print the schema yourself.',
     'For relationships use getMessagesProducedOrConsumedByResource, getProducersOfMessage and getConsumersOfMessage. Before changing a message, call analyzeChangeImpact to find the affected services, agents and owning teams.',
+    ...(!scope || scope.ref.kind === 'domain'
+      ? [
+          'To find out what a business term means, or to use the right names when writing about or building for a domain, call explainUbiquitousLanguageTerms. A term can mean different things in different domains, so use the meaning from the domain you are working in.',
+        ]
+      : []),
     ...(scope
       ? []
       : [
@@ -570,8 +575,15 @@ function createMcpServer(
         title: 'Explain ubiquitous language terms',
         description: catalogTools.toolDescriptions.explainUbiquitousLanguageTerms,
         inputSchema: z.object({
-          domainId: z.string().describe('The id of the domain to get ubiquitous language terms for'),
+          domainId: z
+            .string()
+            .optional()
+            .describe(
+              'The id of the domain to get ubiquitous language terms for. Omit it to look across every domain available.'
+            ),
           domainVersion: optionalVersion('domain'),
+          term: z.string().optional().describe('Only return terms whose name or id contains this text (case-insensitive)'),
+          cursor: z.string().optional().describe('Pagination cursor from a previous response, when looking across every domain'),
         }),
         annotations: readOnlyAnnotations,
       },
