@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { getEventCatalogConfigFile, cleanup } from './eventcatalog-config-file-utils.js';
 import { logger } from './utils/cli-logger';
 
@@ -44,7 +45,8 @@ export const generate = async (PROJECT_DIRECTORY) => {
       }
 
       try {
-        const importedGenerator = await import(plugin);
+        // A generator in the catalog is imported by its file:// URL (on Windows, Node can't import C:\...); a package by its name
+        const importedGenerator = await import(path.isAbsolute(plugin) ? pathToFileURL(plugin).href : plugin);
 
         // TODO: Fix this...
         const generator = getDefaultExport(importedGenerator);

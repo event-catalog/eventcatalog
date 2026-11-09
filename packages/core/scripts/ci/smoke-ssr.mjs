@@ -66,29 +66,68 @@ const stopServer = async () => {
   }
 };
 
+// A catalog with eventcatalog.auth.js (and auth enabled) signs people in. Node imports the catalog's own files at
+// runtime, which on Windows only works by their file:// URL, so these checks fail when they don't load.
+const hasAuth = fs.existsSync(path.join(projectDirectory, 'eventcatalog.auth.js'));
+
+// A page's first request loads its code (and Auth.js), which can be slow on a Windows runner: only the readiness
+// poll gives up quickly
+const get = async (pathname, { timeout = 15_000, ...options } = {}) => {
+  const response = await fetch(`http://127.0.0.1:${port}${pathname}`, { signal: AbortSignal.timeout(timeout), ...options });
+  return { response, body: await response.text() };
+};
+
+const assert = (condition, message) => {
+  if (!condition) throw new Error(message);
+};
+
+const checkCatalogRenders = async () => {
+  const { response, body } = await get('/');
+  assert(response.ok, `GET / returned ${response.status}`);
+  assert(body.includes('SSR Test Catalog'), 'GET / did not render the SSR test catalog');
+};
+
+const checkAuthLoads = async () => {
+  const home = await get('/', { redirect: 'manual' });
+  const location = home.response.headers.get('location') || '';
+  assert(
+    home.response.status >= 300 && home.response.status < 400 && location.includes('/auth/login'),
+    `GET / should send people to sign in, but returned ${home.response.status}${location ? ` (to ${location})` : ''}`
+  );
+
+  // auth.config.ts loaded eventcatalog.auth.js
+  const providers = await get('/api/auth/providers');
+  assert(providers.response.ok, `GET /api/auth/providers returned ${providers.response.status}`);
+  assert(
+    'github' in JSON.parse(providers.body),
+    `The GitHub provider in eventcatalog.auth.js was not loaded: GET /api/auth/providers returned ${providers.body}`
+  );
+
+  // The sign-in page loaded eventcatalog.auth.js, and the catalog's middleware.ts ran
+  const login = await get('/auth/login');
+  assert(login.response.ok, `GET /auth/login returned ${login.response.status}`);
+  assert(
+    login.body.includes('Continue with GitHub'),
+    'The sign-in page did not offer the GitHub provider in eventcatalog.auth.js'
+  );
+  assert(
+    login.response.headers.get('x-eventcatalog-catalog-middleware') === 'loaded',
+    "The catalog's middleware.ts was not loaded"
+  );
+};
+
 try {
   const deadline = Date.now() + 60_000;
   let lastError;
 
+  // Wait for the server to answer, then check it once
   while (Date.now() < deadline) {
     if (server.exitCode !== null) {
       throw new Error(`SSR server exited with code ${server.exitCode}\n${output}`);
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:${port}/`, {
-        signal: AbortSignal.timeout(2_000),
-      });
-      const body = await response.text();
-
-      if (!response.ok) {
-        throw new Error(`GET / returned ${response.status}`);
-      }
-      if (!body.includes('SSR Test Catalog')) {
-        throw new Error('GET / did not render the SSR test catalog');
-      }
-
-      console.log(`SSR smoke test passed on port ${port}`);
+      await get('/', { redirect: 'manual', timeout: 2_000 });
       lastError = undefined;
       break;
     } catch (error) {
@@ -100,6 +139,14 @@ try {
   if (lastError) {
     throw new Error(`SSR server did not become ready: ${lastError.message}\n${output}`);
   }
+
+  try {
+    await (hasAuth ? checkAuthLoads() : checkCatalogRenders());
+  } catch (error) {
+    throw new Error(`SSR smoke test failed: ${error.message}\n${output}`);
+  }
+
+  console.log(`SSR smoke test passed on port ${port}${hasAuth ? ' (auth files loaded)' : ''}`);
 } finally {
   await stopServer();
 }

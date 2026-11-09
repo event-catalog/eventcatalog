@@ -1,20 +1,18 @@
 import { defineConfig } from '@utils/auth-astro/config';
-import { join } from 'node:path';
 import GitHub from '@auth/core/providers/github';
 import Okta from '@auth/core/providers/okta';
 import type { Account, Profile, User, Session } from '@auth/core/types';
 import { isAuthEnabled, isSSR } from '@utils/feature';
+import { importCatalogModule } from '@utils/catalog-modules';
 import Google from '@auth/core/providers/google';
 import Auth0 from '@auth/core/providers/auth0';
 import Entra from '@auth/core/providers/microsoft-entra-id';
 import jwt from 'jsonwebtoken';
 
 // Need to try and read the eventcatalog.auth.js file and get the auth providers from there
-const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
-
 const getAuthProviders = async () => {
   try {
-    const config = await import(/* @vite-ignore */ join(catalogDirectory, 'eventcatalog.auth.js'));
+    const config = await importCatalogModule('eventcatalog.auth.js');
     const authConfig = config.default;
 
     const providers = [];
@@ -98,6 +96,7 @@ const getAuthProviders = async () => {
 
     return providers;
   } catch (error) {
+    console.error('❌ Failed to load the auth providers from eventcatalog.auth.js:', error);
     return [];
   }
 };
@@ -110,13 +109,13 @@ const getAuthConfig = async () => {
     };
   }
   try {
-    const config = await import(/* @vite-ignore */ join(catalogDirectory, 'eventcatalog.auth.js'));
+    const config = await importCatalogModule('eventcatalog.auth.js');
     const authConfig = config.default;
 
     // If custom auth config is specified (Enterprise feature)
     if (authConfig?.customAuthConfig) {
       try {
-        const customConfig = await import(/* @vite-ignore */ join(catalogDirectory, authConfig.customAuthConfig));
+        const customConfig = await importCatalogModule(authConfig.customAuthConfig);
         return customConfig.default;
       } catch (error) {
         console.error('❌ Failed to load custom auth config:', error);
@@ -212,9 +211,8 @@ const getAuthConfig = async () => {
       debug: authConfig?.debug || false,
     };
   } catch (error) {
-    console.log(
-      'No auth config found, auth disabled. If you want to use auth, create a eventcatalog.auth.js file in your project directory.'
-    );
+    // Auth is enabled and eventcatalog.auth.js exists (isAuthEnabled checks both), so the file failed to load
+    console.error('❌ Failed to load eventcatalog.auth.js, auth disabled:', error);
     return {
       providers: [],
       pages: {

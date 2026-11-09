@@ -3,6 +3,7 @@ import { Hono, type Context } from 'hono';
 import { McpServer, WebStandardStreamableHTTPServerTransport, type StandardSchemaWithJSON } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { join } from 'node:path';
+import { importCatalogModule } from '@utils/catalog-modules';
 import * as catalogTools from '@features/tools/catalog-tools';
 import { getCollection } from 'astro:content';
 import { createMcpAuthErrorResponse, validateMcpRequest } from './mcp-auth';
@@ -78,7 +79,7 @@ function createToolHandler<T>(fn: (params: T) => Promise<any>, errorMessage: str
 let extendedTools: Record<string, any> = {};
 
 try {
-  const providerConfiguration = await import(/* @vite-ignore */ join(catalogDirectory, 'eventcatalog.chat.js'));
+  const providerConfiguration = await importCatalogModule('eventcatalog.chat.js');
 
   if (providerConfiguration.tools) {
     extendedTools = providerConfiguration.tools;

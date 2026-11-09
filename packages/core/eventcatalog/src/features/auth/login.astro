@@ -3,18 +3,16 @@ import '../../styles/tailwind.css';
 import config from '@config';
 import { formatPageTitle } from '@utils/page-title';
 const { title, logo } = config;
-import { join } from 'node:path';
 import { isAuthEnabled, isSSR } from '@utils/feature';
 import { buildUrl } from '@utils/url-builder';
 import { getSession } from '@utils/auth-astro/server';
-
-const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
+import { importCatalogModule } from '@utils/catalog-modules';
 
 let hasAuthConfigurationFile = false;
 let providers: string[] = [];
 
 try {
-  const authConfig = await import(/* @vite-ignore */ join(catalogDirectory, 'eventcatalog.auth.js'));
+  const authConfig = await importCatalogModule('eventcatalog.auth.js');
   providers = Object.keys(authConfig.default.providers);
   hasAuthConfigurationFile = true;
 } catch (error) {
