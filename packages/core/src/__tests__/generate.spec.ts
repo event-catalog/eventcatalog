@@ -59,6 +59,24 @@ describe('generate', () => {
     expect(process.exitCode).toBeUndefined();
   });
 
+  // Imported by its file:// URL. On Linux and macOS a path imports too, so the Windows case is covered by CI
+  // running `eventcatalog generate` in examples/ssr-auth on Windows
+  it('runs a generator given by its path from <rootDir>', async () => {
+    catalogDirectory = await createCatalog(`
+      import fs from 'node:fs';
+      export default async () => fs.writeFileSync(new URL('./generated.txt', import.meta.url), 'generated');
+    `);
+    await fs.writeFile(
+      path.join(catalogDirectory, 'eventcatalog.config.js'),
+      `export default { generators: [['<rootDir>/generator.mjs', {}]] };`
+    );
+
+    await generate(catalogDirectory);
+
+    expect(await fs.readFile(path.join(catalogDirectory, 'generated.txt'), 'utf8')).toBe('generated');
+    expect(process.exitCode).toBeUndefined();
+  });
+
   it('fails the command when a generator fails', async () => {
     catalogDirectory = await createCatalog(`export default async () => { throw new Error('Could not read the spec'); };`);
 

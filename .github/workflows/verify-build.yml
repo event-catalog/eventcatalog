@@ -137,6 +137,12 @@ jobs:
             os: ubuntu-latest
             catalog: ssr
             output: server
+          # Node imports a catalog's eventcatalog.auth.js and middleware.ts at runtime, which on Windows only
+          # works by their file:// URL: the smoke test checks they load
+          - label: SSR with auth, Windows
+            os: windows-latest
+            catalog: ssr-auth
+            output: server
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -161,9 +167,16 @@ jobs:
       - name: Install @eventcatalog packages
         working-directory: examples/${{ matrix.catalog }}/
         run: npm install ../../sdk-package.tgz ../../core-package.tgz ../../linter-package.tgz ../../connectors-package.tgz ../../visualiser-package.tgz ../../exporters-package.tgz ../../fitness-package.tgz
+      - name: Run generators
+        if: matrix.catalog == 'ssr-auth'
+        working-directory: examples/${{ matrix.catalog }}/
+        run: npx eventcatalog generate
       - name: Build EventCatalog
         working-directory: examples/${{ matrix.catalog }}/
         run: npx eventcatalog build
+        env:
+          # Astro writes the secret into the build (sign-in needs one); the smoke test never signs in
+          AUTH_SECRET: eventcatalog-ssr-smoke-test
       - name: Upload failed prerender output
         if: failure()
         uses: actions/upload-artifact@v4

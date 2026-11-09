@@ -9,7 +9,7 @@ import {
   type LanguageModel,
   type UIMessage,
 } from 'ai';
-import { join } from 'node:path';
+import { importCatalogModule } from '@utils/catalog-modules';
 import { isCanvasEnabled, isDevMode } from '@utils/feature';
 import { getCollection, getEntry } from 'astro:content';
 import { z } from 'astro/zod';
@@ -32,8 +32,6 @@ import {
   architectureDiagramDetailSchema,
   toolDescriptions,
 } from '@features/tools/catalog-tools';
-
-const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 
 // How many model calls one answer may take. Questions across several domains need many tool calls, so the last
 // step has tools turned off: the model has to answer with what it found, rather than stop without a reply.
@@ -58,7 +56,7 @@ let modelConfiguration: any;
 let extendedTools: any;
 
 try {
-  const providerConfiguration = await import(/* @vite-ignore */ join(catalogDirectory, 'eventcatalog.chat.js'));
+  const providerConfiguration = await importCatalogModule('eventcatalog.chat.js');
   model = await providerConfiguration.default();
   modelConfiguration = providerConfiguration.configuration || defaultConfiguration;
   hasChatConfiguration = true;
