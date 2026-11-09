@@ -1,6 +1,6 @@
 import { getCollection } from 'astro:content';
 import { getEntities, type Entity } from '@utils/collections/entities';
-import { createVersionedMap } from '@utils/collections/util';
+import { createVersionedMap, satisfies } from '@utils/collections/util';
 import { generateIdForNode } from './utils/utils';
 import { createLaneIndex, isLatest, toLane, type Lane, type StepLanes } from './flow-lanes';
 import {
@@ -14,8 +14,17 @@ import { layoutEntityNodes } from './entity-layout';
 /** The domain lane of an entity more than one domain has: grouped by domain, it gets a box of its own */
 export const SHARED_DOMAIN_LANE: Lane = { id: '__shared', name: 'Shared across domains' };
 
-const listsEntity = (resource: { data: { entities?: { id: string }[] } }, entityId: string) =>
-  (resource.data.entities || []).some((pointer) => pointer.id === entityId);
+/**
+ * Whether a domain, system or service lists this version of the entity (the latest, which the map shows):
+ * a pointer without a version, or to `latest`, or one whose version or range it satisfies. A resource that
+ * pins an older version doesn't own the latest one (as `getEntities` matches them)
+ */
+const listsEntity = (resource: { data: { entities?: { id: string; version?: string }[] } }, entity: Entity) =>
+  (resource.data.entities || []).some((pointer) => {
+    if (pointer.id !== entity.data.id) return false;
+    if (!pointer.version || pointer.version === 'latest') return true;
+    return satisfies(entity.data.version, pointer.version);
+  });
 const uniqueLanes = (lanes: (Lane | undefined)[]) => [
   ...new Map(lanes.filter((lane): lane is Lane => !!lane).map((lane) => [lane.id, lane])).values(),
 ];
@@ -50,10 +59,9 @@ export const getNodesAndEdges = async () => {
   const latestServices = services.filter(isLatest);
 
   const lanesForEntity = (entity: Entity): StepLanes => {
-    const id = entity.data.id;
-    const owningDomains = latestDomains.filter((domain) => listsEntity(domain, id));
-    const owningSystems = latestSystems.filter((system) => listsEntity(system, id));
-    const owningServices = latestServices.filter((service) => listsEntity(service, id));
+    const owningDomains = latestDomains.filter((domain) => listsEntity(domain, entity));
+    const owningSystems = latestSystems.filter((system) => listsEntity(system, entity));
+    const owningServices = latestServices.filter((service) => listsEntity(service, entity));
 
     const ownerLanes = [
       ...owningSystems.map((system) => laneIndex.lanesForSystem(system as any)),

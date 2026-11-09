@@ -16,18 +16,35 @@ const mockEntities = [
   entity('Address'),
   entity('Ledger'),
   entity('Orphan'),
+  // Profile has an older version, which Orders pins
+  {
+    ...entity('Profile'),
+    id: 'Profile-1.0.0',
+    filePath: 'domains/x/entities/Profile/versioned/1.0.0/index.mdx',
+  },
+  { ...entity('Profile'), id: 'Profile-2.0.0', data: { ...entity('Profile').data, version: '2.0.0' } },
 ];
 
 const mockDomains = [
   {
     id: 'Orders-1.0.0',
     collection: 'domains',
-    data: { id: 'Orders', name: 'Orders', version: '1.0.0', entities: [{ id: 'Order' }, { id: 'Address' }] },
+    data: {
+      id: 'Orders',
+      name: 'Orders',
+      version: '1.0.0',
+      entities: [{ id: 'Order' }, { id: 'Address' }, { id: 'Profile', version: '1.0.0' }],
+    },
   },
   {
     id: 'Customers-1.0.0',
     collection: 'domains',
-    data: { id: 'Customers', name: 'Customers', version: '1.0.0', entities: [{ id: 'Customer' }, { id: 'Address' }] },
+    data: {
+      id: 'Customers',
+      name: 'Customers',
+      version: '1.0.0',
+      entities: [{ id: 'Customer' }, { id: 'Address' }, { id: 'Profile', version: '^2.0.0' }],
+    },
   },
   {
     id: 'Billing-1.0.0',
@@ -90,6 +107,7 @@ describe('catalog entity map', () => {
       'Ledger',
       'Order',
       'Orphan',
+      'Profile',
     ]);
   });
 
@@ -128,6 +146,12 @@ describe('catalog entity map', () => {
 
     expect(lanesOf(nodes, 'Customer').team).toEqual({ id: 'customers-team', name: 'Customers Team' });
     expect(lanesOf(nodes, 'Ledger').team).toBeUndefined();
+  });
+
+  it("doesn't count a resource pinning an older version as an owner of the latest one", async () => {
+    const { nodes } = await getNodesAndEdges();
+
+    expect(lanesOf(nodes, 'Profile').domain).toEqual({ id: 'Customers', name: 'Customers' });
   });
 
   it('gives an entity nothing lists no lanes, so it is not grouped with its neighbours', async () => {

@@ -313,14 +313,23 @@ const WALKTHROUGH_CARD_SPACE = 170;
 // How a flow is grouped is kept in the URL, so links open grouped the same way
 const GROUP_URL_PARAM = "group";
 const GROUP_STYLE_URL_PARAM = "groupStyle";
-const setGroupInUrl = (groupBy: FlowGroupBy | null, style: FlowGroupStyle) => {
+// Grouped by nothing on a page that starts grouped: said in the URL, so a
+// reload or a shared link doesn't group it the page's way again
+const NO_GROUP_URL_VALUE = "none";
+const setGroupInUrl = (
+  groupBy: FlowGroupBy | null,
+  style: FlowGroupStyle,
+  { startsGrouped = false }: { startsGrouped?: boolean } = {},
+) => {
   try {
     const url = new URL(window.location.href);
     if (groupBy) {
       url.searchParams.set(GROUP_URL_PARAM, groupBy);
       url.searchParams.set(GROUP_STYLE_URL_PARAM, style);
     } else {
-      url.searchParams.delete(GROUP_URL_PARAM);
+      if (startsGrouped)
+        url.searchParams.set(GROUP_URL_PARAM, NO_GROUP_URL_VALUE);
+      else url.searchParams.delete(GROUP_URL_PARAM);
       url.searchParams.delete(GROUP_STYLE_URL_PARAM);
     }
     window.history.replaceState(window.history.state, "", url);
@@ -2672,9 +2681,9 @@ const NodeGraphBuilder = ({
       else
         groupIntoBoxes(unlaned, groupBy, { sizeOf: renderedSizeOf }).then(show);
 
-      setGroupInUrl(groupBy, style);
+      setGroupInUrl(groupBy, style, { startsGrouped: !!initialSwimlanes });
     },
-    [animateLayout, setNodes, setEdges, renderedSizeOf],
+    [animateLayout, setNodes, setEdges, renderedSizeOf, initialSwimlanes],
   );
   // Each time the graph is shown grouped another way: a walkthrough carries
   // on from the step it was on (lit, numbered and in view in the new layout),
@@ -2699,7 +2708,8 @@ const NodeGraphBuilder = ({
   useEffect(() => {
     if (!nodesInitialized || groupedOnLoad.current) return;
     groupedOnLoad.current = true;
-    // The URL's grouping wins over the page's
+    // The URL's grouping wins over the page's, including grouping by nothing
+    // ("none" isn't a way of grouping, so nothing is grouped)
     const fromUrl = readGroupFromUrl();
     const groupBy = fromUrl.groupBy ?? initialSwimlanes;
     const style = fromUrl.style ?? "boxes";

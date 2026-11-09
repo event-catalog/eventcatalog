@@ -855,7 +855,7 @@
       "version": "1.0.0",
       "name": "Catalog",
       "contentPath": "domains/Catalog/index.mdx",
-      "contentHash": "sha256:d981afe5b9957e4e76ada79a294f5b520c992a152b8e9b947085f40d653c001b",
+      "contentHash": "sha256:441cf30d00378582c9f8df1649ddbfdd08165f2928ead50b84f603d2e138638d",
       "owners": ["product-platform"],
       "sidecars": [
         {
@@ -924,6 +924,10 @@
         },
         {
           "id": "search-document",
+          "version": "1.0.0"
+        },
+        {
+          "id": "currency",
           "version": "1.0.0"
         }
       ]
@@ -1278,7 +1282,7 @@
       "version": "1.0.0",
       "name": "Payments",
       "contentPath": "domains/Payments/index.mdx",
-      "contentHash": "sha256:46f9e3f23e7aa6eb59a7794c1e1d6a93bddc188e6f94a862572cf0e7feee04de",
+      "contentHash": "sha256:357a73582b875a032bea710b165c7d54ae04b97cc43fec9e778e78c9cdd39f34",
       "owners": ["payments-platform"],
       "sidecars": [
         {
@@ -1351,6 +1355,10 @@
         },
         {
           "id": "fraud-check",
+          "version": "1.0.0"
+        },
+        {
+          "id": "currency",
           "version": "1.0.0"
         }
       ]
@@ -1606,6 +1614,15 @@
     },
     {
       "type": "entity",
+      "id": "campaign",
+      "version": "1.0.0",
+      "name": "Campaign",
+      "contentPath": "domains/Marketing/systems/campaign-system/services/CampaignService/entities/campaign/index.mdx",
+      "contentHash": "sha256:eee6bc5d2f9b10f73b930043cb91365337d137693d2a7e85f2da39907122b764",
+      "owners": ["shopping-platform"]
+    },
+    {
+      "type": "entity",
       "id": "cart",
       "version": "1.0.0",
       "name": "Cart",
@@ -1639,6 +1656,15 @@
       "contentPath": "domains/Ordering/entities/checkout-session/index.mdx",
       "contentHash": "sha256:3ee14c6040224665c474cb68424016f65360a0ab0f82ca735986bec6fcf0a835",
       "owners": ["ordering-platform"]
+    },
+    {
+      "type": "entity",
+      "id": "currency",
+      "version": "1.0.0",
+      "name": "Currency",
+      "contentPath": "domains/Payments/entities/currency/index.mdx",
+      "contentHash": "sha256:52fada0bc5d6613b95c5aaa663640d4d7c52ebe2ebd9519b35d626ec7b82a650",
+      "owners": ["payments-platform"]
     },
     {
       "type": "entity",
@@ -1696,12 +1722,39 @@
     },
     {
       "type": "entity",
+      "id": "ledger-entry",
+      "version": "1.0.0",
+      "name": "Ledger Entry",
+      "contentPath": "domains/Payments/systems/finance-reporting-system/entities/ledger-entry/index.mdx",
+      "contentHash": "sha256:df90f5cba7142c84924b4ba0d2f3bc7e8a0e11af1b87e2d38ca07cb09a10ba1b",
+      "owners": ["payments-platform"]
+    },
+    {
+      "type": "entity",
+      "id": "loyalty-account",
+      "version": "1.0.0",
+      "name": "Loyalty Account",
+      "contentPath": "domains/Customer/subdomains/Loyalty/systems/loyalty-system/entities/loyalty-account/index.mdx",
+      "contentHash": "sha256:8190d30c2b61e924b2887be8635f10c2a6b526039e6c4f3b0363f459bf79b6e6",
+      "owners": ["customer-platform"]
+    },
+    {
+      "type": "entity",
       "id": "moderation-decision",
       "version": "1.0.0",
       "name": "Moderation Decision",
       "contentPath": "domains/Reviews/entities/moderation-decision/index.mdx",
       "contentHash": "sha256:d4693cd868bfb55f035763ff8ce9971875db0933cb3ce94d161ed6bf62f0f76c",
       "owners": ["reviews-platform"]
+    },
+    {
+      "type": "entity",
+      "id": "offer",
+      "version": "1.0.0",
+      "name": "Offer",
+      "contentPath": "domains/Marketing/systems/campaign-system/services/OfferService/entities/offer/index.mdx",
+      "contentHash": "sha256:06faadd0f16ee232d5aab79855b461d05d38ad402a58d43022598d6e2b7ceeab",
+      "owners": ["shopping-platform"]
     },
     {
       "type": "entity",
@@ -1736,7 +1789,7 @@
       "version": "1.0.0",
       "name": "Payment",
       "contentPath": "domains/Payments/entities/payment/index.mdx",
-      "contentHash": "sha256:d07eff34070105f0a088952a4e054ea4b4b2e141b5f122b5f034acbb2ff24426",
+      "contentHash": "sha256:43aff7c6e509dc197bdcaacc60dff5e8b4fd583531d489a4ec1bafc588b4e0b9",
       "owners": ["payments-platform"]
     },
     {
@@ -1747,6 +1800,15 @@
       "contentPath": "domains/Payments/entities/payment-authorization/index.mdx",
       "contentHash": "sha256:ed173c6eb128fe449231c71e2c3f741365643c9baa57a93ede67f8f8a9feda8d",
       "owners": ["payments-platform"]
+    },
+    {
+      "type": "entity",
+      "id": "points-transaction",
+      "version": "1.0.0",
+      "name": "Points Transaction",
+      "contentPath": "domains/Customer/subdomains/Loyalty/systems/loyalty-system/services/LoyaltyService/entities/points-transaction/index.mdx",
+      "contentHash": "sha256:6049edd606035a914b8bf3a42c402ea1fa39a7380edbc872326a79640f2fb70e",
+      "owners": ["customer-platform"]
     },
     {
       "type": "entity",
@@ -1763,7 +1825,7 @@
       "version": "1.0.0",
       "name": "Product Variant",
       "contentPath": "domains/Catalog/entities/product-variant/index.mdx",
-      "contentHash": "sha256:344131f93c86111c846475819b4ae213ea2155ee412597d1eb8094ac8cdf3395",
+      "contentHash": "sha256:e6c4600f4ca2bc0c00cab5d4caf10c3db6b80931cacb589db8e549b928bd2eca",
       "owners": ["product-platform"]
     },
     {
@@ -1792,6 +1854,15 @@
       "contentPath": "domains/Payments/entities/refund/index.mdx",
       "contentHash": "sha256:eb5590e3ef60f0b62a8ad3114050dee6857f3bdf135b35148436597d16ce2af5",
       "owners": ["payments-platform"]
+    },
+    {
+      "type": "entity",
+      "id": "return-request",
+      "version": "1.0.0",
+      "name": "Return Request",
+      "contentPath": "domains/Fulfilment/subdomains/Returns/systems/returns-system/entities/return-request/index.mdx",
+      "contentHash": "sha256:b968b9b9e8332e5d47a35d058d40a97e86926f5d2ed5d34add5a7753692d931c",
+      "owners": ["fulfilment-platform"]
     },
     {
       "type": "entity",
@@ -1845,6 +1916,15 @@
       "name": "Stock Item",
       "contentPath": "domains/Fulfilment/entities/stock-item/index.mdx",
       "contentHash": "sha256:da08793f7992d3b84e2077a552dab91aaea028f4ec5aaa054ce906ce7e1befae",
+      "owners": ["fulfilment-platform"]
+    },
+    {
+      "type": "entity",
+      "id": "tracking-event",
+      "version": "1.0.0",
+      "name": "Tracking Event",
+      "contentPath": "domains/Fulfilment/systems/shipping-system/entities/tracking-event/index.mdx",
+      "contentHash": "sha256:b0cd2fb4c234699cf6cfcea2397d0cfbf70ee4b7f3c6cc0a3341ffb49da06da9",
       "owners": ["fulfilment-platform"]
     },
     {
@@ -3720,11 +3800,17 @@
       "version": "1.0.0",
       "name": "Campaign Service",
       "contentPath": "domains/Marketing/systems/campaign-system/services/CampaignService/index.mdx",
-      "contentHash": "sha256:83e51edda0adccb567589e1fa4d12bb929d4f1bca088cb8d433a949c88b40e14",
+      "contentHash": "sha256:92b205ba4ee9e50265c913f1f4800bd6267c2a036eb1dd5bf08ca981f6234896",
       "owners": ["shopping-platform"],
       "sends": [
         {
           "id": "campaign-offer-sent",
+          "version": "1.0.0"
+        }
+      ],
+      "entities": [
+        {
+          "id": "campaign",
           "version": "1.0.0"
         }
       ]
@@ -4088,7 +4174,7 @@
       "version": "1.0.0",
       "name": "Loyalty Service",
       "contentPath": "domains/Customer/subdomains/Loyalty/systems/loyalty-system/services/LoyaltyService/index.mdx",
-      "contentHash": "sha256:40dd6e6af5539067d03dd85dcddb66a57846af6a91194dc7c6ef42b763c5a421",
+      "contentHash": "sha256:8cfdef8df8ed181152b4e6b993525dadf06ddc464ffd1acee5b40a38f0daaea0",
       "owners": ["customer-platform"],
       "sends": [
         {
@@ -4146,6 +4232,12 @@
               "condition": "When points were previously awarded for the order"
             }
           ]
+        }
+      ],
+      "entities": [
+        {
+          "id": "points-transaction",
+          "version": "1.0.0"
         }
       ],
       "writesTo": [
@@ -4259,7 +4351,7 @@
       "version": "1.0.0",
       "name": "Offer Service",
       "contentPath": "domains/Marketing/systems/campaign-system/services/OfferService/index.mdx",
-      "contentHash": "sha256:74033a3eab45727d77fcc314a04e85466a204f4498de0553e7543e1b87aee818",
+      "contentHash": "sha256:41dd4045bf3ec2dc890b785e4cfff6c3f97f03e56f4da527a93725ba91ee2ea7",
       "owners": ["shopping-platform"],
       "sends": [
         {
@@ -4270,6 +4362,12 @@
       "receives": [
         {
           "id": "order-confirmed",
+          "version": "1.0.0"
+        }
+      ],
+      "entities": [
+        {
+          "id": "offer",
           "version": "1.0.0"
         }
       ]
@@ -5326,11 +5424,17 @@
       "version": "1.0.0",
       "name": "Finance Reporting System",
       "contentPath": "domains/Payments/systems/finance-reporting-system/index.mdx",
-      "contentHash": "sha256:c45273dc96f650c439105b618078859a021a1dcef5b8beb4b599413ac44a393f",
+      "contentHash": "sha256:262623a3467b098f10cac10675cab5fd09f43445750f53900c66056909565fa6",
       "owners": ["payments-platform"],
       "services": [
         {
           "id": "ledger-exporter"
+        }
+      ],
+      "entities": [
+        {
+          "id": "ledger-entry",
+          "version": "1.0.0"
         }
       ]
     },
@@ -5418,11 +5522,17 @@
       "version": "1.0.0",
       "name": "Loyalty System",
       "contentPath": "domains/Customer/subdomains/Loyalty/systems/loyalty-system/index.mdx",
-      "contentHash": "sha256:1c54edd09438b0c82e9b0d495e7254bb474d3b9b4186d9083b0eb9949aeaa1a1",
+      "contentHash": "sha256:64eadc2266d495735604ab78976078d108b55a694e074c6c29c0f9d1cccfa5e8",
       "owners": ["customer-platform"],
       "services": [
         {
           "id": "loyalty-service"
+        }
+      ],
+      "entities": [
+        {
+          "id": "loyalty-account",
+          "version": "1.0.0"
         }
       ]
     },
@@ -5565,7 +5675,7 @@
       "version": "1.0.0",
       "name": "Returns System",
       "contentPath": "domains/Fulfilment/subdomains/Returns/systems/returns-system/index.mdx",
-      "contentHash": "sha256:819ba283590abd3739b8ed50e274dcdf348be65216e600e22cddc8b2c753bfaf",
+      "contentHash": "sha256:7c6388f7a2cb28c2e24d6b03ec5054aea0a749794c74fd0a61a1447ac4c18b2e",
       "owners": ["fulfilment-platform"],
       "services": [
         {
@@ -5573,6 +5683,12 @@
         },
         {
           "id": "returns-processor"
+        }
+      ],
+      "entities": [
+        {
+          "id": "return-request",
+          "version": "1.0.0"
         }
       ]
     },
@@ -5630,7 +5746,7 @@
       "version": "1.0.0",
       "name": "Shipping System",
       "contentPath": "domains/Fulfilment/systems/shipping-system/index.mdx",
-      "contentHash": "sha256:48afd68c277e5ddba65c2f5b4ed9ff7abbdcd426494e7c26e43c2cdea885e356",
+      "contentHash": "sha256:9ee2faf90d0fba05b28c330492381a1fb6be129deaf00872fba4de2fdda98cef",
       "owners": ["fulfilment-platform"],
       "services": [
         {
@@ -5638,6 +5754,12 @@
         },
         {
           "id": "carrier-adapter"
+        }
+      ],
+      "entities": [
+        {
+          "id": "tracking-event",
+          "version": "1.0.0"
         }
       ],
       "relationships": [

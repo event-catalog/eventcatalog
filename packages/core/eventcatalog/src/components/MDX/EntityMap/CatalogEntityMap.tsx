@@ -4,10 +4,10 @@
  * shown too. What's hidden is kept in the URL (`?hide=`), so a view can be shared.
  *
  * Grouping (by domain, system or team) is the visualiser's own "Group by" picker, kept in the URL too,
- * so it carries over when the graph is drawn again with other domains hidden. The page's starting
- * grouping only applies to the first graph: after that the URL says, so grouping by nothing sticks.
+ * so it carries over when the graph is drawn again with other domains hidden, a reload or a shared link
+ * (grouping by nothing included). The page starts grouped by domain only when the URL says nothing.
  */
-import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react';
+import { useEffect, useMemo, useState, type ComponentProps } from 'react';
 import { createPortal } from 'react-dom';
 import type { Edge, Node } from '@xyflow/react';
 import { Boxes, Eye, EyeOff, PanelLeftClose, PanelLeftOpen, Search, Shuffle } from 'lucide-react';
@@ -76,13 +76,6 @@ export default function CatalogEntityMap({ nodes, edges, sharedLaneId, ...graphP
   );
   // A new graph each time what's shown changes: the visualiser takes its nodes when it mounts
   const graphKey = [...hidden].sort().join(',') + (crossDomainOnly ? '|cross' : '');
-  // The page's starting grouping is for the view the page opened with only. Once the filters change, the
-  // graphs drawn follow the URL, which "Group by" keeps up to date, so grouping by nothing isn't undone.
-  // Told by the view rather than by when the first graph rendered: the visualiser loads lazily and reads
-  // its starting grouping once its nodes are ready, which can be after other re-renders of this page
-  const firstGraphKey = useRef(graphKey);
-  const filtersChanged = useRef(false);
-  if (graphKey !== firstGraphKey.current) filtersChanged.current = true;
 
   // Entities hidden leave gaps in the layout the catalog gave the whole map, so what's shown is laid out
   // again (when grouped, the visualiser lays the groups out itself anyway)
@@ -287,13 +280,7 @@ export default function CatalogEntityMap({ nodes, edges, sharedLaneId, ...graphP
       </aside>
 
       {graph && graph.nodes.length > 0 && (
-        <AstroNodeGraph
-          key={graphKey}
-          {...graphProps}
-          swimlanes={filtersChanged.current ? undefined : graphProps.swimlanes}
-          nodes={graph.nodes}
-          edges={graph.edges}
-        />
+        <AstroNodeGraph key={graphKey} {...graphProps} nodes={graph.nodes} edges={graph.edges} />
       )}
       {graph && graph.nodes.length === 0 && <EmptyState portalId={graphProps.portalId || `${graphProps.id}-portal`} />}
     </>
