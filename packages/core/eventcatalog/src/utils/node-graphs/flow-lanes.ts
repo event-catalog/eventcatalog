@@ -30,8 +30,8 @@ type Resource = { data: { id: string; name?: string; owners?: (string | { id: st
 
 // Lanes use the latest version of each domain and system (as the collection
 // utils do when they don't ask for every version)
-const isLatest = (entry: { filePath?: string }) => !entry.filePath?.includes('versioned');
-const toLane = (entry: Resource): Lane => ({ id: entry.data.id, name: entry.data.name || entry.data.id });
+export const isLatest = (entry: { filePath?: string }) => !entry.filePath?.includes('versioned');
+export const toLane = (entry: Resource): Lane => ({ id: entry.data.id, name: entry.data.name || entry.data.id });
 const pointerIds = (pointers?: { id: string }[]) => (pointers || []).map((pointer) => pointer.id);
 
 /**

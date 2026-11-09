@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Edge, Node } from "@xyflow/react";
-import { layoutWithElk, type EdgeRoute } from "./elk-layout";
+import { getNodeSize, layoutWithElk, type EdgeRoute } from "./elk-layout";
 
 const node = (id: string, extra: Partial<Node> = {}): Node => ({
   id,
@@ -129,5 +129,36 @@ describe("layoutWithElk", () => {
     edges.forEach((e) =>
       expect(routeOf(e).points.length).toBeGreaterThanOrEqual(2),
     );
+  });
+});
+
+describe("getNodeSize", () => {
+  const entity = (properties: number) =>
+    node("entity", {
+      type: "entities",
+      data: {
+        entity: {
+          data: {
+            properties: Array.from({ length: properties }, (_, index) => ({
+              name: `property${index}`,
+              type: "string",
+            })),
+          },
+        },
+      },
+    });
+
+  it("estimates an entity as tall as its rows of properties, so laid out entities don't overlap", () => {
+    // An entity with 9 properties renders 391px tall in the browser (Ledger Entry in the example catalog)
+    expect(getNodeSize(entity(9)).height).toBeGreaterThanOrEqual(391);
+    expect(getNodeSize(entity(2)).height).toBeLessThan(
+      getNodeSize(entity(9)).height,
+    );
+  });
+
+  it("uses an entity's rendered size once it has one", () => {
+    expect(
+      getNodeSize({ ...entity(9), measured: { width: 210, height: 300 } }),
+    ).toEqual({ width: 210, height: 300 });
   });
 });

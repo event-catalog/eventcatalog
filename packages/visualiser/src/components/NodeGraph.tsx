@@ -342,6 +342,8 @@ const readGroupFromUrl = () => {
 
 // Room for the search box above the grouping picker, when it's shown
 const SWIMLANE_PICKER_PANEL_STYLE_UNDER_SEARCH = { marginTop: 64 } as const;
+// Over the other panels (React Flow's are at 5), so the search's results open over the Group by picker under it
+const HEADER_PANEL_STYLE = { zIndex: 6 } as const;
 
 /**
  * What a diagram shows, to start a Studio canvas from: its full graph (level 3, whatever level is shown, as Studio
@@ -1569,7 +1571,21 @@ const NodeGraphBuilder = ({
         (node.type === "flows" || node.type === "flow") &&
         Array.isArray((node.data as any)?.expandedNodes) &&
         (node.data as any).expandedNodes.length > 0;
-      if ((isFlow || isEntityVisualizer) && !isExpandableFlow) return;
+      if ((isFlow || isEntityVisualizer) && !isExpandableFlow) {
+        // Picked in search, an entity map moves to the entity and selects it, so
+        // it stands out where the diagram lands (flows keep their walkthrough)
+        if (!event && isEntityVisualizer) {
+          setNodes((current) =>
+            mapChanged(current, (n) =>
+              !!n.selected === (n.id === node.id)
+                ? n
+                : { ...n, selected: n.id === node.id },
+            ),
+          );
+          fitView({ nodes: [{ id: node.id }], maxZoom: 1, duration: 800 });
+        }
+        return;
+      }
       // Sub-flows expand into the graph as laid out without lanes
       if (isExpandableFlow && swimlanesRef.current) return;
       if (isSwimlaneNode(node)) return;
@@ -2010,6 +2026,7 @@ const NodeGraphBuilder = ({
       getNodes,
       getZoom,
       setCenter,
+      setNodes,
       prepareEdges,
     ],
   );
@@ -2587,14 +2604,19 @@ const NodeGraphBuilder = ({
 
   // Swimlanes: a flow's steps grouped into lanes by domain, system or team.
   // The graph without lanes is kept to lay out again from, and to go back to.
+  // Entity maps can be grouped the same way, by what owns each entity
+  const isEntityGraph = useMemo(
+    () => initialNodes.some((node: Node) => node.type === "entities"),
+    [initialNodes],
+  );
   const swimlaneOptions = useMemo(
     () =>
-      isFlowGraph
+      isFlowGraph || isEntityGraph
         ? FLOW_GROUP_BYS.filter((groupBy) =>
             hasSwimlanes(initialNodes, groupBy),
           )
         : [],
-    [isFlowGraph, initialNodes],
+    [isFlowGraph, isEntityGraph, initialNodes],
   );
   const swimlaneCounts = useMemo(
     () =>
@@ -2859,6 +2881,7 @@ const NodeGraphBuilder = ({
             <Panel
               position="top-center"
               className="w-full pr-6 pointer-events-none"
+              style={HEADER_PANEL_STYLE}
             >
               {diagramHeader}
             </Panel>
@@ -2903,6 +2926,7 @@ const NodeGraphBuilder = ({
             <Panel
               position="top-center"
               className="w-full pr-6 pointer-events-none"
+              style={HEADER_PANEL_STYLE}
             >
               {diagramHeader}
             </Panel>
@@ -2942,6 +2966,7 @@ const NodeGraphBuilder = ({
                   value={swimlanes}
                   style={swimlaneStyle}
                   onChange={handleSwimlanesChange}
+                  noun={isEntityGraph ? "entities" : "steps"}
                 />
               </Panel>
             )}

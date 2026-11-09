@@ -1,0 +1,47 @@
+---
+import VisualiserLayout from '@layouts/VisualiserLayout.astro';
+import { ClientRouter } from 'astro:transitions';
+// Server side, so the visualiser's styles ship in the page head (see NodeGraph.astro)
+import '@eventcatalog/visualiser/styles-core.css';
+import CatalogEntityMap from '@components/MDX/EntityMap/CatalogEntityMap';
+import { getNodesAndEdges, SHARED_DOMAIN_LANE } from '@utils/node-graphs/catalog-entity-map';
+import { compactVisualiserGraph } from '@utils/node-graphs/compact-visualiser-graph';
+import { isEventCatalogChatVisible, isDevMode, isVisualiserEnabled } from '@utils/feature';
+
+if (!isVisualiserEnabled()) return Astro.rewrite('/404');
+
+const id = 'entity-map';
+const graph = await getNodesAndEdges();
+const { nodes, edges } = compactVisualiserGraph(graph.nodes as any[], graph.edges as any[]);
+---
+
+<VisualiserLayout
+  title="Visualiser | Global Entity Map"
+  description="Every entity in the catalog and how they relate across domains"
+>
+  <div id="entity-map-page" class="p-2 flex gap-2 h-[calc(100vh-60px)]">
+    <CatalogEntityMap
+      client:only="react"
+      id={id}
+      nodes={nodes}
+      edges={edges}
+      sharedLaneId={SHARED_DOMAIN_LANE.id}
+      title="Global Entity Map"
+      mode="full"
+      linkTo="docs"
+      swimlanes="domain"
+      preferenceScope="entity-map"
+      isChatEnabled={isEventCatalogChatVisible()}
+      isDevMode={isDevMode()}
+      syncRenderModeWithUrl
+    />
+    <div class="flex-1 min-w-0 relative border border-[rgb(var(--ec-page-border))] rounded-md" id={`${id}-portal`}></div>
+  </div>
+  <ClientRouter />
+</VisualiserLayout>
+
+<style is:global>
+  .react-flow__attribution {
+    display: none;
+  }
+</style>

@@ -23,6 +23,13 @@ properties:
     type: decimal
     required: true
     description: Amount requested.
+  - name: currency
+    type: string
+    required: true
+    description: Currency the payment is charged in.
+    references: currency
+    relationType: denominatedIn
+    referencesIdentifier: code
   - name: status
     type: string
     required: true

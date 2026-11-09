@@ -383,6 +383,35 @@ describe('getNestedSideBarData', () => {
       }
     });
 
+    it('shows the Global Entity Map link when the catalog has entities, even with no systems', async () => {
+      delete config.visualiser?.architectureGraph;
+      const { writeDomain, writeEntity } = utils(CATALOG_FOLDER);
+
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+      await writeEntity({
+        id: 'Shipment',
+        name: 'Shipment',
+        version: '0.0.1',
+        markdown: 'Shipment',
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const diagramsNode = getNavigationConfigurationByKey('list:top-level-diagrams', navigationData);
+
+      expect(diagramsNode.pages).toEqual([
+        {
+          type: 'item',
+          title: 'Global Entity Map',
+          href: '/visualiser/entity-map',
+        },
+      ]);
+    });
+
     it('uses the domain style icon when one is configured', async () => {
       const { writeDomain } = utils(CATALOG_FOLDER);
 
