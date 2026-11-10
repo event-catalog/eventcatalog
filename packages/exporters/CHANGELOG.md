@@ -1,5 +1,12 @@
 # @eventcatalog/exporters
 
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies [adfd873]
+  - @eventcatalog/sdk@2.32.1
+
 ## 0.1.4
 
 ### Patch Changes

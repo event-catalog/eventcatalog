@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.32.1
+
+### Patch Changes
+
+- adfd873: perf(sdk): keep the file cache up to date instead of rebuilding it, so generators importing into a catalog run about 10x faster, and removing, versioning or adding messages and services to resources is 15-20x faster on large catalogs. Changes made to the catalog outside the SDK are still picked up. Resources the SDK returns are now copies, so changing one (or attaching its schema) no longer changes later reads, and when two files have the same id and version, the one written last is found.
+
 ## 2.32.0
 
 ### Minor Changes
@@ -250,6 +256,7 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
+
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"
