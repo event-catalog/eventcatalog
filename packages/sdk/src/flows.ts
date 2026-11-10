@@ -1,7 +1,7 @@
 import type { Flow } from './types';
 import fs from 'node:fs/promises';
 import { join } from 'node:path';
-import { findFileById, invalidateFileCache } from './internal/utils';
+import { findFileById, syncFileCachePath } from './internal/utils';
 import {
   addFileToResource,
   getResourcePath,
@@ -300,7 +300,7 @@ export const writeFlowToAgent =
  */
 export const rmFlow = (directory: string) => async (path: string) => {
   await fs.rm(join(directory, path), { recursive: true });
-  invalidateFileCache();
+  syncFileCachePath(join(directory, path));
 };
 
 /**

@@ -11,7 +11,7 @@ import {
   versionResource,
   writeResource,
 } from './internal/resources';
-import { findFileById, invalidateFileCache, uniqueVersions } from './internal/utils';
+import { findFileById, syncFileCachePath, uniqueVersions } from './internal/utils';
 
 type SystemResourceField = 'services' | 'flows' | 'entities' | 'containers';
 
@@ -122,7 +122,7 @@ export const versionSystem = (directory: string) => async (id: string) => versio
 
 export const rmSystem = (directory: string) => async (path: string) => {
   await fs.rm(join(directory, path), { recursive: true });
-  invalidateFileCache();
+  syncFileCachePath(join(directory, path));
 };
 
 export const rmSystemById = (directory: string) => async (id: string, version?: string, persistFiles?: boolean) => {

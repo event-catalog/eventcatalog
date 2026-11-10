@@ -3,7 +3,7 @@ import fsSync from 'node:fs';
 import { join } from 'node:path';
 import type { User } from './types';
 import matter from 'gray-matter';
-import { getFiles, invalidateFileCache } from './internal/utils';
+import { getFiles, syncFileCachePath } from './internal/utils';
 import {
   mergeDirectoryStoreResources,
   readDirectoryStoreResource,
@@ -123,7 +123,7 @@ export const writeUser =
     const document = matter.stringify(markdown, frontmatter);
     fsSync.mkdirSync(join(catalogDir, ''), { recursive: true });
     fsSync.writeFileSync(join(catalogDir, '', `${resource.id}.mdx`), document);
-    invalidateFileCache();
+    syncFileCachePath(join(catalogDir, `${resource.id}.mdx`));
   };
 
 /**
@@ -142,5 +142,5 @@ export const writeUser =
  */
 export const rmUserById = (catalogDir: string) => async (id: string) => {
   fsSync.rmSync(join(catalogDir, `${id}.mdx`), { recursive: true });
-  invalidateFileCache();
+  syncFileCachePath(join(catalogDir, `${id}.mdx`));
 };

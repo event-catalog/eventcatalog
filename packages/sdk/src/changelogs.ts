@@ -2,7 +2,7 @@ import path, { dirname } from 'node:path';
 import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
 import matter from 'gray-matter';
-import { findFileById, invalidateFileCache } from './internal/utils';
+import { findFileById, syncFileCachePath } from './internal/utils';
 import type { Changelog } from './types';
 
 /**
@@ -59,7 +59,7 @@ export const writeChangelog =
     fsSync.mkdirSync(resourceDir, { recursive: true });
     const document = matter.stringify(markdown.trim(), fm);
     fsSync.writeFileSync(changelogPath, document);
-    invalidateFileCache();
+    syncFileCachePath(changelogPath);
   };
 
 /**
@@ -130,7 +130,7 @@ export const appendChangelog =
 
     const document = matter.stringify(combined, fm);
     fsSync.writeFileSync(existingPath, document);
-    invalidateFileCache();
+    syncFileCachePath(existingPath);
   };
 
 /**
@@ -209,5 +209,6 @@ export const rmChangelog =
       await fs.rm(mdPath);
     }
 
-    invalidateFileCache();
+    syncFileCachePath(mdxPath);
+    syncFileCachePath(mdPath);
   };

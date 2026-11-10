@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import { join } from 'node:path';
-import { findFileById, invalidateFileCache } from './internal/utils';
+import { findFileById, syncFileCachePath } from './internal/utils';
 import type { Adr } from './types';
 import {
   addFileToResource,
@@ -35,7 +35,7 @@ export const writeAdr =
 
 export const rmAdr = (directory: string) => async (path: string) => {
   await fs.rm(join(directory, path), { recursive: true });
-  invalidateFileCache();
+  syncFileCachePath(join(directory, path));
 };
 
 export const rmAdrById = (directory: string) => async (id: string, version?: string, persistFiles?: boolean) => {
