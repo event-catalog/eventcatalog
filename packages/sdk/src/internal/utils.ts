@@ -225,6 +225,15 @@ function refreshFileCache(): void {
   }
 }
 
+/**
+ * Catches up with every change on disk, including files changed in place (which don't move their folder's mtime): a
+ * `stat` per folder and per file. For answers that must be complete, like what to remove.
+ */
+function refreshWholeFileCache(): void {
+  refreshFileCache();
+  for (const file of [..._matterCache!.keys()]) if (!isCachedFileCurrent(file)) syncFileCachePath(file);
+}
+
 /** The cached entries for an id, limited to `scope` when given. */
 function cachedEntriesForId(id: string, scope: string | undefined): FileIndexEntry[] {
   const entries = _fileIndexCache!.get(id) || [];
@@ -315,8 +324,7 @@ export function getCachedIndexFiles(catalogDir: string): {
   files: ReadonlyMap<string, matter.GrayMatterFile<string>>;
 } {
   const scope = ensureFileCache(catalogDir);
-  refreshFileCache();
-  for (const file of [..._matterCache!.keys()]) if (!isCachedFileCurrent(file)) syncFileCachePath(file);
+  refreshWholeFileCache();
   if (!scope) return { generation: _fileCacheGeneration, files: _matterCache! };
   const files = new Map([..._matterCache!].filter(([file]) => isWithin(file, scope)));
   return { generation: _fileCacheGeneration, files };
@@ -353,15 +361,15 @@ export const versionExists = async (catalogDir: string, id: string, version: str
   });
 
 /**
- * Index files of a resource id (every version, or one exact version), latest first. The cache catches up with the
- * catalog on disk first, as these are about to be changed. Empty when there are none.
+ * Index files of a resource id (every version, or one exact version), latest first. These are about to be changed or
+ * removed, so the cache first catches up with everything on disk, files changed in place included: a file whose id was
+ * changed to this one is found too. Empty when there are none.
  */
 export const findCachedFilesForId = (catalogDir: string, id: string, version?: string): string[] => {
   const scope = ensureFileCache(catalogDir);
-  refreshFileCache();
-  const matching = () => cachedEntriesForId(id, scope).filter((entry) => !version || entry.version === version);
-  for (const entry of matching()) if (!isCachedFileCurrent(entry.path)) syncFileCachePath(entry.path);
-  return matching()
+  refreshWholeFileCache();
+  return cachedEntriesForId(id, scope)
+    .filter((entry) => !version || entry.version === version)
     .sort((a, b) => Number(a.isVersioned) - Number(b.isVersioned))
     .map((entry) => entry.path);
 };

@@ -123,6 +123,22 @@ describe('file cache', () => {
       expect((await getEvents())[0].name).toBe('Changed by hand');
     });
 
+    it('removes every file with the id, including one whose id was changed to it by hand', async () => {
+      await writeEvent({ id: 'Placed', name: 'Placed', version: '1.0.0', markdown: '' });
+      await writeEvent({ id: 'Shipped', name: 'Shipped', version: '1.0.0', markdown: '' });
+      expect(await getEvent('Shipped')).toBeDefined();
+
+      // Changed in place, so no folder's mtime moves
+      const file = path.join(CATALOG_PATH, 'events', 'Shipped', 'index.mdx');
+      fs.writeFileSync(file, '---\nid: Placed\nname: Placed\nversion: 1.0.0\n---\n');
+      fs.utimesSync(file, new Date(), new Date(Date.now() + 5000));
+
+      await rmEventById('Placed');
+
+      expect(fs.existsSync(path.join(CATALOG_PATH, 'events', 'Placed'))).toBe(false);
+      expect(fs.existsSync(path.join(CATALOG_PATH, 'events', 'Shipped'))).toBe(false);
+    });
+
     it('writes a resource again after its folder was removed by hand', async () => {
       await writeEvent({ id: 'Placed', name: 'Placed', version: '1.0.0', markdown: '' });
       expect(await getEvent('Placed')).toBeDefined();
