@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 import type * as Y from 'yjs';
-import { initializeWebMCPPolyfill } from '@mcp-b/webmcp-polyfill';
+import { installWebMCP } from '@mcp-b/webmcp-polyfill';
 import {
   replyToThread,
   setThreadResolved,
@@ -129,7 +129,7 @@ export function useCanvasWebMcp(options: CanvasWebMcpOptions) {
     if (!options.doc) return;
     if (!getModelContext()) {
       if (!options.allowPolyfill) return;
-      initializeWebMCPPolyfill();
+      installWebMCP();
       usingPolyfill = true;
     }
     const modelContext = getModelContext();
