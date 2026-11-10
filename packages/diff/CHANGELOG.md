@@ -1,5 +1,12 @@
 # @eventcatalog/diff
 
+## 0.1.8
+
+### Patch Changes
+
+- Updated dependencies [adfd873]
+  - @eventcatalog/sdk@2.32.1
+
 ## 0.1.7
 
 ### Patch Changes

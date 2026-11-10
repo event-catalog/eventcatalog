@@ -1,5 +1,20 @@
 # @eventcatalog/core
 
+## 5.11.0
+
+### Minor Changes
+
+- f5d3b88: feat(core): `eventcatalog build --timings` prints a summary of where the build spent its time, such as build phases, Markdown plugins, the slowest files and pages, and integrations
+
+### Patch Changes
+
+- f5d3b88: chore(core): upgrade astro to 7.4.7 and related @astrojs packages
+- Updated dependencies [adfd873]
+  - @eventcatalog/sdk@2.32.1
+  - @eventcatalog/exporters@0.1.5
+  - @eventcatalog/fitness@0.1.2
+  - @eventcatalog/linter@1.3.2
+
 ## 5.10.0
 
 ### Minor Changes
