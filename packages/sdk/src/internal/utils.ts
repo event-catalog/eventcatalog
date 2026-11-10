@@ -312,6 +312,20 @@ export function syncFileCachePath(targetPath: string): void {
   } else if (stat?.isFile() && INDEX_FILE.test(basename(target))) {
     addCachedFile(target);
   }
+
+  // Keep the parent folder's list of entries true to disk (its mtime is left alone, so other changes in it are still
+  // noticed), so a folder removed here and made again later is seen as new
+  const parent = _knownDirs!.get(dirname(target));
+  if (parent) {
+    let exists = true;
+    try {
+      fsSync.lstatSync(target);
+    } catch {
+      exists = false;
+    }
+    if (exists) parent.entries.add(basename(target));
+    else parent.entries.delete(basename(target));
+  }
   _fileCacheGeneration++;
 }
 

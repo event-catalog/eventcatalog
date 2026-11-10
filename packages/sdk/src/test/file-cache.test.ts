@@ -13,6 +13,7 @@ const {
   getEvents,
   getService,
   getDomain,
+  rmEvent,
   rmEventById,
   versionEvent,
   addEventToService,
@@ -137,6 +138,17 @@ describe('file cache', () => {
 
       expect(fs.existsSync(path.join(CATALOG_PATH, 'events', 'Placed'))).toBe(false);
       expect(fs.existsSync(path.join(CATALOG_PATH, 'events', 'Shipped'))).toBe(false);
+    });
+
+    it('finds a resource made again by hand after the SDK removed it', async () => {
+      await writeEvent({ id: 'Placed', name: 'Placed', version: '1.0.0', markdown: '' });
+      expect(await getEvent('Placed')).toBeDefined();
+
+      // Made again before anything else is looked up
+      await rmEvent('/Placed');
+      writeByHand('events/Placed/index.mdx', 'Placed');
+
+      expect(await getEvent('Placed')).toMatchObject({ id: 'Placed' });
     });
 
     it('writes a resource again after its folder was removed by hand', async () => {
