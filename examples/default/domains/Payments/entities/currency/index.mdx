@@ -1,0 +1,32 @@
+---
+id: currency
+name: Currency
+version: 1.0.0
+identifier: code
+summary: An ISO 4217 currency that prices and payments are expressed in.
+owners:
+  - payments-platform
+properties:
+  - name: code
+    type: string
+    required: true
+    description: Three-letter ISO 4217 code, such as GBP, USD or EUR.
+  - name: name
+    type: string
+    required: true
+    description: Display name, such as Pound Sterling.
+  - name: symbol
+    type: string
+    required: true
+    description: Symbol shown next to amounts, such as £.
+  - name: minorUnits
+    type: integer
+    required: true
+    description: Number of decimal places in the minor unit (2 for GBP, 0 for JPY).
+---
+
+## Overview
+
+Currency is shared by the Payments and Catalog domains: Catalog prices product variants in a currency, and Payments charges and refunds in one. Both domains list it, so it sits in neither on its own.
+
+<EntityPropertiesTable />

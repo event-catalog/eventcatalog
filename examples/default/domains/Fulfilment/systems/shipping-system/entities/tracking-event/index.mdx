@@ -1,0 +1,49 @@
+---
+id: tracking-event
+name: Tracking Event
+version: 1.0.0
+identifier: trackingEventId
+summary: A carrier scan recording where a shipment is and what happened to it.
+owners:
+  - fulfilment-platform
+properties:
+  - name: trackingEventId
+    type: UUID
+    required: true
+    description: Unique tracking event identifier.
+  - name: shipmentId
+    type: UUID
+    required: true
+    description: Shipment the scan belongs to.
+    references: shipment
+    relationType: tracks
+    referencesIdentifier: shipmentId
+  - name: carrierCode
+    type: string
+    required: true
+    description: Carrier that reported the scan, such as dhl or ups.
+  - name: status
+    type: string
+    required: true
+    description: What the carrier reported.
+    enum:
+      - label-created
+      - in-transit
+      - out-for-delivery
+      - delivered
+      - exception
+  - name: location
+    type: string
+    required: false
+    description: Depot or city where the scan happened.
+  - name: occurredAt
+    type: datetime
+    required: true
+    description: When the carrier scanned the parcel.
+---
+
+## Overview
+
+Tracking events belong to the Shipping System. The carrier adapter stores each scan from the carrier, and the last scans decide when a shipment is [[event|shipment-delivered]] or [[event|shipment-failed]].
+
+<EntityPropertiesTable />

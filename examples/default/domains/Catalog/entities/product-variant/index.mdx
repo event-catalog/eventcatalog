@@ -26,6 +26,17 @@ properties:
     type: object
     required: true
     description: Variant dimensions such as size, color or material.
+  - name: price
+    type: decimal
+    required: true
+    description: Selling price of the variant.
+  - name: currency
+    type: string
+    required: true
+    description: Currency the price is in.
+    references: currency
+    relationType: pricedIn
+    referencesIdentifier: code
 ---
 
 ## Overview

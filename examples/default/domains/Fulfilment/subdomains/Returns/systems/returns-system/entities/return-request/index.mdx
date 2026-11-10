@@ -1,0 +1,69 @@
+---
+id: return-request
+name: Return Request
+version: 1.0.0
+identifier: returnRequestId
+aggregateRoot: true
+summary: A customer request to send back items from an order.
+owners:
+  - fulfilment-platform
+properties:
+  - name: returnRequestId
+    type: UUID
+    required: true
+    description: Unique return request identifier.
+  - name: orderId
+    type: UUID
+    required: true
+    description: Order the items were bought in.
+    references: order
+    relationType: returns
+    referencesIdentifier: orderId
+  - name: orderLineId
+    type: UUID
+    required: true
+    description: Order line being returned.
+    references: order-line
+    relationType: returns
+    referencesIdentifier: orderLineId
+  - name: quantity
+    type: integer
+    required: true
+    description: How many units are being returned.
+  - name: reason
+    type: string
+    required: true
+    description: Why the customer is returning the items.
+    enum:
+      - damaged
+      - wrong-item
+      - no-longer-needed
+      - not-as-described
+  - name: status
+    type: string
+    required: true
+    description: Return lifecycle state.
+    enum:
+      - requested
+      - approved
+      - received
+      - refunded
+      - rejected
+  - name: refundId
+    type: UUID
+    required: false
+    description: Refund issued once the return is received.
+    references: refund
+    relationType: settledBy
+    referencesIdentifier: refundId
+  - name: requestedAt
+    type: datetime
+    required: true
+    description: When the customer asked for the return.
+---
+
+## Overview
+
+Return requests belong to the Returns System. A request starts with [[event|return-requested]], moves on with [[event|return-approved]] and [[event|return-received]], and ends with a refund from Payments.
+
+<EntityPropertiesTable />

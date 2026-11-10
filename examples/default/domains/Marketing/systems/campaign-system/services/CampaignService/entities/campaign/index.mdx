@@ -1,0 +1,62 @@
+---
+id: campaign
+name: Campaign
+version: 1.0.0
+identifier: campaignId
+aggregateRoot: true
+summary: A marketing campaign that sends offers to an audience over a channel for a period of time.
+owners:
+  - shopping-platform
+properties:
+  - name: campaignId
+    type: UUID
+    required: true
+    description: Unique campaign identifier.
+  - name: name
+    type: string
+    required: true
+    description: Campaign name, such as Summer Sale 2026.
+  - name: channel
+    type: string
+    required: true
+    description: How the campaign reaches customers.
+    enum:
+      - email
+      - push
+      - onsite
+      - sms
+  - name: audienceSegment
+    type: string
+    required: true
+    description: Customer segment the campaign targets.
+  - name: promotionId
+    type: UUID
+    required: false
+    description: Promotion the campaign drives traffic to in Shopping.
+    references: promotion
+    relationType: promotes
+    referencesIdentifier: promotionId
+  - name: status
+    type: string
+    required: true
+    description: Campaign lifecycle state.
+    enum:
+      - draft
+      - scheduled
+      - running
+      - ended
+  - name: startsAt
+    type: datetime
+    required: true
+    description: When the campaign starts.
+  - name: endsAt
+    type: datetime
+    required: true
+    description: When the campaign ends.
+---
+
+## Overview
+
+Campaigns are owned by the Campaign Service, which sends their offers to customers as [[event|campaign-offer-sent]]. A campaign often promotes a promotion that the Shopping domain applies at checkout.
+
+<EntityPropertiesTable />

@@ -67,6 +67,11 @@ export const getNodeSize = (node: Node): LayoutSize => {
     const services = (node.data as any)?.domain?.data?.services || [];
     return { width: 260, height: 60 + services.length * 40 };
   }
+  // Entities list their properties, a row each, under a header (name, domain and version)
+  if (node.type === "entities") {
+    const properties = (node.data as any)?.entity?.data?.properties || [];
+    return { width: 240, height: 80 + properties.length * 36 };
+  }
   return NODE_SIZES[node.type || ""] ?? DEFAULT_SIZE;
 };
 

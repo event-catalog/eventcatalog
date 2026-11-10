@@ -62,6 +62,48 @@ describe("EntityNode", () => {
     container.remove();
   });
 
+  const renderEntity = (props: {
+    selected?: boolean;
+    externalToDomain?: boolean;
+  }) =>
+    act(() => {
+      root.render(
+        <EntityNode
+          id="Order-1.0.0"
+          selected={props.selected}
+          data={{
+            mode: "full",
+            externalToDomain: props.externalToDomain,
+            entity: {
+              data: {
+                id: "Order",
+                name: "Order",
+                version: "1.0.0",
+                properties: [{ name: "orderId", type: "UUID" }],
+              },
+            },
+          }}
+        />,
+      );
+    });
+  const card = () => container.querySelector(".rounded-lg") as HTMLElement;
+
+  it("shows a ring when selected, like the other nodes", () => {
+    renderEntity({ selected: true });
+    expect(card().className).toContain("ring-2");
+    expect(card().className).toContain("ring-blue-400/60");
+  });
+
+  it("shows no ring when not selected", () => {
+    renderEntity({ selected: false });
+    expect(card().className).not.toContain("ring-2");
+  });
+
+  it("rings an entity from another domain in the amber of its border", () => {
+    renderEntity({ selected: true, externalToDomain: true });
+    expect(card().className).toContain("ring-amber-400/60");
+  });
+
   it("renders the whole-entity target and expands embedded properties from the whole row", () => {
     act(() => {
       root.render(

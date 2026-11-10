@@ -1,0 +1,51 @@
+---
+id: points-transaction
+name: Points Transaction
+version: 1.0.0
+identifier: transactionId
+summary: Points earned, spent or taken back on a loyalty account.
+owners:
+  - customer-platform
+properties:
+  - name: transactionId
+    type: UUID
+    required: true
+    description: Unique points transaction identifier.
+  - name: loyaltyAccountId
+    type: UUID
+    required: true
+    description: Loyalty account the points move on.
+    references: loyalty-account
+    relationType: belongsTo
+    referencesIdentifier: loyaltyAccountId
+  - name: orderId
+    type: UUID
+    required: false
+    description: Order the points were earned or spent on.
+    references: order
+    relationType: earnedFrom
+    referencesIdentifier: orderId
+  - name: type
+    type: string
+    required: true
+    description: What happened to the points.
+    enum:
+      - earned
+      - redeemed
+      - reversed
+      - expired
+  - name: points
+    type: integer
+    required: true
+    description: Points added (positive) or taken away (negative).
+  - name: occurredAt
+    type: datetime
+    required: true
+    description: When the points moved.
+---
+
+## Overview
+
+Points transactions are written by the Loyalty Service when an order completes, and published as [[event|loyalty-points-earned]], or as [[event|loyalty-points-reversed]] when an order is returned or cancelled.
+
+<EntityPropertiesTable />

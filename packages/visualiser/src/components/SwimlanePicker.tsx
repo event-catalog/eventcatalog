@@ -19,6 +19,8 @@ interface SwimlanePickerProps {
   value: FlowGroupBy | null;
   style: FlowGroupStyle;
   onChange: (value: FlowGroupBy | null, style: FlowGroupStyle) => void;
+  /** What's being grouped, for the button's and menu's wording */
+  noun?: string;
 }
 
 const OPTIONS: Record<
@@ -212,6 +214,7 @@ export default memo(function SwimlanePicker({
   value,
   style,
   onChange,
+  noun = "steps",
 }: SwimlanePickerProps) {
   const portalContainer = usePortalContainer();
   const [open, setOpen] = useState(false);
@@ -246,7 +249,7 @@ export default memo(function SwimlanePicker({
         <DropdownMenu.Trigger asChild>
           <button
             type="button"
-            title="Group steps (G)"
+            title={`Group ${noun} (G)`}
             className={`flex items-center gap-2 pl-3 pr-2.5 text-sm outline-none transition-colors hover:bg-[rgb(var(--ec-catalog-accent,79_70_229)/0.06)] focus-visible:ring-2 focus-visible:ring-[rgb(var(--ec-catalog-accent,79_70_229))] ${value ? "rounded-l-md" : "rounded-md"}`}
           >
             <Group className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))]" />
@@ -273,7 +276,7 @@ export default memo(function SwimlanePicker({
             className="z-50 w-80 p-1.5 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-xl animate-in fade-in zoom-in-95 duration-150"
           >
             <DropdownMenu.Label className={sectionLabelClassName}>
-              Group steps by
+              Group {noun} by
             </DropdownMenu.Label>
             <DropdownMenu.RadioGroup
               value={value ?? "none"}

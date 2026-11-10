@@ -872,7 +872,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   // for any catalog — the group renders when either item has something to show
   const architectureGraphEnabled = isArchitectureGraphEnabled();
   const topLevelDiagramsNode =
-    visualiserEnabled && (systems.length > 0 || architectureGraphEnabled)
+    visualiserEnabled && (systems.length > 0 || architectureGraphEnabled || entities.length > 0)
       ? {
           type: 'group' as const,
           title: 'Top level diagrams',
@@ -893,6 +893,15 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
                     type: 'item' as const,
                     title: 'Architecture Graph',
                     href: buildUrl('/visualiser/graph'),
+                  },
+                ]
+              : []),
+            ...(entities.length > 0
+              ? [
+                  {
+                    type: 'item' as const,
+                    title: 'Global Entity Map',
+                    href: buildUrl('/visualiser/entity-map'),
                   },
                 ]
               : []),

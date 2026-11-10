@@ -1,0 +1,46 @@
+---
+id: offer
+name: Offer
+version: 1.0.0
+identifier: offerId
+summary: A personalised discount on a product, sent to a customer as part of a campaign.
+owners:
+  - shopping-platform
+properties:
+  - name: offerId
+    type: UUID
+    required: true
+    description: Unique offer identifier.
+  - name: campaignId
+    type: UUID
+    required: true
+    description: Campaign the offer was sent in.
+    references: campaign
+    relationType: partOf
+    referencesIdentifier: campaignId
+  - name: productId
+    type: UUID
+    required: true
+    description: Product the offer applies to.
+    references: product
+    relationType: appliesTo
+    referencesIdentifier: productId
+  - name: discountPercent
+    type: decimal
+    required: true
+    description: Discount the offer gives, as a percentage.
+  - name: redeemed
+    type: boolean
+    required: true
+    description: Whether the customer has used the offer.
+  - name: expiresAt
+    type: datetime
+    required: true
+    description: When the offer can no longer be used.
+---
+
+## Overview
+
+Offers are owned by the Offer Service. Each one belongs to a campaign and discounts a product from the Catalog domain; when an order uses it, the service asks Shopping to apply the discount.
+
+<EntityPropertiesTable />

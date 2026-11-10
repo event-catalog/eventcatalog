@@ -96,6 +96,7 @@ export const getNestedEntityProperties = (
 export default memo(function EntityNode({
   id,
   data,
+  selected,
   sourcePosition,
   targetPosition,
 }: any) {
@@ -287,6 +288,11 @@ export default memo(function EntityNode({
           className={classNames(
             "bg-[rgb(var(--ec-card-bg))] border rounded-lg shadow-sm min-w-[200px]",
             externalToDomain ? "border-amber-500/60" : "border-blue-400/50",
+            // Selected, like the other nodes: a ring in the colour of its border
+            selected &&
+              (externalToDomain
+                ? "ring-2 ring-amber-400/60 ring-offset-2"
+                : "ring-2 ring-blue-400/60 ring-offset-2"),
           )}
         >
           {/* Table Header */}

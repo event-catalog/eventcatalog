@@ -1,0 +1,44 @@
+---
+id: loyalty-account
+name: Loyalty Account
+version: 1.0.0
+identifier: loyaltyAccountId
+aggregateRoot: true
+summary: "A customer's membership of the loyalty programme: their tier and points balance."
+owners:
+  - customer-platform
+properties:
+  - name: loyaltyAccountId
+    type: UUID
+    required: true
+    description: Unique loyalty account identifier.
+  - name: accountId
+    type: UUID
+    required: true
+    description: Customer account the membership belongs to.
+    references: customer-account
+    relationType: belongsTo
+    referencesIdentifier: accountId
+  - name: tier
+    type: string
+    required: true
+    description: Membership tier, from points earned in the last 12 months.
+    enum:
+      - bronze
+      - silver
+      - gold
+  - name: pointsBalance
+    type: integer
+    required: true
+    description: Points available to spend.
+  - name: enrolledAt
+    type: datetime
+    required: true
+    description: When the customer joined the programme.
+---
+
+## Overview
+
+Loyalty accounts belong to the Loyalty System. Each one is linked to a customer account, and its balance is the sum of its points transactions.
+
+<EntityPropertiesTable />

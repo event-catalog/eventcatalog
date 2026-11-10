@@ -1,24 +1,22 @@
 import { getCollection, getEntry } from 'astro:content';
 import { generateIdForNode } from './utils/utils';
-import ELK from 'elkjs/lib/elk.bundled.js';
 import { MarkerType } from '@xyflow/react';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { getEntities, type Entity } from '@utils/collections/entities';
 import { getDomains, type Domain } from '@utils/collections/domains';
 import { getServices, type Service } from '@utils/collections/services';
-
-const elk = new ELK();
+import { layoutEntityNodes } from './entity-layout';
 
 export const ENTITY_TARGET_HANDLE_ID = '__eventcatalog-entity-target';
 
-const getReferencedEntityId = (property: any, entityMap: Map<string, Entity[]>) => {
+export const getReferencedEntityId = (property: any, entityMap: Map<string, Entity[]>) => {
   if (property.references) return property.references;
   if (property.type === 'array' && property.items?.type && entityMap.has(property.items.type)) return property.items.type;
   return undefined;
 };
 
-const getReferencePropertyNames = (entity: Entity, entityMap: Map<string, Entity[]>) =>
+export const getReferencePropertyNames = (entity: Entity, entityMap: Map<string, Entity[]>) =>
   entity.data.properties
     ?.filter((property: any) => getReferencedEntityId(property, entityMap))
     .map((property: any) => property.name) ?? [];
@@ -151,6 +149,19 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
   // Create complete list of entities for edge creation and layout
   const allEntitiesInGraph = [...resourceEntities, ...addedExternalEntities];
 
+  edges = createEntityReferenceEdges(entitiesWithReferences, allEntitiesInGraph, entityMap);
+
+  return { nodes: await layoutEntityNodes(nodes, edges), edges };
+};
+
+/** The edges between entities: one for each property referencing another entity in the graph */
+export const createEntityReferenceEdges = (
+  entitiesWithReferences: Entity[],
+  allEntitiesInGraph: Entity[],
+  entityMap: Map<string, Entity[]>
+) => {
+  const edges: any[] = [];
+
   // Go through any entities that are related to other entities
   for (const entity of entitiesWithReferences) {
     // Get a list of properties that reference other entities
@@ -220,60 +231,5 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
     }
   }
 
-  // No virtual edges - only show actual relationships between entities
-
-  // Separate entities with and without relationships (including external entities)
-  const entitiesWithRelationships = allEntitiesInGraph.filter((entity) => {
-    // Has outgoing references
-    const hasOutgoingRefs = entity.data.properties?.some((property: any) => getReferencedEntityId(property, entityMap));
-    // Has incoming references (is referenced by others)
-    const hasIncomingRefs = entitiesWithReferences.some((e: any) =>
-      e.data.properties?.some((prop: any) => getReferencedEntityId(prop, entityMap) === entity.data.id)
-    );
-    return hasOutgoingRefs || hasIncomingRefs;
-  });
-
-  // Prepare ELK graph structure
-  const elkNodes = nodes.map((node: any) => ({
-    id: node.id,
-    width: 220,
-    height: Math.max(120, 72 + (node.data.entity.data.properties?.length ?? 0) * 40),
-  }));
-
-  const elkEdges = edges.map((edge: any) => ({
-    id: edge.id,
-    sources: [edge.source],
-    targets: [edge.target],
-  }));
-
-  const elkGraph = {
-    id: 'root',
-    layoutOptions: {
-      'elk.algorithm': 'force',
-      'elk.force.iterations': '300',
-      'elk.spacing.nodeNode': '45',
-      'elk.spacing.componentComponent': '50',
-      'elk.padding': '[top=30,left=30,bottom=30,right=30]',
-      'elk.separateConnectedComponents': 'true',
-    },
-    children: elkNodes,
-    edges: elkEdges,
-  };
-
-  // Run ELK layout
-  const layoutedGraph = await elk.layout(elkGraph);
-
-  // Apply positions to nodes
-  const positionedNodes = nodes.map((node: any) => {
-    const elkNode = layoutedGraph.children?.find((n: any) => n.id === node.id);
-    return {
-      ...node,
-      position: {
-        x: elkNode?.x || 0,
-        y: elkNode?.y || 0,
-      },
-    };
-  });
-
-  return { nodes: positionedNodes, edges };
+  return edges;
 };

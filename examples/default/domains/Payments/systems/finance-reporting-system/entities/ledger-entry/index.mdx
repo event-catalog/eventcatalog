@@ -1,0 +1,67 @@
+---
+id: ledger-entry
+name: Ledger Entry
+version: 1.0.0
+identifier: entryId
+aggregateRoot: true
+summary: A double-entry line posted to the finance ledger for a payment or refund.
+owners:
+  - payments-platform
+properties:
+  - name: entryId
+    type: UUID
+    required: true
+    description: Unique ledger entry identifier.
+  - name: paymentId
+    type: UUID
+    required: true
+    description: Payment this entry records.
+    references: payment
+    relationType: records
+    referencesIdentifier: paymentId
+  - name: refundId
+    type: UUID
+    required: false
+    description: Refund this entry records, when it reverses a payment.
+    references: refund
+    relationType: records
+    referencesIdentifier: refundId
+  - name: account
+    type: string
+    required: true
+    description: Ledger account the entry is posted to.
+    enum:
+      - revenue
+      - refunds-payable
+      - processing-fees
+      - cash-clearing
+  - name: debit
+    type: decimal
+    required: true
+    description: Amount debited from the account.
+  - name: credit
+    type: decimal
+    required: true
+    description: Amount credited to the account.
+  - name: currency
+    type: string
+    required: true
+    description: Currency of the amounts.
+    references: currency
+    relationType: denominatedIn
+    referencesIdentifier: code
+  - name: period
+    type: string
+    required: true
+    description: Accounting period the entry belongs to (YYYY-MM).
+  - name: postedAt
+    type: datetime
+    required: true
+    description: When the entry was posted.
+---
+
+## Overview
+
+Ledger entries belong to the Finance Reporting System, which turns captured payments and [[event|refund-processed]] refunds into balanced debit and credit lines for the month-end reports.
+
+<EntityPropertiesTable />
