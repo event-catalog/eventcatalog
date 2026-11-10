@@ -496,6 +496,7 @@ program
 program
   .command('build')
   .description('Run build of EventCatalog')
+  .option('--timings', 'Print a summary of where the build spent its time')
   .action(async (options, command: Command) => {
     logger.welcome();
     logger.info('Building EventCatalog...', 'build');
@@ -544,7 +545,7 @@ program
 
     await runCommandWithFilteredOutput({
       command: process.execPath,
-      args: [astroCli, 'build', '--config', astroConfigPath(), ...command.args],
+      args: [astroCli, 'build', '--config', astroConfigPath(), ...(options.timings ? ['--timings'] : []), ...command.args],
       cwd: dir,
       env: {
         PROJECT_DIR: dir,
