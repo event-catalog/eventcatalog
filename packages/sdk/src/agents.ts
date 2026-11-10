@@ -12,7 +12,7 @@ import {
   versionResource,
   writeResource,
 } from './internal/resources';
-import { buildMessagePointer, findFileById, invalidateFileCache, uniqueVersions } from './internal/utils';
+import { buildMessagePointer, findFileById, syncFileCachePath, uniqueVersions } from './internal/utils';
 
 const rewriteAgent = async (directory: string, id: string, agent: Agent, version?: string) => {
   const agentPath = await getResourcePath(directory, id, version);
@@ -103,7 +103,7 @@ export const versionAgent = (directory: string) => async (id: string) => version
 
 export const rmAgent = (directory: string) => async (path: string) => {
   await fs.rm(join(directory, path), { recursive: true });
-  invalidateFileCache();
+  syncFileCachePath(join(directory, path));
 };
 
 export const rmAgentById = (directory: string) => async (id: string, version?: string, persistFiles?: boolean) => {

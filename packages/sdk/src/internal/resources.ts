@@ -6,7 +6,8 @@ import {
   searchFilesForId,
   versionExists,
   cachedMatterRead,
-  invalidateFileCache,
+  findCachedFilesForId,
+  syncFileCachePath,
   upsertFileCacheEntry,
 } from './utils';
 import matter from 'gray-matter';
@@ -23,10 +24,19 @@ const resourceSourcePaths = new WeakMap<object, string>();
 
 export const getResourceSourcePath = (resource: object) => resourceSourcePaths.get(resource);
 
-export const versionResource = async (catalogDir: string, id: string) => {
-  // Find all the events in the directory
+/**
+ * Index files for a resource id (optionally one exact version), latest first. Uses the in-memory index, and only reads
+ * every file in the catalog when the index has no match, as it did before the index existed.
+ */
+const findFilesForId = async (catalogDir: string, id: string, version?: string) => {
+  const cached = findCachedFilesForId(catalogDir, id, version);
+  if (cached.length > 0) return cached;
   const files = await getFiles(`${catalogDir}/**/index.{md,mdx}`);
-  const matchedFiles = await searchFilesForId(files, id);
+  return searchFilesForId(files, id, version);
+};
+
+export const versionResource = async (catalogDir: string, id: string) => {
+  const matchedFiles = await findFilesForId(catalogDir, id);
 
   if (matchedFiles.length === 0) {
     throw new Error(`No resource found with id: ${id}`);
@@ -69,7 +79,7 @@ export const versionResource = async (catalogDir: string, id: string) => {
     );
   });
 
-  invalidateFileCache();
+  syncFileCachePath(sourceDirectory);
 };
 
 export const writeResource = async (
@@ -145,7 +155,10 @@ export const getResource = async (
   const file = filePath || (id ? await findFileById(catalogDir, id, version) : undefined);
   if (!file || !fsSync.existsSync(file)) return;
 
-  const { data, content } = cachedMatterRead(file);
+  const cached = cachedMatterRead(file);
+  // A copy, so changing the resource (or attaching its schema) doesn't change the cached file
+  const data = structuredClone(cached.data);
+  const content = cached.content;
 
   if (attachSchema && data?.schemaPath) {
     const resourceDirectory = dirname(file);
@@ -209,7 +222,10 @@ export const getResources = async (
   if (files.length === 0) return;
 
   return files.map((file) => {
-    const { data, content } = cachedMatterRead(file);
+    const cached = cachedMatterRead(file);
+    // A copy, so changing the resource (or attaching its schema) doesn't change the cached file
+    const data = structuredClone(cached.data);
+    const content = cached.content;
 
     // Attach the schema if the attachSchema option is set to true
     if (attachSchema && data?.schemaPath) {
@@ -240,9 +256,7 @@ export const rmResourceById = async (
   version?: string,
   options?: { type: string; persistFiles?: boolean }
 ) => {
-  const files = await getFiles(`${catalogDir}/**/index.{md,mdx}`);
-
-  const matchedFiles = await searchFilesForId(files, id, version);
+  const matchedFiles = await findFilesForId(catalogDir, id, version);
 
   if (matchedFiles.length === 0) {
     throw new Error(`No ${options?.type || 'resource'} found with id: ${id}`);
@@ -254,6 +268,7 @@ export const rmResourceById = async (
         await fs.rm(file, { recursive: true });
         // Verify file is actually removed
         await waitForFileRemoval(file);
+        syncFileCachePath(file);
       })
     );
   } else {
@@ -263,11 +278,10 @@ export const rmResourceById = async (
         await fs.rm(directory, { recursive: true, force: true });
         // Verify directory is actually removed
         await waitForFileRemoval(directory);
+        syncFileCachePath(directory);
       })
     );
   }
-
-  invalidateFileCache();
 };
 
 // Helper function to ensure file/directory is completely removed

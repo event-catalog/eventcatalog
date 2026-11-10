@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { invalidateFileCache, readMdxFile } from './internal/utils';
+import { syncFileCachePath, readMdxFile } from './internal/utils';
 import type { CustomDoc } from './types';
 import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
@@ -220,7 +220,7 @@ export const writeCustomDoc =
     fsSync.mkdirSync(path.dirname(fullPath), { recursive: true });
     const document = matter.stringify(customDoc.markdown.trim(), rest);
     fsSync.writeFileSync(fullPath, document);
-    invalidateFileCache();
+    syncFileCachePath(fullPath);
   };
 
 /**
@@ -240,5 +240,5 @@ export const writeCustomDoc =
 export const rmCustomDoc = (directory: string) => async (filePath: string) => {
   const fullPath = resolveCustomDocFile(directory, filePath);
   await fs.rm(fullPath, { recursive: true });
-  invalidateFileCache();
+  syncFileCachePath(fullPath);
 };
