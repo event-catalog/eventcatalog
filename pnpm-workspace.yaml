@@ -21,6 +21,8 @@ minimumReleaseAgeExclude:
   - 'expressive-code'
   - 'rehype-expressive-code'
   - 'satteri'
+  # satteri's native binaries ship with the same version, so they must be excluded with it
+  - '@bruits/satteri-*'
   # 4.6.6 fixes a denial of service (SNYK-JS-ZOD-20510278) and is newer than the minimum release age
   - 'zod'
   # 13.0.7 fixes SNYK-JS-GLOB-22112102 and is newer than the minimum release age
