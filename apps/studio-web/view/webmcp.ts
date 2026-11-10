@@ -6,7 +6,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
-import { initializeWebMCPPolyfill } from '@mcp-b/webmcp-polyfill';
+import { installWebMCP } from '@mcp-b/webmcp-polyfill';
 import { LEVELS, Model, type ArchitecturePayload } from '@eventcatalog/visualiser/model';
 import { checkPayload } from '../src/model/check';
 import { Changes, Reorder, type ChangeResult } from '../src/model/changes';
@@ -233,7 +233,7 @@ export function useWebMcp({ enabled, allowPolyfill, canvas }: { enabled: boolean
     if (!enabled) return;
     if (!getModelContext()) {
       if (!allowPolyfill) return;
-      initializeWebMCPPolyfill();
+      installWebMCP();
       usingPolyfill = true;
     }
     const modelContext = getModelContext();

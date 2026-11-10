@@ -5,7 +5,7 @@ import { STATUS, ClaudeCodeLogo, ClaudeLogo, CursorLogo, OpenAILogo } from '@eve
 
 type CanvasLink = { canvasId: string; title?: string; canvasUrl: string; mcpUrl: string };
 
-export const RELAY_COMMAND = 'npx -y @mcp-b/webmcp-local-relay@5.1.0';
+export const RELAY_COMMAND = 'npx -y @mcp-b/webmcp-local-relay@6.0.3';
 const RELAY_KEY = 'eventcatalog-webmcp-relay';
 const WEBMCP_KEY = 'eventcatalog-webmcp';
 

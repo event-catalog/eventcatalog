@@ -6,7 +6,7 @@ import widgetJs from '../webmcp-relay/widget.js?raw';
 /**
  * Serves the WebMCP local relay's browser files (embed.js loads widget.html next to it), so the canvas page
  * can hand its WebMCP tools to desktop MCP clients (Claude Code, Cursor...) running
- * `npx -y @mcp-b/webmcp-local-relay@5.1.0`. The files are copies of that version's (see webmcp-relay/README.md),
+ * `npx -y @mcp-b/webmcp-local-relay@6.0.3`. The files are copies of that version's (see webmcp-relay/README.md),
  * bundled with the page, so the version is pinned.
  */
 const FILES: Record<string, { body: string; contentType: string }> = {
