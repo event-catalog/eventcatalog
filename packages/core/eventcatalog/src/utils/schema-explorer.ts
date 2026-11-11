@@ -17,6 +17,25 @@ import { getExamplesForResource } from '@utils/collections/examples';
 import { attachFlowGraphs, getMessageUsageGraph } from '@utils/schema-usage-graph';
 import { getCollection } from 'astro:content';
 import path from 'path';
+import { isLastUpdatedEnabled } from '@utils/feature';
+import { getFileLastUpdated, getResourceFileLastUpdated } from '@utils/last-updated';
+
+// When a schema or specification last changed (with lastUpdated on), as an ISO date for the explorer
+const lastUpdatedOf = (date: Date | undefined) => (date ? date.toISOString() : undefined);
+
+/** A message schema's date: its file's last commit, or for a schema from a registry, when the registry says it changed */
+export const getSchemaLastUpdated = (schema: {
+  data: { filePath?: string; source: { provider: string; updatedAt?: string } };
+}) => {
+  if (!isLastUpdatedEnabled()) return undefined;
+  if (schema.data.filePath) return lastUpdatedOf(getFileLastUpdated(schema.data.filePath));
+  const reported = schema.data.source.updatedAt ? new Date(schema.data.source.updatedAt) : undefined;
+  return reported && !Number.isNaN(reported.getTime()) ? reported.toISOString() : undefined;
+};
+
+/** A specification's or contract's date: its file's last commit */
+const getSpecificationLastUpdated = (resource: { filePath?: string }, relativePath: string) =>
+  isLastUpdatedEnabled() ? lastUpdatedOf(getResourceFileLastUpdated(resource, relativePath)) : undefined;
 
 // Helper function to enrich owners with full details
 async function enrichOwners(ownersRaw: any[]) {
@@ -151,6 +170,7 @@ async function buildRegistry() {
           };
         },
         schemaExtension,
+        lastUpdated: getSchemaLastUpdated(schema),
         ...(schema.data.name ? { schemaName: schema.data.name } : {}),
         ...(schema.data.ref ? { schemaRef: schema.data.ref, source: schema.data.source } : {}),
       };
@@ -189,6 +209,7 @@ async function buildRegistry() {
               },
               loadDetails: () => ({ schemaContent: readResourceFile(service, spec.path) ?? '', examples: [] }),
               schemaExtension,
+              lastUpdated: getSpecificationLastUpdated(service, spec.path),
               specType: spec.type,
               specName: spec.name,
               specIcon: spec.icon,
@@ -241,6 +262,7 @@ async function buildRegistry() {
               },
               loadDetails: () => ({ schemaContent: readResourceFile(domain, spec.path) ?? '', examples: [] }),
               schemaExtension,
+              lastUpdated: getSpecificationLastUpdated(domain, spec.path),
               specType: spec.type,
               specName: spec.name,
               specIcon: spec.icon,
@@ -294,6 +316,7 @@ async function buildRegistry() {
               },
               loadDetails: () => ({ schemaContent: readResourceFile(dataProduct, contract.path) ?? '', examples: [] }),
               schemaExtension,
+              lastUpdated: getSpecificationLastUpdated(dataProduct, contract.path),
               contractType: contract.type,
               dataProductId: dataProduct.data.id,
               dataProductVersion: dataProduct.data.version,

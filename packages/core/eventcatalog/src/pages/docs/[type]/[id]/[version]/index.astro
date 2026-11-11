@@ -6,7 +6,6 @@ import { render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import Footer from '@layouts/Footer.astro';
 
 import components from '@components/MDX/components';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
@@ -73,6 +72,7 @@ import {
   isRSSEnabled,
   isEventCatalogMCPEnabled,
   isArchitectureGraphEnabled,
+  isLastUpdatedEnabled,
 } from '@utils/feature';
 import { getMDXComponentsByName, parseMdxBooleanProp } from '@utils/markdown';
 import { isFlowGroupBy } from '@eventcatalog/visualiser';
@@ -82,6 +82,8 @@ import type { CollectionTypes } from '@types';
 import config from '@config';
 
 import { Page } from './_index.data';
+import LastUpdated from '@components/LastUpdated.astro';
+import { getLastUpdated } from '@utils/last-updated';
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
@@ -98,6 +100,8 @@ const supersededByAdrs = adrRelationships?.supersededBy || [];
 
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 const contentBadges = props.data.badges || [];
+// When the resource last changed (with lastUpdated on), from git
+const lastUpdated = isLastUpdatedEnabled() ? getLastUpdated(props) : undefined;
 const editUrl =
   props.data.editUrl || (config.editUrl && props?.filePath ? buildEditUrlForResource(config.editUrl, props?.filePath) : '');
 const isLatestVersion = props.data.latestVersion === props.data.version;
@@ -713,24 +717,23 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
               ))
           }
         </div>
-        <Footer />
-        <!-- Add edit this page button  with icon and text-->
-        <div class="flex justify-end">
-          <!-- Built with EventCatalog -->
-          {
-            editUrl && (
-              <div class="flex justify-end">
+        <!-- The page's footer: when the resource last changed, and a link to edit it -->
+        {
+          (lastUpdated || editUrl) && (
+            <footer class="mt-12 flex flex-wrap items-center gap-4 border-t border-[rgb(var(--ec-page-border))] pt-6 pb-4">
+              {lastUpdated && <LastUpdated date={lastUpdated} />}
+              {editUrl && (
                 <a
                   href={editUrl}
-                  class="text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] border border-[rgb(var(--ec-page-border))] rounded-md p-2"
+                  class="ml-auto inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-accent))]"
                 >
-                  <SquarePenIcon className="w-4 h-4 inline-block mr-1" />
+                  <SquarePenIcon className="h-4 w-4" />
                   Edit this page
                 </a>
-              </div>
-            )
-          }
-        </div>
+              )}
+            </footer>
+          )
+        }
       </div>
       <aside
         id="eventcatalog-docs-sidebar"

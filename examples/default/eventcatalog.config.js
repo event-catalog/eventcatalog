@@ -35,6 +35,11 @@ export default {
     limit: 15,
   },
 
+  // When each resource was last updated, from git
+  lastUpdated: {
+    enabled: true,
+  },
+
   // navigation: {
   //   pages: [
   //     {

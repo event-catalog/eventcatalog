@@ -485,6 +485,14 @@ export interface Config {
   changelog?: {
     enabled: boolean;
   };
+  /**
+   * When each resource was last updated, from git: the newest commit to its page, schema, specifications or changelog.
+   * Shown on resource pages and in the homepage's recently updated list. Needs the catalog's full git history (not a
+   * shallow clone). Off by default.
+   */
+  lastUpdated?: {
+    enabled?: boolean;
+  };
   visualiser?: {
     enabled?: boolean;
     channels?: {
