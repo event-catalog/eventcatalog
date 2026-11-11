@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { getNestedSideBarData, type NavigationData, type NavNode } from '../state';
+import { buildContactSection } from '../builders/shared';
 import type { CollectionKey } from 'astro:content';
 import utils from '@eventcatalog/sdk';
 import path from 'path';
@@ -100,7 +101,16 @@ vi.mock('astro:content', async (importOriginal) => {
           // Astro resolves `members` to references; the SDK returns plain ids.
           return Promise.resolve(
             teams.map((team) =>
-              toAstroCollection({ ...team, members: team.members?.map((id: string) => ({ id, collection: 'users' })) }, 'teams')
+              toAstroCollection(
+                {
+                  ...team,
+                  members: team.members?.map((member) => ({
+                    id: typeof member === 'string' ? member : member.id,
+                    collection: 'users',
+                  })),
+                },
+                'teams'
+              )
             )
           );
         case 'flows':
@@ -952,13 +962,20 @@ describe('getNestedSideBarData', () => {
         name: 'Dave',
         markdown: 'Dave',
         avatarUrl: 'https://example.com/avatar.png',
-        msTeamsDirectMessageUrl: 'https://teams.microsoft.com/l/chat/dave',
+        email: 'dave@acme.dev',
       });
 
       const navigationData = await getNestedSideBarData();
       const userNode = getNavigationConfigurationByKey('user:dave', navigationData);
 
       expect(getChildNodeByTitle('Contact', userNode.pages ?? [])?.pages).toEqual([
+        { type: 'item', title: 'Email', href: 'mailto:dave@acme.dev', icon: 'Mail', external: true },
+      ]);
+    });
+
+    it('links to Microsoft Teams in the Contact section', () => {
+      // The SDK can't write msTeamsDirectMessageUrl, so build the section directly.
+      expect(buildContactSection({ msTeamsDirectMessageUrl: 'https://teams.microsoft.com/l/chat/dave' })?.pages).toEqual([
         {
           type: 'item',
           title: 'Microsoft Teams',
