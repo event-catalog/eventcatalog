@@ -10,7 +10,7 @@ export default {
   tagline: 'Discover, Explore and Document your Event Driven Architectures.',
   organizationName: 'Acme Inc',
   homepageLink: 'https://eventcatalog.dev',
-  editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
+  editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main/examples/default',
   port: 3000,
   outDir: "dist",
 

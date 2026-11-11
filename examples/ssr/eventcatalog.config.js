@@ -4,7 +4,7 @@ export default {
   tagline: 'A minimal catalog used to verify production SSR deployments.',
   organizationName: 'SSR Test Catalog',
   homepageLink: 'https://eventcatalog.dev',
-  editUrl: 'https://github.com/event-catalog/eventcatalog',
+  editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main/examples/ssr',
   base: '/',
   trailingSlash: false,
   output: 'server',
