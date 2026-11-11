@@ -1,19 +1,10 @@
 ---
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { buildUrl } from '@utils/url-builder';
-import { isVisualiserEnabled } from '@utils/feature';
+import { ResourcesTable } from '@components/Tables/Resources/ResourcesTable';
+import { getSchemaKeys, toResourceItem } from '@components/Tables/Resources/resource-items';
 import {
-  ResourcesTable,
-  type ResourceItem,
-} from '@components/Tables/Resources/ResourcesTable';
-import { getCollection } from 'astro:content';
-import {
-  getDocsPath,
-  getFavorite,
   getResourceGroups,
   getResourceRelationship,
-  getSchemaPath,
-  getVisualiserPath,
   type ResourceOwner,
   type ResourceOwnerCollection,
 } from '@utils/collections/resources';
@@ -31,29 +22,12 @@ const ownerCollection = resourceOwner.collection as ResourceOwnerCollection;
 // flattened, so services inside a child system remain on that system's page.
 const resourceGroups = getResourceGroups(data, ownerCollection, resourceOwner);
 
-const withBaseUrl = (path: string | undefined) => (path ? buildUrl(path) : undefined);
+const schemaKeys = await getSchemaKeys();
 
-// Messages with an entry in the schemas collection have a schema page.
-const schemaKeys = new Set(
-  (await getCollection('schemas')).map(
-    ({ data: schema }) => `${schema.message.collectionName}:${schema.message.id}:${schema.message.version}`
+const resources = resourceGroups.flatMap(({ collection, items }) =>
+  items.map((item) =>
+    toResourceItem(collection, item, schemaKeys, getResourceRelationship(data, ownerCollection, collection, item, resourceOwner))
   )
-);
-
-const resources: ResourceItem[] = resourceGroups.flatMap(({ collection, items }) =>
-  items.map((item) => ({
-    collection,
-    id: item.data.id,
-    name: item.data.name || item.data.id,
-    version: item.data.version,
-    summary: item.data.summary,
-    icon: item.data?.styles?.icon,
-    href: buildUrl(getDocsPath(collection, item)),
-    visualiserHref: withBaseUrl(getVisualiserPath(collection, item, isVisualiserEnabled())),
-    schemaHref: withBaseUrl(getSchemaPath(collection, item, schemaKeys)),
-    favorite: getFavorite(collection, item),
-    relationship: getResourceRelationship(data, ownerCollection, collection, item, resourceOwner),
-  }))
 );
 ---
 

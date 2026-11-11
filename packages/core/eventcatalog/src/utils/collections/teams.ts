@@ -97,3 +97,7 @@ export const getTeams = async (): Promise<Team[]> => {
 
   return processedTeams;
 };
+
+/** The ids of a team's members that are in the catalog (members can name users that don't exist). */
+export const getTeamMemberIds = (team: Team, userIds: ReadonlySet<string>): string[] =>
+  (team.data.members ?? []).map((member) => member.id).filter((id) => userIds.has(id));

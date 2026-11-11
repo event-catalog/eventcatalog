@@ -1,16 +1,15 @@
 ---
 import components from '@components/MDX/components';
 
-// SideBars
-import { getEntry, render } from 'astro:content';
-import type { CollectionEntry } from 'astro:content';
-import OwnersList from '@components/Lists/OwnersList';
-import PillListFlat from '@components/Lists/PillListFlat';
+import { render } from 'astro:content';
 import EnvelopeIcon from '@heroicons/react/16/solid/EnvelopeIcon';
 import { Github } from 'lucide-react';
-import { formatAdrStatus } from '@utils/collections/adrs';
 import { buildUrl } from '@utils/url-builder';
+import { getTeamMemberIds } from '@utils/collections/teams';
+import { getUsers } from '@utils/collections/users';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import OnThisPage from '@components/OnThisPage.astro';
+import OwnedResourceStats from '@components/OwnedResourceStats.astro';
 import { Page } from './_index.data';
 
 export const prerender = Page.prerender;
@@ -20,72 +19,11 @@ export const getStaticPaths = Page.getStaticPaths;
 const props = await Page.getData(Astro);
 if (!props) return Astro.rewrite('/404');
 
-const { Content } = await render(props);
+const { Content, headings } = await render(props);
 
-const membersRaw = props.data.members || [];
-const members = (await Promise.all(membersRaw.map((m: CollectionEntry<'teams'>) => getEntry(m)))).filter(Boolean);
-
-const domains = props.data.ownedDomains as CollectionEntry<'domains'>[];
-const systems = props.data.ownedSystems as CollectionEntry<'systems'>[];
-const agents = props.data.ownedAgents as CollectionEntry<'agents'>[];
-const services = props.data.ownedServices as CollectionEntry<'services'>[];
-const events = props.data.ownedEvents as CollectionEntry<'events'>[];
-const commands = props.data.ownedCommands as CollectionEntry<'commands'>[];
-const queries = props.data.ownedQueries as CollectionEntry<'queries'>[];
-const adrs = props.data.ownedAdrs as CollectionEntry<'adrs'>[];
-
-const membersList = members.map((o) => ({
-  label: o.data.name,
-  type: o.collection,
-  badge: o.collection === 'users' ? o.data.role : 'Team',
-  collection: o.collection,
-  avatarUrl: o.collection === 'users' ? o.data.avatarUrl : '',
-  href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
-}));
-
-const ownedDomainsList = domains.map((p) => ({
-  label: `${p.data.name}`,
-  collection: p.collection,
-  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
-  tag: `v${p.data.version}`,
-}));
-
-const ownedSystemsList = systems.map((p) => ({
-  label: `${p.data.name}`,
-  collection: p.collection,
-  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
-  tag: `v${p.data.version}`,
-}));
-
-const ownedServicesList = services.map((p) => ({
-  label: `${p.data.name}`,
-  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
-  collection: p.collection,
-  tag: `v${p.data.version}`,
-}));
-
-const ownedAgentsList = agents.map((p) => ({
-  label: `${p.data.name}`,
-  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
-  collection: p.collection,
-  tag: `v${p.data.version}`,
-}));
-
-const ownedMessagesList = [...events, ...commands, ...queries].map((p) => ({
-  label: `${p.data.name}`,
-  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
-  color: p.collection === 'events' ? 'orange' : 'blue',
-  collection: p.collection,
-  tag: `v${p.data.version}`,
-}));
-
-const ownedAdrsList = adrs.map((p) => ({
-  label: `${p.data.name}`,
-  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
-  collection: p.collection,
-  tag: `v${p.data.version}`,
-  description: formatAdrStatus(p.data.status),
-}));
+// Members that are in the catalog, as the sidebar's Members section lists them.
+const userIds = new Set((await getUsers()).map((user) => user.data.id));
+const memberCount = getTeamMemberIds(props, userIds).length;
 
 const pageTitle = `Team | ${props.data.name}`;
 const source = props.data.source;
@@ -182,124 +120,24 @@ const sourceTitle = sourceLabel ? `Synced from ${sourceLabel}` : undefined;
               </div>
             </div>
           </div>
-        </div>
-        <div class="border-b border-[rgb(var(--ec-page-border))] py-4" data-pagefind-ignore>
-          <dl class="grid grid-cols-2 gap-3 sm:grid-cols-7">
-            <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
-              <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Domains</dt>
-              <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedDomainsList.length}</dd>
-            </div>
-            <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
-              <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Systems</dt>
-              <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedSystemsList.length}</dd>
-            </div>
-            <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
-              <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Services</dt>
-              <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedServicesList.length}</dd>
-            </div>
-            <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
-              <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Agents</dt>
-              <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedAgentsList.length}</dd>
-            </div>
-            <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
-              <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Messages</dt>
-              <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedMessagesList.length}</dd>
-            </div>
-            <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
-              <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Decisions</dt>
-              <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedAdrsList.length}</dd>
-            </div>
-            <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
-              <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Members</dt>
-              <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{membersList.length}</dd>
-            </div>
-          </dl>
+          <div class="pt-4">
+            <OwnedResourceStats
+              owner={props}
+              resourcesHref={buildUrl(`/docs/teams/${props.data.id}/resources`)}
+              people={{ label: 'Members', count: memberCount }}
+            />
+          </div>
         </div>
         <div class="prose prose-md py-4 w-full">
           <Content components={components(props)} />
         </div>
       </div>
       <aside
-        class="hidden xl:block sticky top-[5.5rem] self-start w-[280px] max-h-[calc(100vh-5.5rem)] overflow-y-auto py-2 flex-shrink-0 pr-4 bg-[rgb(var(--ec-page-bg))]"
+        class="hidden xl:block sticky top-[4rem] self-start w-[280px] max-h-[calc(100vh-4rem)] overflow-y-auto py-2 flex-shrink-0 pr-4 bg-[rgb(var(--ec-page-bg))]"
         data-pagefind-ignore
       >
-        <div class="py-2">
-          {
-            ownedDomainsList.length > 0 && (
-              <PillListFlat
-                color="pink"
-                title={`Owned domains (${ownedDomainsList.length})`}
-                pills={ownedDomainsList}
-                emptyMessage={`${props.data.name} does not own any domains.`}
-                client:load
-              />
-            )
-          }
-          {
-            ownedSystemsList.length > 0 && (
-              <PillListFlat
-                color="pink"
-                title={`Owned systems (${ownedSystemsList.length})`}
-                pills={ownedSystemsList}
-                emptyMessage={`${props.data.name} does not own any systems.`}
-                client:load
-              />
-            )
-          }
-          {
-            ownedServicesList.length > 0 && (
-              <PillListFlat
-                color="blue"
-                title={`Owned services (${ownedServicesList.length})`}
-                pills={ownedServicesList}
-                emptyMessage={`This team does not own any services.`}
-                client:load
-              />
-            )
-          }
-          {
-            ownedAgentsList.length > 0 && (
-              <PillListFlat
-                color="indigo"
-                title={`Owned agents (${ownedAgentsList.length})`}
-                pills={ownedAgentsList}
-                emptyMessage={`This team does not own any agents.`}
-                client:load
-              />
-            )
-          }
-          {
-            ownedMessagesList.length > 0 && (
-              <PillListFlat
-                color="red"
-                title={`Owned messages (${ownedMessagesList.length})`}
-                pills={ownedMessagesList}
-                emptyMessage={`This team does not own any messages.`}
-                client:load
-              />
-            )
-          }
-          {
-            ownedAdrsList.length > 0 && (
-              <PillListFlat
-                color="orange"
-                title={`Owned ADRs (${ownedAdrsList.length})`}
-                pills={ownedAdrsList}
-                emptyMessage={`This team does not own any decision records.`}
-                client:load
-              />
-            )
-          }
-          {
-            membersList.length > 0 && (
-              <OwnersList
-                title={`Team members (${membersList.length})`}
-                owners={membersList}
-                emptyMessage={`This team does not have any members.`}
-                client:load
-              />
-            )
-          }
+        <div class="mt-8 space-y-8">
+          <OnThisPage headings={headings} />
         </div>
       </aside>
     </div>

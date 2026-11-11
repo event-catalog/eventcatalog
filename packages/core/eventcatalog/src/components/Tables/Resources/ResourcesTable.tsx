@@ -52,15 +52,19 @@ export interface ResourceItem {
   relationship?: ResourceRelationship;
 }
 
+type TypeLabel = { plural: string; singular: string };
+
 interface ResourcesTableProps {
   resources: ResourceItem[];
   title: string;
   description?: string;
+  /** Override the label for a type, e.g. "Domains" instead of "Subdomains" outside a domain's page. */
+  typeLabels?: Partial<Record<ResourceCollection, TypeLabel>>;
 }
 
 // Every kind of resource with its plural label (filter pills) and singular label (Type column).
 // The key order is the order the filter pills follow on the page.
-const RESOURCE_TYPE_LABELS: Record<ResourceCollection, { plural: string; singular: string }> = {
+const RESOURCE_TYPE_LABELS: Record<ResourceCollection, TypeLabel> = {
   domains: { plural: 'Subdomains', singular: 'Subdomain' },
   systems: { plural: 'Systems', singular: 'System' },
   agents: { plural: 'Agents', singular: 'Agent' },
@@ -149,10 +153,23 @@ const SortIcon = ({ direction }: { direction: false | 'asc' | 'desc' }) => {
   return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" aria-hidden="true" />;
 };
 
-export function ResourcesTable({ resources, title, description }: ResourcesTableProps) {
+/** The resource types named in a `type` query parameter (comma-separated), ignoring unknown ones. */
+export const getTypesFromSearch = (search: string): ResourceCollection[] => {
+  const types = new URLSearchParams(search).get('type')?.split(',') ?? [];
+  return TYPE_ORDER.filter((type) => types.includes(type));
+};
+
+export function ResourcesTable({ resources, title, description, typeLabels }: ResourcesTableProps) {
+  const labels = useMemo(() => ({ ...RESOURCE_TYPE_LABELS, ...typeLabels }), [typeLabels]);
   const [search, setSearch] = useState('');
   const [pageSize, setPageSize] = useStoredPageSize('eventcatalog-resources-page-size');
-  const [selectedTypes, setSelectedTypes] = useState<ResourceCollection[]>([]);
+  // Pages can link to the table pre-filtered, e.g. `?type=events,commands,queries`. Only types with
+  // rows are kept: a selected type without a filter pill could never be cleared.
+  const [selectedTypes, setSelectedTypes] = useState<ResourceCollection[]>(() =>
+    typeof window === 'undefined'
+      ? []
+      : getTypesFromSearch(window.location.search).filter((type) => resources.some((resource) => resource.collection === type))
+  );
   const [selectedDirections, setSelectedDirections] = useState<Direction[]>([]);
   const [sorting, setSorting] = useState<SortingState>([{ id: 'name', desc: false }]);
 
@@ -211,7 +228,7 @@ export function ResourcesTable({ resources, title, description }: ResourcesTable
           );
         },
       }),
-      columnHelper.accessor((row) => RESOURCE_TYPE_LABELS[row.collection].singular, {
+      columnHelper.accessor((row) => labels[row.collection].singular, {
         id: 'type',
         header: 'Type',
         cell: (info) => {
@@ -219,7 +236,7 @@ export function ResourcesTable({ resources, title, description }: ResourcesTable
           return (
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm text-[rgb(var(--ec-page-text-muted))]">
               <CollectionTypeIcon collection={collection} />
-              {RESOURCE_TYPE_LABELS[collection].singular}
+              {labels[collection].singular}
             </span>
           );
         },
@@ -272,7 +289,7 @@ export function ResourcesTable({ resources, title, description }: ResourcesTable
         },
       }),
     ],
-    []
+    [labels]
   );
 
   const table = useReactTable({
@@ -323,7 +340,7 @@ export function ResourcesTable({ resources, title, description }: ResourcesTable
             availableTypes.map((type) => (
               <FilterPill key={type} active={selectedTypes.includes(type)} onClick={() => toggleType(type)}>
                 <CollectionTypeIcon collection={type} />
-                {RESOURCE_TYPE_LABELS[type].plural}
+                {labels[type].plural}
               </FilterPill>
             ))}
           <div className="relative">
