@@ -20,7 +20,7 @@ describe('buildDashboard', () => {
   it("lists a message's schema and a service's specifications on their own, by their own dates", () => {
     const dates: Record<string, number> = {
       OrderPlaced: 1,
-      'OrderPlaced:schema.json': 3,
+      'OrderPlaced:schemas': 3,
       Orders: 2,
       'Orders:openapi.yml': 4,
     };
@@ -32,7 +32,8 @@ describe('buildDashboard', () => {
       }),
       teams: [],
       users: [],
-      getUpdatedAt: (resource, file) => dates[file ? `${resource.data.id}:${file}` : resource.data.id],
+      getUpdatedAt: (resource, part) =>
+        dates[!part ? resource.data.id : `${resource.data.id}:${part === 'schemas' ? part : part.specification}`],
     });
 
     expect(recentlyUpdated.map(({ kind, id, label, href }) => ({ kind, id, label, href }))).toEqual([
@@ -55,7 +56,18 @@ describe('buildDashboard', () => {
       }),
       teams: [],
       users: [],
-      getUpdatedAt: (_resource, file) => (file ? undefined : 1),
+      getUpdatedAt: (_resource, part) => (part ? undefined : 1),
+    });
+
+    expect(recentlyUpdated.map(({ kind }) => kind)).toEqual(['resource']);
+  });
+
+  it("lists schemas for messages only (a schema row links to the message's schema in the explorer)", () => {
+    const { recentlyUpdated } = buildDashboard({
+      collections: collections({ services: [entry('Orders', { schemaPath: 'schema.json' })] }),
+      teams: [],
+      users: [],
+      getUpdatedAt: () => 1,
     });
 
     expect(recentlyUpdated.map(({ kind }) => kind)).toEqual(['resource']);

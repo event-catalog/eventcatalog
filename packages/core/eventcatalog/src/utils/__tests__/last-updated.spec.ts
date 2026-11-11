@@ -97,6 +97,24 @@ describe('last updated', { timeout: 20_000 }, () => {
       expect(date).toEqual(new Date(SCHEMA_COMMIT * 1000));
     });
 
+    it.each([
+      ['a file', { file: 'schema.json' }],
+      ['a file:// ref', { ref: 'file://schema.json' }],
+    ])("counts a message's schemas list: %s", (_kind, schema) => {
+      const date = getLastUpdated({ filePath: 'domains/Orders/events/OrderPlaced/index.mdx', data: { schemas: [schema] } });
+
+      expect(date).toEqual(new Date(SCHEMA_COMMIT * 1000));
+    });
+
+    it("doesn't count a schema from a registry, which has no file here", () => {
+      const date = getLastUpdated({
+        filePath: 'domains/Orders/events/OrderPlaced/index.mdx',
+        data: { schemas: [{ ref: 'confluent://orders-value' }] },
+      });
+
+      expect(date).toEqual(new Date(PAGE_COMMIT * 1000));
+    });
+
     it('leaves the schema out with schemas: false, for where it is listed on its own', () => {
       const date = getLastUpdated(
         { filePath: 'domains/Orders/events/OrderPlaced/index.mdx', data: { schemaPath: 'schema.json' } },

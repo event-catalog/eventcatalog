@@ -1,12 +1,15 @@
 import { getLastCommitDate, hasGit, isGitRepository, isShallowRepository } from '@utils/git';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import { processSpecifications } from '@utils/collections/util';
+import { getLocalSchemaFilePaths } from '@utils/collections/schema-loader';
 
 /** The fields of a collection entry that say which files make up the resource */
 export type LastUpdatedEntry = {
   filePath?: string;
   data: {
     schemaPath?: string;
+    /** A message's schemas (local files and `file://` refs count; see getLocalSchemaFilePaths) */
+    schemas?: Parameters<typeof getLocalSchemaFilePaths>[0]['data']['schemas'];
     specifications?: Parameters<typeof processSpecifications>[0];
   };
 };
@@ -17,18 +20,23 @@ const isRemote = (file: string) => /^[a-z]+:\/\//i.test(file);
  * The files that make up a resource, as absolute paths: its page, its schema, its specifications and its changelog.
  * Not the rest of its folder: a domain's folder holds its services, and their changes aren't the domain's.
  */
+/** A message's local schema files, as absolute paths (its `schemas` files and `file://` refs, or its `schemaPath`) */
+export const getSchemaFiles = (entry: LastUpdatedEntry): string[] =>
+  entry.filePath
+    ? getLocalSchemaFilePaths({ data: entry.data, messageFilePath: getAbsoluteFilePathForAstroFile(entry.filePath) })
+    : [];
+
 export const getResourceFiles = (entry: LastUpdatedEntry, { schemas = true }: { schemas?: boolean } = {}): string[] => {
   if (!entry.filePath) return [];
   const related = [
-    ...(schemas
-      ? [entry.data.schemaPath, ...processSpecifications(entry.data.specifications).map((specification) => specification.path)]
-      : []),
+    ...(schemas ? processSpecifications(entry.data.specifications).map((specification) => specification.path) : []),
     // Beside the page, for the latest version and for each version in `versioned/`
     'changelog.mdx',
   ].filter((file): file is string => Boolean(file) && !isRemote(file as string));
 
   return [
     getAbsoluteFilePathForAstroFile(entry.filePath),
+    ...(schemas ? getSchemaFiles(entry) : []),
     ...related.map((file) => getAbsoluteFilePathForAstroFile(entry.filePath as string, file)),
   ];
 };
@@ -76,9 +84,16 @@ export const getResourceFileLastUpdated = (entry: Pick<LastUpdatedEntry, 'filePa
  * `schemas: false` leaves its schema and specifications out, e.g. where they're listed on their own).
  * Undefined without git history for them, e.g. no git, or files that aren't committed yet: no date rather than a wrong one.
  */
-export const getLastUpdated = (entry: LastUpdatedEntry, options: { schemas?: boolean } = {}): Date | undefined => {
+export const getLastUpdated = (entry: LastUpdatedEntry, options: { schemas?: boolean } = {}): Date | undefined =>
+  getNewestCommit(getResourceFiles(entry, options));
+
+/** When a message's schemas last changed: the newest commit to any of its local schema files */
+export const getSchemasLastUpdated = (entry: LastUpdatedEntry): Date | undefined => getNewestCommit(getSchemaFiles(entry));
+
+// The newest commit to any of these files (absolute paths)
+const getNewestCommit = (files: string[]): Date | undefined => {
   if (!canReadHistory()) return undefined;
-  const timestamps = getResourceFiles(entry, options)
+  const timestamps = files
     .map((file) => getLastCommitDate(file)?.getTime())
     .filter((timestamp): timestamp is number => timestamp !== undefined);
   return timestamps.length > 0 ? new Date(Math.max(...timestamps)) : undefined;
