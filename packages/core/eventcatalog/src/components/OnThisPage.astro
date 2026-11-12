@@ -1,0 +1,91 @@
+---
+// The "On this page" table of contents on team and user pages. It links the page's h2 and h3
+// headings and highlights the one in view (headings are read from the `.prose` container).
+// The docs, custom documentation and resource doc pages still have their own copies of this.
+import type { MarkdownHeading } from 'astro';
+import { AlignLeft } from 'lucide-react';
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const headings = Astro.props.headings.filter((heading) => heading.depth <= 3);
+---
+
+{
+  headings.length > 0 && (
+    <div>
+      <h3 class="text-xs text-[rgb(var(--ec-page-text))] font-semibold capitalize flex items-center gap-2 mb-4">
+        <AlignLeft className="w-4 h-4" />
+        On this page
+      </h3>
+      <nav data-on-this-page class="text-xs border-l border-[rgb(var(--ec-page-border))]">
+        {headings.map((heading) => (
+          <a
+            href={`#${heading.slug}`}
+            class="block py-1.5 pr-2.5 leading-5 text-[rgb(var(--ec-page-text-muted))] hover:border-[rgb(var(--ec-page-border))] hover:text-[rgb(var(--ec-page-text))] border-l-2 border-transparent -ml-px transition-all duration-200"
+            style={`padding-left: ${(heading.depth > 2 ? heading.depth : 1) * 0.75}rem`}
+          >
+            {heading.text}
+          </a>
+        ))}
+      </nav>
+    </div>
+  )
+}
+
+<style is:global>
+  [data-on-this-page] a.is-active {
+    color: rgb(var(--ec-accent));
+    border-color: rgb(var(--ec-accent));
+    font-weight: 500;
+  }
+</style>
+
+<script>
+  declare global {
+    interface Window {
+      __onThisPageObserver?: IntersectionObserver;
+    }
+  }
+
+  function setupOnThisPage() {
+    window.__onThisPageObserver?.disconnect();
+    window.__onThisPageObserver = undefined;
+
+    const nav = document.querySelector<HTMLElement>('[data-on-this-page]');
+    const prose = document.querySelector<HTMLElement>('.prose');
+    if (!nav || !prose) return;
+
+    const links = Array.from(nav.querySelectorAll<HTMLAnchorElement>('a[href^="#"]'));
+    const setActive = (id: string) => {
+      links.forEach((link) => link.classList.toggle('is-active', link.getAttribute('href') === `#${id}`));
+      nav.querySelector('a.is-active')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    };
+
+    // Pause the observer briefly after a click, so the clicked heading stays highlighted while scrolling to it.
+    let paused = false;
+    links.forEach((link) =>
+      link.addEventListener('click', () => {
+        setActive(link.getAttribute('href')!.slice(1));
+        paused = true;
+        setTimeout(() => (paused = false), 500);
+      })
+    );
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (paused) return;
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.target.id) setActive(entry.target.id);
+        });
+      },
+      { rootMargin: '0px 0px -40% 0px', threshold: 0.1 }
+    );
+    prose.querySelectorAll('h1[id], h2[id], h3[id]').forEach((heading) => observer.observe(heading));
+    window.__onThisPageObserver = observer;
+  }
+
+  // The layout's ClientRouter fires astro:page-load on the first load too, so this runs once per page.
+  document.addEventListener('astro:page-load', setupOnThisPage);
+</script>

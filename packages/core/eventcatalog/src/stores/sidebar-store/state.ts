@@ -13,7 +13,8 @@ import { getTriggeredByOfMessage, getTriggersOfMessage } from '@utils/collection
 import { getOwner } from '@utils/collections/owners';
 import { getFlows } from '@utils/collections/flows';
 import { getUsers } from '@utils/collections/users';
-import { getTeams } from '@utils/collections/teams';
+import { getTeams, getTeamMemberIds } from '@utils/collections/teams';
+import { ownsResources } from '@utils/collections/owned-resources';
 import { getDiagrams } from '@utils/collections/diagrams';
 import { getDataProducts } from '@utils/collections/data-products';
 import { getEntities } from '@utils/collections/entities';
@@ -37,6 +38,7 @@ import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { iconFieldsForResource } from '@utils/icon';
 import {
   buildQuickReferenceSection,
+  buildContactSection,
   buildResourceDocsSection,
   buildResourcesLink,
   shouldRenderSideBarSection,
@@ -765,11 +767,31 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const userNodes = users.reduce(
     (acc, user) => {
+      const userHref = buildUrl(`/docs/users/${user.data.id}`);
+      const teamKeys = ((user.data as { associatedTeams?: CollectionEntry<'teams'>[] }).associatedTeams ?? []).map(
+        (team) => `team:${team.data.id}`
+      );
       acc[`user:${user.data.id}`] = withArchitectureDecisionsSection(
         {
           type: 'item',
           title: user.data.name,
-          href: buildUrl(`/docs/users/${user.data.id}`),
+          badge: 'User',
+          href: userHref,
+          pages: [
+            buildQuickReferenceSection([
+              { title: 'Overview', href: userHref },
+              ...(ownsResources(user)
+                ? [{ title: 'Owned Resources', href: buildUrl(`/docs/users/${user.data.id}/resources`) }]
+                : []),
+            ]),
+            buildContactSection(user.data),
+            teamKeys.length > 0 && {
+              type: 'group',
+              title: 'Teams',
+              icon: 'Users',
+              pages: teamKeys,
+            },
+          ].filter(Boolean) as ChildRef[],
         },
         user,
         adrs
@@ -841,13 +863,33 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
+  const userIds = new Set(users.map((user) => user.data.id));
   const teamNodes = teams.reduce(
     (acc, team) => {
+      const teamHref = buildUrl(`/docs/teams/${team.data.id}`);
+      const memberKeys = getTeamMemberIds(team, userIds).map((id) => `user:${id}`);
       acc[`team:${team.data.id}`] = withArchitectureDecisionsSection(
         {
           type: 'item',
           title: team.data.name,
-          href: buildUrl(`/docs/teams/${team.data.id}`),
+          badge: 'Team',
+          summary: team.data.summary,
+          href: teamHref,
+          pages: [
+            buildQuickReferenceSection([
+              { title: 'Overview', href: teamHref },
+              ...(ownsResources(team)
+                ? [{ title: 'Owned Resources', href: buildUrl(`/docs/teams/${team.data.id}/resources`) }]
+                : []),
+            ]),
+            buildContactSection(team.data),
+            memberKeys.length > 0 && {
+              type: 'group',
+              title: 'Members',
+              icon: 'Users',
+              pages: memberKeys,
+            },
+          ].filter(Boolean) as ChildRef[],
         },
         team,
         adrs

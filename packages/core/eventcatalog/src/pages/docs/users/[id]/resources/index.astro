@@ -1,0 +1,12 @@
+---
+import OwnedResourcesPage from '@components/Tables/Resources/OwnedResourcesPage.astro';
+import { Page } from './_index.data';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+const user = await Page.getData(Astro);
+if (!user) return Astro.rewrite('/404');
+---
+
+<OwnedResourcesPage owner={user} description={`owned by ${user.data.name} or their teams.`} />

@@ -4,6 +4,7 @@ import {
   buildSidebarSnapshot,
   canCollapseGroup,
   createSectionCollapsePreferences,
+  buildNodeLookup,
   findNodeKeyByUrl,
   getStackForUrl,
   getDefaultCollapsedState,
@@ -105,6 +106,22 @@ describe('findNodeKeyByUrl', () => {
 
   it('falls back to the available channel version', () => {
     expect(findNodeKeyByUrl('/docs/channels/product-events/latest', nodes, nodeLookup)).toBe(channelKey);
+  });
+
+  it('selects the team sidebar on the team page and its Owned Resources page', () => {
+    const teamNodes = { 'team:customer-platform': { type: 'item', title: 'Customer Platform' } };
+    const teamLookup = buildNodeLookup(teamNodes as any);
+
+    expect(findNodeKeyByUrl('/docs/teams/customer-platform', teamNodes, teamLookup)).toBe('team:customer-platform');
+    expect(findNodeKeyByUrl('/docs/teams/customer-platform/resources', teamNodes, teamLookup)).toBe('team:customer-platform');
+  });
+
+  it('selects the user sidebar on the user page and its Owned Resources page', () => {
+    const userNodes = { 'user:dave': { type: 'item', title: 'Dave' } };
+    const userLookup = buildNodeLookup(userNodes as any);
+
+    expect(findNodeKeyByUrl('/docs/users/dave', userNodes, userLookup)).toBe('user:dave');
+    expect(findNodeKeyByUrl('/docs/users/dave/resources', userNodes, userLookup)).toBe('user:dave');
   });
 });
 

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { getNestedSideBarData, type NavigationData, type NavNode } from '../state';
+import { buildContactSection } from '../builders/shared';
 import type { CollectionKey } from 'astro:content';
 import utils from '@eventcatalog/sdk';
 import path from 'path';
@@ -97,7 +98,21 @@ vi.mock('astro:content', async (importOriginal) => {
         case 'teams':
           const { getTeams } = utils(CATALOG_FOLDER);
           const teams = (await getTeams()) ?? [];
-          return Promise.resolve(teams.map((team) => toAstroCollection(team, 'teams')));
+          // Astro resolves `members` to references; the SDK returns plain ids.
+          return Promise.resolve(
+            teams.map((team) =>
+              toAstroCollection(
+                {
+                  ...team,
+                  members: team.members?.map((member) => ({
+                    id: typeof member === 'string' ? member : member.id,
+                    collection: 'users',
+                  })),
+                },
+                'teams'
+              )
+            )
+          );
         case 'flows':
           // NO SDK support for flows yet, so we provide test fixtures directly.
           return Promise.resolve(mockFlows.map((flow) => toAstroCollection(flow, 'flows')));
@@ -818,6 +833,167 @@ describe('getNestedSideBarData', () => {
         icon: 'Box',
         pages: [{ type: 'item', title: 'Order', href: '/docs/entities/Order/1.0.0' }],
       });
+    });
+  });
+
+  describe('team navigation item', () => {
+    it('has a Quick Reference section with the Overview page', async () => {
+      const { writeTeam } = utils(CATALOG_FOLDER);
+      await writeTeam({ id: 'platform', name: 'Platform', markdown: 'Platform' });
+
+      const navigationData = await getNestedSideBarData();
+      const teamNode = getNavigationConfigurationByKey('team:platform', navigationData);
+
+      expect(teamNode).toMatchObject({ type: 'item', title: 'Platform', badge: 'Team', href: '/docs/teams/platform' });
+      expect(getChildNodeByTitle('Quick Reference', teamNode.pages ?? [])).toEqual({
+        type: 'group',
+        title: 'Quick Reference',
+        icon: 'BookOpen',
+        // No Owned Resources link when the team owns nothing (that page 404s).
+        pages: [{ type: 'item', title: 'Overview', href: '/docs/teams/platform' }],
+      });
+    });
+
+    it('lists the team members that exist in the catalog', async () => {
+      const { writeTeam, writeUser } = utils(CATALOG_FOLDER);
+      await writeUser({ id: 'dave', name: 'Dave', markdown: 'Dave', avatarUrl: 'https://example.com/avatar.png' });
+      await writeTeam({ id: 'platform', name: 'Platform', markdown: 'Platform', members: ['dave', 'missing-user'] });
+
+      const navigationData = await getNestedSideBarData();
+      const teamNode = getNavigationConfigurationByKey('team:platform', navigationData);
+
+      expect(getChildNodeByTitle('Members', teamNode.pages ?? [])).toEqual({
+        type: 'group',
+        title: 'Members',
+        icon: 'Users',
+        pages: ['user:dave'],
+      });
+    });
+
+    it('has a Contact section with the ways to reach the team', async () => {
+      const { writeTeam } = utils(CATALOG_FOLDER);
+      await writeTeam({
+        id: 'platform',
+        name: 'Platform',
+        markdown: 'Platform',
+        email: 'platform@acme.dev',
+        slackDirectMessageUrl: 'https://acme.slack.com/platform',
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const teamNode = getNavigationConfigurationByKey('team:platform', navigationData);
+
+      expect(getChildNodeByTitle('Contact', teamNode.pages ?? [])).toEqual({
+        type: 'group',
+        title: 'Contact',
+        icon: 'MessageCircle',
+        pages: [
+          { type: 'item', title: 'Email', href: 'mailto:platform@acme.dev', icon: 'Mail', external: true },
+          {
+            type: 'item',
+            title: 'Slack',
+            href: 'https://acme.slack.com/platform',
+            leftIcon: '/slack-icon.svg',
+            external: true,
+          },
+        ],
+      });
+    });
+
+    it('has no Contact section when the team has no contact details', async () => {
+      const { writeTeam } = utils(CATALOG_FOLDER);
+      await writeTeam({ id: 'platform', name: 'Platform', markdown: 'Platform' });
+
+      const navigationData = await getNestedSideBarData();
+      const teamNode = getNavigationConfigurationByKey('team:platform', navigationData);
+
+      expect(getChildNodeByTitle('Contact', teamNode.pages ?? [])).toBeUndefined();
+    });
+
+    it('has no Members section when the team has no members', async () => {
+      const { writeTeam } = utils(CATALOG_FOLDER);
+      await writeTeam({ id: 'platform', name: 'Platform', markdown: 'Platform' });
+
+      const navigationData = await getNestedSideBarData();
+      const teamNode = getNavigationConfigurationByKey('team:platform', navigationData);
+
+      expect(getChildNodeByTitle('Members', teamNode.pages ?? [])).toBeUndefined();
+    });
+  });
+
+  describe('user navigation item', () => {
+    it('has a Quick Reference section with the Overview page', async () => {
+      const { writeUser } = utils(CATALOG_FOLDER);
+      await writeUser({ id: 'dave', name: 'Dave', markdown: 'Dave', avatarUrl: 'https://example.com/avatar.png' });
+
+      const navigationData = await getNestedSideBarData();
+      const userNode = getNavigationConfigurationByKey('user:dave', navigationData);
+
+      expect(userNode).toMatchObject({ type: 'item', title: 'Dave', badge: 'User', href: '/docs/users/dave' });
+      expect(getChildNodeByTitle('Quick Reference', userNode.pages ?? [])).toEqual({
+        type: 'group',
+        title: 'Quick Reference',
+        icon: 'BookOpen',
+        // No Owned Resources link when the user owns nothing (that page 404s).
+        pages: [{ type: 'item', title: 'Overview', href: '/docs/users/dave' }],
+      });
+    });
+
+    it('lists the teams the user is a member of', async () => {
+      const { writeTeam, writeUser } = utils(CATALOG_FOLDER);
+      await writeUser({ id: 'dave', name: 'Dave', markdown: 'Dave', avatarUrl: 'https://example.com/avatar.png' });
+      await writeTeam({ id: 'platform', name: 'Platform', markdown: 'Platform', members: ['dave'] });
+
+      const navigationData = await getNestedSideBarData();
+      const userNode = getNavigationConfigurationByKey('user:dave', navigationData);
+
+      expect(getChildNodeByTitle('Teams', userNode.pages ?? [])).toEqual({
+        type: 'group',
+        title: 'Teams',
+        icon: 'Users',
+        pages: ['team:platform'],
+      });
+    });
+
+    it('has a Contact section with the ways to reach the user', async () => {
+      const { writeUser } = utils(CATALOG_FOLDER);
+      await writeUser({
+        id: 'dave',
+        name: 'Dave',
+        markdown: 'Dave',
+        avatarUrl: 'https://example.com/avatar.png',
+        email: 'dave@acme.dev',
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const userNode = getNavigationConfigurationByKey('user:dave', navigationData);
+
+      expect(getChildNodeByTitle('Contact', userNode.pages ?? [])?.pages).toEqual([
+        { type: 'item', title: 'Email', href: 'mailto:dave@acme.dev', icon: 'Mail', external: true },
+      ]);
+    });
+
+    it('links to Microsoft Teams in the Contact section', () => {
+      // The SDK can't write msTeamsDirectMessageUrl, so build the section directly.
+      expect(buildContactSection({ msTeamsDirectMessageUrl: 'https://teams.microsoft.com/l/chat/dave' })?.pages).toEqual([
+        {
+          type: 'item',
+          title: 'Microsoft Teams',
+          href: 'https://teams.microsoft.com/l/chat/dave',
+          leftIcon: '/icons/ms-teams.svg',
+          external: true,
+        },
+      ]);
+    });
+
+    it('has no Teams section when the user is not in a team', async () => {
+      const { writeUser } = utils(CATALOG_FOLDER);
+      await writeUser({ id: 'dave', name: 'Dave', markdown: 'Dave', avatarUrl: 'https://example.com/avatar.png' });
+
+      const navigationData = await getNestedSideBarData();
+      const userNode = getNavigationConfigurationByKey('user:dave', navigationData);
+
+      expect(getChildNodeByTitle('Teams', userNode.pages ?? [])).toBeUndefined();
     });
   });
 
