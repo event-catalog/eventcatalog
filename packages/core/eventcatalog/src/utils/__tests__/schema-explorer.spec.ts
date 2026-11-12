@@ -1,11 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getSchemaDetails, getSchemaMetadata } from '../schema-explorer';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getSchemaDetails, getSchemaLastUpdated, getSchemaMetadata } from '../schema-explorer';
 import { GET, getStaticPaths } from '../../pages/schemas/explorer/content/[key].json';
 import { getSchemaRelationshipReference } from '@components/SchemaExplorer/utils';
 import { buildUrl } from '../url-builder';
 
 const fixtures = vi.hoisted(() => ({
   ssr: false,
+  lastUpdated: false,
   schemas: [] as any[],
   events: [] as any[],
   services: [] as any[],
@@ -40,7 +41,12 @@ vi.mock('@utils/collections/examples', () => ({
     { fileName: 'example.json', title: 'Example', extension: 'json', content: 'example content' },
   ]),
 }));
-vi.mock('@utils/feature', () => ({ isSSR: () => fixtures.ssr }));
+vi.mock('@utils/feature', () => ({ isSSR: () => fixtures.ssr, isLastUpdatedEnabled: () => fixtures.lastUpdated }));
+// A schema file's last commit
+vi.mock('@utils/last-updated', () => ({
+  getFileLastUpdated: vi.fn(() => new Date('2026-11-01T10:00:00Z')),
+  getResourceFileLastUpdated: vi.fn(() => undefined),
+}));
 vi.mock('@utils/schema-usage-graph', () => ({
   getMessageUsageGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
   attachFlowGraphs: vi.fn(async (flows: any[]) => flows.map((flow) => ({ ...flow, graph: { nodes: [], edges: [] } }))),
@@ -364,5 +370,38 @@ describe('schema explorer content delivery', () => {
     const details = await getSchemaDetails(keyOf(selected.contentUrl!));
     expect(details?.data).toEqual({ producers, consumers, flows: [], channels: [] });
     expect(getExamplesForResource).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getSchemaLastUpdated', () => {
+  const schema = (data: { filePath?: string; updatedAt?: string }) => ({
+    data: { filePath: data.filePath, source: { provider: 'registry', updatedAt: data.updatedAt } },
+  });
+
+  beforeEach(() => {
+    fixtures.lastUpdated = true;
+  });
+
+  afterEach(() => {
+    fixtures.lastUpdated = false;
+  });
+
+  it("is the schema file's last commit, before what a registry reports", () => {
+    expect(getSchemaLastUpdated(schema({ filePath: '/catalog/schema.json', updatedAt: '2025-01-01T00:00:00Z' }))).toBe(
+      '2026-11-01T10:00:00.000Z'
+    );
+  });
+
+  it('is when the registry says the schema changed, for a schema without a file', () => {
+    expect(getSchemaLastUpdated(schema({ updatedAt: '2025-01-01T00:00:00Z' }))).toBe('2025-01-01T00:00:00.000Z');
+  });
+
+  it("is undefined when the registry's date isn't a date", () => {
+    expect(getSchemaLastUpdated(schema({ updatedAt: 'yesterday' }))).toBeUndefined();
+  });
+
+  it('is undefined with lastUpdated off', () => {
+    fixtures.lastUpdated = false;
+    expect(getSchemaLastUpdated(schema({ filePath: '/catalog/schema.json' }))).toBeUndefined();
   });
 });

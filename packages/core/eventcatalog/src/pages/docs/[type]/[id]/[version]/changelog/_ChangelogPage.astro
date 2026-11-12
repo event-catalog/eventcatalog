@@ -1,5 +1,4 @@
 ---
-import Footer from '@layouts/Footer.astro';
 import { getChangeLogs } from '@utils/collections/changelogs';
 import { render, getEntry } from 'astro:content';
 import mdxComponents from '@components/MDX/components';
@@ -186,7 +185,6 @@ const releaseCount = `${logList.length} ${logList.length === 1 ? 'release' : 're
             ))
           }
         </ol>
-        <Footer />
       </div>
       {
         logList.length > 0 && (

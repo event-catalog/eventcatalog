@@ -15,6 +15,7 @@ const getFeatures = async (configFile) => {
     rss: configFile.rss?.enabled || false,
     chat: configFile.chat?.enabled || false,
     changelog: configFile.changelog?.enabled || false,
+    lastUpdated: configFile.lastUpdated?.enabled || false,
     auth: configFile.auth?.enabled || false,
     environments: Array.isArray(configFile.environments) && configFile.environments.length > 0,
     output: configFile.output || 'static',

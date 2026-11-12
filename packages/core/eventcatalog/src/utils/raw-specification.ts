@@ -1,19 +1,16 @@
 import type { APIContext, APIRoute } from 'astro';
 import type { CollectionEntry } from 'astro:content';
 import type { CollectionTypes } from '@types';
-import { getSpecificationMediaType, processSpecifications, type SpecificationType } from '@utils/collections/util';
+import {
+  getSpecificationMediaType,
+  PAGE_SEGMENT_BY_SPECIFICATION_TYPE,
+  processSpecifications,
+  type SpecificationType,
+} from '@utils/collections/util';
 import { readResourceFile, resourceFileExists } from '@utils/resource-files';
 import { resolveHeaders } from '@utils/remote-spec';
 import { buildUrl } from '@utils/url-builder';
 import Config from '@utils/eventcatalog-config/catalog';
-
-/** The folder each kind of specification page lives in, under /docs/{type}/{id}/{version}/ */
-const PAGE_SEGMENT_BY_SPECIFICATION_TYPE: Record<SpecificationType, string> = {
-  asyncapi: 'asyncapi',
-  openapi: 'spec',
-  graphql: 'graphql',
-  generic: 'generic',
-};
 
 export type StaticPath = { params: Record<string, string | undefined>; props: Record<string, any> };
 

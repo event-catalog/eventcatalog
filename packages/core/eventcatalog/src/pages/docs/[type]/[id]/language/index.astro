@@ -1,5 +1,4 @@
 ---
-import Footer from '@layouts/Footer.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains';
 import { buildUrl } from '@utils/url-builder';
@@ -333,7 +332,6 @@ const ownerTypeLabel = props.collection === 'domains' ? 'Domain' : 'System';
           }
         </div>
 
-        <Footer />
       </div>
     </div>
     <ClientRouter />

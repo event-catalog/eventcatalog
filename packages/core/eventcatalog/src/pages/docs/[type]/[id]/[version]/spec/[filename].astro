@@ -5,7 +5,9 @@ import OpenAPISpec from './_OpenAPI.tsx';
 import { DocumentMinusIcon } from '@heroicons/react/24/outline';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
-import { isEventCatalogChatVisible } from '@utils/feature';
+import { isEventCatalogChatVisible, isLastUpdatedEnabled } from '@utils/feature';
+import LastUpdated from '@components/LastUpdated.astro';
+import { getResourceFileLastUpdated } from '@utils/last-updated';
 import './_styles.css';
 import { Page } from './_[filename].data.ts';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
@@ -25,6 +27,8 @@ const fileName = filename || 'openapi.yml';
 const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, fileName);
 const fileExists = fs.existsSync(pathToSpec);
 const isRemote = relativeSpecPath.includes('https://');
+// When this specification file was last committed (with lastUpdated on)
+const lastUpdated = isLastUpdatedEnabled() ? getResourceFileLastUpdated(props, relativeSpecPath) : undefined;
 
 let content = '';
 
@@ -80,8 +84,16 @@ if (isRemote) {
           // No download button here, unlike the other specification pages: Scalar shows its own
           // "Download OpenAPI Document" link. The file is also served at ./{filename}/{file}.
         }
+        {
+          // When the specification last changed, in a bar above Scalar (which fills the page); the Ask button sits in it too
+          lastUpdated && (
+            <div class="flex min-h-11 items-center border-b border-[rgb(var(--ec-page-border))] px-6" data-pagefind-ignore>
+              <LastUpdated date={lastUpdated} class="m-0 text-xs text-[rgb(var(--ec-page-text-muted))]" />
+            </div>
+          )
+        }
         {chatEnabled && (
-          <div class="absolute top-3 right-14 z-10">
+          <div class={`absolute z-10 ${lastUpdated ? 'top-1.5 right-6' : 'top-3 right-14'}`}>
             <CopyAsMarkdown
               client:only="react"
               schemas={[]}

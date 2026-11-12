@@ -1,0 +1,21 @@
+---
+/**
+ * "Last updated on 10 Nov 2026" (with lastUpdated on; see utils/last-updated.ts).
+ *
+ * A date, not "3 days ago" (as Docusaurus and Starlight do): someone checking whether a page has drifted wants the
+ * date, and it reads the same on every visit without any script.
+ */
+import { formatShortDate } from '@utils/dates';
+
+interface Props {
+  date: Date;
+  /** Replaces its classes, e.g. smaller in a toolbar */
+  class?: string;
+}
+
+const { date, class: className = 'm-0 text-sm text-[rgb(var(--ec-page-text-muted))]' } = Astro.props;
+---
+
+<p class={className}>
+  Last updated on <time datetime={date.toISOString()}>{formatShortDate(date)}</time>
+</p>

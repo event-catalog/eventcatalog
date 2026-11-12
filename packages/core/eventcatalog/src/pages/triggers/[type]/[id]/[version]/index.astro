@@ -6,7 +6,6 @@ import AstroNodeGraph from '@components/MDX/NodeGraph/AstroNodeGraph';
 // Visualiser styles ship in the page head so ClientRouter navigations keep them (see NodeGraph.astro).
 import '@eventcatalog/visualiser/styles-core.css';
 import ResourceRef from '@components/MDX/ResourceRef/ResourceRef.astro';
-import Footer from '@layouts/Footer.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { getTriggeredByOfMessage, getTriggersOfMessage, type MessageReceiver } from '@utils/collections/message-triggers';
 import { buildMessageLineageGraph, groupMessageLineageGraphs } from '@utils/node-graphs/message-lineage';
@@ -185,8 +184,6 @@ const scenarioConditions = (row: (typeof triggeredByRows)[number]) =>
         )
       }
     </div>
-
-    <Footer />
   </main>
 </VerticalSideBarLayout>
 
