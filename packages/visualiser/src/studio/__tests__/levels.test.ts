@@ -90,11 +90,13 @@ describe("getLevelGraph", () => {
       expect(result.edges[0]).not.toHaveProperty("data");
     });
 
-    it("leaves edges through channels only unlabelled", () => {
+    it("labels edges through channels only with the channel, not what's written on them", () => {
       const result = getLevelGraph(
         [
           node("orders", "service"),
-          node("bus", "channel"),
+          node("bus", "channel", {
+            data: { channel: { name: "orders-bus", protocols: ["kafka"] } },
+          }),
           node("billing", "service"),
         ],
         [
@@ -106,14 +108,16 @@ describe("getLevelGraph", () => {
       expect(result.edges).toEqual([
         expect.objectContaining({ id: "bridged-orders-billing" }),
       ]);
-      expect(result.edges[0]).not.toHaveProperty("label");
+      expect(result.edges[0].label).toBe("via orders-bus (kafka)");
     });
 
     it("carries messages through channels too", () => {
       const nodes = [
         node("orders", "service"),
         message("placed", "event", "OrderPlaced"),
-        node("bus", "channel"),
+        node("bus", "channel", {
+          data: { channel: { name: "orders-bus", protocols: ["kafka"] } },
+        }),
         node("billing", "service"),
       ];
       const edges = [
@@ -128,7 +132,112 @@ describe("getLevelGraph", () => {
       expect(
         result.edges.map(({ source, target }) => `${source}->${target}`),
       ).toEqual(["orders->billing"]);
-      expect(result.edges[0].label).toBe("publishes\nOrderPlaced");
+      expect(result.edges[0].label).toBe(
+        "publishes\nOrderPlaced\nvia orders-bus (kafka)",
+      );
+    });
+
+    it("says how many channels an edge goes through, and their protocol when they share one", () => {
+      const channel = (id: string, protocols: string[]) =>
+        node(id, "channel", { data: { channel: { name: id, protocols } } });
+      const edges = [
+        edge("orders", "placed"),
+        edge("placed", "topic"),
+        edge("placed", "queue"),
+        edge("topic", "billing"),
+        edge("queue", "billing"),
+      ];
+      const graph = (topic: string[], queue: string[]) =>
+        getLevelGraph(
+          [
+            node("orders", "service"),
+            message("placed", "event", "OrderPlaced"),
+            channel("topic", topic),
+            channel("queue", queue),
+            node("billing", "service"),
+          ],
+          edges,
+          2,
+        );
+
+      expect(graph(["kafka"], ["kafka"]).edges[0].label).toBe(
+        "publishes\nOrderPlaced\nvia 2 channels (kafka)",
+      );
+      expect(graph(["kafka"], ["sqs"]).edges[0].label).toBe(
+        "publishes\nOrderPlaced\nvia 2 channels",
+      );
+    });
+
+    it("says where a route through several channels starts and ends, counting the channels between", () => {
+      const channel = (id: string, protocol: string) =>
+        node(id, "channel", {
+          data: { channel: { name: id, protocols: [protocol] } },
+        });
+      const route = (channels: Node[]) =>
+        getLevelGraph(
+          [
+            node("orders", "service"),
+            message("placed", "event", "OrderPlaced"),
+            ...channels,
+            node("billing", "service"),
+          ],
+          [
+            edge("orders", "placed"),
+            ...[{ id: "placed" }, ...channels].map((from, index) =>
+              edge(from.id, channels[index]?.id ?? "billing"),
+            ),
+          ],
+          2,
+        ).edges[0].label;
+
+      expect(
+        route([
+          channel("orders-topic", "kafka"),
+          channel("billing-queue", "sqs"),
+        ]),
+      ).toBe(
+        "publishes\nOrderPlaced\nvia orders-topic (kafka)\n→ billing-queue (sqs)",
+      );
+      expect(
+        route([
+          channel("orders-topic", "kafka"),
+          channel("billing-topic", "kafka"),
+          channel("ledger-topic", "kafka"),
+          channel("billing-queue", "sqs"),
+        ]),
+      ).toBe(
+        "publishes\nOrderPlaced\nvia orders-topic (kafka)\n→ +2 → billing-queue (sqs)",
+      );
+    });
+
+    it("counts every route into the same channel, and channels with the same name as different channels", () => {
+      // Two topics, both called "orders", routing into one queue: two routes, three channels
+      const nodes = [
+        node("orders", "service"),
+        message("placed", "event", "OrderPlaced"),
+        node("topic-a", "channel", {
+          data: { channel: { name: "orders", protocols: ["kafka"] } },
+        }),
+        node("topic-b", "channel", {
+          data: { channel: { name: "orders", protocols: ["kafka"] } },
+        }),
+        node("queue", "channel", {
+          data: { channel: { name: "billing", protocols: ["kafka"] } },
+        }),
+        node("billing", "service"),
+      ];
+      const edges = [
+        edge("orders", "placed"),
+        edge("placed", "topic-a"),
+        edge("placed", "topic-b"),
+        edge("topic-a", "queue"),
+        edge("topic-b", "queue"),
+        edge("queue", "billing"),
+      ];
+
+      expect(getLevelGraph(nodes, edges, 2).edges[0].label).toBe(
+        "publishes\nOrderPlaced\nvia 3 channels (kafka)",
+      );
     });
 
     it("merges several messages between the same services into one edge", () => {
@@ -229,6 +338,41 @@ describe("getLevelGraph", () => {
         "domain",
         "emails",
         "warehouse",
+      ]);
+    });
+
+    it("doesn't say which channels the messages between systems go through (like the visualiser's L1)", () => {
+      const result = getLevelGraph(
+        [
+          node("checkout", "system-group", { width: 300, height: 200 }),
+          node("orders", "service", { parentId: "checkout" }),
+          node("billing-system", "system-group", { width: 300, height: 200 }),
+          node("billing", "service", { parentId: "billing-system" }),
+          message("placed", "event", "OrderPlaced"),
+          node("bus", "channel", {
+            data: { channel: { name: "orders-bus", protocols: ["kafka"] } },
+          }),
+        ],
+        [
+          edge("orders", "placed"),
+          edge("placed", "bus"),
+          edge("bus", "billing"),
+        ],
+        1,
+      );
+
+      expect(
+        result.edges.map(({ source, target, label }) => ({
+          source,
+          target,
+          label,
+        })),
+      ).toEqual([
+        {
+          source: "checkout",
+          target: "billing-system",
+          label: "publishes\nOrderPlaced",
+        },
       ]);
     });
 

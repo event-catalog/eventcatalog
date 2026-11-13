@@ -1,5 +1,11 @@
 import { MarkerType, type Edge, type Node } from "@xyflow/react";
-import { getMessagesLabel } from "../layout";
+import {
+  addChannelRoute,
+  getBridgedLabel,
+  getChannel,
+  type ChannelRoute,
+  type ChannelRoutes,
+} from "../utils/hide-messages";
 import { MESSAGE_COLLECTIONS } from "./edges";
 import { GROUP_TYPES, isGroupType, isWrittenOnCanvas } from "./node-types";
 
@@ -77,6 +83,9 @@ type Representative =
  * nodes that are kept as they are stay as they were (`keepDirect`, for L2); the rest are merged per pair and kind
  * (folded or bridged), labelled with the messages they carry.
  *
+ * With `channelRoutes` (L2), edges through hidden channels also say how the messages travel ("via orders (kafka)"),
+ * as the visualiser's L2 does. Its L1 doesn't (edges there come from the messages), so neither does Studio's.
+ *
  * With `relationships` (L1), edges drawn straight between two nodes that are kept as they are (e.g. one system to
  * another) are relationships, like the visualiser's context relationships: labelled as they were, and shown
  * instead of the messages between the same two nodes (either way).
@@ -88,10 +97,12 @@ const collapseGraph = (
   {
     keepDirect = false,
     relationships = false,
+    channelRoutes = false,
     foldsMessagesInto,
   }: {
     keepDirect?: boolean;
     relationships?: boolean;
+    channelRoutes?: boolean;
     /** Nodes the messages they send or receive are folded into (L1: domains and systems), so edges through them are plain */
     foldsMessagesInto?: (node: Node) => boolean;
   } = {},
@@ -121,6 +132,8 @@ const collapseGraph = (
     bridged: boolean;
     relationship: boolean;
     messages: Map<string, string>;
+    /** The routes through channels it stands for, said after the messages: "via orders (kafka)" */
+    channels: ChannelRoutes;
     labels: string[];
     /** To the container holding what it was to (hidden at this level): said as it was written (e.g. "manages") */
     intoContainer: boolean;
@@ -156,26 +169,35 @@ const collapseGraph = (
       {
         id: edge.target,
         messages: new Map<string, string>(),
+        channels: [] as ChannelRoute,
+        // The carried nodes this path went through, so it can't loop (channels can route back into each other)
+        path: [] as string[],
         labels: [String(edge.label ?? "")],
         bridged: false,
       },
     ];
-    const visited = new Set<string>();
     addMessage(stack[0].messages, byId.get(edge.source)!);
     while (stack.length) {
       const current = stack.pop()!;
-      if (visited.has(current.id)) continue;
-      visited.add(current.id);
       const node = byId.get(current.id);
       let reached = representatives.get(current.id);
       if (!node || !reached) continue;
+      // Every path is followed, so what's reached through several (e.g. two topics into one queue) gets each route
+      if (reached.kind === "carrier" && current.path.includes(current.id))
+        continue;
       const messages = new Map(current.messages);
       addMessage(messages, node);
+      const channels =
+        channelRoutes && reached.kind === "carrier" && node.type === "channel"
+          ? [...current.channels, getChannel(node)]
+          : current.channels;
       if (reached.kind === "carrier" && outgoing.get(current.id)?.length) {
         (outgoing.get(current.id) ?? []).forEach((next) =>
           stack.push({
             id: next.target,
             messages,
+            channels,
+            path: [...current.path, current.id],
             labels: [] as string[],
             bridged: true,
           }),
@@ -208,12 +230,14 @@ const collapseGraph = (
         bridged: current.bridged,
         relationship,
         messages: new Map(),
+        channels: new Map(),
         labels: [],
         intoContainer,
       };
       messages.forEach((collection, name) =>
         entry.messages.set(name, collection),
       );
+      addChannelRoute(entry.channels, channels);
       // (to a message's container, the message says it: "publishes OrderPlaced", not "publishes event")
       if (!(intoContainer && isMessage(node)))
         entry.labels.push(...current.labels.filter(Boolean));
@@ -244,6 +268,7 @@ const collapseGraph = (
     bridged,
     relationship,
     messages,
+    channels,
     labels,
     intoContainer,
   }: Merged) => {
@@ -252,11 +277,12 @@ const collapseGraph = (
     // Into a container: the messages, and what else it does there (e.g. "manages")
     if (intoContainer)
       return (
-        [getMessagesLabel(messages), written].filter(Boolean).join(" \n") ||
-        undefined
+        [getBridgedLabel(messages, channels), written]
+          .filter(Boolean)
+          .join(" \n") || undefined
       );
     return (
-      getMessagesLabel(messages) ??
+      getBridgedLabel(messages, channels) ??
       (!bridged && (isActor(source) || isActor(target)) ? written : undefined)
     );
   };
@@ -344,6 +370,7 @@ const level2 = (nodes: Node[], edges: Edge[]) =>
           : { kind: "node", id: node.id },
     {
       keepDirect: true,
+      channelRoutes: true,
     },
   );
 

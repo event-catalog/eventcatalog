@@ -30,6 +30,74 @@ const getMessages = (node: Node): [string, string][] => {
     : [];
 };
 
+/** A channel a route goes through: its node, name and protocol (the first it lists, if any) */
+export type Channel = { id: string; name: string; protocol?: string };
+
+/** The channels a route goes through, in order (e.g. a topic, then the queue it routes to) */
+export type ChannelRoute = Channel[];
+
+/** The distinct routes through channels an edge stands for, keyed by the channel nodes they go through */
+export type ChannelRoutes = Map<string, ChannelRoute>;
+
+export const getChannel = (node: Node): Channel => {
+  const channel = (
+    node.data as
+      | { channel?: { name?: string; id?: string; protocols?: string[] } }
+      | undefined
+  )?.channel;
+  return {
+    id: node.id,
+    name: channel?.name || channel?.id || node.id,
+    protocol: channel?.protocols?.[0],
+  };
+};
+
+/** Adds a route an edge stands for, if it goes through any channels (the same route again changes nothing) */
+export const addChannelRoute = (routes: ChannelRoutes, route: ChannelRoute) => {
+  if (route.length > 0)
+    routes.set(route.map(({ id }) => id).join("\u0000"), route);
+};
+
+const describeChannel = ({ name, protocol }: Channel) =>
+  protocol ? `${name} (${protocol})` : name;
+
+/**
+ * How messages travel along an edge bridging hidden channels. One route says where it starts and ends, with the
+ * channels in between counted, the end on a line of its own (so labels stay narrow): "via orders (kafka)",
+ * "via orders (kafka)\n→ billing (sqs)", "via orders (kafka)\n→ +1 → billing (sqs)". Separate routes are counted:
+ * "via 2 channels (kafka)", "via 2 channels"
+ */
+const getChannelsLabel = (routes: ChannelRoutes) => {
+  if (routes.size === 0) return undefined;
+  if (routes.size === 1) {
+    const [route] = routes.values();
+    const first = describeChannel(route[0]);
+    if (route.length === 1) return `via ${first}`;
+    const last = describeChannel(route[route.length - 1]);
+    const between = route.length > 2 ? `+${route.length - 2} → ` : "";
+    return `via ${first}\n→ ${between}${last}`;
+  }
+  const channels = new Map(
+    Array.from(routes.values())
+      .flat()
+      .map((channel) => [channel.id, channel]),
+  );
+  const protocols = new Set(
+    Array.from(channels.values(), ({ protocol }) => protocol),
+  );
+  const protocol = protocols.size === 1 ? Array.from(protocols)[0] : undefined;
+  return `via ${channels.size} channels${protocol ? ` (${protocol})` : ""}`;
+};
+
+/** Label for an edge bridging hidden messages and channels: what it carries, then how */
+export const getBridgedLabel = (
+  messages: Map<string, string>,
+  routes: ChannelRoutes,
+) =>
+  [getMessagesLabel(messages), getChannelsLabel(routes)]
+    .filter(Boolean)
+    .join("\n") || undefined;
+
 const VERBS: Record<string, string> = {
   events: "publishes",
   commands: "invokes",
@@ -86,16 +154,26 @@ const joinRoutes = (routes: (EdgeRoute | undefined)[]) => {
   };
 };
 
+export type HideNodesOptions = {
+  /** Say which channels bridged edges go through (L2); off for L1 */
+  channelRoutes?: boolean;
+};
+
 /**
  * Removes the nodes `isHidden` picks. Messages and channels removed are
  * bridged: the nodes either side of them are connected directly, labelled with
  * the messages between them. Other edges to removed nodes go with them.
  * e.g. hiding events, ServiceA -> OrderPlaced -> ServiceB becomes ServiceA -> ServiceB
+ *
+ * With `channelRoutes` (the default, for L2), they also say which channels the
+ * messages go through ("via orders (kafka)"). L1 turns it off: its edges say
+ * only what's sent between domains and systems.
  */
 export const hideNodes = (
   nodes: Node[],
   edges: Edge[],
   isHidden: (node: Node) => boolean,
+  { channelRoutes = true }: HideNodesOptions = {},
 ) => {
   const hiddenNodes = new Map(
     nodes.filter(isHidden).map((node) => [node.id, node]),
@@ -116,6 +194,7 @@ export const hideNodes = (
       source: string;
       target: string;
       messages: Map<string, string>;
+      channels: ChannelRoutes;
       route?: EdgeRoute;
       crossDomain: boolean;
     }
@@ -131,32 +210,42 @@ export const hideNodes = (
     if (!isCarrier(target)) continue;
 
     // Follow the edge through hidden messages and channels until we reach
-    // visible nodes, collecting the names of the messages along the way
+    // visible nodes, collecting the names of the messages along the way. Each
+    // path keeps what it went through, so it can't loop, and every route to a
+    // node is followed (e.g. through two topics into the same queue)
     const stack = [
       {
         id: edge.target,
+        path: [edge.target],
         messages: [] as [string, string][],
+        channels: [] as ChannelRoute,
         routes: [getRoute(edge)],
         crossDomain: isCrossDomain(edge),
       },
     ];
-    const visited = new Set<string>();
     while (stack.length > 0) {
       const current = stack.pop()!;
-      if (visited.has(current.id)) continue;
-      visited.add(current.id);
-      const messages = [
-        ...current.messages,
-        ...getMessages(hiddenNodes.get(current.id)!),
-      ];
+      const hidden = hiddenNodes.get(current.id)!;
+      const messages = [...current.messages, ...getMessages(hidden)];
+      const channels =
+        channelRoutes && hidden.type === "channels"
+          ? [...current.channels, getChannel(hidden)]
+          : current.channels;
 
       for (const next of outgoingEdges.get(current.id) || []) {
         const routes = [...current.routes, getRoute(next)];
         const crossDomain = current.crossDomain || isCrossDomain(next);
         const nextNode = hiddenNodes.get(next.target);
         if (nextNode) {
-          if (isCarrier(nextNode))
-            stack.push({ id: next.target, messages, routes, crossDomain });
+          if (isCarrier(nextNode) && !current.path.includes(next.target))
+            stack.push({
+              id: next.target,
+              path: [...current.path, next.target],
+              messages,
+              channels,
+              routes,
+              crossDomain,
+            });
           continue;
         }
         if (next.target === edge.source) continue;
@@ -167,6 +256,7 @@ export const hideNodes = (
           source: edge.source,
           target: next.target,
           messages: new Map<string, string>(),
+          channels: new Map() as ChannelRoutes,
           route: joinRoutes(routes),
           crossDomain: false,
         };
@@ -174,6 +264,7 @@ export const hideNodes = (
         messages.forEach(([name, collection]) =>
           bridged.messages.set(name, collection),
         );
+        addChannelRoute(bridged.channels, channels);
         bridgedEdges.set(id, bridged);
       }
     }
@@ -184,7 +275,7 @@ export const hideNodes = (
       id,
       source: bridged.source,
       target: bridged.target,
-      label: getMessagesLabel(bridged.messages),
+      label: getBridgedLabel(bridged.messages, bridged.channels),
       // The same size arrow as the rest of the graph's edges
       markerEnd: {
         type: MarkerType.ArrowClosed,
@@ -211,5 +302,8 @@ export const hideNodes = (
  * travel through, connecting the nodes on either side directly, and agents' tools.
  * e.g. ServiceA -> OrderPlaced -> orders-topic -> ServiceB becomes ServiceA -> ServiceB
  */
-export const hideMessageNodes = (nodes: Node[], edges: Edge[]) =>
-  hideNodes(nodes, edges, isLevel3Detail);
+export const hideMessageNodes = (
+  nodes: Node[],
+  edges: Edge[],
+  options?: HideNodesOptions,
+) => hideNodes(nodes, edges, isLevel3Detail, options);

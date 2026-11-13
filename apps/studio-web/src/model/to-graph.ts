@@ -320,7 +320,7 @@ export function buildOverviewGraph(model: Model, detailed: Graph): Graph | undef
     ),
   };
   // Messages and channels between domains and systems become edges between them
-  return hideMessageNodes(collapsed.nodes, collapsed.edges);
+  return hideMessageNodes(collapsed.nodes, collapsed.edges, { channelRoutes: false });
 }
 
 const layout = async (graph: Graph): Promise<Graph> => (await layoutWithElk(graph as any)) as unknown as Graph;
