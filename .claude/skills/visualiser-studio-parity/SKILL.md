@@ -62,7 +62,11 @@ one draws or derives something, change the other to match (or record the differe
   it keeps its label and replaces the message-derived edges between the same pair, either way.
 - **Actors** are copied from diagrams as Studio actors (by name), with their labelled relationships, and drawn with
   the visualiser's actor card.
-- **Edges through hidden messages:** labelled with the messages they carry (`getMessagesLabel`). On L1 messages are
+- **Edges through hidden messages:** labelled with the messages they carry, and on L2 the channels they go through
+  (`getBridgedLabel` in `utils/hide-messages.ts`, used by `hideMessageNodes` and Studio's `levels.ts`): "via orders
+  (kafka)", a chain of channels by its first and last ("via a (kafka)\n→ +1 → b (sqs)"), separate routes counted.
+  L1 doesn't say "via": its edges come from the messages, and the L1 builders hide what's left with
+  `hideMessageNodes(..., { channelRoutes: false })` (core's `collapseSystems` tail, studio-web's `buildOverviewGraph`). On L1 messages are
   folded into the domain or system they're in, so edges to and from domains and systems are plain (solid); only
   edges through messages between nodes outside them are "bridged" (dashed, muted). L2 bridges every edge through a
   message or channel.
