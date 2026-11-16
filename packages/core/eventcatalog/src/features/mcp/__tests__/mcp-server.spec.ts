@@ -152,7 +152,7 @@ describe('MCP Health Check Endpoint (GET /docs/mcp/)', () => {
   it('should verify toolDescriptions contains all expected tools', async () => {
     const { toolDescriptions } = await import('@features/tools/catalog-tools');
 
-    // 22 built-in tools from toolDescriptions
+    // 23 built-in tools from toolDescriptions
     const expectedTools = [
       'getResources',
       'getResource',
@@ -161,6 +161,7 @@ describe('MCP Health Check Endpoint (GET /docs/mcp/)', () => {
       'findResourcesByOwner',
       'getProducersOfMessage',
       'getConsumersOfMessage',
+      'getConsumerContracts',
       'getC4Diagram',
       'analyzeChangeImpact',
       'explainBusinessFlow',
@@ -181,7 +182,7 @@ describe('MCP Health Check Endpoint (GET /docs/mcp/)', () => {
     for (const tool of expectedTools) {
       expect(toolDescriptions[tool as keyof typeof toolDescriptions]).toBeDefined();
     }
-    expect(Object.keys(toolDescriptions).length).toBe(22);
+    expect(Object.keys(toolDescriptions).length).toBe(23);
   });
 });
 

@@ -228,7 +228,7 @@ claude mcp add --transport http <name> <url>
 
 ## Available tools
 
-### 19 built-in tools
+### 20 built-in tools
 
 - `getResources` - Get events, services, commands, queries, flows, domains
 - `getResource` - Get a specific resource by id and version
@@ -237,6 +237,7 @@ claude mcp add --transport http <name> <url>
 - `findResourcesByOwner` - Resources owned by a team or user
 - `getProducersOfMessage` - Services that produce a message
 - `getConsumersOfMessage` - Services that consume a message
+- `getConsumerContracts` - What consumers expect of a message they receive (consumer contracts, such as Pact files)
 - `getC4Diagram` - Get the source for a C4 diagram
 - `analyzeChangeImpact` - Impact of changing a message
 - `explainBusinessFlow` - Detailed flow information

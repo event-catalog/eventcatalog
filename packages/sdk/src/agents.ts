@@ -137,7 +137,7 @@ export const addMessageToAgent =
           return;
         }
       }
-      agent.receives.push(buildMessagePointer(message, { includeTriggers: true }));
+      agent.receives.push(buildMessagePointer(message, { receives: true }));
     } else {
       throw new Error(`Direction ${direction} is invalid, only 'receives' and 'sends' are supported`);
     }

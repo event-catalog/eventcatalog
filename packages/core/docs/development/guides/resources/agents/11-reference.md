@@ -156,6 +156,18 @@ receives:
 ---
 ```
 
+A received message can have a `contract`: the file (for example a Pact file) that says what this agent expects of the message. See [Consumer Contracts](../schemas/04-explore-schemas/04-consumer-contracts.md).
+
+```md title="Example"
+---
+receives:
+  - id: CustomerQuestionAsked
+    version: 1.0.0
+    contract:
+      path: ./contracts/questions.pact.json
+---
+```
+
 ### `readsFrom` {#readsFrom}
 
 - Type: `array`

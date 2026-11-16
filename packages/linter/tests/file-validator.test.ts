@@ -140,6 +140,20 @@ describe('file-validator', () => {
       });
     });
 
+    it('resolves the consumer contract of a received message against the folder of the service that receives it', () => {
+      const parsedFile = createParsedFile('services/shipping/index.mdx', 'service', {
+        receives: [{ id: 'OrderShipped' }, { id: 'OrderPaid', contract: { path: './contracts/orders.pact.json' } }],
+      });
+      const refs = extractFileReferences(parsedFile);
+
+      expect(refs).toHaveLength(1);
+      expect(refs[0]).toMatchObject({
+        field: 'receives[1].contract.path',
+        kind: 'contract',
+        resolvedPath: path.join(rootDir, 'services', 'shipping', 'contracts', 'orders.pact.json'),
+      });
+    });
+
     it('resolves /-prefixed icons against the public folder and skips icon names and URLs', () => {
       const local = createParsedFile('services/a/index.mdx', 'service', { styles: { icon: '/icons/go.svg' } });
       const named = createParsedFile('services/b/index.mdx', 'service', { styles: { icon: 'BoltIcon' } });

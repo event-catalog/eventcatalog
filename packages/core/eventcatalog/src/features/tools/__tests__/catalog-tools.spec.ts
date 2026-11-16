@@ -123,6 +123,7 @@ import {
   findResourcesByOwner,
   getProducersOfMessage,
   getConsumersOfMessage,
+  getConsumerContracts,
   analyzeChangeImpact,
   explainBusinessFlow,
   getArchitectureDiagramAsMermaid,
@@ -984,6 +985,234 @@ describe('matching sends and receives to a version of a message', () => {
       expect(result.producers.map((p) => p.id)).not.toContain('OrderService');
       expect(result.consumers.map((c) => c.id)).toContain('PaymentService');
     }
+  });
+});
+
+describe('consumer contracts', () => {
+  const pact = JSON.stringify({
+    consumer: { name: 'shipping-service' },
+    provider: { name: 'order-service' },
+    messages: [
+      {
+        description: 'an order created event',
+        providerStates: [{ name: 'an order exists' }],
+        contents: { orderId: 'abc', status: 'CREATED', address: { city: 'Manchester' } },
+        matchingRules: {
+          body: {
+            '$.orderId': { matchers: [{ match: 'regex', regex: '^[a-z]+$' }] },
+            '$.address.city': { matchers: [{ match: 'type' }] },
+          },
+        },
+      },
+      { description: 'an order refunded event', contents: { refundId: 'r1' } },
+    ],
+    metadata: { pactSpecification: { version: '3.0.0' } },
+  });
+
+  const shippingService = {
+    id: 'ShippingService-1.0.0',
+    collection: 'services',
+    filePath: 'services/ShippingService/index.mdx',
+    data: {
+      id: 'ShippingService',
+      name: 'Shipping Service',
+      version: '1.0.0',
+      owners: ['shipping-team'],
+      receives: [
+        {
+          id: 'OrderCreated',
+          version: '1.0.0',
+          contract: { path: './contracts/orders.pact.json', name: 'Orders pact', type: 'pact' },
+        },
+        { id: 'OrderRefunded', contract: { path: './contracts/orders.pact.json', name: 'Orders pact', type: 'pact' } },
+      ],
+    },
+  };
+
+  const forOrderCreated = { messageId: 'OrderCreated', messageVersion: '1.0.0', messageCollection: 'events' };
+
+  describe('getConsumersOfMessage and analyzeChangeImpact', () => {
+    it('getConsumersOfMessage returns the name, type and path of a consumer contract, and the fields a Pact relies on for the message', async () => {
+      vi.mocked(fs.readFileSync).mockReturnValue(pact);
+
+      await withFixtures('services', [shippingService], async () => {
+        const result = await getConsumersOfMessage(forOrderCreated);
+
+        const consumers = 'error' in result ? [] : (result.consumers as any[]);
+        expect(consumers.find((c) => c.id === 'ShippingService').consumerContract).toEqual({
+          name: 'Orders pact',
+          path: './contracts/orders.pact.json',
+          type: 'pact',
+          fields: ['orderId', 'status', 'address.city'],
+        });
+        expect(String(vi.mocked(fs.readFileSync).mock.lastCall?.[0])).toMatch(
+          /services\/ShippingService\/contracts\/orders\.pact\.json$/
+        );
+      });
+    });
+
+    it('getConsumersOfMessage returns no consumer contract for a consumer without one', async () => {
+      const result = await getConsumersOfMessage(forOrderCreated);
+
+      const consumers = 'error' in result ? [] : (result.consumers as any[]);
+      expect(consumers.find((c) => c.id === 'InventoryService')).not.toHaveProperty('consumerContract');
+    });
+
+    it('getConsumersOfMessage lists a contract without fields when its file is not a Pact or cannot be read', async () => {
+      vi.mocked(fs.readFileSync).mockImplementation(() => {
+        throw new Error('ENOENT');
+      });
+
+      await withFixtures('services', [shippingService], async () => {
+        const result = await getConsumersOfMessage(forOrderCreated);
+
+        const consumers = 'error' in result ? [] : (result.consumers as any[]);
+        expect(consumers.find((c) => c.id === 'ShippingService').consumerContract).toEqual({
+          name: 'Orders pact',
+          path: './contracts/orders.pact.json',
+          type: 'pact',
+        });
+      });
+    });
+
+    it('analyzeChangeImpact returns the consumer contract of an affected consumer, with its owners', async () => {
+      vi.mocked(fs.readFileSync).mockReturnValue(pact);
+
+      await withFixtures('services', [shippingService], async () => {
+        const result = await analyzeChangeImpact(forOrderCreated);
+
+        const consumers = 'error' in result ? [] : (result.consumers as any[]);
+        expect(consumers.find((c) => c.id === 'ShippingService')).toMatchObject({
+          owners: ['shipping-team'],
+          consumerContract: { name: 'Orders pact', fields: ['orderId', 'status', 'address.city'] },
+        });
+      });
+    });
+  });
+
+  describe('getConsumerContracts', () => {
+    it('asks for a message or a consumer when given neither', async () => {
+      expect(await getConsumerContracts({})).toEqual({ error: 'Give a messageId, a consumerId, or both' });
+    });
+
+    it('returns an error for a message or a consumer that is not in the catalog', async () => {
+      expect(await getConsumerContracts({ messageId: 'Missing' })).toHaveProperty('error');
+      expect(await getConsumerContracts({ consumerId: 'Missing' })).toHaveProperty('error');
+    });
+
+    it('returns each consumer contract of a message, with the consumer, its owners and the contract', async () => {
+      vi.mocked(fs.readFileSync).mockReturnValue(pact);
+
+      await withFixtures('services', [shippingService], async () => {
+        const result = (await getConsumerContracts(forOrderCreated)) as any;
+
+        expect(result.count).toBe(1);
+        expect(result.message).toEqual({ id: 'OrderCreated', version: '1.0.0', collection: 'events' });
+        expect(result.contracts[0]).toMatchObject({
+          consumer: { id: 'ShippingService', collection: 'services', owners: ['shipping-team'] },
+          contract: { name: 'Orders pact', type: 'pact', path: './contracts/orders.pact.json' },
+          messages: [{ id: 'OrderCreated', version: '1.0.0' }],
+          format: 'pact',
+          provider: 'order-service',
+        });
+      });
+    });
+
+    it('lists the fields a Pact expects for the message asked about, and how each is checked', async () => {
+      vi.mocked(fs.readFileSync).mockReturnValue(pact);
+
+      await withFixtures('services', [shippingService], async () => {
+        const result = (await getConsumerContracts(forOrderCreated)) as any;
+
+        expect(result.contracts[0].expectations).toEqual([
+          {
+            description: 'an order created event',
+            providerStates: ['an order exists'],
+            kind: 'message',
+            fields: [
+              { path: 'orderId', type: 'string', check: 'pattern', pattern: '^[a-z]+$' },
+              { path: 'status', type: 'string', check: 'exact value', value: 'CREATED' },
+              { path: 'address.city', type: 'string', check: 'type' },
+            ],
+          },
+        ]);
+      });
+    });
+
+    it('says when a Pact could not be matched to the message, and leaves its fields out of the short summary', async () => {
+      // Neither description names OrderCreated: both interactions come back, one of them about another message
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          consumer: { name: 'shipping-service' },
+          provider: { name: 'order-service' },
+          messages: [
+            { description: 'a payment failure', contents: { reason: 'declined' } },
+            { description: 'a refund', contents: { refundId: 'r1' } },
+          ],
+        })
+      );
+
+      await withFixtures('services', [shippingService], async () => {
+        const contracts = (await getConsumerContracts(forOrderCreated)) as any;
+        expect(contracts.contracts[0].matchedToMessage).toBe(false);
+        expect(contracts.contracts[0].expectations).toHaveLength(2);
+
+        const result = await getConsumersOfMessage(forOrderCreated);
+        const consumers = 'error' in result ? [] : (result.consumers as any[]);
+        expect(consumers.find((c) => c.id === 'ShippingService').consumerContract).toEqual({
+          name: 'Orders pact',
+          path: './contracts/orders.pact.json',
+          type: 'pact',
+        });
+      });
+    });
+
+    it('returns every contract a consumer has, with every message and interaction each covers', async () => {
+      vi.mocked(fs.readFileSync).mockReturnValue(pact);
+
+      await withFixtures('services', [shippingService], async () => {
+        const result = (await getConsumerContracts({ consumerId: 'ShippingService' })) as any;
+
+        expect(result.count).toBe(1);
+        expect(result).not.toHaveProperty('message');
+        expect(result.contracts[0].messages).toEqual([
+          { id: 'OrderCreated', version: '1.0.0' },
+          { id: 'OrderRefunded', version: 'latest' },
+        ]);
+        expect(result.contracts[0].expectations.map((expectation: any) => expectation.description)).toEqual([
+          'an order created event',
+          'an order refunded event',
+        ]);
+      });
+    });
+
+    it('returns no contracts for a consumer that has none for the message', async () => {
+      const result = (await getConsumerContracts({ ...forOrderCreated, consumerId: 'InventoryService' })) as any;
+
+      expect(result.contracts).toEqual([]);
+    });
+
+    it('lists a contract that is not a Pact with its name, type and path only', async () => {
+      vi.mocked(fs.readFileSync).mockReturnValue('{"type":"object"}');
+
+      await withFixtures('services', [shippingService], async () => {
+        const result = (await getConsumerContracts(forOrderCreated)) as any;
+
+        expect(result.contracts[0]).not.toHaveProperty('expectations');
+        expect(result.contracts[0]).not.toHaveProperty('content');
+      });
+    });
+
+    it('returns the contract file as written only when asked, cutting a very long one short', async () => {
+      vi.mocked(fs.readFileSync).mockReturnValue('x'.repeat(60_000));
+
+      await withFixtures('services', [shippingService], async () => {
+        const result = (await getConsumerContracts({ ...forOrderCreated, includeContent: true })) as any;
+
+        expect(result.contracts[0].content).toHaveLength(50_000);
+        expect(result.contracts[0].truncated).toBe(true);
+      });
+    });
   });
 });
 

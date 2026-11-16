@@ -442,7 +442,7 @@ export const addMessageToService =
           return;
         }
       }
-      service.receives.push(buildMessagePointer(event, { includeTriggers: true }));
+      service.receives.push(buildMessagePointer(event, { receives: true }));
     } else {
       throw new Error(`Direction ${direction} is invalid, only 'receives' and 'sends' are supported`);
     }

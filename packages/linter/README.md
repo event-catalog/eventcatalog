@@ -244,7 +244,7 @@ module.exports = {
 | `refs/resource-exists`                | Ensures referenced resources exist, with "did you mean" hints for near-miss ids and a note when the id belongs to another resource type                                             | `error`, `warn`, `off` | `error` |
 | `refs/channel-exists`                 | Ensures channels referenced in sends/receives `to`/`from` exist                                                                                                                     | `error`, `warn`, `off` | `error` |
 | `refs/container-exists`               | Ensures containers referenced in `writesTo`/`readsFrom` exist                                                                                                                       | `error`, `warn`, `off` | `error` |
-| `refs/file-exists`                    | Ensures `schemaPath`, `schemas[]`, `specifications` paths, data product `contract.path` and `/public` icons resolve to real files                                                   | `error`, `warn`, `off` | `error` |
+| `refs/file-exists`                    | Ensures `schemaPath`, `schemas[]`, `specifications` paths, data product and consumer `contract.path` and `/public` icons resolve to real files                                      | `error`, `warn`, `off` | `error` |
 | `refs/orphan-messages`                | Detects events/commands/queries with no producer and no consumer                                                                                                                    | `error`, `warn`, `off` | `warn`  |
 | **Best Practice Rules**               |
 | `best-practices/summary-required`     | Requires summary field for better documentation                                                                                                                                     | `error`, `warn`, `off` | `error` |
@@ -387,7 +387,7 @@ If no `.eventcatalogrc.js` file is found, the linter uses the default rules list
 - ✅ Orphan messages (no producer and no consumer) are detected
 - ✅ References to deprecated resources are flagged
 - ✅ Duplicate resource IDs (same type, id, and version) are detected
-- ✅ Files referenced from frontmatter exist: `schemaPath`, `schemas[].file` / `path` / `file://` refs, `specifications` (`openapiPath`, `asyncapiPath`, `graphqlPath` or the array form), data product `outputs[].contract.path`, and `styles.icon` paths served from `public/` (configure with `['error', { icons: false, publicDir: 'static' }]`)
+- ✅ Files referenced from frontmatter exist: `schemaPath`, `schemas[].file` / `path` / `file://` refs, `specifications` (`openapiPath`, `asyncapiPath`, `graphqlPath` or the array form), data product `outputs[].contract.path`, consumer contracts (`receives[].contract.path`), and `styles.icon` paths served from `public/` (configure with `['error', { icons: false, publicDir: 'static' }]`)
 
 ### Catalog Structure
 

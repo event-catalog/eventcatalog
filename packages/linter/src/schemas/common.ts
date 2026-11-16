@@ -123,10 +123,17 @@ export const triggersPointerSchema = z.object({
   condition: z.string().optional(),
 });
 
+export const consumerContractPointerSchema = z.object({
+  path: z.string(),
+  name: z.string().optional(),
+  type: z.string().optional(),
+});
+
 export const receivesPointerSchema = z.object({
   id: z.string(),
   version: z.string().optional().default('latest'),
   fields: z.array(z.string()).optional(),
+  contract: consumerContractPointerSchema.optional(),
   group: z.string().optional(),
   triggers: z.array(triggersPointerSchema).optional(),
   from: z

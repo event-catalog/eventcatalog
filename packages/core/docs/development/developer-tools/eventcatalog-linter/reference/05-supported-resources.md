@@ -60,9 +60,9 @@ All resources are checked for frontmatter schema conformance, unknown keys, owne
 
 | Resource | References checked |
 |----------|--------------------|
-| Domain | `services`, `agents`, `domains` (subdomains), `systems`, `entities`, `data-products`/`dataProducts`, `flows`, `sends`, `receives` (incl. channels in `to`/`from`) |
+| Domain | `services`, `agents`, `domains` (subdomains), `systems`, `entities`, `data-products`/`dataProducts`, `flows`, `sends`, `receives` (incl. channels in `to`/`from` and `receives[].contract.path` file) |
 | System | `services`, `flows`, `entities`, `containers`, `relationships` |
-| Service, Agent | `sends`, `receives` (incl. channels), `writesTo`, `readsFrom`, `flows`, `entities` (services only) |
+| Service, Agent | `sends`, `receives` (incl. channels and `receives[].contract.path` file), `writesTo`, `readsFrom`, `flows`, `entities` (services only) |
 | Event, Command, Query | `producers`, `consumers`, `channels`, `messageChannels`; orphan detection; `schemaPath` / `schemas[]` files |
 | Channel | `channels`, `routes`, `messages` |
 | Flow | each step's `message`, `service`, `agent`, `flow`, `container`, `dataProduct` |

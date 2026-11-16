@@ -29,6 +29,16 @@ receives:
       - id: order-status-changed
         version: 1.0.0
         condition: When the order moves to the packed status
+  - id: order-ready-for-shipping
+    version: 1.0.0
+    contract:
+      path: ./contracts/order-service-warehouse-service.pact.json
+      name: Warehouse Service pact
+      type: pact
+    triggers:
+      - id: order-status-changed
+        version: 1.0.0
+        condition: When the order moves to the ready-for-shipping status
 sends:
   - id: order-created
     version: 1.0.0

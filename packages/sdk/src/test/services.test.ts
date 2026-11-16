@@ -1238,6 +1238,56 @@ describe('Services SDK', () => {
       });
     });
 
+    it('keeps the consumer contract of a message the service receives', async () => {
+      await writeService({
+        id: 'ShippingService',
+        name: 'Shipping Service',
+        version: '0.0.1',
+        markdown: '# Hello world',
+      });
+
+      await addEventToService(
+        'ShippingService',
+        'receives',
+        {
+          id: 'OrderPaid',
+          version: '1.0.0',
+          contract: { path: './contracts/orders.pact.json', name: 'Orders pact', type: 'pact' },
+        },
+        '0.0.1'
+      );
+
+      const service = await getService('ShippingService');
+
+      expect(service.receives).toEqual([
+        {
+          id: 'OrderPaid',
+          version: '1.0.0',
+          contract: { path: './contracts/orders.pact.json', name: 'Orders pact', type: 'pact' },
+        },
+      ]);
+    });
+
+    it('does not write a consumer contract on a message the service sends', async () => {
+      await writeService({
+        id: 'ShippingService',
+        name: 'Shipping Service',
+        version: '0.0.1',
+        markdown: '# Hello world',
+      });
+
+      await addEventToService(
+        'ShippingService',
+        'sends',
+        { id: 'OrderShipped', version: '1.0.0', contract: { path: './contracts/orders.pact.json' } },
+        '0.0.1'
+      );
+
+      const service = await getService('ShippingService');
+
+      expect(service.sends).toEqual([{ id: 'OrderShipped', version: '1.0.0' }]);
+    });
+
     it('adds messages triggered by a received message', async () => {
       await writeService({
         id: 'InventoryService',

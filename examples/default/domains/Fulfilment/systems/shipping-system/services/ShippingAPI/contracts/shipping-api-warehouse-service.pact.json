@@ -1,0 +1,34 @@
+{
+  "consumer": { "name": "shipping-api" },
+  "provider": { "name": "warehouse-service" },
+  "messages": [
+    {
+      "description": "an order ready for shipping event",
+      "providerStates": [{ "name": "an order has been packed" }],
+      "contents": {
+        "orderId": "7e86e1d8-cd5f-4d6f-ae8e-bdc5ed3a0d13",
+        "parcelCount": 2,
+        "shippingAddress": {
+          "line1": "1 Market Street",
+          "city": "Manchester",
+          "postcode": "M1 1AA",
+          "country": "GB"
+        }
+      },
+      "matchingRules": {
+        "body": {
+          "$.orderId": { "matchers": [{ "match": "regex", "regex": "^[0-9a-f-]{36}$" }] },
+          "$.parcelCount": { "matchers": [{ "match": "integer" }] },
+          "$.shippingAddress.line1": { "matchers": [{ "match": "type" }] },
+          "$.shippingAddress.city": { "matchers": [{ "match": "type" }] },
+          "$.shippingAddress.postcode": { "matchers": [{ "match": "type" }] },
+          "$.shippingAddress.country": { "matchers": [{ "match": "regex", "regex": "^[A-Z]{2}$" }] }
+        }
+      },
+      "metaData": { "contentType": "application/json" }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": { "version": "3.0.0" }
+  }
+}

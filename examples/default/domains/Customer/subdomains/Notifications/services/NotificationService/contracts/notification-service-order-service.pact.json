@@ -1,0 +1,30 @@
+{
+  "consumer": { "name": "notification-service" },
+  "provider": { "name": "order-service" },
+  "messages": [
+    {
+      "description": "an order confirmed event",
+      "providerStates": [{ "name": "an order has been confirmed" }],
+      "contents": {
+        "orderId": "7e86e1d8-cd5f-4d6f-ae8e-bdc5ed3a0d13",
+        "customerId": "5d1db561-4ce3-4f92-956a-b787c2f55342",
+        "confirmationNumber": "ORD-10428371",
+        "total": 12999,
+        "currency": "GBP"
+      },
+      "matchingRules": {
+        "body": {
+          "$.orderId": { "matchers": [{ "match": "regex", "regex": "^[0-9a-f-]{36}$" }] },
+          "$.customerId": { "matchers": [{ "match": "regex", "regex": "^[0-9a-f-]{36}$" }] },
+          "$.confirmationNumber": { "matchers": [{ "match": "regex", "regex": "^ORD-[0-9]{8}$" }] },
+          "$.total": { "matchers": [{ "match": "integer" }] },
+          "$.currency": { "matchers": [{ "match": "regex", "regex": "^[A-Z]{3}$" }] }
+        }
+      },
+      "metaData": { "contentType": "application/json" }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": { "version": "3.0.0" }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "consumer": {
+    "name": "order-service"
+  },
+  "provider": {
+    "name": "warehouse-service"
+  },
+  "messages": [
+    {
+      "description": "an order ready for shipping event",
+      "providerStates": [
+        {
+          "name": "an order has been packed"
+        }
+      ],
+      "contents": {
+        "orderId": "7e86e1d8-cd5f-4d6f-ae8e-bdc5ed3a0d13",
+        "readyAt": "2026-07-29T14:05:00Z"
+      },
+      "matchingRules": {
+        "body": {
+          "$.orderId": {
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "^[0-9a-f-]{36}$"
+              }
+            ]
+          },
+          "$.readyAt": {
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+              }
+            ]
+          }
+        }
+      },
+      "metaData": {
+        "contentType": "application/json"
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  }
+}

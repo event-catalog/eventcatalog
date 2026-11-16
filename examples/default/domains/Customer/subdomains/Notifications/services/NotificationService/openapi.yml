@@ -1,0 +1,173 @@
+openapi: 3.1.0
+info:
+  title: Notification Service API
+  version: 1.0.0
+  description: Read and change a customer's notification preferences, and look up the notifications they were sent.
+servers:
+  - url: https://api.acme.example/notifications
+tags:
+  - name: Preferences
+    description: The channels a customer wants to be notified on
+  - name: Notifications
+    description: Notifications sent to customers
+paths:
+  /customers/{customerId}/preferences:
+    get:
+      tags: [Preferences]
+      operationId: getNotificationPreferences
+      summary: Get a customer's notification preferences
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: The customer's preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Preferences]
+      operationId: updateNotificationPreferences
+      summary: Change a customer's notification preferences
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferences'
+      responses:
+        '200':
+          description: The updated preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /customers/{customerId}/notifications:
+    get:
+      tags: [Notifications]
+      operationId: listNotifications
+      summary: List the notifications sent to a customer
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+        - name: channel
+          in: query
+          description: Only notifications sent on this channel
+          schema:
+            $ref: '#/components/schemas/Channel'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: The notifications, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /notifications/{notificationId}:
+    get:
+      tags: [Notifications]
+      operationId: getNotification
+      summary: Get a notification
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The notification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  parameters:
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    NotFound:
+      description: The customer or notification was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Channel:
+      type: string
+      enum: [EMAIL, SMS, PUSH]
+    NotificationPreferences:
+      type: object
+      required: [email, sms, push]
+      properties:
+        email:
+          type: boolean
+        sms:
+          type: boolean
+        push:
+          type: boolean
+        marketing:
+          type: boolean
+          description: Whether the customer agreed to marketing notifications
+    Notification:
+      type: object
+      required: [notificationId, customerId, channel, reason, status, sentAt]
+      properties:
+        notificationId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        channel:
+          $ref: '#/components/schemas/Channel'
+        reason:
+          type: string
+          description: The event that caused the notification
+          enum:
+            [
+              ORDER_CONFIRMED,
+              SHIPMENT_DELIVERED,
+              PAYMENT_FAILED,
+              REFUND_PROCESSED,
+              REVIEW_PUBLISHED,
+              LOYALTY_POINTS_EARNED,
+              RETURN_APPROVED,
+            ]
+        status:
+          type: string
+          enum: [SENT, DELIVERED, FAILED]
+        sentAt:
+          type: string
+          format: date-time
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string

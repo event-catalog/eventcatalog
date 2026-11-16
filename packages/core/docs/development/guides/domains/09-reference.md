@@ -333,6 +333,17 @@ receives:
 ---
 ```
 
+A received message can have a `contract`: the file (for example a Pact file) that says what this domain expects of the message. See [Consumer Contracts](../resources/schemas/04-explore-schemas/04-consumer-contracts.md).
+
+```md title="Example"
+---
+receives:
+  - id: PaymentInitiated
+    contract:
+      path: ./contracts/payments.pact.json
+---
+```
+
 ### `badges` {#badges}
 
 <AddedIn version="3.39.4" />

@@ -82,8 +82,14 @@
       "version": "1.0.0",
       "name": "Customer Support Agent",
       "contentPath": "domains/Customer/agents/customer-support-agent/index.mdx",
-      "contentHash": "sha256:a6e98f8f856d576dcb99b714df06cd80f11d633deb059b36febb2709623a5497",
+      "contentHash": "sha256:9c453accf05a6f056db69e1715b4a8ec093d2d6701aab8bd9fc82c150fe2322e",
       "owners": ["customer-platform"],
+      "sidecars": [
+        {
+          "path": "domains/Customer/agents/customer-support-agent/contracts/customer-support-agent-warehouse-service.pact.json",
+          "hash": "sha256:9952a6ffc47a218ed8a8b3ee92553c80cbb4a3d8ebd55f2513441eaca1ce5fc9"
+        }
+      ],
       "receives": [
         {
           "id": "order-cancelled",
@@ -94,6 +100,15 @@
               "version": "1.0.0"
             }
           ]
+        },
+        {
+          "id": "order-ready-for-shipping",
+          "version": "1.0.0",
+          "contract": {
+            "path": "./contracts/customer-support-agent-warehouse-service.pact.json",
+            "name": "Warehouse Service pact",
+            "type": "pact"
+          }
         }
       ]
     },
@@ -4257,8 +4272,30 @@
       "version": "1.0.0",
       "name": "Notification Service",
       "contentPath": "domains/Customer/subdomains/Notifications/services/NotificationService/index.mdx",
-      "contentHash": "sha256:99d35e725d266c30177628a4da7306a36251873da8738217c4b834bdf9adf853",
+      "contentHash": "sha256:0ce7e90118ef15ad8065ac7c2f9fa113b73b580287cca6762aa0ede04bccfe17",
       "owners": ["customer-platform"],
+      "specifications": [
+        {
+          "type": "openapi",
+          "path": "openapi.yml",
+          "name": "Notification Service API",
+          "hash": "sha256:ad35d1d723f52ae4d53421c8981b235d8ae274bb9dcd6bb4f575307658385470"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Customer/subdomains/Notifications/services/NotificationService/contracts/notification-service-order-service.pact.json",
+          "hash": "sha256:7fbb552628e2a263a7e3a8cfa201b419501f129150b8485b714b113a3fb1f8a6"
+        },
+        {
+          "path": "domains/Customer/subdomains/Notifications/services/NotificationService/contracts/notification-service-stripe-webhook-endpoint.pact.json",
+          "hash": "sha256:f192b348ede0b534b613e80f6bbbf14cea6a75876be509927f6319eb1fdc5aa6"
+        },
+        {
+          "path": "domains/Customer/subdomains/Notifications/services/NotificationService/contracts/notification-service-warehouse-service.pact.json",
+          "hash": "sha256:02b65f8213afdf77c56e1f7666f80ddb077b0e3f907690f7bf6c2b952accde92"
+        }
+      ],
       "sends": [
         {
           "id": "customer-notified",
@@ -4269,6 +4306,11 @@
         {
           "id": "order-confirmed",
           "version": "1.0.0",
+          "contract": {
+            "path": "./contracts/notification-service-order-service.pact.json",
+            "name": "Order Service pact",
+            "type": "pact"
+          },
           "from": [
             {
               "id": "ordering.order-events",
@@ -4281,12 +4323,31 @@
           "version": "1.0.0"
         },
         {
+          "id": "order-ready-for-shipping",
+          "version": "1.0.0",
+          "contract": {
+            "path": "./contracts/notification-service-warehouse-service.pact.json",
+            "name": "Warehouse Service pact",
+            "type": "pact"
+          }
+        },
+        {
           "id": "payment-failed",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "contract": {
+            "path": "./contracts/notification-service-stripe-webhook-endpoint.pact.json",
+            "name": "Stripe Webhook Endpoint pact",
+            "type": "pact"
+          }
         },
         {
           "id": "refund-processed",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "contract": {
+            "path": "./contracts/notification-service-stripe-webhook-endpoint.pact.json",
+            "name": "Stripe Webhook Endpoint pact",
+            "type": "pact"
+          }
         },
         {
           "id": "review-published",
@@ -4378,7 +4439,7 @@
       "version": "1.0.0",
       "name": "Order Service",
       "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/index.mdx",
-      "contentHash": "sha256:f0685a824ecd553b950cb7e92806b8aafda8c4e20f5c552bafab1bbc6247817c",
+      "contentHash": "sha256:f05196b1ea88c525dac820bc0f84f5678531e172ea78ab7c5f6d274f123e956e",
       "owners": ["ordering-platform"],
       "specifications": [
         {
@@ -4386,6 +4447,12 @@
           "path": "asyncapi.yml",
           "name": "Order Service AsyncAPI",
           "hash": "sha256:acc23a9294215d4c6d1e2f82222014e5755cac40a7b5ecdb7924f2cf49b435ee"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/contracts/order-service-warehouse-service.pact.json",
+          "hash": "sha256:c7d5860c8f02e683ea2df00b2b8e654b2710f0d80f39dc49541c1f10a0c94092"
         }
       ],
       "sends": [
@@ -4493,6 +4560,22 @@
               "id": "order-status-changed",
               "version": "1.0.0",
               "condition": "When the order moves to the packed status"
+            }
+          ]
+        },
+        {
+          "id": "order-ready-for-shipping",
+          "version": "1.0.0",
+          "contract": {
+            "path": "./contracts/order-service-warehouse-service.pact.json",
+            "name": "Warehouse Service pact",
+            "type": "pact"
+          },
+          "triggers": [
+            {
+              "id": "order-status-changed",
+              "version": "1.0.0",
+              "condition": "When the order moves to the ready-for-shipping status"
             }
           ]
         }
@@ -5163,12 +5246,31 @@
       "version": "1.0.0",
       "name": "Shipping API",
       "contentPath": "domains/Fulfilment/systems/shipping-system/services/ShippingAPI/index.mdx",
-      "contentHash": "sha256:7df18c714ce25d3886e622777d159f150e8ea4c6888f14411194054a6cb26dfe",
+      "contentHash": "sha256:d6c9996b577d7530d35885ae568551a4a7d06544f8e4a0f0cf5f508aeb6df2e0",
       "owners": ["fulfilment-platform"],
+      "specifications": [
+        {
+          "type": "openapi",
+          "path": "openapi.yml",
+          "name": "Shipping API",
+          "hash": "sha256:77c5541c6afd099e075089488e4d524689340b66c35ce01a47177bb8f6d15381"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/systems/shipping-system/services/ShippingAPI/contracts/shipping-api-warehouse-service.pact.json",
+          "hash": "sha256:c410195ed4805c2eb404f345a9c1f890aeab4966fade0963d9d3b8975f67328e"
+        }
+      ],
       "receives": [
         {
           "id": "order-ready-for-shipping",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "contract": {
+            "path": "./contracts/shipping-api-warehouse-service.pact.json",
+            "name": "Warehouse Service pact",
+            "type": "pact"
+          }
         }
       ]
     },

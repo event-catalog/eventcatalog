@@ -1,0 +1,524 @@
+---
+import { FileCheck } from 'lucide-react';
+import { buildUrl } from '@utils/url-builder';
+import { getIconForCollection } from '@utils/collections/icons';
+import { getResourceTypeLabel } from '@utils/collections/util';
+import { isVisualiserEnabled } from '@utils/feature';
+import { PACT_ICON_WHITE, isPactContractType } from '@utils/pact';
+import type { ContractMenuItem, ContractMessage, ContractResource } from './_[filename].data';
+
+/**
+ * Where a consumer contract sits. The canvas is the plain picture: who produces each message the contract
+ * covers, the messages, and the consumer that receives them. An arrow drops from the consumer, out of the
+ * canvas, to the contract's card, which sits on the top edge of a dotted frame. The frame holds the contract's
+ * file: pass it as this component's content.
+ *
+ * Plain HTML and CSS drawn to look like the visualiser (its canvas, cards and edges), without loading it, so
+ * it stays small. The only script is the nodes' right-click menu, which has the links the visualiser's has.
+ */
+interface Props {
+  consumer: ContractResource;
+  contractName: string;
+  /** The contract's format, such as `pact`: shown on the contract's card */
+  contractType?: string;
+  messages: ContractMessage[];
+}
+
+const { consumer, contractName, contractType, messages } = Astro.props;
+
+// The border and card colours the visualiser's nodes have (packages/visualiser/src/nodes and its
+// `--ec-*-node-bg` variables). Keep them the same as the nodes when those change.
+const NODE_COLOURS: Record<string, { border: string; background: string }> = {
+  services: { border: '#ec4899', background: '#fef7fb' },
+  agents: { border: '#0ea5e9', background: '#f5fbff' },
+  events: { border: '#f97316', background: '#fff8f5' },
+  commands: { border: '#3b82f6', background: '#f5f8ff' },
+  queries: { border: '#22c55e', background: '#f5fdf8' },
+  domains: { border: '#eab308', background: '#fffdf5' },
+};
+const UNDOCUMENTED_NODE_COLOURS = { border: '#6b7280', background: '#f8f8f9' };
+
+// Links into the visualiser ("Focus node") only when it's on
+const visualiserPath = buildUrl('/visualiser/');
+const toMenu = (items: ContractMenuItem[] = []) =>
+  JSON.stringify(isVisualiserEnabled() ? items : items.filter((item) => !item.href.startsWith(visualiserPath)));
+
+const toNode = (resource: {
+  id: string;
+  version: string;
+  name: string;
+  collection?: string;
+  contextMenu?: ContractMenuItem[];
+}) => {
+  const colours = (resource.collection && NODE_COLOURS[resource.collection]) || UNDOCUMENTED_NODE_COLOURS;
+  return {
+    name: resource.name,
+    menu: toMenu(resource.contextMenu),
+    // Names that don't fit are cut short: hovering shows the whole name
+    title: resource.collection ? `${resource.name} (v${resource.version})` : resource.name,
+    label: resource.collection ? getResourceTypeLabel(resource.collection) : 'Message',
+    Icon: resource.collection ? getIconForCollection(resource.collection) : undefined,
+    style: `--node-colour: ${colours.border}; --node-background: ${colours.background}`,
+    // A message that isn't documented in the catalog has no version to show or page to open
+    version: resource.collection ? resource.version : undefined,
+    href: resource.collection ? buildUrl(`/docs/${resource.collection}/${resource.id}/${resource.version}`) : undefined,
+  };
+};
+
+const rows = messages.map((message) => ({
+  message: toNode(message),
+  producers: message.producers.map(toNode),
+  // Events are published; commands and queries are sent to the service that handles them
+  verb: message.collection === 'events' ? 'publishes' : 'sends',
+}));
+
+const hasProducers = rows.some((row) => row.producers.length > 0);
+const consumerNode = toNode(consumer);
+// The visualiser's words for an edge into a consumer: it subscribes to events, and accepts commands and queries
+const consumesVerb = messages.every((message) => !message.collection || message.collection === 'events')
+  ? 'subscribed by'
+  : messages.every((message) => message.collection !== 'events')
+    ? 'accepts'
+    : 'receives';
+---
+
+<div class="contract-flow-wrap not-prose mt-4">
+<div class="contract-flow overflow-x-auto" data-pagefind-ignore>
+  <div class="contract-flow-canvas">
+    <!-- Everything up to the consumer. It takes the width the canvas has, and its edges stretch to fill it. -->
+    <div class="contract-flow-lead">
+    <!-- One row per message the contract covers: who produces it, then the message -->
+    <div class="contract-flow-cell flex-auto flex-col justify-center">
+      {
+        rows.map((row, index) => (
+          <div class="flex w-full items-center py-2">
+            {hasProducers && (
+              <div class="flex w-52 flex-col gap-5">
+                {row.producers.map((producer) => (
+                  <a href={producer.href} class="contract-flow-node" style={producer.style} title={producer.title} data-contract-flow-menu={producer.menu}>
+                    <span class="contract-flow-node-badge">
+                      {producer.Icon && <producer.Icon className="h-2.5 w-2.5" />}
+                      {producer.label}
+                    </span>
+                    <span class="contract-flow-node-name">{producer.name}</span>
+                    {producer.version && <span class="contract-flow-node-version">v{producer.version}</span>}
+                  </a>
+                ))}
+              </div>
+            )}
+            {hasProducers &&
+              (row.producers.length > 0 ? (
+                <div class="contract-flow-arrow min-w-24 flex-1">
+                  <span class="contract-flow-arrow-label">{row.verb}</span>
+                </div>
+              ) : (
+                <div class="min-w-24 flex-1" />
+              ))}
+            {row.message.href ? (
+              <a href={row.message.href} class="contract-flow-node w-52" style={row.message.style} title={row.message.title} data-contract-flow-menu={row.message.menu}>
+                <span class="contract-flow-node-badge">
+                  {row.message.Icon && <row.message.Icon className="h-2.5 w-2.5" />}
+                  {row.message.label}
+                </span>
+                <span class="contract-flow-node-name">{row.message.name}</span>
+                {row.message.version && <span class="contract-flow-node-version">v{row.message.version}</span>}
+              </a>
+            ) : (
+              <div class="contract-flow-node w-52" style={row.message.style} title={row.message.title} data-contract-flow-menu={row.message.menu}>
+                <span class="contract-flow-node-badge">{row.message.label}</span>
+                <span class="contract-flow-node-name">{row.message.name}</span>
+              </div>
+            )}
+            <!-- Joins this row to the others, so every message runs into the one contract -->
+            <div class={`relative self-stretch ${hasProducers ? 'w-8' : 'min-w-8 flex-1'}`}>
+              <span class="contract-flow-line absolute left-0 right-0 top-1/2 h-px -translate-y-1/2" />
+              {index > 0 && <span class="contract-flow-line absolute right-0 top-0 h-1/2 w-px" />}
+              {index < rows.length - 1 && <span class="contract-flow-line absolute bottom-0 right-0 h-1/2 w-px" />}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- Straight from the messages to the consumer -->
+    <div class="contract-flow-cell flex-auto">
+      <div class="contract-flow-arrow min-w-36 flex-1">
+        <span class="contract-flow-arrow-label">{consumesVerb}</span>
+      </div>
+    </div>
+    </div>
+
+    <!-- The consumer, level with the messages; what's under it leads down to its contract -->
+    <div class="contract-flow-cell flex-col">
+      <div class="flex-1"></div>
+      <a href={consumerNode.href} class="contract-flow-node w-52" style={consumerNode.style} title={consumerNode.title} data-contract-flow-menu={consumerNode.menu}>
+        <span class="contract-flow-node-badge">
+          {consumerNode.Icon && <consumerNode.Icon className="h-2.5 w-2.5" />}
+          {consumerNode.label}
+        </span>
+        <span class="contract-flow-node-name">{consumerNode.name}</span>
+        {consumerNode.version && <span class="contract-flow-node-version">v{consumerNode.version}</span>}
+      </a>
+      <div class="contract-flow-expects flex-1"></div>
+    </div>
+
+    <!-- Under the consumer: the arrow out of the canvas to its contract. The card is dashed because it isn't
+         a catalog resource, and sits on the top edge of the frame around its file. -->
+    <div class="contract-flow-contract-cell">
+      <div class="contract-flow-expects contract-flow-expects-end">
+        <span class="contract-flow-expects-label">expects</span>
+      </div>
+      <div
+        class="contract-flow-node contract-flow-contract"
+        title={`${contractName}: what ${consumer.name} expects of what it receives`}
+      >
+        <span class="contract-flow-node-badge">
+          {/* A Pact gets Pact's logo: the white one, since the badge is dark in both themes */}
+          {
+            isPactContractType(contractType) ? (
+              <img src={buildUrl(PACT_ICON_WHITE, true)} class="h-2.5 w-auto" alt="" />
+            ) : (
+              <FileCheck className="h-2.5 w-2.5" />
+            )
+          }
+          {contractType || 'Contract'}
+        </span>
+        <span class="contract-flow-node-name">Consumer contract</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="contract-flow-file"><slot /></div>
+</div>
+
+<style>
+  /* The visualiser's canvas: its grey background and dots (`.react-flow` and DiagramBackground) */
+  .contract-flow-wrap {
+    --flow-canvas: #f1f5f9;
+    --flow-dots: #bbb;
+    --flow-edge: #6b7280;
+    /* The space between the canvas and the frame below, which the arrow to the contract crosses */
+    --flow-gap: 1.25rem;
+    /* The contract's card: half of it is above the frame's top edge and half below */
+    --flow-contract-height: 2.875rem;
+  }
+
+  /* Over the frame, so the contract's card covers the edge it sits on */
+  .contract-flow {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* As wide as the page, with the edges stretching so the nodes spread across it, and as wide as the flow needs
+     when that is wider (the box then scrolls sideways). Two lines: everything up to the consumer and the
+     consumer, then the contract under the consumer. */
+  .contract-flow-canvas {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: max-content;
+    padding: 0 2rem;
+  }
+
+  /* The canvas is painted behind the flow and stops short of the bottom, leaving the gap and the contract's card */
+  .contract-flow-canvas::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 calc(var(--flow-gap) + var(--flow-contract-height)) 0;
+    border: 1px solid rgb(var(--ec-page-border));
+    border-radius: 0.375rem;
+    background-color: var(--flow-canvas);
+    background-image: radial-gradient(var(--flow-dots) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+
+  .contract-flow-canvas > * {
+    position: relative;
+  }
+
+  /* A cell of the top line: its content is centred, so the messages, the edge and the consumer line up */
+  .contract-flow-cell {
+    display: flex;
+    align-items: center;
+    padding-top: 1.25rem;
+  }
+
+  /* The messages and the edge into the consumer, side by side */
+  .contract-flow-lead {
+    display: flex;
+    min-width: 0;
+  }
+
+  /* Under the consumer (the second column) */
+  .contract-flow-contract-cell {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  :global([data-theme='dark']) .contract-flow-wrap {
+    --flow-canvas: rgb(var(--ec-page-bg));
+    --flow-dots: #5a6270;
+    --flow-edge: #6e7681;
+  }
+
+  /* A node card, as the visualiser draws it: a coloured border, a tinted card and its type on the top edge */
+  .contract-flow-node {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    min-width: 0;
+    padding: 0.875rem 0.75rem 0.625rem;
+    border: 2px solid var(--node-colour);
+    border-radius: 0.75rem;
+    background: var(--node-background);
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--node-colour) 15%, transparent);
+    text-decoration: none;
+  }
+
+  :global([data-theme='dark']) .contract-flow-node {
+    background: rgb(var(--ec-card-bg));
+  }
+
+  a.contract-flow-node:hover {
+    box-shadow: 0 2px 14px color-mix(in srgb, var(--node-colour) 35%, transparent);
+  }
+
+  .contract-flow-node-badge {
+    position: absolute;
+    top: -0.625rem;
+    left: 0.625rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    background: var(--node-colour);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: #fff;
+  }
+
+  .contract-flow-node-name {
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.375;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: rgb(var(--ec-page-text));
+  }
+
+  .contract-flow-node-version {
+    flex-shrink: 0;
+    font-size: 9px;
+    color: rgb(var(--ec-page-text-muted));
+  }
+
+  .contract-flow-line {
+    background: var(--flow-edge);
+  }
+
+  /* An edge: a line with a closed arrowhead at its right end, and an optional label on it */
+  .contract-flow-arrow {
+    position: relative;
+    flex-shrink: 0;
+    height: 1px;
+    background: var(--flow-edge);
+  }
+
+  .contract-flow-arrow::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: -4px;
+    border-top: 4.5px solid transparent;
+    border-bottom: 4.5px solid transparent;
+    border-left: 8px solid var(--flow-edge);
+  }
+
+  .contract-flow-arrow-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(calc(-50% - 4px), -50%);
+    padding: 0 0.25rem;
+    background: var(--flow-canvas);
+    font-size: 10px;
+    white-space: nowrap;
+    color: rgb(var(--ec-page-text-muted));
+  }
+
+  /* From the consumer down to its contract: dashed, in the grey of the edges, with an arrowhead and a label */
+  .contract-flow-expects {
+    position: relative;
+    border-left: 1.5px dashed var(--flow-edge);
+  }
+
+  /* Through the bottom of the canvas, then across the gap */
+  .contract-flow-expects-end {
+    height: calc(0.875rem + var(--flow-gap));
+  }
+
+  .contract-flow-expects-end::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -5.25px;
+    border-left: 4.5px solid transparent;
+    border-right: 4.5px solid transparent;
+    border-top: 8px solid var(--flow-edge);
+  }
+
+  /* Beside the line, in the gap below the canvas */
+  .contract-flow-expects-label {
+    position: absolute;
+    bottom: 0.375rem;
+    left: 0.5rem;
+    font-size: 10px;
+    line-height: 1.4;
+    white-space: nowrap;
+    color: rgb(var(--ec-page-text-muted));
+  }
+
+  /* The contract: a card in the grey of the edges, like the arrow into it and the frame it sits on */
+  .contract-flow-contract {
+    --node-colour: var(--flow-edge);
+    --node-background: rgb(var(--ec-card-bg));
+    box-sizing: border-box;
+    height: var(--flow-contract-height);
+    max-width: 16rem;
+    border-style: dashed;
+  }
+
+  /* The contract's file, in a dotted grey frame. It starts halfway up the contract's card,
+     so the card sits on its top edge. */
+  .contract-flow-file {
+    position: relative;
+    margin-top: calc(var(--flow-contract-height) / -2);
+    /* The file fills the frame: the card's lower half lies over the file's top edge */
+    padding: 0.375rem;
+    border: 2px dotted var(--flow-edge);
+    border-radius: 0.5rem;
+  }
+</style>
+
+<!-- Not scoped: the menu is added to the page's body, outside this component -->
+<style is:global>
+  .contract-flow-menu {
+    position: fixed;
+    z-index: 50;
+    min-width: 220px;
+    padding: 0.25rem;
+    border: 1px solid rgb(var(--ec-page-border));
+    border-radius: 0.375rem;
+    background: rgb(var(--ec-card-bg));
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.1),
+      0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  .contract-flow-menu a {
+    display: flex;
+    align-items: center;
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.125rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    text-decoration: none;
+    color: rgb(var(--ec-page-text));
+  }
+
+  .contract-flow-menu a:hover,
+  .contract-flow-menu a:focus-visible {
+    outline: none;
+    background: rgb(var(--ec-content-hover));
+  }
+
+  .contract-flow-menu hr {
+    height: 1px;
+    margin: 0.25rem;
+    border: 0;
+    background: rgb(var(--ec-page-border));
+  }
+</style>
+
+<script>
+  // A node's right-click menu: the links its node has in the visualiser (see toMenu). One listener for the
+  // whole page, so it keeps working after the page is swapped by a view transition.
+  type MenuItem = { label: string; href: string; download?: string; external?: boolean; separator?: boolean };
+
+  let menu: HTMLElement | undefined;
+
+  const closeMenu = () => {
+    menu?.remove();
+    menu = undefined;
+  };
+
+  document.addEventListener('contextmenu', (event) => {
+    closeMenu();
+
+    const node = event.target instanceof Element ? event.target.closest('[data-contract-flow-menu]') : null;
+    if (!node) return;
+
+    let items: MenuItem[] = [];
+    try {
+      items = JSON.parse(node.getAttribute('data-contract-flow-menu') || '[]');
+    } catch {
+      return;
+    }
+    if (items.length === 0) return;
+
+    event.preventDefault();
+
+    const element = document.createElement('div');
+    element.className = 'contract-flow-menu';
+    element.setAttribute('role', 'menu');
+
+    items.forEach((item, index) => {
+      if (item.separator && index > 0) element.append(document.createElement('hr'));
+
+      const link = document.createElement('a');
+      link.href = item.href;
+      link.textContent = item.label;
+      link.setAttribute('role', 'menuitem');
+      if (item.download) link.download = item.download;
+      if (item.external) {
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+      }
+      element.append(link);
+    });
+
+    document.body.append(element);
+
+    // At the pointer, moved in when it would run off the window
+    const margin = 8;
+    element.style.left = `${Math.max(margin, Math.min(event.clientX, window.innerWidth - element.offsetWidth - margin))}px`;
+    element.style.top = `${Math.max(margin, Math.min(event.clientY, window.innerHeight - element.offsetHeight - margin))}px`;
+
+    menu = element;
+    element.querySelector('a')?.focus({ preventScroll: true });
+  });
+
+  document.addEventListener('click', (event) => {
+    // A link that is taken off the page before its click finishes isn't followed: let a click on the menu
+    // finish first
+    if (menu && event.target instanceof Node && menu.contains(event.target)) setTimeout(closeMenu);
+    else closeMenu();
+  });
+  document.addEventListener('scroll', closeMenu, true);
+  window.addEventListener('resize', closeMenu);
+  window.addEventListener('blur', closeMenu);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeMenu();
+  });
+</script>

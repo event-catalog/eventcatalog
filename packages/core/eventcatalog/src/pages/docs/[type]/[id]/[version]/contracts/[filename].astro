@@ -1,0 +1,162 @@
+---
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import Footer from '@layouts/Footer.astro';
+import { Page, getContextMenu, type ContractMessage, type ContractResource } from './_[filename].data';
+import ContractViewer from './_ContractViewer';
+import { PACT_ICON, PACT_ICON_WHITE, getPactInteractionsForMessage, isPactContractType, parsePact } from '@utils/pact';
+import { buildUrl } from '@utils/url-builder';
+import { readResourceFile, resourceFileExists } from '@utils/resource-files';
+import Admonition from '@components/MDX/Admonition';
+import NewVersionBanner from '@components/NewVersionBanner.astro';
+import Badge from '@components/Badge.astro';
+import { getResourceTypeBadge } from '@utils/collections/resource-type-badge';
+import { getResourceNoun, getSpecificationCodeLanguage } from '@utils/collections/util';
+import { getConsumerContractPath, type ConsumerContract } from '@utils/collections/consumer-contracts';
+import ContractFlow from './_ContractFlow.astro';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+// Get data
+const pageData = await Page.getData(Astro);
+if (!pageData) return Astro.rewrite('/404');
+const { collection, data } = pageData;
+const contract: ConsumerContract = pageData.contract;
+const contractMessages: ContractMessage[] = pageData.contractMessages;
+
+// The page is the consumer's (every message its contract covers), or a message's (one consumer's contract for
+// that message, without leaving the message)
+const isMessagePage = Boolean(pageData.contractConsumer);
+const consumer: ContractResource = pageData.contractConsumer ?? {
+  id: data.id,
+  version: data.version,
+  name: data.name,
+  collection,
+  contextMenu: await getContextMenu({ collection, data }),
+};
+// Always the same: what the page is. Whose contract it is, and what it's called, are in the badges.
+const subtitle = 'Consumer contract';
+// Named in full in the browser tab and the "new version" banner
+const contractLabel = isMessagePage ? `${consumer.name}: ${contract.name}` : contract.name;
+// This page's own address, and the contract's page under its consumer
+const pageSlug = Astro.params.filename as string;
+const consumerPageUrl = buildUrl(getConsumerContractPath(consumer, contract.slug));
+
+// Contracts are shown as written, without parsing them. The file is in its consumer's folder.
+const fileOwner = pageData.contractOwner ?? pageData;
+const fileExists = resourceFileExists(fileOwner, contract.path);
+const content = fileExists ? (readResourceFile(fileOwner, contract.path) ?? '') : '';
+
+// A Pact file also gets its fields listed: all of its interactions on the consumer's page, and the ones about
+// this message on a message's page
+const pact = fileExists ? parsePact(content) : null;
+const pactInteractions =
+  pact && (isMessagePage ? getPactInteractionsForMessage(pact, { id: data.id, name: data.name }) : pact.interactions);
+
+const pageTitle = `${collection} | ${data.name} | ${contractLabel}`.replace(/^\w/, (c) => c.toUpperCase());
+
+const badges = [
+  getResourceTypeBadge(collection),
+  // On a message's page: the consumer the contract belongs to, opening the contract on that consumer
+  ...(isMessagePage
+    ? [{ ...getResourceTypeBadge(consumer.collection), content: consumer.name, url: consumerPageUrl, id: 'consumer-badge' }]
+    : []),
+  { textColor: 'gray', content: contract.name, id: 'consumer-contract-badge' },
+  ...(contract.type
+    ? [
+        {
+          textColor: 'gray',
+          content: contract.type,
+          id: 'consumer-contract-type-badge',
+          // A contract typed `pact` gets Pact's logo, in black or white to suit the theme
+          ...(isPactContractType(contract.type)
+            ? { iconURLLight: buildUrl(PACT_ICON, true), iconURLDark: buildUrl(PACT_ICON_WHITE, true) }
+            : {}),
+        },
+      ]
+    : []),
+];
+
+// The same page for the latest version of this resource. Without one (a consumer pinned to this version of the
+// message, or a contract the consumer dropped), the latest version's own page.
+const latestVersionUrl = buildUrl(
+  pageData.latestVersionHasContract
+    ? getConsumerContractPath({ collection, id: data.id, version: data.latestVersion }, pageSlug)
+    : `/docs/${collection}/${data.id}/${data.latestVersion}`
+);
+
+// Index only the latest version, and only under the consumer: a message's page shows the same contract again
+const pagefindAttributes =
+  !isMessagePage && data.version === data.latestVersion
+    ? {
+        'data-pagefind-body': '',
+        'data-pagefind-meta': `title:${pageTitle}`,
+      }
+    : {};
+---
+
+<VerticalSideBarLayout title={pageTitle} description={`${contract.name}: a consumer contract of ${consumer.name}`}>
+  <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
+    <div class="flex docs-layout w-full">
+      <div class="w-full min-w-0 lg:mr-2 xl:pr-12 py-8 bg-[rgb(var(--ec-page-bg))]">
+        <!-- Title and subtitle sized like the resource's overview page, kept compact so the source starts high up -->
+        <div class="border-b border-[rgb(var(--ec-page-border))] pb-4">
+          <h1 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{data.name}</h1>
+          <p class="text-base pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{subtitle}</p>
+          <div class="flex flex-wrap gap-1.5 pt-3">
+            {badges.map((badge: any) => <Badge badge={badge} />)}
+          </div>
+        </div>
+
+        <div data-pagefind-ignore>
+          {
+            data.version !== data.latestVersion && (
+              <NewVersionBanner
+                subject={getResourceNoun(collection)}
+                name={data.name}
+                latestOf={contractLabel}
+                latestVersion={data.latestVersion}
+                href={latestVersionUrl}
+              />
+            )
+          }
+        </div>
+
+        <!-- The diagram, then the contract's file in the frame the diagram points at -->
+        <ContractFlow
+          consumer={consumer}
+          contractName={contract.name}
+          contractType={contract.type}
+          messages={contractMessages}
+        >
+          {
+            fileExists ? (
+              <ContractViewer
+                client:load
+                interactions={pactInteractions ?? undefined}
+                provider={pact?.provider}
+                name={`${consumer.name} - ${contract.name}`}
+                version={data.version}
+                code={content}
+                language={getSpecificationCodeLanguage(contract.filename)}
+              />
+            ) : (
+              <Admonition type="warning" title="Contract not found">
+                <p>The contract file could not be found at {contract.path}.</p>
+              </Admonition>
+            )
+          }
+        </ContractFlow>
+
+        <Footer />
+      </div>
+    </div>
+  </main>
+
+  <style is:global>
+    .docs-layout .prose {
+      max-width: none;
+      overflow: auto;
+    }
+  </style>
+</VerticalSideBarLayout>

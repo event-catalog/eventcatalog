@@ -45,6 +45,7 @@ import {
 import { getResourcesPageKeys } from '@utils/collections/resource-owners';
 import { isArchitectureGraphEnabled, isChangelogEnabled } from '@utils/feature';
 import { collectMessageIdsWithFieldUsage } from '@utils/collections/field-usage';
+import { getConsumerContractsForMessage } from '@utils/collections/consumer-contracts';
 
 export type { NavigationData, NavNode, ChildRef };
 
@@ -586,6 +587,10 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   // Raw collections keep send/receive pointers (and their `fields`) which hydration strips.
   const messagesWithFieldUsage = collectMessageIdsWithFieldUsage(rawAgents, rawServices, rawDomains);
+  // Most resources have no consumer contracts, so only those that do are checked against each message
+  const consumersWithContracts = messageReceivers.filter((resource) =>
+    (resource.data.receives || []).some((pointer) => pointer.contract)
+  );
 
   const flowRefsByMessage = buildFlowReferencesByMessage({
     flows,
@@ -609,7 +614,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
         hasFieldUsage,
         flowRefsByMessage.get(versionedKey) || [],
         { triggers, triggeredBy },
-        { sidebar }
+        { sidebar, consumerContracts: getConsumerContractsForMessage(message, consumersWithContracts) }
       );
       acc[versionedKey] = sidebar ? node : withArchitectureDecisionsSection(node, message, adrs);
       if (message.data.latestVersion === message.data.version) {

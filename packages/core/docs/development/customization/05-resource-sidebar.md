@@ -169,7 +169,7 @@ And per resource type:
 | Domain | `$api-and-contracts` `$systems` `$subdomains` `$resources` `$services` `$flows` `$entities` `$domain-events` `$external-events` `$resource-groups` `$agents` `$external-integrations` `$data-products` |
 | System | `$resources` `$services` `$flows` `$data-stores` `$entities` |
 | Service / Agent | `$api-and-contracts`* `$resource-groups` `$state-and-persistence` `$entities`* `$outbound-messages` `$inbound-messages` `$channels` `$flows` |
-| Event / Command / Query | `$api-and-contracts` `$producers` `$consumers` `$triggered-by` `$triggers` `$appears-in-flows` |
+| Event / Command / Query | `$api-and-contracts` `$producers` `$consumers` `$consumer-contracts` `$triggered-by` `$triggers` `$appears-in-flows` |
 | Flow | `$messages` `$services` `$agents` `$subflows` `$data-stores` `$data-products` |
 | Container | `$writes` `$reads` `$appears-in-flows` |
 | Data product | `$inputs` `$outputs` `$data-contracts` `$appears-in-flows` |

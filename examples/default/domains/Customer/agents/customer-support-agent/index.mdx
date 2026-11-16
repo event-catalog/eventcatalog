@@ -22,6 +22,12 @@ receives:
     from:
       - id: ordering.order-events
         version: 1.0.0
+  - id: order-ready-for-shipping
+    version: 1.0.0
+    contract:
+      path: ./contracts/customer-support-agent-warehouse-service.pact.json
+      name: Warehouse Service pact
+      type: pact
 badges:
   - content: AI agent
     backgroundColor: purple

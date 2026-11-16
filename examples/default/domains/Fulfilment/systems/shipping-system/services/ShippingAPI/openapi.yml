@@ -1,0 +1,188 @@
+openapi: 3.1.0
+info:
+  title: Shipping API
+  version: 1.0.0
+  description: Create shipments for packed orders, choose a carrier, and look up the status of a shipment.
+servers:
+  - url: https://api.acme.example/shipping
+tags:
+  - name: Shipments
+    description: Shipments handed to a carrier
+  - name: Carriers
+    description: Carriers available for a destination
+paths:
+  /shipments:
+    post:
+      tags: [Shipments]
+      operationId: createShipment
+      summary: Create a shipment
+      description: Creates a shipment for an order that is ready for shipping and books it with a carrier.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShipmentRequest'
+      responses:
+        '201':
+          description: The shipment was created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /shipments/{shipmentId}:
+    get:
+      tags: [Shipments]
+      operationId: getShipment
+      summary: Get a shipment
+      parameters:
+        - $ref: '#/components/parameters/ShipmentId'
+      responses:
+        '200':
+          description: The shipment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /shipments/{shipmentId}/cancel:
+    post:
+      tags: [Shipments]
+      operationId: cancelShipment
+      summary: Cancel a shipment
+      description: Cancels a shipment that the carrier has not collected yet.
+      parameters:
+        - $ref: '#/components/parameters/ShipmentId'
+      responses:
+        '200':
+          description: The shipment was cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The carrier has already collected the shipment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /carriers:
+    get:
+      tags: [Carriers]
+      operationId: listCarriers
+      summary: List the carriers that deliver to a country
+      parameters:
+        - name: country
+          in: query
+          required: true
+          description: ISO 3166-1 alpha-2 country code
+          schema:
+            type: string
+            pattern: '^[A-Z]{2}$'
+      responses:
+        '200':
+          description: The carriers that deliver to the country
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Carrier'
+components:
+  parameters:
+    ShipmentId:
+      name: shipmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: The request is not valid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The shipment was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Address:
+      type: object
+      required: [line1, city, postcode, country]
+      properties:
+        line1:
+          type: string
+        city:
+          type: string
+        postcode:
+          type: string
+        country:
+          type: string
+          pattern: '^[A-Z]{2}$'
+    CreateShipmentRequest:
+      type: object
+      required: [orderId, parcelCount, shippingAddress]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        parcelCount:
+          type: integer
+          minimum: 1
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        carrierId:
+          type: string
+          description: The carrier to use. The cheapest carrier that delivers to the address is chosen when omitted.
+    Shipment:
+      type: object
+      required: [shipmentId, orderId, status, carrierId, createdAt]
+      properties:
+        shipmentId:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [CREATED, COLLECTED, IN_TRANSIT, DELIVERED, CANCELLED]
+        carrierId:
+          type: string
+        trackingNumber:
+          type: string
+        parcelCount:
+          type: integer
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        createdAt:
+          type: string
+          format: date-time
+    Carrier:
+      type: object
+      required: [carrierId, name]
+      properties:
+        carrierId:
+          type: string
+        name:
+          type: string
+        estimatedDeliveryDays:
+          type: integer
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string

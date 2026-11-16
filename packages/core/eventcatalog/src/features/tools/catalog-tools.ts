@@ -18,6 +18,12 @@ import {
   getUbiquitousLanguageWithSubdomains,
 } from '@utils/collections/domains';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
+import {
+  getConsumerContractsForMessage,
+  getConsumerContractsForResource,
+  type ConsumerContract,
+} from '@utils/collections/consumer-contracts';
+import { getPactFields, matchPactInteractionsToMessage, parsePact } from '@utils/pact';
 import fs from 'node:fs';
 import { getArchitectureDiagramGraph } from '@utils/node-graphs/architecture-diagram';
 import {
@@ -326,6 +332,90 @@ const getResourcesThat = async (direction: 'sends' | 'receives', message: Messag
     );
 };
 
+/** Contract files can be large (a Pact file covers every message between two services): this much is returned */
+const MAX_CONSUMER_CONTRACT_CONTENT_LENGTH = 50_000;
+
+/** A consumer contract's file as written, or null when it can't be read (the contract is still listed) */
+const readConsumerContractFile = (consumer: any, contract: ConsumerContract) => {
+  try {
+    return fs.readFileSync(getAbsoluteFilePathForAstroFile(consumer.filePath ?? '', contract.path), 'utf-8');
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * What a Pact file expects, for agents: each interaction with the fields the consumer relies on and how each is
+ * checked. With a message, only the interactions about it. Undefined for a file that isn't a Pact.
+ */
+const getPactExpectations = (content: string | null, message?: { id: string; name?: string }) => {
+  const pact = content ? parsePact(content) : null;
+  if (!pact) return undefined;
+
+  const { interactions, matched } = message
+    ? matchPactInteractionsToMessage(pact, message)
+    : { interactions: pact.interactions, matched: true };
+
+  return {
+    provider: pact.provider,
+    specificationVersion: pact.specificationVersion,
+    // None of the Pact's descriptions names the message: every interaction is returned, some for other messages
+    ...(matched ? {} : { matchedToMessage: false }),
+    expectations: interactions.map((interaction) => ({
+      description: interaction.description,
+      providerStates: interaction.providerStates,
+      kind: interaction.kind,
+      ...(interaction.request ? { request: interaction.request } : {}),
+      fields: getPactFields(interaction.schema),
+    })),
+  };
+};
+
+/**
+ * The contract a consumer has for a message, in short: its name, type and path, and for a Pact file the fields
+ * the consumer relies on. getConsumerContracts has the detail. Undefined without one.
+ */
+const getConsumerContract = (consumer: any, message: MessageEntry, latestVersion: string) => {
+  // A consumer rarely has more than one contract file for a message: the first is summarised, and the number of
+  // others is given so an agent knows to ask getConsumerContracts for them
+  const contracts = getConsumerContractsForMessage({ data: { ...message.data, latestVersion } }, [consumer]);
+  const contract = contracts[0]?.contract;
+
+  if (!contract) return undefined;
+
+  const pact = getPactExpectations(readConsumerContractFile(consumer, contract), {
+    id: message.data.id,
+    name: (message.data as any).name,
+  });
+  // Without a match the Pact's fields can't be said to be this message's, so they are left out
+  const fields = pact &&
+    pact.matchedToMessage !== false && [
+      ...new Set(pact.expectations.flatMap((expectation) => expectation.fields.map((field) => field.path))),
+    ];
+
+  return {
+    name: contract.name,
+    path: contract.path,
+    type: contract.type,
+    ...(fields ? { fields } : {}),
+    ...(contracts.length > 1 ? { moreContracts: contracts.length - 1 } : {}),
+  };
+};
+
+/** The consumers of a message, each with its consumer contract when it has one */
+const withConsumerContracts = async <T extends { id: string; collection: string }>(
+  message: MessageEntry,
+  consumers: any[],
+  toResult: (consumer: any) => T
+) => {
+  const latestVersion = (await findEntry(message.collection, message.data.id))?.data.version ?? message.data.version;
+
+  return consumers.map((consumer) => {
+    const consumerContract = getConsumerContract(consumer, message, latestVersion);
+    return consumerContract ? { ...toResult(consumer), consumerContract } : toResult(consumer);
+  });
+};
+
 /**
  * The resources a domain or system is made of, with it: its services and agents, and for a domain its systems and
  * subdomains (and everything inside them)
@@ -629,7 +719,7 @@ export async function getConsumersOfMessage(params: { messageId: string; message
       version: message.data.version,
       collection: params.messageCollection,
     },
-    consumers: consumers.map((s) => ({
+    consumers: await withConsumerContracts(message, consumers, (s) => ({
       id: (s.data as any).id,
       version: (s.data as any).version,
       name: (s.data as any).name || (s.data as any).id,
@@ -698,13 +788,101 @@ export async function analyzeChangeImpact(params: { messageId: string; messageVe
       collection: s.collection,
       owners: (s.data as any).owners || [],
     })),
-    consumers: consumers.map((s) => ({
+    consumers: await withConsumerContracts(message, consumers, (s) => ({
       id: (s.data as any).id,
       version: (s.data as any).version,
       name: (s.data as any).name || (s.data as any).id,
       collection: s.collection,
       owners: (s.data as any).owners || [],
     })),
+  };
+}
+
+/**
+ * The consumer contracts in the catalog: what a consumer (a service, agent or domain) expects of a message it
+ * receives. By message (every consumer's contract for it), by consumer (every contract it has), or both.
+ */
+export async function getConsumerContracts(params: {
+  messageId?: string;
+  messageVersion?: string;
+  messageCollection?: string;
+  consumerId?: string;
+  consumerCollection?: string;
+  includeContent?: boolean;
+}) {
+  if (!params.messageId && !params.consumerId) {
+    return { error: 'Give a messageId, a consumerId, or both' };
+  }
+
+  const collections = await Promise.all(MESSAGING_COLLECTIONS.map((collection) => getCollection(collection)));
+  const consumers = (collections.flat() as any[])
+    .filter(isLatestVersion)
+    .filter((consumer) => !params.consumerId || consumer.data.id === params.consumerId)
+    .filter((consumer) => !params.consumerCollection || consumer.collection === params.consumerCollection);
+
+  if (params.consumerId && consumers.length === 0) {
+    return {
+      error: `Consumer not found: ${params.consumerId}${params.consumerCollection ? ` in ${params.consumerCollection}` : ''}`,
+    };
+  }
+
+  let message: { collection: string; data: any } | undefined;
+  let entries: { consumer: any; contract: ConsumerContract }[];
+
+  if (params.messageId) {
+    const messageCollection = params.messageCollection || 'events';
+    message = await findEntry(messageCollection, params.messageId, params.messageVersion);
+
+    if (!message) {
+      return {
+        error: `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${messageCollection}`,
+      };
+    }
+
+    const latestVersion = (await findEntry(messageCollection, params.messageId))?.data.version ?? message.data.version;
+    const found = message;
+    entries = consumers.flatMap((consumer) =>
+      getConsumerContractsForMessage({ data: { ...found.data, latestVersion } }, [consumer]).map(({ contract }) => ({
+        consumer,
+        contract,
+      }))
+    );
+  } else {
+    entries = consumers.flatMap((consumer) =>
+      getConsumerContractsForResource(consumer).map((contract) => ({ consumer, contract }))
+    );
+  }
+
+  const contracts = entries.map(({ consumer, contract }) => {
+    const content = readConsumerContractFile(consumer, contract);
+    const pact = getPactExpectations(content, message && { id: message.data.id, name: message.data.name });
+    const truncated = content !== null && content.length > MAX_CONSUMER_CONTRACT_CONTENT_LENGTH;
+
+    return {
+      consumer: {
+        id: consumer.data.id,
+        version: consumer.data.version,
+        name: consumer.data.name || consumer.data.id,
+        collection: consumer.collection,
+        owners: consumer.data.owners || [],
+      },
+      contract: { name: contract.name, type: contract.type, path: contract.path },
+      // The messages the contract is for: the one asked about, or every message the file is attached to
+      messages: message ? [{ id: message.data.id, version: message.data.version }] : contract.messages,
+      ...(pact ? { format: 'pact', ...pact } : {}),
+      ...(params.includeContent
+        ? {
+            content: truncated ? content!.slice(0, MAX_CONSUMER_CONTRACT_CONTENT_LENGTH) : content,
+            ...(truncated ? { truncated: true } : {}),
+          }
+        : {}),
+    };
+  });
+
+  return {
+    ...(message ? { message: { id: message.data.id, version: message.data.version, collection: message.collection } } : {}),
+    contracts,
+    count: contracts.length,
   };
 }
 
@@ -1410,11 +1588,13 @@ export const toolDescriptions = {
   getProducersOfMessage:
     'Use this tool to find which services, agents or domains produce (send) a specific message (event, command, or query). Only the latest versions of those resources are included.',
   getConsumersOfMessage:
-    'Use this tool to find which services, agents or domains consume (receive) a specific message (event, command, or query). Only the latest versions of those resources are included.',
+    'Use this tool to find which services, agents or domains consume (receive) a specific message (event, command, or query). Only the latest versions of those resources are included. A consumer that documents a consumer contract for the message (for example a Pact file) has it as `consumerContract`: its name, type and path, and for a Pact file the `fields` the consumer relies on (left out when the Pact cannot be matched to this message; `moreContracts` counts any further contract files). Use getConsumerContracts for how each field is checked.',
+  getConsumerContracts:
+    'Use this tool to get consumer contracts: what a consumer (a service, agent or domain) expects of a message it receives, usually from its contract tests (for example a Pact file). Give a messageId to get every consumer contract for that message, a consumerId to get every contract that consumer has, or both. For a Pact file each contract lists its `expectations`: the fields the consumer relies on and how each is checked (`type`: any value of that type, `pattern`: must match the pattern, `includes`: must contain the text in `includes`, `exact value`: must equal `value`). Fields of the message that are not listed are not used by that consumer. A Pact names its interactions in words, so they are matched to the message by its name or id: when a contract has `matchedToMessage: false` none matched, every interaction of the file is returned and some may be about other messages, so read each `description` before concluding anything. Use it to answer which consumers depend on a field, or whether a change to a message breaks a consumer. Set includeContent to also get the contract file as written (long files are cut short and marked `truncated`). Only the latest versions of consumers are included.',
   getC4Diagram:
     'Use this tool to get the C4 diagram (or likeC4) in EventCatalog. These files usually have a .c4 extension on them',
   analyzeChangeImpact:
-    'Use this tool to analyze the impact of changing a message. Returns all affected services, agents and domains (producers and consumers), the teams that own them, and the blast radius of the change',
+    'Use this tool to analyze the impact of changing a message. Returns all affected services, agents and domains (producers and consumers), the teams that own them, and the blast radius of the change. A consumer that documents a consumer contract for the message (for example a Pact file) has it as `consumerContract`: its name, type and path, and for a Pact file the `fields` the consumer relies on, to see whether the change touches them (left out when the Pact cannot be matched to this message; `moreContracts` counts any further contract files). Use getConsumerContracts for how each field is checked.',
   explainBusinessFlow:
     'Use this tool to get detailed information about a business flow (state machine). Returns the flow definition, steps, mermaid diagram if available, and related agents and services',
   getTeams:
