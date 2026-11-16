@@ -275,7 +275,11 @@ const readBody = (body: unknown, isVersion4: boolean): unknown => {
   if (isVersion4 && isObject(body) && 'content' in body && ('contentType' in body || 'encoded' in body)) {
     if (typeof body.content !== 'string') return body.content;
     try {
-      return JSON.parse(body.content);
+      // `encoded` is false, or how the content is encoded: true and "base64" both mean base64
+      const isBase64 = body.encoded === true || (typeof body.encoded === 'string' && body.encoded.toLowerCase() === 'base64');
+      if (!isBase64) return JSON.parse(body.content);
+      const bytes = Uint8Array.from(atob(body.content), (character) => character.charCodeAt(0));
+      return JSON.parse(new TextDecoder().decode(bytes));
     } catch {
       return undefined;
     }

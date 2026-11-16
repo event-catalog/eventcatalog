@@ -139,6 +139,28 @@ describe('parsePact', () => {
     expect(pact.interactions[0].schema!.properties.orderId).toEqual({ type: 'string', examples: ['abc'] });
   });
 
+  it('reads a version 4 message whose contents are base64 encoded', () => {
+    const content = Buffer.from(JSON.stringify({ orderId: 'abc', city: 'Malmö' })).toString('base64');
+    const read = (encoded: unknown) =>
+      parsePact(
+        JSON.stringify({
+          consumer: { name: 'shipping-api' },
+          provider: { name: 'warehouse-service' },
+          interactions: [
+            {
+              type: 'Asynchronous/Messages',
+              description: 'an order ready for shipping event',
+              contents: { contentType: 'application/json', encoded, content },
+            },
+          ],
+          metadata: { pactSpecification: { version: '4.0' } },
+        })
+      )!.interactions[0].schema;
+
+    expect(read(true)!.properties.city).toEqual({ type: 'string', examples: ['Malmö'], const: 'Malmö' });
+    expect(read('base64')!.properties.orderId).toEqual({ type: 'string', examples: ['abc'], const: 'abc' });
+  });
+
   it('reads a request and response interaction as what the consumer expects back, with version 2 rules', () => {
     const pact = parsePact(
       JSON.stringify({
