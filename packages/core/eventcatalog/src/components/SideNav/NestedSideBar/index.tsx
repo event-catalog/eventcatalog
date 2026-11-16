@@ -448,7 +448,7 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
   if (!data || roots.length === 0) {
     return (
       <aside className="flex h-full min-h-0 w-full flex-1 flex-col bg-[rgb(var(--ec-rail-bg))] font-sans">
-        <div className="flex h-[60px] items-center px-6 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10">
+        <div className="flex h-[var(--ec-header-height)] items-center px-6 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10">
           <span className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-sidebar-text)/0.5)] truncate">
             All resources
           </span>
@@ -889,7 +889,7 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
   return (
     <aside className="flex h-full min-h-0 w-full flex-1 flex-col bg-[rgb(var(--ec-rail-bg))] font-sans">
       {isTopLevel && (
-        <div className="flex h-[60px] items-center px-6 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10">
+        <div className="flex h-[var(--ec-header-height)] items-center px-6 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10">
           <span className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-sidebar-text)/0.5)] truncate">
             All resources
           </span>
@@ -898,7 +898,7 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
 
       {!isTopLevel && (
         <div
-          className="flex h-[60px] items-center px-4 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10"
+          className="flex h-[var(--ec-header-height)] items-center px-4 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10"
           onMouseEnter={() => !isTopLevel && setShowPathPreview(true)}
           onMouseLeave={() => {
             setShowPathPreview(false);

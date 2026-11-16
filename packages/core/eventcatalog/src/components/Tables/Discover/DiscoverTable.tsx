@@ -803,10 +803,10 @@ export function DiscoverTable<T extends DiscoverTableData>({
       {/* Filter Sidebar */}
       <div
         id="discover-filter-sidebar"
-        className="fixed left-[var(--ec-vertical-nav-width)] top-0 z-20 flex h-screen w-[320px] flex-shrink-0 flex-col border-r border-[rgb(var(--ec-content-border))] bg-[rgb(var(--ec-rail-bg))]"
+        className="fixed left-[var(--ec-vertical-nav-width)] top-[var(--ec-banner-height,0px)] z-20 flex h-[calc(100vh-var(--ec-banner-height,0px))] w-[320px] flex-shrink-0 flex-col border-r border-[rgb(var(--ec-content-border))] bg-[rgb(var(--ec-rail-bg))]"
         style={{ width: 'var(--ec-discover-sidebar-width, 320px)' }}
       >
-        <div className="flex h-[60px] flex-shrink-0 items-center border-b border-[rgb(var(--ec-page-border))] px-4">
+        <div className="flex h-[var(--ec-header-height)] flex-shrink-0 items-center border-b border-[rgb(var(--ec-page-border))] px-4">
           <h2 className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-sidebar-text)/0.5)]">
             {collectionLabel} Filters
           </h2>

@@ -466,7 +466,7 @@ const title = `${currentTypeConfig.label} (${data.length})`;
   <main
     id="discover-page"
     class="ml-0 flex h-full min-h-0 flex-col overflow-hidden bg-[rgb(var(--ec-page-bg))]"
-    style={`--ec-discover-sidebar-width: 320px; margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);`}
+    style={`--ec-discover-sidebar-width: 320px; margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - var(--ec-header-offset));`}
   >
     <div class="flex-1 min-h-0 overflow-hidden">
       <DiscoverTable

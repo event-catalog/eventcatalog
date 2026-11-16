@@ -19,7 +19,7 @@ const { nodes, edges } = compactVisualiserGraph(graph.nodes as any[], graph.edge
   title="Visualiser | Global Entity Map"
   description="Every entity in the catalog and how they relate across domains"
 >
-  <div id="entity-map-page" class="p-2 flex gap-2 h-[calc(100vh-60px)]">
+  <div id="entity-map-page" class="p-2 flex gap-2 h-[calc(100vh-var(--ec-header-offset))]">
     <CatalogEntityMap
       client:only="react"
       id={id}

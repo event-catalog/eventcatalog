@@ -16,6 +16,7 @@ interface Props {
 import * as LucideIcons from 'lucide-react';
 import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
+import LicenseBanner from '../components/LicenseBanner.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
 import SearchDataLoader from '../components/Search/SearchDataLoader.astro';
 import config from '@config';
@@ -476,6 +477,15 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       :root {
         --ec-vertical-nav-width: 14rem;
         --ec-sidebar-panel-width: 17rem;
+        /* The header's height, which the rail's logo row and the sidebars' headers line up with */
+        --ec-header-height: 52px;
+        /* The license banner across the top (when there is one), which everything fixed to the top moves down by */
+        --ec-banner-height: 0px;
+        /* Where the page's content starts: under the banner and the header */
+        --ec-header-offset: calc(var(--ec-header-height) + var(--ec-banner-height));
+      }
+      :root:has(#ec-license-banner) {
+        --ec-banner-height: 32px;
       }
 
       :root[data-vertical-nav-collapsed='true'] {
@@ -547,8 +557,53 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
         width: var(--ec-vertical-nav-width);
         border-right: 1px solid rgb(var(--ec-page-border));
         background-color: rgb(var(--ec-page-bg));
-        box-shadow: 0 24px 44px -34px rgb(var(--ec-page-text) / 0.28);
         overflow: hidden;
+      }
+      /* Rail items: compact rows in the page's text colours, a faint wash on hover and a stronger one for the current
+         page, which also takes the full text colour */
+      .ec-rail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        height: 2rem;
+        padding: 0 0.625rem;
+        border-radius: 6px;
+        font-size: 13.5px;
+        font-weight: 500;
+        white-space: nowrap;
+        color: rgb(var(--ec-page-text-muted));
+        transition:
+          background-color 120ms,
+          color 120ms;
+      }
+      .ec-rail-item svg {
+        width: 1rem;
+        height: 1rem;
+        flex-shrink: 0;
+        color: rgb(var(--ec-page-text-muted) / 0.85);
+        transition: color 120ms;
+      }
+      .ec-rail-item:hover {
+        background: rgb(var(--ec-page-text) / 0.045);
+        color: rgb(var(--ec-page-text));
+      }
+      .ec-rail-item:hover svg,
+      .ec-rail-item[aria-current='page'] svg {
+        color: rgb(var(--ec-page-text));
+      }
+      .ec-rail-item[aria-current='page'] {
+        background: rgb(var(--ec-page-text) / 0.075);
+        color: rgb(var(--ec-page-text));
+      }
+      .ec-rail-item:focus-visible {
+        outline: 2px solid rgb(var(--ec-accent));
+        outline-offset: -2px;
+      }
+      .rail-section-label {
+        padding: 0.25rem 0.625rem 0.25rem;
+        font-size: 12px;
+        font-weight: 500;
+        color: rgb(var(--ec-page-text-muted) / 0.75);
       }
       :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-brand-text,
       :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-item-label,
@@ -562,22 +617,18 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       .vertical-nav-rail[data-collapsed='true'] .nav-label {
         display: none;
       }
-      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail [data-role='nav-item'],
-      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-secondary-item,
-      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail #vertical-nav-toggle,
-      .vertical-nav-rail[data-collapsed='true'] [data-role='nav-item'],
-      .vertical-nav-rail[data-collapsed='true'] .nav-secondary-item,
-      .vertical-nav-rail[data-collapsed='true'] #vertical-nav-toggle {
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .ec-rail-item,
+      .vertical-nav-rail[data-collapsed='true'] .ec-rail-item {
         justify-content: center;
-        width: 2.5rem;
-        height: 2.5rem;
+        width: 2.25rem;
+        height: 2.25rem;
         padding: 0;
       }
       :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-brand-link,
       .vertical-nav-rail[data-collapsed='true'] .nav-brand-link {
         justify-content: center;
         width: 100%;
-        height: 3.75rem;
+        height: var(--ec-header-height);
         padding-left: 0;
         padding-right: 0;
       }
@@ -611,13 +662,13 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       .sidebar-panel {
         width: var(--ec-sidebar-panel-width);
         min-width: var(--ec-sidebar-panel-width);
-        height: 100vh;
+        height: calc(100vh - var(--ec-banner-height));
         border-right: 1px solid rgb(var(--ec-content-border));
         background: rgb(var(--ec-rail-bg));
         display: flex;
         flex-direction: column;
         position: fixed;
-        top: 0;
+        top: var(--ec-banner-height);
         left: var(--ec-vertical-nav-width);
         z-index: 20;
         overflow: hidden;
@@ -714,11 +765,12 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
   </Fragment>
   {/* Load search data even when sidebar is hidden */}
   <SearchDataLoader />
+  <LicenseBanner />
   <main id="eventcatalog-application" class="relative">
     {
       showHeader && (
         <div transition:persist="site-header">
-          <Header showNestedSideBar={showNestedSideBar} />
+          <Header />
         </div>
       )
     }
@@ -728,34 +780,30 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
           id="vertical-nav-rail"
           data-collapsed="true"
           transition:persist="vertical-nav-rail"
-          class="vertical-nav-rail fixed top-0 left-0 flex flex-col h-screen z-30 transition-[width] duration-200"
+          class="vertical-nav-rail fixed top-[var(--ec-banner-height)] left-0 flex flex-col h-[calc(100vh-var(--ec-banner-height))] z-30 transition-[width] duration-200"
         >
           <a
             href={buildUrl(config.landingPage || '/')}
             aria-label="Home"
-            class="nav-brand-link flex items-center gap-2.5 px-4 h-[3.75rem] border-b border-[rgb(var(--ec-sidebar-border)/0.7)] flex-shrink-0"
+            class="nav-brand-link flex items-center gap-2.5 px-5 h-[var(--ec-header-height)] border-b border-[rgb(var(--ec-page-border))] flex-shrink-0"
           >
             <img
               src={config?.logo?.src ? buildUrl('/' + config.logo.src.replace(/^\/+/, ''), true) : buildUrl('/logo.png', true)}
               alt={config?.logo?.alt || 'EventCatalog'}
-              class="w-6 h-6 flex-shrink-0"
+              class="w-5 h-5 flex-shrink-0"
             />
-            <span class="nav-brand-text text-[15px] font-semibold text-[rgb(var(--ec-page-text))] tracking-tight">
+            <span class="nav-brand-text truncate text-sm font-semibold text-[rgb(var(--ec-page-text))] tracking-tight">
               {config?.logo?.text || config?.organizationName || 'EventCatalog'}
             </span>
           </a>
 
-          <nav class="flex flex-col flex-1 overflow-y-auto px-3 py-4 gap-1">
+          <nav class="flex flex-col flex-1 overflow-y-auto px-2.5 py-3 gap-0.5">
             {
               topNavigationGroups.map((group, groupIndex) => (
                 <Fragment>
-                  {groupIndex > 0 && <hr class="rail-divider my-3 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />}
+                  {groupIndex > 0 && <div class="rail-divider h-4" aria-hidden="true" />}
 
-                  {group.label && (
-                    <div class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[rgb(var(--ec-sidebar-text)/0.5)]">
-                      {group.label}
-                    </div>
-                  )}
+                  {group.label && <div class="rail-section-label">{group.label}</div>}
 
                   {group.items.map((item) => (
                     <a
@@ -765,11 +813,8 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
                       rel={item.rel}
                       data-role="vertical-nav-item"
                       aria-label={item.label}
-                      class={`flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
-                        item.current
-                          ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent))] shadow-sm'
-                          : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
-                      }`}
+                      aria-current={item.current ? 'page' : undefined}
+                      class="ec-rail-item"
                       title={item.label}
                     >
                       <item.Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
@@ -780,17 +825,11 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
               ))
             }
 
-            <div class="mt-auto pt-3">
+            <div class="mt-auto flex flex-col gap-0.5 pt-3">
               {
                 bottomNavigationGroups.map((group) => (
                   <Fragment>
-                    <hr class="rail-divider mb-3 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />
-
-                    {group.label && (
-                      <div class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[rgb(var(--ec-sidebar-text)/0.5)]">
-                        {group.label}
-                      </div>
-                    )}
+                    {group.label && <div class="rail-section-label">{group.label}</div>}
 
                     {group.items.map((item) => (
                       <a
@@ -800,11 +839,8 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
                         rel={item.rel}
                         data-role="vertical-nav-item"
                         aria-label={item.label}
-                        class={`flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
-                          item.current
-                            ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent))] shadow-sm'
-                            : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
-                        }`}
+                        aria-current={item.current ? 'page' : undefined}
+                        class="ec-rail-item"
                         title={item.label}
                       >
                         <item.Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
@@ -817,13 +853,8 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
             </div>
           </nav>
 
-          <div class="border-t border-[rgb(var(--ec-sidebar-border)/0.7)] px-3 py-3 flex-shrink-0">
-            <button
-              id="vertical-nav-toggle"
-              type="button"
-              aria-label="Collapse sidebar"
-              class="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent text-[13px] font-medium text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))] transition-all duration-150 w-full"
-            >
+          <div class="border-t border-[rgb(var(--ec-page-border))] px-2.5 py-2.5 flex-shrink-0">
+            <button id="vertical-nav-toggle" type="button" aria-label="Collapse sidebar" class="ec-rail-item w-full">
               <LucideIcons.PanelLeftClose className="h-4 w-4 flex-shrink-0 nav-collapse-icon" aria-hidden="true" />
               <span class="nav-label">Collapse</span>
             </button>
@@ -874,20 +905,6 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
   const SIDEBAR_WIDTH_STORAGE_KEY = 'eventcatalog-sidebar-width:v1';
   const MINIMUM_SIDEBAR_WIDTH = 224;
   const MAXIMUM_SIDEBAR_WIDTH = 576;
-  const ACTIVE_NAV_CLASSES = [
-    'border-[rgb(var(--ec-accent)/0.2)]',
-    'bg-[rgb(var(--ec-page-bg)/0.88)]',
-    'text-[rgb(var(--ec-accent))]',
-    'shadow-sm',
-  ];
-  const INACTIVE_NAV_CLASSES = [
-    'border-transparent',
-    'text-[rgb(var(--ec-sidebar-text))]',
-    'hover:border-[rgb(var(--ec-sidebar-border)/0.65)]',
-    'hover:bg-[rgb(var(--ec-page-bg)/0.78)]',
-    'hover:text-[rgb(var(--ec-page-text))]',
-  ];
-
   const isNavItemCurrent = (item, pathname) => {
     const matchId = item?.matchId || item?.id;
 
@@ -953,13 +970,9 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       const navigationItem = clientNavigationItems.find((navItem) => navItem.id === id);
       const isCurrent = navigationItem ? isNavItemCurrent(navigationItem, pathname) : false;
 
-      if (isCurrent) {
-        item.classList.remove(...INACTIVE_NAV_CLASSES);
-        item.classList.add(...ACTIVE_NAV_CLASSES);
-      } else {
-        item.classList.remove(...ACTIVE_NAV_CLASSES);
-        item.classList.add(...INACTIVE_NAV_CLASSES);
-      }
+      // The rail is kept across navigations: its current page is marked here (and styled from aria-current)
+      if (isCurrent) item.setAttribute('aria-current', 'page');
+      else item.removeAttribute('aria-current');
     });
   };
 

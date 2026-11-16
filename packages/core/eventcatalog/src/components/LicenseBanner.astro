@@ -1,0 +1,27 @@
+---
+import { getLicenseNotice } from '@utils/license-notice';
+
+// A thin bar across the top of the app when something needs doing about the license: it's expired or expiring, or the
+// trial has ended (not while a trial runs, which the header shows).
+// Only while running `eventcatalog dev`.
+// Its height is --ec-banner-height, which the header, the rail and the sidebars move down by (see VerticalSideBarLayout)
+const notice = await getLicenseNotice(Astro.url);
+---
+
+{
+  notice?.warning && (
+    <div
+      id="ec-license-banner"
+      role="status"
+      class="fixed inset-x-0 top-0 z-[60] flex h-[var(--ec-banner-height)] items-center justify-center gap-3 border-b border-[rgb(var(--ec-badge-color-amber-text)/0.2)] bg-[rgb(var(--ec-badge-color-amber-background))] px-4 text-xs text-[rgb(var(--ec-badge-color-amber-text))]"
+    >
+      <p class="min-w-0 truncate">{notice.message}</p>
+      <a
+        href={notice.href}
+        class="shrink-0 font-semibold underline decoration-current/30 underline-offset-2 transition-colors hover:decoration-current"
+      >
+        {notice.action === 'Renew' ? 'Renew license' : 'Manage license'} →
+      </a>
+    </div>
+  )
+}

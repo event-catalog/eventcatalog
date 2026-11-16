@@ -1,0 +1,509 @@
+---
+import { buildUrl } from '@utils/url-builder';
+import { isEventCatalogChatEnabled } from '@utils/feature';
+import { getCatalogOverview } from '@utils/homepage-dashboard';
+import { getColorForCollection } from '@utils/collection-colors';
+import { ArrowRight, Boxes, FileCode, Search, Server, UsersRound, Waypoints, Zap } from 'lucide-react';
+
+interface Props {
+  /** A link to the docs on customizing the homepage: on the default homepage only, not on one that's been customized */
+  customizeLink?: boolean;
+}
+
+const { customizeLink = false } = Astro.props;
+
+/** The default homepage: search first. One search box that finds a resource or asks the assistant, then the catalog by type */
+
+const { counts, suggestedQuestions } = await getCatalogOverview();
+// The assistant (asking from the search box, its suggested questions) only shows when it's set up and running
+const chatEnabled = isEventCatalogChatEnabled();
+
+// Each type's icon on a chip in the colour it has across the catalog (search, the sidebar), from the theme's badges
+const chip = (color: string) =>
+  `color: rgb(var(--ec-badge-color-${color}-text)); background: rgb(var(--ec-badge-color-${color}-background)); box-shadow: inset 0 0 0 1px rgb(var(--ec-badge-color-${color}-text) / 0.18);`;
+
+const types = [
+  {
+    label: 'Domains',
+    count: counts.domains,
+    description: 'Business areas and their boundaries',
+    href: buildUrl('/discover/domains'),
+    icon: Boxes,
+    color: getColorForCollection('domains'),
+  },
+  {
+    label: 'Services',
+    count: counts.services,
+    description: 'What runs, and who owns it',
+    href: buildUrl('/discover/services'),
+    icon: Server,
+    color: getColorForCollection('services'),
+  },
+  {
+    label: 'Messages',
+    count: counts.messages,
+    description: 'Events, commands and queries',
+    href: buildUrl('/discover/events'),
+    icon: Zap,
+    color: getColorForCollection('events'),
+  },
+  {
+    label: 'Flows',
+    count: counts.flows,
+    description: 'Business processes, step by step',
+    href: buildUrl('/discover/flows'),
+    icon: Waypoints,
+    color: getColorForCollection('flows'),
+  },
+  {
+    label: 'Schemas',
+    count: counts.schemas,
+    description: 'Contracts and API specs',
+    href: buildUrl('/schemas/explorer'),
+    icon: FileCode,
+    color: 'sky',
+  },
+  {
+    label: 'Teams',
+    count: counts.teams,
+    description: 'Who to ask about what',
+    href: buildUrl('/directory/teams'),
+    icon: UsersRound,
+    color: getColorForCollection('teams'),
+  },
+];
+---
+
+<!-- data-search-home: the header changes for it (see Header.astro) -->
+<div class="ec-search-home" data-search-home>
+  <div class="ec-search-home-grid-bg" aria-hidden="true"></div>
+  <section class="ec-search-home-hero">
+    <h1 class="ec-search-home-title">What are you looking for?</h1>
+    <p class="ec-search-home-lead">
+      Search everything documented across your architecture{chatEnabled ? ', or ask a question in plain words' : ''}.
+    </p>
+
+    <form class="ec-search-home-box" data-home-search data-mode="find" role="search">
+      <div class="flex items-center gap-3 px-4">
+        <Search className="h-[18px] w-[18px] shrink-0 text-[rgb(var(--ec-page-text-muted))]" aria-hidden="true" />
+        <label for="home-search" class="sr-only">
+          {chatEnabled ? 'Search the catalog or ask a question' : 'Search the catalog'}
+        </label>
+        <input
+          id="home-search"
+          type="text"
+          autocomplete="off"
+          data-find-placeholder={`Search services, events, schemas, teams${chatEnabled ? ', or ask a question' : ''}`}
+          data-ask-placeholder="Ask a question about the architecture"
+          placeholder={`Search services, events, schemas, teams${chatEnabled ? ', or ask a question' : ''}`}
+          class="h-14 min-w-0 flex-1 border-0 bg-transparent p-0 text-[16px] text-[rgb(var(--ec-page-text))] outline-none placeholder:text-[rgb(var(--ec-page-text-muted)/0.55)] focus:ring-0"
+        />
+        <kbd class="ec-search-home-kbd">⌘K</kbd>
+      </div>
+      {
+        chatEnabled && (
+          <div class="flex flex-wrap items-center gap-3 border-t border-[rgb(var(--ec-page-border))] px-3 py-2.5">
+            <div class="ec-search-home-segmented" role="group" aria-label="Search or ask">
+              <button type="button" data-mode-button="find" aria-pressed="true">
+                Find a resource
+              </button>
+              <button type="button" data-mode-button="ask" aria-pressed="false">
+                Ask the assistant
+              </button>
+            </div>
+            <span class="flex-1" />
+            <span class="ec-search-home-mono text-[rgb(var(--ec-page-text-muted))]">Answers cite their sources</span>
+          </div>
+        )
+      }
+    </form>
+
+    {
+      chatEnabled && suggestedQuestions.length > 0 && (
+        <ul class="ec-search-home-chips" aria-label="Questions to ask">
+          {suggestedQuestions.map((question) => (
+            <li>
+              <button type="button" class="ec-search-home-chip" data-ask-question={question}>
+                {question}
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+
+  <section class="ec-search-home-browse" aria-labelledby="home-browse">
+    <h2 id="home-browse" class="ec-search-home-heading">Browse by type</h2>
+    <nav class="ec-search-home-types" aria-labelledby="home-browse">
+      {
+        types.map((type) => (
+          <a href={type.href}>
+            <span class="ec-search-home-types-top">
+              <span class="ec-search-home-types-chip" style={chip(type.color)} aria-hidden="true">
+                <type.icon className="ec-search-home-types-icon" />
+              </span>
+              <span class="ec-search-home-types-name">{type.label}</span>
+              <span class="ec-search-home-mono ml-auto text-[rgb(var(--ec-page-text-muted))]">{type.count}</span>
+            </span>
+            <span class="ec-search-home-types-desc">{type.description}</span>
+          </a>
+        ))
+      }
+    </nav>
+  </section>
+
+  {
+    customizeLink && (
+      <a
+        href="https://www.eventcatalog.dev/docs/development/customization/customize-landing-page"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="ec-search-home-customize"
+      >
+        Customize this page
+      </a>
+    )
+  }
+</div>
+
+<script>
+  const openSearch = (query?: string) => (window as any).searchModalState?.open(query);
+  const ask = (question: string) => window.dispatchEvent(new CustomEvent('eventcatalog:open-chat', { detail: { question } }));
+
+  const bind = () => {
+    const form = document.querySelector<HTMLFormElement>('[data-home-search]');
+    const input = form?.querySelector<HTMLInputElement>('#home-search');
+    if (!form || !input || form.dataset.bound) return;
+    form.dataset.bound = 'true';
+
+    const setMode = (mode: 'find' | 'ask') => {
+      form.dataset.mode = mode;
+      input.placeholder = (mode === 'ask' ? input.dataset.askPlaceholder : input.dataset.findPlaceholder) ?? '';
+      form.querySelectorAll<HTMLButtonElement>('[data-mode-button]').forEach((button) => {
+        button.setAttribute('aria-pressed', String(button.dataset.modeButton === mode));
+      });
+      input.focus();
+    };
+    form.querySelectorAll<HTMLButtonElement>('[data-mode-button]').forEach((button) => {
+      button.addEventListener('click', () => setMode(button.dataset.modeButton as 'find' | 'ask'));
+    });
+
+    // Finding a resource hands over to the catalog's search as soon as there's something to search for
+    const handOverToSearch = () => {
+      const query = input.value;
+      input.value = '';
+      openSearch(query);
+    };
+    input.addEventListener('input', () => {
+      if (form.dataset.mode === 'find' && input.value.trim()) handOverToSearch();
+    });
+    input.addEventListener('click', () => {
+      if (form.dataset.mode === 'find') handOverToSearch();
+    });
+
+    // Enter asks the assistant (or searches)
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const text = input.value.trim();
+      if (form.dataset.mode === 'ask') {
+        if (!text) return;
+        input.value = '';
+        ask(text);
+      } else {
+        handOverToSearch();
+      }
+    });
+
+    document.querySelectorAll<HTMLButtonElement>('[data-ask-question]').forEach((chip) => {
+      chip.addEventListener('click', () => ask(chip.dataset.askQuestion!));
+    });
+  };
+  bind();
+  document.addEventListener('astro:page-load', bind);
+</script>
+
+<style is:global>
+  /*
+   * The website's hero: a faint grid behind the search box. Everything
+   * from the theme's variables, so it works light, dark and in custom themes
+   */
+  /*
+   * The grid behind the hero spans the whole content area, not just the homepage's column: they're
+   * placed against the page's content wrapper (left: 0, right: 0), staying where they fall in the page vertically (no
+   * top). That wrapper clips them, so the page doesn't scroll sideways, and a custom homepage's own boxes don't
+   */
+  .app-content-wrapper:has([data-search-home]) {
+    position: relative;
+    overflow-x: clip;
+  }
+  .ec-search-home {
+    isolation: isolate;
+    max-width: 72rem;
+    margin: 0 auto;
+    /* The search and the types, centred in the screen under the header */
+    min-height: calc(100dvh - var(--ec-header-offset, 52px));
+    padding: 3rem 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* The types run wide; the search box is narrower, for a comfortable line to type in */
+    --ec-search-home-column: 68rem;
+    --ec-search-home-search: 46rem;
+    font-size: 14px;
+    line-height: 1.5;
+    --ec-search-home-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  }
+  .ec-search-home-grid-bg {
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+  }
+  /* The website's hero grid: faint lines from right under the header (whatever spacing a custom homepage has above
+     this) to the bottom of the page */
+  .ec-search-home-grid-bg {
+    top: 0;
+    bottom: 0;
+    background-image:
+      linear-gradient(rgb(var(--ec-page-text) / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--ec-page-text) / 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: center top;
+    /* Across the page, fading out only at its edges */
+    mask-image:
+      linear-gradient(to bottom, #000 0%, #000 82%, transparent 100%),
+      linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+    mask-composite: intersect;
+    -webkit-mask-image:
+      linear-gradient(to bottom, #000 0%, #000 82%, transparent 100%),
+      linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+    -webkit-mask-composite: source-in;
+  }
+  .ec-search-home-mono {
+    font-family: var(--ec-search-home-mono);
+    font-size: 12px;
+  }
+
+  /* The hero */
+  /* Spacing: 16px within a group (heading and lead, box and questions), 32px before the search box, 56px between
+     the search and the types */
+  .ec-search-home-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+  }
+  .ec-search-home-title {
+    font-size: clamp(40px, 5vw, 64px);
+    font-weight: 630;
+    line-height: 0.99;
+    letter-spacing: -0.05em;
+    text-wrap: balance;
+    color: rgb(var(--ec-page-text));
+  }
+  .ec-search-home-lead {
+    max-width: 40rem;
+    font-size: 18px;
+    line-height: 1.55;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    color: rgb(var(--ec-page-text-muted));
+  }
+  .ec-search-home-box {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: var(--ec-search-home-search);
+    margin-top: 1rem;
+    text-align: left;
+    border: 1px solid rgb(var(--ec-page-border));
+    border-radius: 12px;
+    background: rgb(var(--ec-card-bg, var(--ec-page-bg)));
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.06),
+      0 24px 48px -24px rgb(0 0 0 / 0.35);
+    transition:
+      border-color 150ms,
+      box-shadow 150ms;
+  }
+  .ec-search-home-box:focus-within {
+    border-color: rgb(var(--ec-accent) / 0.55);
+    box-shadow:
+      0 0 0 4px rgb(var(--ec-accent) / 0.12),
+      0 24px 48px -24px rgb(0 0 0 / 0.35);
+  }
+  .ec-search-home-kbd {
+    flex: none;
+    padding: 2px 6px;
+    border: 1px solid rgb(var(--ec-page-border));
+    border-radius: 6px;
+    background: rgb(var(--ec-page-bg));
+    font-family: var(--ec-search-home-mono);
+    font-size: 11px;
+    color: rgb(var(--ec-page-text-muted));
+  }
+  .ec-search-home-segmented {
+    display: inline-flex;
+    padding: 3px;
+    gap: 2px;
+    border: 1px solid rgb(var(--ec-page-border));
+    border-radius: 9px;
+    background: rgb(var(--ec-page-bg));
+  }
+  .ec-search-home-segmented button {
+    height: 2rem;
+    padding: 0 0.75rem;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgb(var(--ec-page-text-muted));
+    transition:
+      background-color 150ms,
+      color 150ms;
+  }
+  .ec-search-home-segmented button:hover {
+    color: rgb(var(--ec-page-text));
+  }
+  .ec-search-home-segmented button[aria-pressed='true'] {
+    background: rgb(var(--ec-page-text));
+    color: rgb(var(--ec-page-bg));
+  }
+  .ec-search-home-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    max-width: var(--ec-search-home-search);
+  }
+  .ec-search-home-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 6px 12px;
+    border: 1px solid rgb(var(--ec-page-border));
+    border-radius: 999px;
+    background: rgb(var(--ec-page-bg));
+    font-size: 13px;
+    color: rgb(var(--ec-page-text-muted));
+    transition:
+      border-color 150ms,
+      color 150ms;
+  }
+  .ec-search-home-chip svg {
+    opacity: 0.5;
+  }
+  .ec-search-home-chip:hover {
+    border-color: rgb(var(--ec-page-text) / 0.35);
+    color: rgb(var(--ec-page-text));
+  }
+
+  /* Browse by type: one row of cells across the page, divided by hairlines (the grid's gap shows its border colour) */
+  /* Under the search, the two centred together in the screen */
+  .ec-search-home-browse {
+    width: 100%;
+    max-width: var(--ec-search-home-column);
+    margin: 3.5rem auto 0;
+    /* Columns by the room it has (the sidebar takes some), not the window's width */
+    container-type: inline-size;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .ec-search-home-heading {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgb(var(--ec-page-text));
+  }
+  .ec-search-home-types {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid rgb(var(--ec-page-border));
+    border-radius: 12px;
+    background: rgb(var(--ec-page-border));
+  }
+  @container (min-width: 520px) {
+    .ec-search-home-types {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @container (min-width: 760px) {
+    .ec-search-home-types {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  }
+  .ec-search-home-types a {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 14px 16px;
+    background: rgb(var(--ec-card-bg, var(--ec-page-bg)));
+    transition: background-color 120ms;
+  }
+  .ec-search-home-types a:hover {
+    background: rgb(var(--ec-content-hover, var(--ec-page-bg)));
+  }
+  .ec-search-home-types-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ec-search-home-types-name {
+    font-weight: 500;
+    color: rgb(var(--ec-page-text));
+  }
+  .ec-search-home-types-desc {
+    font-size: 13px;
+    line-height: 1.4;
+    color: rgb(var(--ec-page-text-muted));
+  }
+  /* The type's icon, as the sidebar and the rail draw it, on a chip in the type's colour */
+  .ec-search-home-types-chip {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+  }
+  .ec-search-home-types-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Bottom right of the screen, and quiet: no fill until it's hovered */
+  .ec-search-home-customize {
+    position: fixed;
+    z-index: 20;
+    right: calc(1.25rem + env(safe-area-inset-right, 0px));
+    bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    font-size: 12px;
+    font-weight: 500;
+    font-style: italic;
+    color: rgb(var(--ec-page-text-muted));
+    transition:
+      color 150ms,
+      border-color 150ms,
+      background-color 150ms;
+  }
+  .ec-search-home-customize:hover {
+    border-color: rgb(var(--ec-page-border));
+    background: rgb(var(--ec-page-bg) / 0.85);
+    color: rgb(var(--ec-page-text));
+  }
+</style>

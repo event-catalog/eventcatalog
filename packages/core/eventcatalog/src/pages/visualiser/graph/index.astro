@@ -19,7 +19,7 @@ const { nodes: wireNodes, links: wireLinks, linkLabels } = toCatalogForceGraphWi
   <div id="architecture-graph-page" class="p-4">
     <div
       id="architecture-graph-container"
-      class="h-[calc(100vh-60px-2rem)] w-full relative border border-[rgb(var(--ec-page-border))] rounded-md overflow-hidden"
+      class="h-[calc(100vh-var(--ec-header-offset)-2rem)] w-full relative border border-[rgb(var(--ec-page-border))] rounded-md overflow-hidden"
     >
       <CatalogForceGraph nodes={wireNodes} links={wireLinks} linkLabels={linkLabels} client:only="react" />
     </div>

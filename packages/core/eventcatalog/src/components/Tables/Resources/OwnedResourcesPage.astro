@@ -30,7 +30,7 @@ const count = `${resources.length} ${resources.length === 1 ? 'resource' : 'reso
   <main
     id="resources-page"
     class="flex h-full min-h-0 flex-col overflow-hidden bg-[rgb(var(--ec-page-bg))]"
-    style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);"
+    style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - var(--ec-header-offset));"
   >
     <ResourcesTable
       resources={resources}

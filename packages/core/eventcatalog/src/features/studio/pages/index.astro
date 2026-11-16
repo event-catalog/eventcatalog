@@ -106,7 +106,7 @@ const strokeOf = (preview: NonNullable<CanvasSummary['preview']>, ratio: number)
     unavailable ? (
       <main
         class="bg-[rgb(var(--ec-page-bg))]"
-        style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);"
+        style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - var(--ec-header-offset));"
       >
         <StudioNotice title="Studio isn't available" message={unavailable} />
       </main>
@@ -115,7 +115,7 @@ const strokeOf = (preview: NonNullable<CanvasSummary['preview']>, ratio: number)
         {/* The page's height, like Discover: the list scrolls between its header and its pages */}
         <main
           class="ml-0 flex flex-col bg-[rgb(var(--ec-page-bg))]"
-          style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);"
+          style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - var(--ec-header-offset));"
         >
           <div class="flex flex-shrink-0 flex-col gap-4 px-6 py-5 md:flex-row md:items-end md:justify-between">
             <div class="min-w-0">

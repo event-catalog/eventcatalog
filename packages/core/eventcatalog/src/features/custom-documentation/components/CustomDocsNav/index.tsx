@@ -199,7 +199,7 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
 
   return (
     <nav ref={navRef} className="flex h-full min-h-0 flex-col text-[rgb(var(--ec-page-text))]">
-      <div className="flex h-[60px] flex-shrink-0 items-center border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-rail-bg))] px-3">
+      <div className="flex h-[var(--ec-header-height)] flex-shrink-0 items-center border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-rail-bg))] px-3">
         <div className="flex w-full gap-2">
           <input
             type="text"

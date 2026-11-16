@@ -3,7 +3,8 @@ import MagnifyingGlassIcon from '@heroicons/react/24/outline/MagnifyingGlassIcon
 import SearchModal from './SearchModal.tsx';
 ---
 
-<div>
+<!-- The homepage has its own search box and hides this one (see Header.astro); ⌘K and the modal still work there -->
+<div data-search-input>
   <div class="relative flex min-w-0 items-center w-full">
     <input
       id="search-dummy-input"
@@ -34,10 +35,11 @@ import SearchModal from './SearchModal.tsx';
   (window as any).searchModalState = {
     isOpen: false,
     isClosing: false,
-    open: function () {
+    // Opens the modal, with what to search for when it's given (e.g. typed into the homepage's search box)
+    open: function (query?: string) {
       if (this.isClosing) return;
       this.isOpen = true;
-      this.render();
+      this.render(query);
     },
     toggle: function () {
       if (this.isClosing) return;
@@ -54,10 +56,10 @@ import SearchModal from './SearchModal.tsx';
         this.isClosing = false;
       }, 500);
     },
-    render: function () {
+    render: function (query?: string) {
       // This will be handled by React component
       const event = new CustomEvent('searchModalToggle', {
-        detail: { isOpen: this.isOpen },
+        detail: { isOpen: this.isOpen, query },
       });
       window.dispatchEvent(event);
     },

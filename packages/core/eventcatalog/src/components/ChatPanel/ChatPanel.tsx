@@ -482,10 +482,14 @@ const getSuggestedQuestions = (pathname: string): SuggestedQuestion[] => {
   return suggestedQuestionsConfig[suggestedQuestionsConfig.length - 1].questions;
 };
 
+/** A question the panel was opened with (e.g. asked from the homepage), sent once: a new one has a new id */
+export type ChatQuestion = { id: number; text: string };
+
 interface ChatPanelProps {
   configured?: boolean;
   isOpen: boolean;
   onClose: () => void;
+  question?: ChatQuestion;
 }
 
 /** The window's width without its scrollbar, which the panel (fixed, on the right) sits inside of (or the window's, where
@@ -1054,7 +1058,7 @@ const modalMarkdownComponents = {
   ),
 };
 
-const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
+const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelProps) => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const modalInputRef = useRef<HTMLTextAreaElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -1361,6 +1365,14 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
     },
     [configured, isLoading, sendMessage, setMessages, canvasId]
   );
+
+  // Ask the question the panel was opened with, once it's open
+  const askedQuestion = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (!isOpen || !question || askedQuestion.current === question.id) return;
+    askedQuestion.current = question.id;
+    submitMessage(question.text);
+  }, [isOpen, question, submitMessage]);
 
   const stopResponse = useCallback(() => {
     if (setupReplyTimer.current !== null) {

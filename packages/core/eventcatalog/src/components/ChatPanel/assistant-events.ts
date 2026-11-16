@@ -1,6 +1,6 @@
 /** Window events between the assistant (Ask AI) and the page it's on, e.g. a Studio canvas */
 
-/** Opens the assistant's panel */
+/** Opens the assistant's panel, and asks it something when given one (detail: { question }) */
 export const OPEN_CHAT_EVENT = 'eventcatalog:open-chat';
 
 /** The assistant was asked something on a Studio canvas (detail: { canvasId }), which it may draw on */

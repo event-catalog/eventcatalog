@@ -26,6 +26,8 @@ import { StarIcon as StarIconSolid, CircleStackIcon } from '@heroicons/react/24/
 import { Bot } from 'lucide-react';
 import { useStore } from '@nanostores/react';
 import { favoritesStore, toggleFavorite as toggleFavoriteAction } from '../../stores/favorites-store';
+import { sidebarStore } from '../../stores/sidebar-store';
+import SearchResultPreview from './SearchResultPreview';
 import { buildUrl } from '@utils/url-builder';
 import { resolveIconUrl } from '@utils/icon';
 import {
@@ -111,7 +113,12 @@ interface SearchNodeCompact {
 interface SearchIndexPayload {
   i?: SearchNodeCompact[];
   items?: SearchNode[];
+  /** The keys of the resources changed most recently, newest first (only with lastUpdated on) */
+  r?: string[];
 }
+
+/** How many resources an empty search lists when there's nothing recent to show */
+const EMPTY_QUERY_BROWSE_LIMIT = 20;
 
 interface PagefindModule {
   init: () => Promise<void>;
@@ -140,6 +147,30 @@ const loadPagefindModule = (url: string) => {
   return nativeImport(url);
 };
 
+/** A result's icon on a chip in its type's colour (or the icon it has of its own), in the list and the preview */
+const ResultIcon = ({
+  item,
+  size = 'sm',
+}: {
+  item: { type: string; rawNode?: { leftIcon?: string } };
+  /** Small in the list, so more results fit; larger at the top of the preview */
+  size?: 'sm' | 'lg';
+}) => {
+  const Icon = typeIcons[item.type] || typeIcons.default;
+  const colors = typeColors[item.type] || typeColors.default;
+  const box = size === 'lg' ? 'h-10 w-10 rounded-lg' : 'h-7 w-7 rounded-md';
+  const glyph = size === 'lg' ? 'h-6 w-6' : 'h-4 w-4';
+  return (
+    <div className={classNames('flex flex-none items-center justify-center ring-1 ring-inset', box, colors)}>
+      {item.rawNode?.leftIcon ? (
+        <img src={resolveIconUrl(item.rawNode.leftIcon)} alt="" loading="lazy" className={classNames(glyph, 'object-contain')} />
+      ) : (
+        <Icon className={glyph} aria-hidden="true" />
+      )}
+    </div>
+  );
+};
+
 export default function SearchModal() {
   const searchType = typeof __EC_SEARCH_TYPE__ !== 'undefined' ? __EC_SEARCH_TYPE__ : 'resource';
   const isIndexedSearch = searchType === 'indexed';
@@ -147,17 +178,22 @@ export default function SearchModal() {
   const [open, setOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchNodes, setSearchNodes] = useState<SearchNode[]>([]);
+  const [recentKeys, setRecentKeys] = useState<string[]>([]);
   const [indexedItems, setIndexedItems] = useState<SearchItem[]>([]);
   const [pagefind, setPagefind] = useState<PagefindModule | null>(null);
   const [isSearchingIndexed, setIsSearchingIndexed] = useState(false);
   const [isLoadingSearchIndex, setIsLoadingSearchIndex] = useState(false);
   const [searchIndexLoadError, setSearchIndexLoadError] = useState<string | null>(null);
   const favorites = useStore(favoritesStore);
+  // The sidebar data (loaded on every page) holds how resources connect, which the result preview shows
+  const sidebar = useStore(sidebarStore);
+  const previewedRef = useRef<any>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleModalToggle = (event: CustomEvent) => {
       setOpen(event.detail.isOpen);
+      if (event.detail.isOpen && typeof event.detail.query === 'string') setQuery(event.detail.query);
       if (event.detail.isOpen) {
         // Focus input when modal opens
         setTimeout(() => {
@@ -189,6 +225,7 @@ export default function SearchModal() {
       })
       .then((payload) => {
         setSearchNodes(normalizeSearchIndexPayload(payload));
+        setRecentKeys(payload.r ?? []);
       })
       .catch((error) => {
         setSearchIndexLoadError(error instanceof Error ? error.message : 'Unable to load search index');
@@ -355,6 +392,25 @@ export default function SearchModal() {
     return new Map(searchNodes.map((node) => [node.key, node]));
   }, [searchNodes]);
 
+  // Before anything's typed: favourites, else what changed recently, else the first resources (of the type picked)
+  const recentItems = useMemo(() => {
+    const byKey = new Map(items.map((item) => [item.key, item]));
+    return recentKeys.map((key) => byKey.get(key)).filter((item): item is NonNullable<typeof item> => !!item);
+  }, [items, recentKeys]);
+  const emptyQueryList =
+    query !== '' || isIndexedSearch
+      ? undefined
+      : activeFilter !== 'all'
+        ? 'type'
+        : favorites.length > 0
+          ? 'favourites'
+          : recentItems.length > 0
+            ? 'recent'
+            : 'browse';
+  const emptyQueryLabel = emptyQueryList
+    ? { type: undefined, favourites: 'Favourites', recent: 'Recently updated', browse: 'Browse the catalog' }[emptyQueryList]
+    : undefined;
+
   const filteredItems = useMemo(() => {
     if (isIndexedSearch) {
       if (query === '') {
@@ -365,8 +421,7 @@ export default function SearchModal() {
     }
 
     if (query === '') {
-      // Show favorites when search is empty
-      if (favorites.length > 0 && activeFilter === 'all') {
+      if (emptyQueryList === 'favourites') {
         return favorites
           .slice(0, 5)
           .map((fav) => {
@@ -393,11 +448,12 @@ export default function SearchModal() {
           })
           .filter((item): item is NonNullable<typeof item> => item !== null);
       }
-      return [];
+      if (emptyQueryList === 'recent') return recentItems;
+      return applyActiveFilter(items, activeFilter).slice(0, EMPTY_QUERY_BROWSE_LIMIT);
     }
 
     return applyActiveFilter(searchableItems, activeFilter).slice(0, SEARCH_RESULT_DISPLAY_LIMIT);
-  }, [isIndexedSearch, searchableItems, query, activeFilter, favorites, searchNodeLookup]);
+  }, [isIndexedSearch, searchableItems, query, activeFilter, favorites, searchNodeLookup, emptyQueryList, recentItems, items]);
 
   return (
     <Transition.Root
@@ -432,7 +488,7 @@ export default function SearchModal() {
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-[rgb(var(--ec-page-border))] overflow-hidden rounded-xl bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] shadow-2xl ring-1 ring-black/10 dark:ring-white/10 transition-all">
+            <Dialog.Panel className="mx-auto max-w-2xl md:max-w-4xl transform divide-y divide-[rgb(var(--ec-page-border))] overflow-hidden rounded-xl bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] shadow-2xl ring-1 ring-black/10 dark:ring-white/10 transition-all">
               <Combobox
                 onChange={(item: any) => {
                   if (item?.url) {
@@ -441,243 +497,282 @@ export default function SearchModal() {
                   }
                 }}
               >
-                <div className="relative border-b border-[rgb(var(--ec-page-border))]">
-                  <MagnifyingGlassIcon
-                    className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-[rgb(var(--ec-icon-color))]"
-                    aria-hidden="true"
-                  />
-                  <Combobox.Input
-                    ref={inputRef}
-                    className={classNames(
-                      'h-12 w-full border-0 bg-transparent pl-11 text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-icon-color))] focus:ring-0 sm:text-sm focus:outline-hidden',
-                      query.trim() !== '' && filteredItems.length > 0 ? 'pr-20' : 'pr-4'
-                    )}
-                    placeholder="Search..."
-                    onChange={(event) => setQuery(event.target.value)}
-                    value={query}
-                    autoFocus
-                    autoComplete="off"
-                  />
-                  {query.trim() !== '' && filteredItems.length > 0 && (
-                    <kbd className="pointer-events-none absolute right-4 top-2.5 rounded-lg bg-[rgb(var(--ec-content-hover))] px-2.5 py-1 text-xs font-semibold text-[rgb(var(--ec-page-text-muted))] ring-1 ring-inset ring-[rgb(var(--ec-page-border))]">
-                      ESC
-                    </kbd>
-                  )}
-                </div>
-
-                {/* Filter Tabs */}
-                {showFilterTabs && (
-                  <div
-                    className="flex items-center gap-2 px-4 pt-3 pb-3.5 overflow-x-auto overscroll-x-contain border-b border-[rgb(var(--ec-page-border))]"
-                    style={{
-                      scrollbarWidth: 'thin',
-                      scrollbarColor: 'rgb(var(--ec-page-border)) transparent',
-                    }}
-                  >
-                    {filters.map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveFilter(tab.id)}
-                        className={classNames(
-                          'px-3 py-1 text-xs font-medium rounded-full transition-colors whitespace-nowrap',
-                          activeFilter === tab.id
-                            ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))]'
-                            : 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-active))]'
-                        )}
-                      >
-                        {tab.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {isLoadingSearchIndex && (
-                  <div className="py-10 px-6 text-center text-sm sm:px-14">
-                    <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))] animate-pulse" />
-                    <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">Loading search index…</p>
-                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">
-                      {isIndexedSearch ? 'Preparing indexed search.' : 'Preparing resources for search.'}
-                    </p>
-                  </div>
-                )}
-
-                {searchIndexLoadError && !isLoadingSearchIndex && (
-                  <div className="px-6 py-12 text-center text-sm sm:px-14">
-                    <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] ring-1 ring-inset ring-[rgb(var(--ec-page-border))]">
-                      <ExclamationCircleIcon className="h-5 w-5" aria-hidden="true" />
-                    </div>
-                    <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">
-                      {isIndexedSearch ? 'Indexed search is not ready' : 'Search is not ready'}
-                    </p>
-                    <p className="mx-auto mt-2 max-w-sm text-[rgb(var(--ec-page-text-muted))]">{searchIndexLoadError}</p>
-                  </div>
-                )}
-
-                {!isLoadingSearchIndex && !searchIndexLoadError && filteredItems.length > 0 && (
-                  <>
-                    {!isIndexedSearch && query === '' && favorites.length > 0 && (
-                      <div className="px-6 pt-3 pb-2">
-                        <p className="text-xs text-[rgb(var(--ec-page-text-muted))]">Favourites</p>
-                      </div>
-                    )}
-                    <Combobox.Options static className="max-h-96 scroll-py-3 overflow-y-auto p-3">
-                      {filteredItems.map((item) => {
-                        const Icon = typeIcons[item.type] || typeIcons.default;
-                        const colors = typeColors[item.type] || typeColors.default;
-
-                        const isFavorite = !!item.key && favorites.some((fav) => fav.nodeKey === item.key);
-
-                        return (
-                          <Combobox.Option
-                            key={item.key ?? item.id}
-                            value={item}
-                            className={({ active }) =>
-                              classNames(
-                                'flex cursor-default select-none rounded-xl p-3 group',
-                                active && 'bg-[rgb(var(--ec-content-active))]'
-                              )
+                {({ activeOption }: { activeOption: (typeof filteredItems)[number] | null }) => {
+                  // The result previewed (and shown highlighted): the one highlighted, else the last one that was (while the
+                  // pointer crosses to the preview to click it), else the first
+                  if (activeOption) previewedRef.current = activeOption;
+                  const last = previewedRef.current;
+                  const previewed = activeOption ?? (last && filteredItems.includes(last) ? last : (filteredItems[0] ?? null));
+                  return (
+                    <>
+                      <div className="relative border-b border-[rgb(var(--ec-page-border))]">
+                        <MagnifyingGlassIcon
+                          className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-[rgb(var(--ec-icon-color))]"
+                          aria-hidden="true"
+                        />
+                        <Combobox.Input
+                          ref={inputRef}
+                          className={classNames(
+                            'h-12 w-full border-0 bg-transparent pl-11 text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-page-text-muted)/0.55)] focus:ring-0 sm:text-sm focus:outline-hidden',
+                            query.trim() !== '' && filteredItems.length > 0 ? 'pr-20' : 'pr-4'
+                          )}
+                          placeholder="Search..."
+                          onChange={(event) => setQuery(event.target.value)}
+                          // Enter opens the result previewed, highlighted before any arrow key is pressed
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' && !activeOption && previewed?.url) {
+                              event.preventDefault();
+                              window.location.href = previewed.url;
+                              closeModal();
                             }
-                          >
-                            {({ active }) => (
-                              <>
-                                <div
-                                  className={classNames(
-                                    'flex h-10 w-10 flex-none items-center justify-center rounded-lg ring-1 ring-inset',
-                                    colors
-                                  )}
-                                >
-                                  {item.rawNode?.leftIcon ? (
-                                    <img
-                                      src={resolveIconUrl(item.rawNode.leftIcon)}
-                                      alt=""
-                                      loading="lazy"
-                                      className="h-6 w-6 object-contain"
-                                    />
-                                  ) : (
-                                    <Icon className="h-6 w-6" aria-hidden="true" />
-                                  )}
-                                </div>
-                                <div className="ml-4 flex-auto min-w-0">
-                                  <p
-                                    className={classNames(
-                                      'text-sm font-medium',
-                                      searchResultHighlightClassName,
-                                      active ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text))]'
+                          }}
+                          value={query}
+                          autoFocus
+                          autoComplete="off"
+                        />
+                        {query.trim() !== '' && filteredItems.length > 0 && (
+                          <kbd className="pointer-events-none absolute right-4 top-2.5 rounded-lg bg-[rgb(var(--ec-content-hover))] px-2.5 py-1 text-xs font-semibold text-[rgb(var(--ec-page-text-muted))] ring-1 ring-inset ring-[rgb(var(--ec-page-border))]">
+                            ESC
+                          </kbd>
+                        )}
+                      </div>
+
+                      {/* Filter Tabs */}
+                      {showFilterTabs && (
+                        <div
+                          className="flex items-center gap-2 px-4 pt-3 pb-3.5 overflow-x-auto overscroll-x-contain border-b border-[rgb(var(--ec-page-border))]"
+                          style={{
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: 'rgb(var(--ec-page-border)) transparent',
+                          }}
+                        >
+                          {filters.map((tab) => (
+                            <button
+                              key={tab.id}
+                              onClick={() => setActiveFilter(tab.id)}
+                              className={classNames(
+                                'px-3 py-1 text-xs font-medium rounded-full transition-colors whitespace-nowrap',
+                                activeFilter === tab.id
+                                  ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))]'
+                                  : 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-active))]'
+                              )}
+                            >
+                              {tab.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {isLoadingSearchIndex && (
+                        <div className="py-10 px-6 text-center text-sm sm:px-14">
+                          <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))] animate-pulse" />
+                          <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">Loading search index…</p>
+                          <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">
+                            {isIndexedSearch ? 'Preparing indexed search.' : 'Preparing resources for search.'}
+                          </p>
+                        </div>
+                      )}
+
+                      {searchIndexLoadError && !isLoadingSearchIndex && (
+                        <div className="px-6 py-12 text-center text-sm sm:px-14">
+                          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] ring-1 ring-inset ring-[rgb(var(--ec-page-border))]">
+                            <ExclamationCircleIcon className="h-5 w-5" aria-hidden="true" />
+                          </div>
+                          <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">
+                            {isIndexedSearch ? 'Indexed search is not ready' : 'Search is not ready'}
+                          </p>
+                          <p className="mx-auto mt-2 max-w-sm text-[rgb(var(--ec-page-text-muted))]">{searchIndexLoadError}</p>
+                        </div>
+                      )}
+
+                      {!isLoadingSearchIndex && !searchIndexLoadError && filteredItems.length > 0 && (
+                        <>
+                          {emptyQueryLabel && (
+                            <div className="px-6 pt-3 pb-2">
+                              <p className="text-xs text-[rgb(var(--ec-page-text-muted))]">{emptyQueryLabel}</p>
+                            </div>
+                          )}
+                          {/* A fixed height beside the preview, so the modal doesn't grow and shrink as results are highlighted */}
+                          <div className="flex md:h-96">
+                            <Combobox.Options
+                              static
+                              // The dialog keeps focus in the modal; as a modal itself the list makes the preview beside it inert (no scrolling or clicking)
+                              modal={false}
+                              className="max-h-96 min-w-0 flex-1 scroll-py-2 overflow-y-auto p-2 md:max-h-none"
+                            >
+                              {filteredItems.map((item) => {
+                                const isFavorite = !!item.key && favorites.some((fav) => fav.nodeKey === item.key);
+
+                                return (
+                                  <Combobox.Option
+                                    key={item.key ?? item.id}
+                                    value={item}
+                                    className={({ active }) =>
+                                      classNames(
+                                        'flex cursor-default select-none items-center rounded-lg px-2.5 py-2 group',
+                                        (active || item === previewed) && 'bg-[rgb(var(--ec-content-active))]'
+                                      )
+                                    }
+                                  >
+                                    {({ active }) => (
+                                      <>
+                                        <ResultIcon item={item} />
+                                        <div className="ml-3 flex-auto min-w-0">
+                                          <div className="flex items-baseline gap-3">
+                                            <p
+                                              className={classNames(
+                                                'min-w-0 flex-1 truncate text-[13px] font-medium leading-5 text-[rgb(var(--ec-page-text))]',
+                                                searchResultHighlightClassName
+                                              )}
+                                              dangerouslySetInnerHTML={{ __html: highlightQuery(item.name, query) }}
+                                            />
+                                            {/* Wide screens: the type on the right, one line a result (the preview has the summary) */}
+                                            {!item.rawNode.matchedExcerpt && (
+                                              <span className="hidden shrink-0 text-xs text-[rgb(var(--ec-page-text-muted))] md:block">
+                                                {item.type}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <div
+                                            className={classNames(
+                                              'flex items-center gap-2 leading-4',
+                                              !item.rawNode.matchedExcerpt && 'md:hidden'
+                                            )}
+                                          >
+                                            {!item.rawNode.matchedExcerpt && (
+                                              <p
+                                                className={classNames(
+                                                  'text-xs flex-shrink-0',
+                                                  active
+                                                    ? 'text-[rgb(var(--ec-page-text))]'
+                                                    : 'text-[rgb(var(--ec-page-text-muted))]'
+                                                )}
+                                              >
+                                                {item.type}
+                                              </p>
+                                            )}
+                                            {item.rawNode.summary && (
+                                              <p
+                                                className={classNames(
+                                                  'text-xs truncate',
+                                                  active
+                                                    ? 'text-[rgb(var(--ec-page-text-muted))]'
+                                                    : 'text-[rgb(var(--ec-icon-color))]'
+                                                )}
+                                              >
+                                                {!item.rawNode.matchedExcerpt && '• '}
+                                                {item.rawNode.matchedExcerpt ? (
+                                                  <span
+                                                    className={searchResultHighlightClassName}
+                                                    dangerouslySetInnerHTML={{ __html: item.rawNode.matchedExcerpt }}
+                                                  />
+                                                ) : (
+                                                  item.rawNode.summary
+                                                )}
+                                              </p>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="flex items-center">
+                                          {!!item.key && (
+                                            <button
+                                              onClick={(e) => handleToggleFavorite(e, item)}
+                                              onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                              }}
+                                              className={classNames(
+                                                'p-1 rounded-md transition-colors mr-2',
+                                                isFavorite
+                                                  ? 'text-amber-400 hover:text-amber-500'
+                                                  : 'text-[rgb(var(--ec-icon-color))] opacity-0 group-hover:opacity-100 hover:text-amber-400'
+                                              )}
+                                            >
+                                              {isFavorite ? (
+                                                <StarIconSolid className="h-5 w-5" />
+                                              ) : (
+                                                <StarIcon className="h-5 w-5" />
+                                              )}
+                                            </button>
+                                          )}
+                                          {active && (
+                                            <ArrowRightIcon
+                                              className="h-5 w-5 text-[rgb(var(--ec-icon-color))]"
+                                              aria-hidden="true"
+                                            />
+                                          )}
+                                        </div>
+                                      </>
                                     )}
-                                    dangerouslySetInnerHTML={{ __html: highlightQuery(item.name, query) }}
-                                  />
-                                  <div className="flex items-center gap-2">
-                                    {!item.rawNode.matchedExcerpt && (
-                                      <p
-                                        className={classNames(
-                                          'text-xs flex-shrink-0',
-                                          active ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text-muted))]'
-                                        )}
-                                      >
-                                        {item.type}
-                                      </p>
-                                    )}
-                                    {item.rawNode.summary && (
-                                      <p
-                                        className={classNames(
-                                          'text-xs truncate',
-                                          active ? 'text-[rgb(var(--ec-page-text-muted))]' : 'text-[rgb(var(--ec-icon-color))]'
-                                        )}
-                                      >
-                                        {!item.rawNode.matchedExcerpt && '• '}
-                                        {item.rawNode.matchedExcerpt ? (
-                                          <span
-                                            className={searchResultHighlightClassName}
-                                            dangerouslySetInnerHTML={{ __html: item.rawNode.matchedExcerpt }}
-                                          />
-                                        ) : (
-                                          item.rawNode.summary
-                                        )}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex items-center">
-                                  {!!item.key && (
-                                    <button
-                                      onClick={(e) => handleToggleFavorite(e, item)}
-                                      onMouseDown={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                      }}
-                                      className={classNames(
-                                        'p-1 rounded-md transition-colors mr-2',
-                                        isFavorite
-                                          ? 'text-amber-400 hover:text-amber-500'
-                                          : 'text-[rgb(var(--ec-icon-color))] opacity-0 group-hover:opacity-100 hover:text-amber-400'
-                                      )}
-                                    >
-                                      {isFavorite ? <StarIconSolid className="h-5 w-5" /> : <StarIcon className="h-5 w-5" />}
-                                    </button>
-                                  )}
-                                  {active && (
-                                    <ArrowRightIcon className="h-5 w-5 text-[rgb(var(--ec-icon-color))]" aria-hidden="true" />
-                                  )}
-                                </div>
-                              </>
+                                  </Combobox.Option>
+                                );
+                              })}
+                            </Combobox.Options>
+                            {previewed && (
+                              <SearchResultPreview
+                                result={previewed}
+                                icon={<ResultIcon item={previewed} size="lg" />}
+                                nodes={sidebar?.nodes}
+                                onNavigate={closeModal}
+                              />
                             )}
-                          </Combobox.Option>
-                        );
-                      })}
-                    </Combobox.Options>
-                  </>
-                )}
+                          </div>
+                        </>
+                      )}
 
-                {!isLoadingSearchIndex && !searchIndexLoadError && query !== '' && filteredItems.length === 0 && (
-                  <div className="py-14 px-6 text-center text-sm sm:px-14">
-                    {isSearchingIndexed ? (
-                      <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))] animate-pulse" />
-                    ) : (
-                      <ExclamationCircleIcon
-                        type="outline"
-                        name="exclamation-circle"
-                        className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]"
-                      />
-                    )}
-                    <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">
-                      {isSearchingIndexed ? 'Searching…' : 'No results found'}
-                    </p>
-                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">
-                      {isSearchingIndexed
-                        ? 'Searching the indexed catalog.'
-                        : 'No components found for this search term. Please try again.'}
-                    </p>
-                  </div>
-                )}
+                      {!isLoadingSearchIndex && !searchIndexLoadError && query !== '' && filteredItems.length === 0 && (
+                        <div className="py-14 px-6 text-center text-sm sm:px-14">
+                          {isSearchingIndexed ? (
+                            <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))] animate-pulse" />
+                          ) : (
+                            <ExclamationCircleIcon
+                              type="outline"
+                              name="exclamation-circle"
+                              className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]"
+                            />
+                          )}
+                          <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">
+                            {isSearchingIndexed ? 'Searching…' : 'No results found'}
+                          </p>
+                          <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">
+                            {isSearchingIndexed
+                              ? 'Searching the indexed catalog.'
+                              : 'No components found for this search term. Please try again.'}
+                          </p>
+                        </div>
+                      )}
 
-                {!isLoadingSearchIndex && !searchIndexLoadError && query === '' && filteredItems.length === 0 && (
-                  <div className="py-14 px-6 text-center text-sm sm:px-14">
-                    <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]" />
-                    <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">Search for anything</p>
-                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">
-                      {isIndexedSearch
-                        ? 'Search indexed catalog content, custom docs, resources and more.'
-                        : 'Search for domains, services, events, commands, queries, data stores, data products, flows and more.'}
-                    </p>
-                  </div>
-                )}
+                      {!isLoadingSearchIndex && !searchIndexLoadError && query === '' && filteredItems.length === 0 && (
+                        <div className="py-14 px-6 text-center text-sm sm:px-14">
+                          <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]" />
+                          <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">Search for anything</p>
+                          <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">
+                            {isIndexedSearch
+                              ? 'Search indexed catalog content, custom docs, resources and more.'
+                              : 'Search for domains, services, events, commands, queries, data stores, data products, flows and more.'}
+                          </p>
+                        </div>
+                      )}
 
-                {/* Footer */}
-                <div className="flex flex-wrap items-center bg-[rgb(var(--ec-content-hover))] py-2.5 px-4 text-xs text-[rgb(var(--ec-page-text-muted))] border-t border-[rgb(var(--ec-page-border))]">
-                  <div className="flex items-center mr-4">
-                    <ArrowUturnLeftIcon className="h-3 w-3 mr-1" />
-                    to select
-                  </div>
-                  <div className="flex items-center mr-4">
-                    <ArrowDownIcon className="h-3 w-3 mr-1" />
-                    <ArrowUpIcon className="h-3 w-3 mr-1" />
-                    to navigate
-                  </div>
-                  <div className="flex items-center">
-                    <span className="mr-1">esc</span>
-                    to close
-                  </div>
-                </div>
+                      {/* Footer */}
+                      <div className="flex flex-wrap items-center bg-[rgb(var(--ec-content-hover))] py-2.5 px-4 text-xs text-[rgb(var(--ec-page-text-muted))] border-t border-[rgb(var(--ec-page-border))]">
+                        <div className="flex items-center mr-4">
+                          <ArrowUturnLeftIcon className="h-3 w-3 mr-1" />
+                          to select
+                        </div>
+                        <div className="flex items-center mr-4">
+                          <ArrowDownIcon className="h-3 w-3 mr-1" />
+                          <ArrowUpIcon className="h-3 w-3 mr-1" />
+                          to navigate
+                        </div>
+                        <div className="flex items-center">
+                          <span className="mr-1">esc</span>
+                          to close
+                        </div>
+                      </div>
+                    </>
+                  );
+                }}
               </Combobox>
             </Dialog.Panel>
           </Transition.Child>
