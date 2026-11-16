@@ -280,7 +280,7 @@ describe('getPactFields', () => {
       ])
     )!;
 
-    expect(getPactFields(pact.interactions[0].schema).map((field) => field.path)).toEqual(['items[].sku', 'tags[]']);
+    expect(getPactFields(pact.interactions[0].schema).map((field) => field.path)).toEqual(['items', 'items[].sku', 'tags[]']);
   });
 
   const fieldsOf = (contents: unknown, body: Record<string, unknown>) =>
@@ -381,6 +381,13 @@ describe('getPactFields', () => {
     expect(
       fieldsOf({ code: 'AZ' }, { '$.code': { combine: 'OR', matchers: [{ match: 'regex', regex: '^A' }, { match: 'null' }] } })
     ).toEqual([{ path: 'code', type: 'string', check: 'type' }]);
+  });
+
+  it('reports how many items a list may have, before the fields of its items', () => {
+    expect(fieldsOf({ items: [{ sku: 'A' }] }, { '$.items': { matchers: [{ match: 'type', min: 1, max: 5 }] } })).toEqual([
+      { path: 'items', type: 'array', check: 'type', minItems: 1, maxItems: 5 },
+      { path: 'items[].sku', type: 'string', check: 'type' },
+    ]);
   });
 
   it('reports a field with an include matcher with the text it must include', () => {

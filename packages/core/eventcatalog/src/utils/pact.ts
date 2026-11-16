@@ -410,6 +410,9 @@ export type PactField = {
   /** Several patterns for one field: it must match all of them (`AND`) or any of them (`OR`) */
   patterns?: string[];
   combine?: 'AND' | 'OR';
+  /** For a list: the fewest and the most items it may have */
+  minItems?: number;
+  maxItems?: number;
   includes?: string;
   value?: unknown;
   format?: string;
@@ -426,7 +429,16 @@ export const getPactFields = (schema: JsonSchema | undefined, prefix = ''): Pact
     );
   }
 
-  if (schema.type === 'array' && isObject(schema.items)) return getPactFields(schema.items, `${prefix}[]`);
+  if (schema.type === 'array' && isObject(schema.items)) {
+    const items = getPactFields(schema.items, `${prefix}[]`);
+    // How many items the list may have is an expectation of the list itself
+    const isBounded = prefix && (schema.minItems !== undefined || schema.maxItems !== undefined);
+    if (!isBounded) return items;
+    const list: PactField = { path: prefix, type: 'array', check: 'type' };
+    if (schema.minItems !== undefined) list.minItems = schema.minItems;
+    if (schema.maxItems !== undefined) list.maxItems = schema.maxItems;
+    return [list, ...items];
+  }
 
   // The whole body is one value, or an empty object or list: nothing to name
   if (!prefix) return [];
