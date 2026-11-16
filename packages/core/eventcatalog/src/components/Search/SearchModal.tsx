@@ -529,7 +529,7 @@ export default function SearchModal() {
 
                         return (
                           <Combobox.Option
-                            key={item.id}
+                            key={item.key ?? item.id}
                             value={item}
                             className={({ active }) =>
                               classNames(
