@@ -43,7 +43,8 @@ export type Pact = {
 };
 
 type Matcher = { match?: string; regex?: string; min?: number; max?: number; [key: string]: unknown };
-type Rules = Map<string, Matcher[]>;
+/** Rules by the exact path of their field, and the ones with a `*` (any field of an object) to try after those */
+type Rules = { exact: Map<string, Matcher[]>; wildcards: { segments: string[]; matchers: Matcher[] }[] };
 
 const isObject = (value: unknown): value is Record<string, any> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -63,13 +64,15 @@ const toKey = (segments: string[]) => segments.join('\u0000');
  * Version 3 and 4: `{ body: { "$.orderId": { matchers: [...] } } }`. Version 2: `{ "$.body.orderId": { match } }`.
  */
 const readRules = (matchingRules: unknown): Rules => {
-  const rules: Rules = new Map();
+  const rules: Rules = { exact: new Map(), wildcards: [] };
   if (!isObject(matchingRules)) return rules;
 
   const add = (jsonPath: string, rule: unknown) => {
     if (!isObject(rule)) return;
     const matchers = Array.isArray(rule.matchers) ? rule.matchers.filter(isObject) : [rule];
-    rules.set(toKey(toSegments(jsonPath)), matchers as Matcher[]);
+    const segments = toSegments(jsonPath);
+    if (segments.includes('*')) rules.wildcards.push({ segments, matchers: matchers as Matcher[] });
+    else rules.exact.set(toKey(segments), matchers as Matcher[]);
   };
 
   // Versions 3 and 4 keep a message's rules under `body` (a message's `content` is sometimes used instead)
@@ -86,6 +89,15 @@ const readRules = (matchingRules: unknown): Rules => {
   }
   return rules;
 };
+
+/** The rule for a field: the one for its exact path, or else one whose `*` segments stand for any field name */
+const findMatchers = (rules: Rules, segments: string[]): Matcher[] | undefined =>
+  rules.exact.get(toKey(segments)) ??
+  rules.wildcards.find(
+    (rule) =>
+      rule.segments.length === segments.length &&
+      rule.segments.every((segment, index) => segment === segments[index] || (segment === '*' && segments[index] !== '[*]'))
+  )?.matchers;
 
 const typeOf = (value: unknown): string => {
   if (value === null) return 'null';
@@ -159,16 +171,44 @@ const applyMatchers = (schema: JsonSchema, matchers: Matcher[], example?: unknow
  */
 const isMatchedByAncestor = (segments: string[], rules: Rules) => {
   for (let length = segments.length - 1; length >= 0; length--) {
-    const matchers = rules.get(toKey(segments.slice(0, length)));
+    const matchers = findMatchers(rules, segments.slice(0, length));
     if (!matchers || matchers.length === 0) continue;
     return matchers.some((matcher) => matcher.match === 'type' || matcher.min !== undefined || matcher.max !== undefined);
   }
   return false;
 };
 
+/**
+ * One schema for the items of a list from two of its example items, so a field only a later item has is still
+ * listed. A field is required when both have it, and its value is only fixed when both agree on it.
+ */
+const mergeItemSchemas = (first: JsonSchema, second: JsonSchema): JsonSchema => {
+  if (first.type !== second.type) return first;
+
+  if (first.type === 'object') {
+    const properties: Record<string, JsonSchema> = { ...first.properties };
+    for (const [name, schema] of Object.entries<JsonSchema>(second.properties ?? {})) {
+      properties[name] = name in properties ? mergeItemSchemas(properties[name], schema) : schema;
+    }
+    const required = (first.required ?? []).filter((name: string) => (second.required ?? []).includes(name));
+    return { ...first, properties, required };
+  }
+
+  if (first.type === 'array') {
+    if (first.items && second.items) return { ...first, items: mergeItemSchemas(first.items, second.items) };
+    return first.items ? first : { ...first, ...(second.items ? { items: second.items } : {}) };
+  }
+
+  if ('const' in first && (!('const' in second) || first.const !== second.const)) {
+    const { const: _fixed, ...rest } = first;
+    return rest;
+  }
+  return first;
+};
+
 const toSchema = (example: unknown, rules: Rules, segments: string[] = []): JsonSchema => {
   const type = typeOf(example);
-  const matchers = rules.get(toKey(segments));
+  const matchers = findMatchers(rules, segments);
 
   if (isObject(example)) {
     const schema: JsonSchema = {
@@ -184,7 +224,9 @@ const toSchema = (example: unknown, rules: Rules, segments: string[] = []): Json
 
   if (Array.isArray(example)) {
     const schema: JsonSchema = { type: 'array' };
-    if (example.length > 0) schema.items = toSchema(example[0], rules, [...segments, '[*]']);
+    if (example.length > 0) {
+      schema.items = example.map((item) => toSchema(item, rules, [...segments, '[*]'])).reduce(mergeItemSchemas);
+    }
     return matchers ? applyMatchers(schema, matchers) : schema;
   }
 

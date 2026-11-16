@@ -87,6 +87,7 @@ When the contract is a Pact file (JSON, Pact Specification versions 2 to 4), its
   - a field matched by `include` is shown with the text it must contain
   - a field with no matching rule, or with an `equality` rule (its own or its parent's), is shown as a constant, because Pact then expects exactly the example's value
   - every field in the example is required
+  - a list is described from all of its example items, so a field only a later item has is still listed
 
 A Pact describes its interactions in words (such as "an order ready for shipping event"), not by catalog id. On a message's page, the Fields tab shows the interactions whose description contains the message's name or id, and all of them when none does.
 

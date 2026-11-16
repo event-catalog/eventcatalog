@@ -306,6 +306,39 @@ describe('getPactFields', () => {
     ]);
   });
 
+  it('lists a field that only a later example item of a list has, and does not fix a value the items disagree on', () => {
+    expect(
+      fieldsOf(
+        {
+          items: [
+            { sku: 'A', qty: 1 },
+            { sku: 'B', qty: 1, discountCode: 'SAVE' },
+          ],
+        },
+        {}
+      )
+    ).toEqual([
+      { path: 'items[].sku', type: 'string', check: 'type' },
+      { path: 'items[].qty', type: 'integer', check: 'exact value', value: 1 },
+      { path: 'items[].discountCode', type: 'string', check: 'exact value', value: 'SAVE' },
+    ]);
+  });
+
+  it('applies a rule for any field of an object (*) to each of its fields, unless a field has a rule of its own', () => {
+    expect(
+      fieldsOf(
+        { codes: { first: 'ABC', second: 'DEF' } },
+        {
+          '$.codes.*': { matchers: [{ match: 'regex', regex: '^[A-Z]{3}$' }] },
+          '$.codes.second': { matchers: [{ match: 'type' }] },
+        }
+      )
+    ).toEqual([
+      { path: 'codes.first', type: 'string', check: 'pattern', pattern: '^[A-Z]{3}$' },
+      { path: 'codes.second', type: 'string', check: 'type' },
+    ]);
+  });
+
   it('reports a field with an include matcher with the text it must include', () => {
     expect(
       fieldsOf({ reason: 'card declined' }, { '$.reason': { matchers: [{ match: 'include', value: 'declined' }] } })

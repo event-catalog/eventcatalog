@@ -1,6 +1,5 @@
 ---
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import Footer from '@layouts/Footer.astro';
 import { Page, getContextMenu, type ContractMessage, type ContractResource } from './_[filename].data';
 import ContractViewer from './_ContractViewer';
 import { PACT_ICON, PACT_ICON_WHITE, getPactInteractionsForMessage, isPactContractType, parsePact } from '@utils/pact';
@@ -148,7 +147,6 @@ const pagefindAttributes =
           }
         </ContractFlow>
 
-        <Footer />
       </div>
     </div>
   </main>
