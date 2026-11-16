@@ -43,36 +43,34 @@ export type Pact = {
 };
 
 type Matcher = { match?: string; regex?: string; min?: number; max?: number; [key: string]: unknown };
-/** Rules by the exact path of their field, and the ones with a `*` (any field of an object) to try after those */
-type Rules = { exact: Map<string, Matcher[]>; wildcards: { segments: string[]; matchers: Matcher[] }[] };
+/** The matchers of one path, and whether a value must pass all of them (AND, Pact's default) or any of them (OR) */
+type Rule = { segments: string[]; matchers: Matcher[]; combine: 'AND' | 'OR' };
+type Rules = Rule[];
 
 const isObject = (value: unknown): value is Record<string, any> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-/** `$.a['b'][0].c` as its segments: a, b, [0], c. Array indexes and wildcards are both "any item" ([*]). */
+/** `$.a['b'][0].c` as its segments: a, b, [0], c. `[*]` is any item of a list and `*` any field of an object. */
 const toSegments = (jsonPath: string): string[] =>
   (jsonPath.replace(/^\$/, '').match(/\.[^.[\]]+|\[[^\]]*\]/g) || []).map((segment) => {
     if (segment.startsWith('.')) return segment.slice(1);
     const inner = segment.slice(1, -1);
-    return /^(\*|\d+)$/.test(inner) ? '[*]' : inner.replace(/^['"]|['"]$/g, '');
+    return /^(\*|\d+)$/.test(inner) ? `[${inner}]` : inner.replace(/^['"]|['"]$/g, '');
   });
-
-const toKey = (segments: string[]) => segments.join('\u0000');
 
 /**
  * The matching rules of a body, by the path of the field they apply to.
  * Version 3 and 4: `{ body: { "$.orderId": { matchers: [...] } } }`. Version 2: `{ "$.body.orderId": { match } }`.
  */
 const readRules = (matchingRules: unknown): Rules => {
-  const rules: Rules = { exact: new Map(), wildcards: [] };
+  const rules: Rules = [];
   if (!isObject(matchingRules)) return rules;
 
   const add = (jsonPath: string, rule: unknown) => {
     if (!isObject(rule)) return;
     const matchers = Array.isArray(rule.matchers) ? rule.matchers.filter(isObject) : [rule];
-    const segments = toSegments(jsonPath);
-    if (segments.includes('*')) rules.wildcards.push({ segments, matchers: matchers as Matcher[] });
-    else rules.exact.set(toKey(segments), matchers as Matcher[]);
+    const combine = typeof rule.combine === 'string' && rule.combine.toUpperCase() === 'OR' ? 'OR' : 'AND';
+    rules.push({ segments: toSegments(jsonPath), matchers: matchers as Matcher[], combine });
   };
 
   // Versions 3 and 4 keep a message's rules under `body` (a message's `content` is sometimes used instead)
@@ -90,14 +88,26 @@ const readRules = (matchingRules: unknown): Rules => {
   return rules;
 };
 
-/** The rule for a field: the one for its exact path, or else one whose `*` segments stand for any field name */
-const findMatchers = (rules: Rules, segments: string[]): Matcher[] | undefined =>
-  rules.exact.get(toKey(segments)) ??
-  rules.wildcards.find(
-    (rule) =>
-      rule.segments.length === segments.length &&
-      rule.segments.every((segment, index) => segment === segments[index] || (segment === '*' && segments[index] !== '[*]'))
-  )?.matchers;
+const isIndex = (segment: string) => /^\[\d+\]$/.test(segment);
+
+/**
+ * The rule for a field (`segments` is its path, with the position of each list item, such as `[1]`).
+ * A rule's `[*]` stands for any item and its `*` for any field name. When several rules apply, the one that
+ * names the most of the path wins, as in Pact: `$.items[1].code` over `$.items[*].code`.
+ */
+const findRule = (rules: Rules, segments: string[]): Rule | undefined => {
+  let best: { rule: Rule; named: number } | undefined;
+  for (const rule of rules) {
+    if (rule.segments.length !== segments.length) continue;
+    let named = 0;
+    const applies = rule.segments.every((segment, index) => {
+      if (segment === segments[index]) return ++named > 0;
+      return isIndex(segments[index]) ? segment === '[*]' : segment === '*';
+    });
+    if (applies && (!best || named > best.named)) best = { rule, named };
+  }
+  return best?.rule;
+};
 
 const typeOf = (value: unknown): string => {
   if (value === null) return 'null';
@@ -110,14 +120,25 @@ const typeOf = (value: unknown): string => {
 const PACT_INCLUDES = 'x-pact-includes';
 
 /** What a field's matchers add to its schema: how the provider's value is checked */
-const applyMatchers = (schema: JsonSchema, matchers: Matcher[], example?: unknown): JsonSchema => {
+const applyMatchers = (schema: JsonSchema, { matchers, combine }: Rule, example?: unknown): JsonSchema => {
   const notes: string[] = [];
+  const patterns = matchers.flatMap((matcher) =>
+    matcher.match === 'regex' && typeof matcher.regex === 'string' ? [matcher.regex] : []
+  );
+
+  // A value that may pass any one of several matchers: only patterns can be shown as alternatives
+  if (combine === 'OR' && matchers.length > 1) {
+    if (patterns.length === matchers.length) schema.anyOf = patterns.map((pattern) => ({ pattern }));
+    else schema.description = `Must pass any one of these Pact matchers: ${matchers.map((matcher) => matcher.match).join(', ')}`;
+    return schema;
+  }
+
+  // Every pattern must match: one is the schema's own, several are kept side by side
+  if (patterns.length === 1) schema.pattern = patterns[0];
+  if (patterns.length > 1) schema.allOf = patterns.map((pattern) => ({ pattern }));
 
   for (const matcher of matchers) {
     switch (matcher.match) {
-      case 'regex':
-        if (typeof matcher.regex === 'string') schema.pattern = matcher.regex;
-        break;
       case 'integer':
         schema.type = 'integer';
         break;
@@ -171,7 +192,7 @@ const applyMatchers = (schema: JsonSchema, matchers: Matcher[], example?: unknow
  */
 const isMatchedByAncestor = (segments: string[], rules: Rules) => {
   for (let length = segments.length - 1; length >= 0; length--) {
-    const matchers = findMatchers(rules, segments.slice(0, length));
+    const matchers = findRule(rules, segments.slice(0, length))?.matchers;
     if (!matchers || matchers.length === 0) continue;
     return matchers.some((matcher) => matcher.match === 'type' || matcher.min !== undefined || matcher.max !== undefined);
   }
@@ -199,6 +220,15 @@ const mergeItemSchemas = (first: JsonSchema, second: JsonSchema): JsonSchema => 
     return first.items ? first : { ...first, ...(second.items ? { items: second.items } : {}) };
   }
 
+  // Items checked in different ways (a rule for one position of the list) can't be told as one check
+  const check = ({ pattern, allOf, anyOf, format, [PACT_INCLUDES]: includes }: JsonSchema) =>
+    JSON.stringify({ pattern, allOf, anyOf, format, includes });
+  if (check(first) !== check(second)) {
+    const merged: JsonSchema = { ...first, description: 'Checked differently for each item of the list' };
+    for (const keyword of ['const', 'pattern', 'allOf', 'anyOf', 'format', PACT_INCLUDES]) delete merged[keyword];
+    return merged;
+  }
+
   if ('const' in first && (!('const' in second) || first.const !== second.const)) {
     const { const: _fixed, ...rest } = first;
     return rest;
@@ -208,7 +238,7 @@ const mergeItemSchemas = (first: JsonSchema, second: JsonSchema): JsonSchema => 
 
 const toSchema = (example: unknown, rules: Rules, segments: string[] = []): JsonSchema => {
   const type = typeOf(example);
-  const matchers = findMatchers(rules, segments);
+  const matchers = findRule(rules, segments);
 
   if (isObject(example)) {
     const schema: JsonSchema = {
@@ -225,7 +255,7 @@ const toSchema = (example: unknown, rules: Rules, segments: string[] = []): Json
   if (Array.isArray(example)) {
     const schema: JsonSchema = { type: 'array' };
     if (example.length > 0) {
-      schema.items = example.map((item) => toSchema(item, rules, [...segments, '[*]'])).reduce(mergeItemSchemas);
+      schema.items = example.map((item, index) => toSchema(item, rules, [...segments, `[${index}]`])).reduce(mergeItemSchemas);
     }
     return matchers ? applyMatchers(schema, matchers) : schema;
   }
@@ -377,6 +407,9 @@ export type PactField = {
   /** Checked by its type only, against a pattern, for text it must include, or it must be exactly the example's value */
   check: 'type' | 'pattern' | 'includes' | 'exact value';
   pattern?: string;
+  /** Several patterns for one field: it must match all of them (`AND`) or any of them (`OR`) */
+  patterns?: string[];
+  combine?: 'AND' | 'OR';
   includes?: string;
   value?: unknown;
   format?: string;
@@ -398,12 +431,18 @@ export const getPactFields = (schema: JsonSchema | undefined, prefix = ''): Pact
   // The whole body is one value, or an empty object or list: nothing to name
   if (!prefix) return [];
 
+  // Several patterns for one field: all of them (allOf) or any of them (anyOf)
+  const combined = Array.isArray(schema.allOf) ? schema.allOf : Array.isArray(schema.anyOf) ? schema.anyOf : [];
+  const patterns: string[] = combined.flatMap((part: JsonSchema) => (typeof part?.pattern === 'string' ? [part.pattern] : []));
+  const hasPattern = Boolean(schema.pattern) || patterns.length > 0;
+
   return [
     {
       path: prefix,
       type: schema.type,
-      check: 'const' in schema ? 'exact value' : schema.pattern ? 'pattern' : schema[PACT_INCLUDES] ? 'includes' : 'type',
+      check: 'const' in schema ? 'exact value' : hasPattern ? 'pattern' : schema[PACT_INCLUDES] ? 'includes' : 'type',
       ...(schema.pattern ? { pattern: schema.pattern } : {}),
+      ...(patterns.length > 0 ? { patterns, combine: Array.isArray(schema.allOf) ? ('AND' as const) : ('OR' as const) } : {}),
       ...(schema[PACT_INCLUDES] ? { includes: schema[PACT_INCLUDES] } : {}),
       ...('const' in schema ? { value: schema.const } : {}),
       ...(schema.format ? { format: schema.format } : {}),

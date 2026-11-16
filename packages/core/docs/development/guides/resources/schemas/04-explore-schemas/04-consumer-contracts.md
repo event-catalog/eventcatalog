@@ -83,11 +83,11 @@ When the contract is a Pact file (JSON, Pact Specification versions 2 to 4), its
 - **Schema** is the file as written.
 - **Fields** lists what the consumer expects in each interaction, in the same viewer as message schemas, with the interaction's description, the provider it is with and the provider states it is given. It is worked out from the Pact's example and matching rules:
   - a field matched by `type`, `integer`, `decimal` and so on is shown with its type
-  - a field matched by `regex` is shown with its pattern
+  - a field matched by `regex` is shown with its pattern (several patterns are shown as all of, or any of, depending on the rule's `combine`)
   - a field matched by `include` is shown with the text it must contain
   - a field with no matching rule, or with an `equality` rule (its own or its parent's), is shown as a constant, because Pact then expects exactly the example's value
   - every field in the example is required
-  - a list is described from all of its example items, so a field only a later item has is still listed
+  - a list is described from all of its example items, so a field only a later item has is still listed. When the items are checked in different ways, the field is shown with its type only
 
 A Pact describes its interactions in words (such as "an order ready for shipping event"), not by catalog id. On a message's page, the Fields tab shows the interactions whose description contains the message's name or id, and all of them when none does.
 

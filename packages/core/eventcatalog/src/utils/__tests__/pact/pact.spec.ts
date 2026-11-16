@@ -339,6 +339,50 @@ describe('getPactFields', () => {
     ]);
   });
 
+  it('does not report one pattern for a list whose items each have a rule of their own', () => {
+    expect(
+      fieldsOf(
+        { items: [{ code: 'abc' }, { code: '123' }] },
+        {
+          '$.items[0].code': { matchers: [{ match: 'regex', regex: '^[a-z]+$' }] },
+          '$.items[1].code': { matchers: [{ match: 'regex', regex: '^[0-9]+$' }] },
+        }
+      )
+    ).toEqual([{ path: 'items[].code', type: 'string', check: 'type' }]);
+  });
+
+  it('prefers the rule for one position of a list over the rule for any item', () => {
+    expect(
+      fieldsOf(
+        { items: [{ code: 'abc' }] },
+        {
+          '$.items[*].code': { matchers: [{ match: 'type' }] },
+          '$.items[0].code': { matchers: [{ match: 'regex', regex: '^[a-z]+$' }] },
+        }
+      )
+    ).toEqual([{ path: 'items[].code', type: 'string', check: 'pattern', pattern: '^[a-z]+$' }]);
+  });
+
+  it('reports every pattern of a field with several regex matchers, and whether all or any must match', () => {
+    const matchers = [
+      { match: 'regex', regex: '^A' },
+      { match: 'regex', regex: 'Z$' },
+    ];
+
+    expect(fieldsOf({ code: 'AZ' }, { '$.code': { combine: 'AND', matchers } })).toEqual([
+      { path: 'code', type: 'string', check: 'pattern', patterns: ['^A', 'Z$'], combine: 'AND' },
+    ]);
+    expect(fieldsOf({ code: 'AZ' }, { '$.code': { combine: 'OR', matchers } })).toEqual([
+      { path: 'code', type: 'string', check: 'pattern', patterns: ['^A', 'Z$'], combine: 'OR' },
+    ]);
+  });
+
+  it('keeps the type of a field that may pass any one of several kinds of matcher', () => {
+    expect(
+      fieldsOf({ code: 'AZ' }, { '$.code': { combine: 'OR', matchers: [{ match: 'regex', regex: '^A' }, { match: 'null' }] } })
+    ).toEqual([{ path: 'code', type: 'string', check: 'type' }]);
+  });
+
   it('reports a field with an include matcher with the text it must include', () => {
     expect(
       fieldsOf({ reason: 'card declined' }, { '$.reason': { matchers: [{ match: 'include', value: 'declined' }] } })
