@@ -38,6 +38,15 @@ describe('getUrlForSearchItem', () => {
     );
   });
 
+  it('keeps ids that contain ":" whole, so each resource gets its own URL', () => {
+    expect(getUrlForSearchItem({}, 'channel:persistent://tenant/dead-letter/ns:outgoing-sms:sms-worker:1.0.0')).toBe(
+      '/docs/channels/persistent:/tenant/dead-letter/ns:outgoing-sms:sms-worker/1.0.0'
+    );
+    expect(getUrlForSearchItem({}, 'event:urn:protobuf:outgoing-sms:publish:2.1.0')).toBe(
+      '/docs/events/urn:protobuf:outgoing-sms:publish/2.1.0'
+    );
+  });
+
   it('skips aliases and unsupported keys', () => {
     expect(getUrlForSearchItem({}, 'data-product:Customer360')).toBeNull();
     expect(getUrlForSearchItem({}, 'list:data-products')).toBeNull();
@@ -121,6 +130,19 @@ describe('indexed search result helpers', () => {
 
     expect(titleRank).toBeGreaterThan(urlRank);
     expect(urlRank).toBeGreaterThan(contentRank);
+  });
+
+  it('ranks exact titles and ids, then titles ending with the query, above other title matches', () => {
+    const query = 'outgoing-sms';
+    const rank = (title: string, id?: string) => getIndexedResultRank({ query, title, id, url: '/docs/channels/x/1.0.0' });
+
+    const containsRank = rank('urn:protobuf:ns:outgoing-sms:publish');
+    const lastSegmentRank = rank('persistent://tenant/ns/outgoing-sms');
+    const exactIdRank = rank('Outgoing SMS topic', 'outgoing-sms');
+
+    expect(rank('outgoing-sms')).toBe(exactIdRank);
+    expect(exactIdRank).toBeGreaterThan(lastSegmentRank);
+    expect(lastSegmentRank).toBeGreaterThan(containsRank);
   });
 
   it('applies grouped search filters', () => {
@@ -220,5 +242,54 @@ describe('resource search ranking', () => {
     const ranked = rankResourceSearchItems(items, 'SHIP');
     expect(ranked.map((item) => item.name)).toEqual(['Shipment Booked']);
     expect(rankResourceSearchItems(items, 'nothing matches this')).toEqual([]);
+  });
+
+  it('puts the topic named by its last segment above messages and dead-letter topics that mention it', () => {
+    // In index order: messages before channels
+    const topics = [
+      resource('urn:protobuf:engineering:external-communication:outgoing-sms:publish', 'event:SmsPublish:1.0.0'),
+      resource(
+        'persistent://engineering/dead-letter/external-communication:outgoing-emails:emails-storage',
+        'channel:dlq-outgoing-emails:1.0.0'
+      ),
+      resource(
+        'persistent://engineering/dead-letter/external-communication:outgoing-sms:sms-worker',
+        'channel:dlq-outgoing-sms:1.0.0'
+      ),
+      resource('persistent://engineering/external-communication/outgoing-sms', 'channel:sms-topic:1.0.0'),
+    ];
+
+    expect(rankResourceSearchItems(topics, 'outgoing-sms').map((item) => item.key)).toEqual([
+      // Last segment of the name is the query
+      'channel:sms-topic:1.0.0',
+      // Name contains the query as whole words, shorter names first
+      'event:SmsPublish:1.0.0',
+      'channel:dlq-outgoing-sms:1.0.0',
+    ]);
+  });
+
+  it('ranks an exact id match first, even when the name is an address', () => {
+    const topics = [
+      resource('Outgoing SMS publish', 'event:outgoing-sms-publish:1.0.0'),
+      resource('persistent://engineering/external-communication/sms', 'channel:outgoing-sms:1.0.0'),
+    ];
+
+    expect(rankResourceSearchItems(topics, 'outgoing-sms').map((item) => item.key)).toEqual([
+      'channel:outgoing-sms:1.0.0',
+      'event:outgoing-sms-publish:1.0.0',
+    ]);
+  });
+
+  it('ranks whole-word name matches above matches inside a word, shorter names first', () => {
+    const ranked = rankResourceSearchItems(
+      [
+        resource('Reorder Requested', 'event:ReorderRequested:1.0.0'),
+        resource('Cancel Customer Order Request', 'command:CancelCustomerOrder:1.0.0'),
+        resource('Place Order', 'command:PlaceOrder:1.0.0'),
+      ],
+      'order'
+    );
+
+    expect(ranked.map((item) => item.name)).toEqual(['Place Order', 'Cancel Customer Order Request', 'Reorder Requested']);
   });
 });
