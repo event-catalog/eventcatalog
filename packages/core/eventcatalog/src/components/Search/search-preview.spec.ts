@@ -122,6 +122,23 @@ describe('getSearchPreview', () => {
     });
   });
 
+  it("keeps an event in its producer's domain when another domain lists it as an event it receives", () => {
+    const withMarketing: NavigationData['nodes'] = {
+      'domain:marketing:1.0.0': {
+        type: 'item',
+        title: 'Marketing',
+        badge: 'Domain',
+        pages: [
+          overview('/docs/domains/marketing/1.0.0'),
+          { type: 'group', title: 'External Events', pages: ['event:order-placed:1.0.0'] },
+        ],
+      },
+      ...nodes,
+    };
+    const { facts } = getSearchPreview(withMarketing, result('event:order-placed:1.0.0', 'Order Placed', 'Event'));
+    expect(facts[0]).toEqual({ label: 'Domain', value: 'Orders', href: '/docs/domains/orders/1.0.0' });
+  });
+
   it('puts a command in the domain of the service that handles it, and says who sends and handles it', () => {
     const { facts } = getSearchPreview(nodes, result('command:place-order:1.0.0', 'Place Order', 'Command'));
     expect(facts.map(({ label, value }) => `${label}: ${value}`)).toEqual([

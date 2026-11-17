@@ -1366,13 +1366,14 @@ const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelP
     [configured, isLoading, sendMessage, setMessages, canvasId]
   );
 
-  // Ask the question the panel was opened with, once it's open
+  // Ask the question the panel was opened with, once it's open and free: one asked while an answer is still coming
+  // waits for it to finish rather than being dropped (submitMessage ignores questions while it's busy)
   const askedQuestion = useRef<number | undefined>(undefined);
   useEffect(() => {
-    if (!isOpen || !question || askedQuestion.current === question.id) return;
+    if (!isOpen || !question || isLoading || askedQuestion.current === question.id) return;
     askedQuestion.current = question.id;
     submitMessage(question.text);
-  }, [isOpen, question, submitMessage]);
+  }, [isOpen, question, isLoading, submitMessage]);
 
   const stopResponse = useCallback(() => {
     if (setupReplyTimer.current !== null) {

@@ -145,9 +145,11 @@ const factsFor = (nodes: Nodes, key: string, node: NavNode): (SearchPreviewFact 
   if (MESSAGE_TYPES.includes(type)) {
     const producers = groupKeys(nodes, node, 'Producers');
     const consumers = groupKeys(nodes, node, 'Consumers');
-    // An event belongs with the service that publishes it, a command or query with the one that receives it
+    // An event belongs with the service that publishes it, a command or query with the one that receives it, so its
+    // domain is that service's. A domain that only lists it (another domain's event it receives, a command it sends)
+    // doesn't own it, so that's only the fallback when no home service has a domain
     const homes = type === 'event' ? [...producers, ...consumers] : [...consumers, ...producers];
-    const domain = domainOf(nodes, key) ?? homes.map((home) => domainOf(nodes, home)).find(Boolean);
+    const domain = homes.map((home) => domainOf(nodes, home)).find(Boolean) ?? domainOf(nodes, key);
     const isEvent = type === 'event';
     return [
       namesFact(
