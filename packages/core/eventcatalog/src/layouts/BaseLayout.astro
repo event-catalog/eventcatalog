@@ -45,6 +45,16 @@ const catalogTheme = config.theme || 'default';
         // Apply on initial load
         applyTheme();
 
+        // The ClientRouter swaps <html>'s attributes for the incoming page's, which doesn't have the theme (it's set
+        // here). Give it the current one first, so nothing is drawn without a theme mid-navigation
+        document.addEventListener('astro:before-swap', (event) => {
+          const nextRoot = event.newDocument.documentElement;
+          for (const name of ['data-theme', 'data-catalog-theme']) {
+            const value = document.documentElement.getAttribute(name);
+            if (value && !nextRoot.hasAttribute(name)) nextRoot.setAttribute(name, value);
+          }
+        });
+
         // Apply after Astro page transitions
         document.addEventListener('astro:after-swap', applyTheme);
         document.addEventListener('astro:page-load', applyTheme);

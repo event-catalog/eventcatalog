@@ -1012,8 +1012,8 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
     } catch (error) {}
   };
 
-  const getPersistedVerticalNavCollapsedState = () => {
-    if (routeShouldAutoCollapseVerticalNav(window.location.pathname)) {
+  const getPersistedVerticalNavCollapsedState = (pathname = window.location.pathname) => {
+    if (routeShouldAutoCollapseVerticalNav(pathname)) {
       persistVerticalNavCollapsedState(true);
       return true;
     }
@@ -1113,8 +1113,20 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
   // Apply immediately when this script executes so transitions don't briefly re-open the rail.
   applyPersistedVerticalNavState();
 
-  // Re-apply around Astro view transitions because the incoming document can momentarily drop the root attribute.
-  document.addEventListener('astro:before-preparation', applyPersistedVerticalNavState);
+  // The ClientRouter swaps <html>'s attributes for the incoming page's, which has none of these (they're set here, in
+  // the browser). Without them the rail, moved into the new page, is drawn expanded for a moment and then animates
+  // closed again, and a resized sidebar goes back to its default width. So give them to the incoming page first, as
+  // they'll be on it (the rail collapses on the routes that auto-collapse it).
+  document.addEventListener('astro:before-swap', (event) => {
+    const isCollapsed = getPersistedVerticalNavCollapsedState(event.to.pathname);
+    const nextRoot = event.newDocument.documentElement;
+    nextRoot.setAttribute('data-vertical-nav-collapsed', isCollapsed ? 'true' : 'false');
+    nextRoot.setAttribute('data-embedded', event.to.searchParams.get('embed') === 'true' ? 'true' : 'false');
+    document.getElementById('vertical-nav-rail')?.setAttribute('data-collapsed', isCollapsed ? 'true' : 'false');
+
+    const sidebarWidth = document.documentElement.style.getPropertyValue('--ec-sidebar-panel-width');
+    if (sidebarWidth) nextRoot.style.setProperty('--ec-sidebar-panel-width', sidebarWidth);
+  });
   document.addEventListener('astro:after-swap', applyPersistedVerticalNavState);
 
   // Listen for Astro transititions
