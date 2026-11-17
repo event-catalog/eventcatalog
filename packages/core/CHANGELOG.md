@@ -1,5 +1,26 @@
 # @eventcatalog/core
 
+## 5.12.2
+
+### Patch Changes
+
+- c8b2e85: Allow `QUERY`, `HEAD` and `OPTIONS` as the `operation.method` of a message, so endpoints that use the HTTP `QUERY` method (OpenAPI 3.2 `query` operations) can be documented
+- Updated dependencies [c8b2e85]
+  - @eventcatalog/linter@1.3.3
+  - @eventcatalog/sdk@2.32.2
+  - @eventcatalog/visualiser@5.4.1
+  - @eventcatalog/exporters@0.1.6
+  - @eventcatalog/fitness@0.1.3
+
+## 5.12.1
+
+### Patch Changes
+
+- 458181d: feat(visualiser): L2 edges that skip hidden channels now say how the messages travel: the channel and its protocol ("publishes OrderPlaced via orders (kafka)"), or for a route through several channels where it starts and ends ("via Product Events (kafka) → +1 → Search Indexer Queue (sqs)"), in diagrams and in Studio
+- 16328d0: fix(core): search ranks exact matches first. A resource whose name or id is the query comes first, then names whose last segment is the query (so `outgoing-sms` finds `persistent://tenant/ns/outgoing-sms` before messages and dead-letter topics that mention it), and shorter names lead within a rank. Resources with `:` in their id get their own search links, so results no longer repeat or go stale while you type.
+- Updated dependencies [458181d]
+  - @eventcatalog/visualiser@5.4.0
+
 ## 5.12.0
 
 ### Minor Changes

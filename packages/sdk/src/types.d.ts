@@ -181,7 +181,7 @@ export interface ChannelPointer extends ResourcePointer {
 }
 
 export type Operation = {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'QUERY';
   path?: string;
   statusCodes?: string[];
 };

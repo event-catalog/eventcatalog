@@ -8,6 +8,7 @@ const METHOD_COLORS: Record<string, { bg: string; text: string }> = {
   DELETE: { bg: "rgba(239,68,68,0.15)", text: "#ef4444" },
   OPTIONS: { bg: "rgba(139,92,246,0.15)", text: "#8b5cf6" },
   HEAD: { bg: "rgba(107,114,128,0.15)", text: "#6b7280" },
+  QUERY: { bg: "rgba(6,182,212,0.15)", text: "#06b6d4" },
 };
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
