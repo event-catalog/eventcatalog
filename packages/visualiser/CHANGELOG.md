@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 5.4.2
+
+### Patch Changes
+
+- 8d28ba2: feat(visualiser): add `rememberMinimap` to `NodeGraph` (defaults to true); set it to false for diagrams embedded in a page, so they start without the minimap and showing it there isn't remembered
+
 ## 5.4.1
 
 ### Patch Changes

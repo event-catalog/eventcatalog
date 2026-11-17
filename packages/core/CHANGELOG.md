@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 5.13.1
+
+### Patch Changes
+
+- 8d28ba2: fix(core): the sidebar prefetches a resource's Overview when you hover or focus it, so opening it doesn't wait for the page; diagrams embedded in docs start without the minimap; the npm README image is no longer broken
+- Updated dependencies [8d28ba2]
+  - @eventcatalog/visualiser@5.4.2
+
 ## 5.13.0
 
 ### Minor Changes
