@@ -50,7 +50,7 @@ const resources = resourceGroups.flatMap(({ collection, items }) =>
       <DocsBreadcrumb
         collection={resourceOwner.collection}
         items={[
-          { label: data.name, href: buildUrl(`/docs/${resourceOwner.collection}/${data.id}/${data.version}`) },
+          { label: data.name ?? data.id, href: buildUrl(`/docs/${resourceOwner.collection}/${data.id}/${data.version}`) },
           { label: 'Resources' },
         ]}
       />
