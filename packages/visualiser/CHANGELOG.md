@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 5.4.1
+
+### Patch Changes
+
+- c8b2e85: Allow `QUERY`, `HEAD` and `OPTIONS` as the `operation.method` of a message, so endpoints that use the HTTP `QUERY` method (OpenAPI 3.2 `query` operations) can be documented
+
 ## 5.4.0
 
 ### Minor Changes
