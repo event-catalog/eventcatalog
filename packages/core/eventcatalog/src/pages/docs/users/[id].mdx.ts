@@ -6,7 +6,7 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { isLLMSTxtEnabled } from '@utils/feature';
 import fs from 'fs';
-import { filterMarkdownForAgents } from '@utils/llms';
+import { filterMarkdownForAgents, markdownResponse } from '@utils/llms';
 
 const users = await getCollection('users');
 
@@ -31,7 +31,7 @@ export const GET: APIRoute = async ({ params, props }) => {
   const content = props?.content ?? users.find((user) => user.data.id === params.id);
   if (content?.filePath) {
     const file = filterMarkdownForAgents(fs.readFileSync(content.filePath, 'utf8'));
-    return new Response(file, { status: 200 });
+    return markdownResponse(file);
   }
 
   return new Response('Not found', { status: 404 });

@@ -3,10 +3,11 @@
 // This is used for the LLMs to load the markdown for the given item (llms.txt);
 
 import type { APIRoute } from 'astro';
+import type { ResourceMarkdownCollection } from '@utils/markdown-pages';
 import { getCollection } from 'astro:content';
 import config from '@config';
 import fs from 'fs';
-import { addSchemaToMarkdown, filterMarkdownForAgents } from '@utils/llms';
+import { addSchemaToMarkdown, filterMarkdownForAgents, markdownResponse } from '@utils/llms';
 import { isLLMSTxtEnabled, isSSR } from '@utils/feature';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 const events = await getCollection('events');
@@ -37,7 +38,7 @@ const collections = {
   channels,
   containers,
   entities,
-};
+} satisfies Record<ResourceMarkdownCollection, unknown>;
 
 const findContent = (params: Record<string, string | undefined>) => {
   const collection = collections[params.type as keyof typeof collections];
@@ -77,7 +78,7 @@ export const GET: APIRoute = async ({ params, props }) => {
       console.log('Warning: Cant find the schema for', content.data.id, content.data.version);
     }
 
-    return new Response(filterMarkdownForAgents(file), { status: 200 });
+    return markdownResponse(filterMarkdownForAgents(file));
   }
 
   if (isSSR()) {
@@ -87,7 +88,7 @@ export const GET: APIRoute = async ({ params, props }) => {
       return new Response('Not found', { status: 404 });
     }
     const file = filterMarkdownForAgents(fs.readFileSync(filePath.fullPath, 'utf8'));
-    return new Response(file, { status: 200 });
+    return markdownResponse(file);
   }
 
   return new Response('Not found', { status: 404 });

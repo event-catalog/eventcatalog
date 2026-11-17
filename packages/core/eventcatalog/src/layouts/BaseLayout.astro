@@ -4,6 +4,8 @@ import AnalyticsHead from '../features/analytics/components/AnalyticsHead.astro'
 import AnalyticsTracker from '../features/analytics/components/AnalyticsTracker.astro';
 import NavigationProgress from '../components/NavigationProgress.astro';
 import config from '@config';
+import { isLLMSTxtEnabled } from '@utils/feature';
+import { getMarkdownPathForPage } from '@utils/markdown-pages';
 
 interface Props {
   /** The page's own title; the catalog's title follows it (the homepage has none) */
@@ -13,6 +15,8 @@ interface Props {
 
 const { title, description } = Astro.props;
 const catalogTheme = config.theme || 'default';
+// Lets agents find the page's Markdown (llms.txt links to the same URLs)
+const markdownPath = isLLMSTxtEnabled() ? getMarkdownPathForPage(Astro.url.pathname, import.meta.env.BASE_URL) : null;
 ---
 
 <!doctype html>
@@ -61,6 +65,7 @@ const catalogTheme = config.theme || 'default';
       })();
     </script>
     <SEO title={title} description={description} />
+    {markdownPath && <link rel="alternate" type="text/markdown" href={markdownPath} />}
     <AnalyticsHead />
     <slot name="head" />
   </head>
