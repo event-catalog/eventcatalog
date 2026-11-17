@@ -259,6 +259,7 @@ const resolveDocPage = (
 
   return {
     type: 'item',
+    doc: true,
     title: doc.data.title || docId,
     href: buildUrl(
       `/docs/${resource.collection}/${resource.id}/${resource.version}/${encodeURIComponent(docType)}/${encodeURIComponent(docId)}`

@@ -7,6 +7,8 @@ import AstroNodeGraph from '@components/MDX/NodeGraph/AstroNodeGraph';
 import '@eventcatalog/visualiser/styles-core.css';
 import ResourceRef from '@components/MDX/ResourceRef/ResourceRef.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import DocsBreadcrumb from '@components/DocsBreadcrumb.astro';
+import { buildUrl } from '@utils/url-builder';
 import { getTriggeredByOfMessage, getTriggersOfMessage, type MessageReceiver } from '@utils/collections/message-triggers';
 import { buildMessageLineageGraph, groupMessageLineageGraphs } from '@utils/node-graphs/message-lineage';
 import type { CollectionMessageTypes } from '@types';
@@ -60,13 +62,22 @@ const scenarioConditions = (row: (typeof triggeredByRows)[number]) =>
 ---
 
 <VerticalSideBarLayout title={`Trigger paths | ${data.name}`} description={`Message trigger paths for ${data.name}`}>
-  <main class="w-full min-h-full bg-[rgb(var(--ec-page-bg))] py-8">
-    <header class="border-b border-[rgb(var(--ec-page-border))] py-5">
-      <div class="text-sm font-semibold text-[rgb(var(--ec-accent))]">Trigger paths</div>
-      <h1 class="pt-3 text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{data.name}</h1>
-      <p class="pt-3 text-base text-[rgb(var(--ec-page-text-muted))] font-light">
-        Explore the direct messages that trigger this message and the messages it can trigger.
-      </p>
+  {/* Spaced as the docs pages are: Events / Customer Registered / Trigger paths, then the title */}
+  <main class="w-full min-h-full bg-[rgb(var(--ec-page-bg))] pt-5 pb-8 xl:pr-8">
+    <header class="flex flex-col gap-3 border-b border-[rgb(var(--ec-page-border))] pt-2 pb-6">
+      <DocsBreadcrumb
+        collection={currentMessage.collection}
+        items={[
+          { label: data.name, href: buildUrl(`/docs/${currentMessage.collection}/${data.id}/${data.version}`) },
+          { label: 'Trigger paths' },
+        ]}
+      />
+      <div>
+        <h1 class="text-[28px] md:text-[34px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))]">
+          {data.name}
+        </h1>
+        <p class="ec-docs-summary">Explore the direct messages that trigger this message and the messages it can trigger.</p>
+      </div>
     </header>
 
     <div class="space-y-10 py-8">

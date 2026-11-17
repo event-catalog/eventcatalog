@@ -1,9 +1,9 @@
 {
   "sections": [
     {
-      "section": "$quick-reference",
-      "title": "Overview"
+      "section": "$quick-reference"
     },
+    "$architecture",
     {
       "title": "Guides",
       "icon": "BookOpen",
@@ -13,7 +13,6 @@
         "[[doc|guides/rating-aggregation]]"
       ]
     },
-    "$architecture",
     "$services",
     "$flows",
     "$entities",

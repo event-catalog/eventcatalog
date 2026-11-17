@@ -1,9 +1,9 @@
 {
   "sections": [
     {
-      "section": "$quick-reference",
-      "title": "Overview"
+      "section": "$quick-reference"
     },
+    "$architecture",
     {
       "title": "Guides",
       "icon": "BookOpen",
@@ -23,7 +23,6 @@
         "[[event|order-cancelled]]"
       ]
     },
-    "$architecture",
     "$systems",
     "$flows",
     "$entities",

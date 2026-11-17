@@ -106,7 +106,7 @@ describe('applyCustomSidebar', () => {
       'service:Payments:2.0.0',
       'event:OrderPlaced',
       'adr:adr-001-outbox',
-      { type: 'item', title: 'SLA & error budgets', href: '/base/docs/domains/Catalog/1.0.0/guides/sla' },
+      { type: 'item', doc: true, title: 'SLA & error budgets', href: '/base/docs/domains/Catalog/1.0.0/guides/sla' },
       { type: 'item', title: 'On-call', href: 'https://runbooks.acme.dev/orders', external: true },
       { type: 'item', title: 'Internal', href: '/base/docs/domains/Catalog/1.0.0/resources' },
     ]);

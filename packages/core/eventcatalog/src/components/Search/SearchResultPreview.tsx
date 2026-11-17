@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from 'react';
+import { useMemo } from 'react';
 import type { NavigationData } from '../../stores/sidebar-store/state';
 import { getSearchPreview } from './search-preview';
 
@@ -10,13 +10,10 @@ type Result = { key?: string; url: string; name: string; type: string; rawNode?:
  */
 export default function SearchResultPreview({
   result,
-  icon,
   nodes,
   onNavigate,
 }: {
   result: Result;
-  /** The result's icon, as its row in the list shows it */
-  icon: ReactNode;
   nodes: NavigationData['nodes'] | undefined;
   onNavigate: () => void;
 }) {
@@ -40,19 +37,17 @@ export default function SearchResultPreview({
       aria-label={`Preview of ${preview.title}`}
       className="hidden w-80 shrink-0 flex-col gap-5 overflow-y-auto border-l border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover)/0.4)] p-5 md:flex"
     >
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          {icon}
-          <span className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">{preview.type}</span>
+      {/* The title (the type under it), then the summary: no icon, as the highlighted row beside it shows one */}
+      <div className="flex flex-col gap-2.5">
+        <div className="min-w-0">
+          <h2 className="truncate text-[15px] font-semibold leading-tight tracking-tight text-[rgb(var(--ec-page-text))]">
+            {preview.title}
+          </h2>
+          <p className="mt-0.5 text-xs text-[rgb(var(--ec-page-text-muted))]">{preview.type}</p>
         </div>
-        <div>
-          <h2 className="text-base font-semibold leading-snug tracking-tight text-[rgb(var(--ec-page-text))]">{preview.title}</h2>
-          {preview.summary && (
-            <p className="mt-1 line-clamp-3 text-[13px] leading-relaxed text-[rgb(var(--ec-page-text-muted))]">
-              {preview.summary}
-            </p>
-          )}
-        </div>
+        {preview.summary && (
+          <p className="line-clamp-3 text-[13px] leading-relaxed text-[rgb(var(--ec-page-text-muted))]">{preview.summary}</p>
+        )}
       </div>
 
       {preview.facts.length > 0 && (

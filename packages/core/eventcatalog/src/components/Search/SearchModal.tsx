@@ -117,6 +117,9 @@ interface SearchIndexPayload {
   r?: string[];
 }
 
+/** How many rows fit the results area beside the preview: favourites, then recent changes fill up to this */
+const EMPTY_QUERY_LIST_ROWS = 9;
+
 /** How many resources an empty search lists when there's nothing recent to show */
 const EMPTY_QUERY_BROWSE_LIMIT = 20;
 
@@ -153,7 +156,7 @@ const ResultIcon = ({
   size = 'sm',
 }: {
   item: { type: string; rawNode?: { leftIcon?: string } };
-  /** Small in the list, so more results fit; larger at the top of the preview */
+  /** Small in the list, so more results fit */
   size?: 'sm' | 'lg';
 }) => {
   const Icon = typeIcons[item.type] || typeIcons.default;
@@ -407,9 +410,11 @@ export default function SearchModal() {
           : recentItems.length > 0
             ? 'recent'
             : 'browse';
+  // Favourites carry their section headings in the list (Favourites, then Recently updated); the others one label above it
   const emptyQueryLabel = emptyQueryList
-    ? { type: undefined, favourites: 'Favourites', recent: 'Recently updated', browse: 'Browse the catalog' }[emptyQueryList]
+    ? { type: undefined, favourites: undefined, recent: 'Recently updated', browse: 'Browse the catalog' }[emptyQueryList]
     : undefined;
+  const favouriteKeys = useMemo(() => new Set(favorites.map((fav) => fav.nodeKey)), [favorites]);
 
   const filteredItems = useMemo(() => {
     if (isIndexedSearch) {
@@ -422,7 +427,7 @@ export default function SearchModal() {
 
     if (query === '') {
       if (emptyQueryList === 'favourites') {
-        return favorites
+        const favouriteItems = favorites
           .slice(0, 5)
           .map((fav) => {
             const node = searchNodeLookup.get(fav.nodeKey);
@@ -447,13 +452,33 @@ export default function SearchModal() {
             };
           })
           .filter((item): item is NonNullable<typeof item> => item !== null);
+        // Then what changed recently, in the room left (leaving out the favourites already listed)
+        const recent = recentItems
+          .filter((item) => !favouriteKeys.has(item.key))
+          .slice(0, Math.max(0, EMPTY_QUERY_LIST_ROWS - favouriteItems.length));
+        return [...favouriteItems, ...recent];
       }
       if (emptyQueryList === 'recent') return recentItems;
       return applyActiveFilter(items, activeFilter).slice(0, EMPTY_QUERY_BROWSE_LIMIT);
     }
 
     return applyActiveFilter(searchableItems, activeFilter).slice(0, SEARCH_RESULT_DISPLAY_LIMIT);
-  }, [isIndexedSearch, searchableItems, query, activeFilter, favorites, searchNodeLookup, emptyQueryList, recentItems, items]);
+  }, [
+    isIndexedSearch,
+    searchableItems,
+    query,
+    activeFilter,
+    favorites,
+    favouriteKeys,
+    searchNodeLookup,
+    emptyQueryList,
+    recentItems,
+    items,
+  ]);
+
+  // The heading a row starts a section with, in the favourites list: "Favourites", then "Recently updated"
+  const sectionOf = (item: (typeof filteredItems)[number]) =>
+    emptyQueryList === 'favourites' ? (item.key && favouriteKeys.has(item.key) ? 'Favourites' : 'Recently updated') : undefined;
 
   return (
     <Transition.Root
@@ -600,121 +625,131 @@ export default function SearchModal() {
                               modal={false}
                               className="max-h-96 min-w-0 flex-1 scroll-py-2 overflow-y-auto p-2 md:max-h-none"
                             >
-                              {filteredItems.map((item) => {
+                              {filteredItems.map((item, index) => {
                                 const isFavorite = !!item.key && favorites.some((fav) => fav.nodeKey === item.key);
+                                const section = sectionOf(item);
+                                const startsSection =
+                                  !!section && (index === 0 || sectionOf(filteredItems[index - 1]) !== section);
 
                                 return (
-                                  <Combobox.Option
-                                    key={item.key ?? item.id}
-                                    value={item}
-                                    className={({ active }) =>
-                                      classNames(
-                                        'flex cursor-default select-none items-center rounded-lg px-2.5 py-2 group',
-                                        (active || item === previewed) && 'bg-[rgb(var(--ec-content-active))]'
-                                      )
-                                    }
-                                  >
-                                    {({ active }) => (
-                                      <>
-                                        <ResultIcon item={item} />
-                                        <div className="ml-3 flex-auto min-w-0">
-                                          <div className="flex items-baseline gap-3">
-                                            <p
-                                              className={classNames(
-                                                'min-w-0 flex-1 truncate text-[13px] font-medium leading-5 text-[rgb(var(--ec-page-text))]',
-                                                searchResultHighlightClassName
+                                  <Fragment key={item.key ?? item.id}>
+                                    {startsSection && (
+                                      <p
+                                        role="presentation"
+                                        className={classNames(
+                                          'px-2.5 pb-1.5 text-xs text-[rgb(var(--ec-page-text-muted))]',
+                                          index === 0 ? 'pt-1' : 'pt-4'
+                                        )}
+                                      >
+                                        {section}
+                                      </p>
+                                    )}
+                                    <Combobox.Option
+                                      value={item}
+                                      className={({ active }) =>
+                                        classNames(
+                                          'flex cursor-default select-none items-center rounded-lg px-2.5 py-2 group',
+                                          (active || item === previewed) && 'bg-[rgb(var(--ec-content-active))]'
+                                        )
+                                      }
+                                    >
+                                      {({ active }) => (
+                                        <>
+                                          <ResultIcon item={item} />
+                                          <div className="ml-3 flex-auto min-w-0">
+                                            <div className="flex items-baseline gap-3">
+                                              <p
+                                                className={classNames(
+                                                  'min-w-0 flex-1 truncate text-[13px] font-medium leading-5 text-[rgb(var(--ec-page-text))]',
+                                                  searchResultHighlightClassName
+                                                )}
+                                                dangerouslySetInnerHTML={{ __html: highlightQuery(item.name, query) }}
+                                              />
+                                              {/* Wide screens: the type on the right, one line a result (the preview has the summary) */}
+                                              {!item.rawNode.matchedExcerpt && (
+                                                <span className="hidden shrink-0 text-xs text-[rgb(var(--ec-page-text-muted))] md:block">
+                                                  {item.type}
+                                                </span>
                                               )}
-                                              dangerouslySetInnerHTML={{ __html: highlightQuery(item.name, query) }}
-                                            />
-                                            {/* Wide screens: the type on the right, one line a result (the preview has the summary) */}
-                                            {!item.rawNode.matchedExcerpt && (
-                                              <span className="hidden shrink-0 text-xs text-[rgb(var(--ec-page-text-muted))] md:block">
-                                                {item.type}
-                                              </span>
-                                            )}
-                                          </div>
-                                          <div
-                                            className={classNames(
-                                              'flex items-center gap-2 leading-4',
-                                              !item.rawNode.matchedExcerpt && 'md:hidden'
-                                            )}
-                                          >
-                                            {!item.rawNode.matchedExcerpt && (
-                                              <p
-                                                className={classNames(
-                                                  'text-xs flex-shrink-0',
-                                                  active
-                                                    ? 'text-[rgb(var(--ec-page-text))]'
-                                                    : 'text-[rgb(var(--ec-page-text-muted))]'
-                                                )}
-                                              >
-                                                {item.type}
-                                              </p>
-                                            )}
-                                            {item.rawNode.summary && (
-                                              <p
-                                                className={classNames(
-                                                  'text-xs truncate',
-                                                  active
-                                                    ? 'text-[rgb(var(--ec-page-text-muted))]'
-                                                    : 'text-[rgb(var(--ec-icon-color))]'
-                                                )}
-                                              >
-                                                {!item.rawNode.matchedExcerpt && '• '}
-                                                {item.rawNode.matchedExcerpt ? (
-                                                  <span
-                                                    className={searchResultHighlightClassName}
-                                                    dangerouslySetInnerHTML={{ __html: item.rawNode.matchedExcerpt }}
-                                                  />
-                                                ) : (
-                                                  item.rawNode.summary
-                                                )}
-                                              </p>
-                                            )}
-                                          </div>
-                                        </div>
-                                        <div className="flex items-center">
-                                          {!!item.key && (
-                                            <button
-                                              onClick={(e) => handleToggleFavorite(e, item)}
-                                              onMouseDown={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                              }}
+                                            </div>
+                                            <div
                                               className={classNames(
-                                                'p-1 rounded-md transition-colors mr-2',
-                                                isFavorite
-                                                  ? 'text-amber-400 hover:text-amber-500'
-                                                  : 'text-[rgb(var(--ec-icon-color))] opacity-0 group-hover:opacity-100 hover:text-amber-400'
+                                                'flex items-center gap-2 leading-4',
+                                                !item.rawNode.matchedExcerpt && 'md:hidden'
                                               )}
                                             >
-                                              {isFavorite ? (
-                                                <StarIconSolid className="h-5 w-5" />
-                                              ) : (
-                                                <StarIcon className="h-5 w-5" />
+                                              {!item.rawNode.matchedExcerpt && (
+                                                <p
+                                                  className={classNames(
+                                                    'text-xs flex-shrink-0',
+                                                    active
+                                                      ? 'text-[rgb(var(--ec-page-text))]'
+                                                      : 'text-[rgb(var(--ec-page-text-muted))]'
+                                                  )}
+                                                >
+                                                  {item.type}
+                                                </p>
                                               )}
-                                            </button>
-                                          )}
-                                          {active && (
-                                            <ArrowRightIcon
-                                              className="h-5 w-5 text-[rgb(var(--ec-icon-color))]"
-                                              aria-hidden="true"
-                                            />
-                                          )}
-                                        </div>
-                                      </>
-                                    )}
-                                  </Combobox.Option>
+                                              {item.rawNode.summary && (
+                                                <p
+                                                  className={classNames(
+                                                    'text-xs truncate',
+                                                    active
+                                                      ? 'text-[rgb(var(--ec-page-text-muted))]'
+                                                      : 'text-[rgb(var(--ec-icon-color))]'
+                                                  )}
+                                                >
+                                                  {!item.rawNode.matchedExcerpt && '• '}
+                                                  {item.rawNode.matchedExcerpt ? (
+                                                    <span
+                                                      className={searchResultHighlightClassName}
+                                                      dangerouslySetInnerHTML={{ __html: item.rawNode.matchedExcerpt }}
+                                                    />
+                                                  ) : (
+                                                    item.rawNode.summary
+                                                  )}
+                                                </p>
+                                              )}
+                                            </div>
+                                          </div>
+                                          <div className="flex items-center">
+                                            {!!item.key && (
+                                              <button
+                                                onClick={(e) => handleToggleFavorite(e, item)}
+                                                onMouseDown={(e) => {
+                                                  e.preventDefault();
+                                                  e.stopPropagation();
+                                                }}
+                                                className={classNames(
+                                                  'p-1 rounded-md transition-colors mr-2',
+                                                  isFavorite
+                                                    ? 'text-amber-400 hover:text-amber-500'
+                                                    : 'text-[rgb(var(--ec-icon-color))] opacity-0 group-hover:opacity-100 hover:text-amber-400'
+                                                )}
+                                              >
+                                                {isFavorite ? (
+                                                  <StarIconSolid className="h-5 w-5" />
+                                                ) : (
+                                                  <StarIcon className="h-5 w-5" />
+                                                )}
+                                              </button>
+                                            )}
+                                            {active && (
+                                              <ArrowRightIcon
+                                                className="h-5 w-5 text-[rgb(var(--ec-icon-color))]"
+                                                aria-hidden="true"
+                                              />
+                                            )}
+                                          </div>
+                                        </>
+                                      )}
+                                    </Combobox.Option>
+                                  </Fragment>
                                 );
                               })}
                             </Combobox.Options>
                             {previewed && (
-                              <SearchResultPreview
-                                result={previewed}
-                                icon={<ResultIcon item={previewed} size="lg" />}
-                                nodes={sidebar?.nodes}
-                                onNavigate={closeModal}
-                              />
+                              <SearchResultPreview result={previewed} nodes={sidebar?.nodes} onNavigate={closeModal} />
                             )}
                           </div>
                         </>

@@ -84,6 +84,17 @@ export const getResourceDocTypeLabel = (type: string): string => {
   return normalized || 'Doc';
 };
 
+/** A doc type as the section it makes in its resource (the breadcrumb, the sidebar), e.g. `guides` → "Guides", `adrs` → "ADRs" */
+export const getResourceDocSectionLabel = (type: string): string => {
+  if (type === 'adrs') return 'ADRs';
+  const normalized = type
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+  return normalized || 'Docs';
+};
+
 let memoryCache: ResourceDocEntry[] | null = null;
 let memoryCategoryCache: ResourceDocCategoryEntry[] | null = null;
 let memoryResourceLookupCache: Record<ResourceCollection, ResourceLookup> | null = null;

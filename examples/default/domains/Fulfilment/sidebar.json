@@ -1,9 +1,9 @@
 {
   "sections": [
     {
-      "section": "$quick-reference",
-      "title": "Overview"
+      "section": "$quick-reference"
     },
+    "$architecture",
     {
       "title": "Guides",
       "icon": "BookOpen",
@@ -25,9 +25,10 @@
     {
       "title": "Contracts",
       "icon": "FileCode",
-      "pages": ["[[spec|carrier-sla.yaml]]"]
+      "pages": [
+        "[[spec|carrier-sla.yaml]]"
+      ]
     },
-    "$architecture",
     "$systems",
     "$entities",
     {

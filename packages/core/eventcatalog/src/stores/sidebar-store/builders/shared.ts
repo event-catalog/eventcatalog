@@ -36,6 +36,7 @@ export type NavNode = {
   visible?: boolean; // If false, hide this node (default: true)
   badge?: string; // Category badge shown in header (e.g., "Domain", "Service", "Message")
   summary?: string; // Short description of the item
+  doc?: boolean; // A page of a resource's own documentation (a guide, a runbook): shown without an icon
 };
 
 /**
@@ -264,6 +265,7 @@ export const buildResourceDocsSection = (
       subtle: true,
       pages: group.docs.map((doc) => ({
         type: 'item',
+        doc: true,
         title: doc.data.title || doc.data.id,
         href: buildUrl(
           `/docs/${collection}/${id}${includeVersionInUrl ? `/${version}` : ''}/${encodeURIComponent(doc.data.type)}/${encodeURIComponent(doc.data.id)}`

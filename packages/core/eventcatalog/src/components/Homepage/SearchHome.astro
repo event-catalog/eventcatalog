@@ -3,7 +3,7 @@ import { buildUrl } from '@utils/url-builder';
 import { isEventCatalogChatEnabled } from '@utils/feature';
 import { getCatalogOverview } from '@utils/homepage-dashboard';
 import { getColorForCollection } from '@utils/collection-colors';
-import { ArrowRight, Boxes, FileCode, Search, Server, UsersRound, Waypoints, Zap } from 'lucide-react';
+import { ArrowRight, Boxes, ChevronRight, FileCode, Search, Server, UsersRound, Waypoints, Zap } from 'lucide-react';
 
 interface Props {
   /** A link to the docs on customizing the homepage: on the default homepage only, not on one that's been customized */
@@ -71,7 +71,8 @@ const types = [
     icon: UsersRound,
     color: getColorForCollection('teams'),
   },
-];
+  // Only the types the catalog has any of
+].filter((type) => type.count > 0);
 ---
 
 <!-- data-search-home: the header changes for it (see Header.astro) -->
@@ -134,25 +135,27 @@ const types = [
     }
   </section>
 
-  <section class="ec-search-home-browse" aria-labelledby="home-browse">
-    <h2 id="home-browse" class="ec-search-home-heading">Browse by type</h2>
-    <nav class="ec-search-home-types" aria-labelledby="home-browse">
-      {
-        types.map((type) => (
-          <a href={type.href}>
-            <span class="ec-search-home-types-top">
+  {
+    types.length > 0 && (
+      <section class="ec-search-home-browse" aria-labelledby="home-browse">
+        <h2 id="home-browse" class="ec-search-home-heading">
+          Browse by type
+        </h2>
+        <nav class="ec-search-home-types" aria-labelledby="home-browse">
+          {types.map((type) => (
+            <a href={type.href} title={type.description}>
               <span class="ec-search-home-types-chip" style={chip(type.color)} aria-hidden="true">
                 <type.icon className="ec-search-home-types-icon" />
               </span>
               <span class="ec-search-home-types-name">{type.label}</span>
-              <span class="ec-search-home-mono ml-auto text-[rgb(var(--ec-page-text-muted))]">{type.count}</span>
-            </span>
-            <span class="ec-search-home-types-desc">{type.description}</span>
-          </a>
-        ))
-      }
-    </nav>
-  </section>
+              <span class="ec-search-home-types-count">{type.count}</span>
+              <ChevronRight className="ec-search-home-types-chevron" aria-hidden="true" />
+            </a>
+          ))}
+        </nav>
+      </section>
+    )
+  }
 
   {
     customizeLink && (
@@ -243,6 +246,7 @@ const types = [
     max-width: 72rem;
     margin: 0 auto;
     /* The search and the types, centred in the screen under the header */
+    --ec-search-home-title-size: clamp(34px, 4.2vw, 54px);
     min-height: calc(100dvh - var(--ec-header-offset, 52px));
     padding: 3rem 0;
     display: flex;
@@ -298,10 +302,10 @@ const types = [
     text-align: center;
   }
   .ec-search-home-title {
-    font-size: clamp(40px, 5vw, 64px);
+    font-size: var(--ec-search-home-title-size);
     font-weight: 630;
-    line-height: 0.99;
-    letter-spacing: -0.05em;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
     text-wrap: balance;
     color: rgb(var(--ec-page-text));
   }
@@ -401,81 +405,93 @@ const types = [
     color: rgb(var(--ec-page-text));
   }
 
-  /* Browse by type: one row of cells across the page, divided by hairlines (the grid's gap shows its border colour) */
-  /* Under the search, the two centred together in the screen */
+  /*
+   * Browse by type: a small list the search box's width, under it, its rows drawn like the search results (the type's
+   * icon in its colour, its name and count, a chevron on hover)
+   */
   .ec-search-home-browse {
     width: 100%;
-    max-width: var(--ec-search-home-column);
-    margin: 3.5rem auto 0;
+    max-width: var(--ec-search-home-search);
+    margin: 2.5rem auto 0;
     /* Columns by the room it has (the sidebar takes some), not the window's width */
     container-type: inline-size;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
   .ec-search-home-heading {
-    font-size: 14px;
-    font-weight: 600;
-    color: rgb(var(--ec-page-text));
+    padding: 0 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgb(var(--ec-page-text-muted) / 0.8);
   }
   .ec-search-home-types {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1px;
-    overflow: hidden;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+    padding: 6px;
     border: 1px solid rgb(var(--ec-page-border));
     border-radius: 12px;
-    background: rgb(var(--ec-page-border));
+    background: rgb(var(--ec-card-bg, var(--ec-page-bg)));
   }
-  @container (min-width: 520px) {
+  @container (min-width: 480px) {
     .ec-search-home-types {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  @container (min-width: 760px) {
-    .ec-search-home-types {
-      grid-template-columns: repeat(6, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
   .ec-search-home-types a {
     min-width: 0;
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    padding: 14px 16px;
-    background: rgb(var(--ec-card-bg, var(--ec-page-bg)));
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    padding: 0 10px;
+    border-radius: 8px;
     transition: background-color 120ms;
   }
-  .ec-search-home-types a:hover {
-    background: rgb(var(--ec-content-hover, var(--ec-page-bg)));
+  .ec-search-home-types a:hover,
+  .ec-search-home-types a:focus-visible {
+    background: rgb(var(--ec-page-text) / 0.045);
   }
-  .ec-search-home-types-top {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .ec-search-home-types-name {
-    font-weight: 500;
-    color: rgb(var(--ec-page-text));
-  }
-  .ec-search-home-types-desc {
-    font-size: 13px;
-    line-height: 1.4;
-    color: rgb(var(--ec-page-text-muted));
-  }
-  /* The type's icon, as the sidebar and the rail draw it, on a chip in the type's colour */
   .ec-search-home-types-chip {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     flex: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: 7px;
   }
   .ec-search-home-types-icon {
     width: 14px;
     height: 14px;
+  }
+  .ec-search-home-types-name {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: rgb(var(--ec-page-text));
+  }
+  .ec-search-home-types-count {
+    font-family: var(--ec-search-home-mono);
+    font-size: 11px;
+    color: rgb(var(--ec-page-text-muted));
+  }
+  .ec-search-home-types-chevron {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    color: rgb(var(--ec-page-text-muted));
+    opacity: 0;
+    transition: opacity 120ms;
+  }
+  .ec-search-home-types a:hover .ec-search-home-types-chevron,
+  .ec-search-home-types a:focus-visible .ec-search-home-types-chevron {
+    opacity: 1;
   }
 
   /* Bottom right of the screen, and quiet: no fill until it's hovered */

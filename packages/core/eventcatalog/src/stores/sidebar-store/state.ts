@@ -33,7 +33,7 @@ import { buildAdrNode } from './builders/adr';
 import { buildEntityNode } from './builders/entity';
 import config from '@config';
 import { getDesigns } from '@utils/collections/designs';
-import { getChannels } from '@utils/collections/channels';
+import { getChannelConnections, getChannels } from '@utils/collections/channels';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { iconFieldsForResource } from '@utils/icon';
 import {
@@ -803,9 +803,31 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const visualiserEnabled = config?.visualiser?.enabled !== false;
 
+  // What each channel connects, for its sidebar: the messages through it, and what sends to it and receives from it
+  const channelEndpoints = [...rawServices, ...rawAgents];
+  const channelMessages = [...allEvents, ...allCommands, ...allQueries];
+  const NODE_TYPE: Record<string, string> = {
+    events: 'event',
+    commands: 'command',
+    queries: 'query',
+    services: 'service',
+    agents: 'agent',
+  };
+  const keysOf = (entries: Array<{ collection: string; data: { id: string; version: string } }>) =>
+    entries.flatMap((entry) =>
+      NODE_TYPE[entry.collection] ? [`${NODE_TYPE[entry.collection]}:${entry.data.id}:${entry.data.version}`] : []
+    );
+  const channelSection = (title: string, icon: string, pages: string[]): NavNode | false =>
+    pages.length > 0 && { type: 'group', title, icon, pages };
+
   const channelNodes = channels.reduce(
     (acc, channel) => {
       const versionedKey = `channel:${channel.data.id}:${channel.data.version}`;
+      const connections = getChannelConnections(channel, {
+        endpoints: channelEndpoints,
+        channels,
+        messages: channelMessages,
+      });
       const docsSection = buildResourceDocsSection(
         'channels',
         channel.data.id,
@@ -835,7 +857,6 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
                   },
               ].filter(Boolean) as { title: string; href: string }[]
             ),
-            docsSection,
             visualiserEnabled && {
               type: 'group',
               title: 'Architecture',
@@ -848,6 +869,10 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
                 },
               ],
             },
+            channelSection('Messages', 'Mail', keysOf(connections.messages)),
+            channelSection('Producers', 'Server', keysOf(connections.producers)),
+            channelSection('Consumers', 'Server', keysOf(connections.consumers)),
+            docsSection,
           ].filter(Boolean) as ChildRef[],
         },
         channel,

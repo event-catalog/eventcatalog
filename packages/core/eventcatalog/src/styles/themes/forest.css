@@ -237,10 +237,10 @@
   border: 1px solid rgb(31 41 55); /* gray-800 */
 }
 
-:root[data-catalog-theme='forest'][data-theme='dark'] .prose a {
+:root[data-catalog-theme='forest'][data-theme='dark'] .prose a:not(:where(.not-prose *)) {
   color: rgb(74 222 128); /* green-400 */
 }
 
-:root[data-catalog-theme='forest'][data-theme='dark'] .prose a:hover {
+:root[data-catalog-theme='forest'][data-theme='dark'] .prose a:not(:where(.not-prose *)):hover {
   color: rgb(134 239 172); /* green-300 */
 }

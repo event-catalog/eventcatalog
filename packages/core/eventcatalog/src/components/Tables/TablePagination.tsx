@@ -23,14 +23,18 @@ interface TablePaginationProps<TData> {
   table: Table<TData>;
   pageSize: number;
   onPageSizeChange: (pageSize: number) => void;
+  /** Horizontal padding, to line up with the table above it (px-6 by default) */
+  paddingX?: string;
 }
 
 /** Footer with the result count, page size picker and previous/next page controls. */
-export function TablePagination<TData>({ table, pageSize, onPageSizeChange }: TablePaginationProps<TData>) {
+export function TablePagination<TData>({ table, pageSize, onPageSizeChange, paddingX = 'px-6' }: TablePaginationProps<TData>) {
   const totalResults = table.getPrePaginationRowModel().rows.length;
 
   return (
-    <div className="flex-shrink-0 flex items-center justify-between px-6 py-3 border-t border-[rgb(var(--ec-page-border))]">
+    <div
+      className={`flex-shrink-0 flex items-center justify-between ${paddingX} py-3 border-t border-[rgb(var(--ec-page-border))]`}
+    >
       <div className="flex items-center gap-3 text-xs text-[rgb(var(--ec-page-text-muted))]">
         {totalResults > 0 && (
           <span>

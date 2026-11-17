@@ -22,7 +22,7 @@ const { data } = props;
 <VerticalSideBarLayout title={`Visualiser | Bounded context map`}>
   <div class="m-4">
     <div
-      class="h-[calc(100vh-130px)] w-full relative border border-[rgb(var(--ec-page-border))] rounded-md"
+      class="h-[calc(100vh-var(--ec-header-offset)-70px)] w-full relative border border-[rgb(var(--ec-page-border))] rounded-md"
       id={`${data.id}-portal`}
       transition:animate="fade"
     >

@@ -325,6 +325,10 @@ interface SchemaDetailsPanelProps {
   initialTab?: string;
   /** Examples already rendered on the server (MDX with EventCatalog components). Falls back to Markdown rendering when absent. */
   renderedExamples?: React.ReactNode;
+  /** `page` on the schema's own page: the docs pages' gutter and title, under a breadcrumb. `panel` (default) in the explorer */
+  variant?: 'panel' | 'page';
+  /** Above the title on the schema's own page: where it sits, e.g. "Events / Shipment Created / Schema" */
+  breadcrumb?: React.ReactNode;
 }
 
 export default function SchemaDetailsPanel({
@@ -336,7 +340,14 @@ export default function SchemaDetailsPanel({
   showProducersConsumers = true,
   initialTab,
   renderedExamples,
+  variant = 'panel',
+  breadcrumb,
 }: SchemaDetailsPanelProps) {
+  const isPage = variant === 'page';
+  // The version beside the title: muted and lighter, a little smaller than the name
+  const versionTextClass = `font-normal tracking-normal text-[rgb(var(--ec-page-text-muted))] ${isPage ? 'text-lg md:text-xl' : 'text-sm'}`;
+  // The docs pages' left/right gutter on the schema's own page, the explorer panel's tighter one beside the list
+  const gutter = isPage ? 'px-10' : 'px-6';
   const [loadDetails] = useState(createSchemaDetailsLoader);
   const content = useSchemaDetails(metadataMessage, loadDetails);
   const message = content.message!;
@@ -358,6 +369,11 @@ export default function SchemaDetailsPanel({
   const consumers = message.data.consumers || [];
   const flows = message.data.flows || [];
 
+  // Beside the title: "v1.0.0", and on the schema's own page its format too, "v1.0.0 · Avro Schema" (a generic
+  // specification is named by its syntax alone, "YAML")
+  const formatLabel = getSchemaDisplayLabel(message);
+  const formatName = message.specType === 'generic' || /schema/i.test(formatLabel) ? formatLabel : `${formatLabel} Schema`;
+  const versionLabel = isPage ? `v${message.data.version} · ${formatName}` : `v${message.data.version}`;
   const uniqueAvailableVersions = useMemo(
     () =>
       availableVersions.filter(
@@ -561,73 +577,91 @@ export default function SchemaDetailsPanel({
   }, [availableTabIds]);
 
   return (
-    <div className="flex h-full min-h-0 bg-[rgb(var(--ec-page-bg))] overflow-hidden">
+    <div className="flex h-full min-h-0 flex-1 bg-[rgb(var(--ec-page-bg))] overflow-hidden">
       {/* Left: header + tabs + content */}
       <div className="flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
         {/* Compact header */}
-        <div className="flex-shrink-0 px-6 pt-5 pb-3">
+        <div className={`flex-shrink-0 ${gutter} ${isPage ? 'pt-7 pb-4' : 'pt-5 pb-3'}`}>
+          {isPage && breadcrumb && <div className="mb-3">{breadcrumb}</div>}
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-lg bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border)/0.5)]">
-                  {iconUrl ? (
-                    <img src={iconUrl} alt={`${ext} icon`} className="h-5 w-5 schema-icon" />
-                  ) : (
-                    <span className="text-xs font-bold font-mono text-[rgb(var(--ec-page-text-muted))]">{'{ }'}</span>
-                  )}
-                </div>
-                <h2 className="text-xl font-semibold text-[rgb(var(--ec-page-text))] truncate">{message.data.name}</h2>
-                <div className="relative flex-shrink-0" ref={versionMenuRef}>
-                  <button
-                    type="button"
-                    onClick={() => setIsVersionMenuOpen((prev) => !prev)}
-                    aria-expanded={isVersionMenuOpen}
-                    aria-haspopup="listbox"
-                    title="Switch version"
-                    className="inline-flex items-center gap-1 rounded-md border border-transparent bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 font-mono text-xs tabular-nums text-[rgb(var(--ec-page-text-muted))] transition-colors hover:border-[rgb(var(--ec-page-border))] hover:text-[rgb(var(--ec-page-text))]"
-                  >
-                    v{message.data.version}
-                    <ChevronDownIcon className={`h-3 w-3 transition-transform ${isVersionMenuOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {isVersionMenuOpen && (
-                    <ul
-                      role="listbox"
-                      aria-label="Versions"
-                      className="absolute left-0 top-[calc(100%+0.4rem)] z-20 max-h-72 min-w-[12rem] overflow-y-auto rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] py-1 shadow-xl"
+                {/* The format icon in the explorer panel; the schema's own page names the format after the version instead */}
+                {!isPage && (
+                  <div className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-lg bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border)/0.5)]">
+                    {iconUrl ? (
+                      <img src={iconUrl} alt={`${ext} icon`} className="h-5 w-5 schema-icon" />
+                    ) : (
+                      <span className="text-xs font-bold font-mono text-[rgb(var(--ec-page-text-muted))]">{'{ }'}</span>
+                    )}
+                  </div>
+                )}
+                {/* Name (v1.0.0): the version beside the title, muted; with other versions, it opens the list of them */}
+                <h2
+                  className={
+                    isPage
+                      ? 'truncate text-[28px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))] md:text-[34px]'
+                      : 'truncate text-xl font-semibold text-[rgb(var(--ec-page-text))]'
+                  }
+                >
+                  {message.data.name}
+                  {!hasMultipleVersions && <span className={`ml-2 ${versionTextClass}`}>({versionLabel})</span>}
+                </h2>
+                {hasMultipleVersions && (
+                  <div className="relative flex-shrink-0" ref={versionMenuRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsVersionMenuOpen((prev) => !prev)}
+                      aria-expanded={isVersionMenuOpen}
+                      aria-haspopup="listbox"
+                      title="Switch version"
+                      className={`-ml-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-[rgb(var(--ec-page-text)/0.06)] hover:text-[rgb(var(--ec-page-text))] ${versionTextClass}`}
                     >
-                      {uniqueAvailableVersions.map((version, idx) => {
-                        const isCurrent = version.data.version === message.data.version;
-                        return (
-                          <li key={`${version.data.version}-${idx}`} role="option" aria-selected={isCurrent}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsVersionMenuOpen(false);
-                                if (!isCurrent) onVersionChange(version.data.version);
-                              }}
-                              className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors hover:bg-[rgb(var(--ec-content-hover))] ${
-                                isCurrent ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text-muted))]'
-                              }`}
-                            >
-                              <CheckIcon
-                                className={`h-3.5 w-3.5 flex-shrink-0 ${isCurrent ? 'text-[rgb(var(--ec-accent))]' : 'invisible'}`}
-                              />
-                              <span className="font-mono tabular-nums">v{version.data.version}</span>
-                              {idx === 0 && (
-                                <span className="ml-auto rounded bg-[rgb(var(--ec-accent-subtle))] px-1.5 py-0.5 text-[10px] font-medium text-[rgb(var(--ec-accent))]">
-                                  latest
-                                </span>
-                              )}
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </div>
+                      ({versionLabel})
+                      <ChevronDownIcon className={`h-3 w-3 transition-transform ${isVersionMenuOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {isVersionMenuOpen && (
+                      <ul
+                        role="listbox"
+                        aria-label="Versions"
+                        className="absolute left-0 top-[calc(100%+0.4rem)] z-20 max-h-72 min-w-[12rem] overflow-y-auto rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] py-1 shadow-xl"
+                      >
+                        {uniqueAvailableVersions.map((version, idx) => {
+                          const isCurrent = version.data.version === message.data.version;
+                          return (
+                            <li key={`${version.data.version}-${idx}`} role="option" aria-selected={isCurrent}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIsVersionMenuOpen(false);
+                                  if (!isCurrent) onVersionChange(version.data.version);
+                                }}
+                                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors hover:bg-[rgb(var(--ec-content-hover))] ${
+                                  isCurrent ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text-muted))]'
+                                }`}
+                              >
+                                <CheckIcon
+                                  className={`h-3.5 w-3.5 flex-shrink-0 ${isCurrent ? 'text-[rgb(var(--ec-accent))]' : 'invisible'}`}
+                                />
+                                <span className="font-mono tabular-nums">v{version.data.version}</span>
+                                {idx === 0 && (
+                                  <span className="ml-auto rounded bg-[rgb(var(--ec-accent-subtle))] px-1.5 py-0.5 text-[10px] font-medium text-[rgb(var(--ec-accent))]">
+                                    latest
+                                  </span>
+                                )}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                )}
               </div>
               {message.data.summary && (
-                <p className="mt-3 text-sm leading-relaxed text-[rgb(var(--ec-page-text-muted))]">{message.data.summary}</p>
+                <p className={isPage ? 'ec-docs-summary' : 'mt-3 text-sm leading-relaxed text-[rgb(var(--ec-page-text-muted))]'}>
+                  {message.data.summary}
+                </p>
               )}
               {message.lastUpdated && (
                 <p className="mt-1.5 text-xs text-[rgb(var(--ec-page-text-muted))]">
@@ -699,7 +733,7 @@ export default function SchemaDetailsPanel({
         </div>
 
         {/* Tabs */}
-        <div className="flex-shrink-0 px-6">
+        <div className={`flex-shrink-0 ${gutter}`}>
           <div className="flex items-center gap-1 border-b border-[rgb(var(--ec-page-border))]">
             {tabs.map((tab, index) => (
               <Fragment key={tab.id}>
@@ -724,7 +758,8 @@ export default function SchemaDetailsPanel({
         </div>
 
         {/* Tab content */}
-        <div className="flex-1 min-h-0 overflow-hidden p-6">
+        {/* A column, so a tab that fills (the diagrams) takes the rest of the page */}
+        <div className={`flex flex-1 min-h-0 flex-col overflow-hidden py-6 ${gutter}`}>
           {/* Always render the examples slot and hide it on other tabs. Astro moves a slot missing from the
               server HTML into a <template>, where its island scripts never run and no island on the page hydrates. */}
           {renderedExamples && (

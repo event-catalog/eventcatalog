@@ -1,6 +1,6 @@
 {
   "sections": [
-    { "section": "$quick-reference", "title": "Overview" },
+    "$quick-reference",
     {
       "title": "Integrate with this service",
       "icon": "Plug",

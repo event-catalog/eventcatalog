@@ -3158,7 +3158,7 @@ describe('getNestedSideBarData', () => {
         const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
         expect(messageNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Schema (JSON)',
+          title: 'Schema',
           href: '/schemas/events/PaymentProcessed/0.0.1',
         });
       });
@@ -3177,7 +3177,7 @@ describe('getNestedSideBarData', () => {
         const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
         expect(messageNode).not.toHaveNavigationLink({
           type: 'item',
-          title: 'Schema (JSON)',
+          title: 'Schema',
           href: '/schemas/events/PaymentProcessed/0.0.1',
         });
       });

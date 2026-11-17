@@ -234,15 +234,16 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
             {isDeprecated && ' (deprecated)'}
           </span>
         </a>
+        {/* The hover card: what it is, what it's connected to, where to go. Out of the prose styles (not-prose), so its
+            links stay quiet; the details line up in two columns */}
         <span
           id={tooltipId}
-          class="resource-ref-tooltip fixed w-80 bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] border-l-[3px] rounded-r-lg rounded-l-none shadow-lg shadow-black/8 z-[9999] text-left overflow-hidden opacity-0 pointer-events-none transition-all duration-150 scale-95 origin-top-left"
-          style={`${resourceReferenceStyle}; border-left-color: var(--ec-resource-ref-color);`}
+          class="resource-ref-tooltip not-prose fixed z-[9999] w-80 overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-left opacity-0 shadow-[0_8px_30px_rgb(0_0_0/0.12)] pointer-events-none transition-all duration-150 scale-95 origin-top-left"
+          style={resourceReferenceStyle}
         >
-          {/* Deprecation banner */}
           {isDeprecated && (
-            <span class="flex items-center gap-1.5 px-3 py-1.5 bg-[rgb(var(--ec-badge-event-bg))] text-[rgb(var(--ec-badge-event-text))] text-xs font-medium">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <span class="flex items-center gap-1.5 border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-badge-event-bg))] px-3.5 py-1.5 text-xs font-medium text-[rgb(var(--ec-badge-event-text))]">
+              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -253,65 +254,59 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
             </span>
           )}
 
-          <span class="block p-3">
-            {/* Header: Name with icon top-right */}
-            <span class="grid grid-cols-[minmax(0,1fr)_1.25rem] items-start gap-3 border-b border-[rgb(var(--ec-page-border))] pb-2 mb-3">
-              <span class="flex min-w-0 flex-col">
-                <span class="font-semibold text-[rgb(var(--ec-page-text))] text-[0.95rem] leading-tight">
-                  {resource?.data?.name || resourceId}
-                </span>
-                <span class="mt-0.5 flex items-center gap-1.5 text-[0.7rem] text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wide">
-                  <span class="text-[0.65rem] text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wide">{label}</span>
-                  {isVersionedResource && (
-                    <>
-                      <span aria-hidden="true">•</span>
-                      <span class="font-mono normal-case">v{resource?.data?.version}</span>
-                    </>
-                  )}
-                </span>
-              </span>
-              <span class="flex h-[24px] w-[24px] items-start justify-end mr-4">
+          <span class="block px-3.5 pt-3.5 pb-3">
+            {/* Its icon, then its name with the type and version under it */}
+            <span class="flex items-start gap-2.5">
+              <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))]">
                 {resourceIconUrl ? (
                   <img
                     src={resourceIconUrl}
                     alt=""
-                    class="not-prose m-0 block  h-[24px] w-[24px] object-contain"
+                    class="ec-mono-icon ec-mono-icon--active m-0 block h-4 w-4 object-contain"
                     loading="lazy"
                   />
                 ) : (
                   <svg
-                    class="h-5 w-5"
+                    class="h-4 w-4"
                     style="color: var(--ec-resource-ref-color);"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
-                    stroke-width="1.5"
+                    stroke-width="1.75"
                     set:html={iconPath}
                   />
                 )}
               </span>
+              <span class="flex min-w-0 flex-col">
+                <span class="truncate text-sm font-semibold leading-5 text-[rgb(var(--ec-page-text))]">
+                  {resource?.data?.name || resourceId}
+                </span>
+                <span class="text-xs leading-4 text-[rgb(var(--ec-page-text-muted))]">
+                  <span>{label}</span>
+                  {isVersionedResource && <span> · v{resource?.data?.version}</span>}
+                </span>
+              </span>
             </span>
 
-            {/* Summary */}
             {truncatedSummary && (
-              <span class="block text-[rgb(var(--ec-page-text-muted))] text-[0.8rem] leading-relaxed mb-3">
+              <span class="mt-2.5 block text-[13px] leading-relaxed text-[rgb(var(--ec-page-text-muted))]">
                 {truncatedSummary}
               </span>
             )}
 
-            {/* Metadata */}
+            {/* The details, labels in one column and values in the next */}
             {(isService && (sends.length > 0 || receives.length > 0)) || hasSpecifications || owners.length > 0 ? (
-              <span class="block text-[0.7rem] mb-3 space-y-1">
+              <span class="mt-3 grid grid-cols-[5rem_minmax(0,1fr)] gap-x-3 gap-y-1.5 border-t border-[rgb(var(--ec-page-border))] pt-3 text-xs leading-5">
                 {isService && sends.length > 0 && (
-                  <span class="flex items-baseline gap-2">
+                  <>
                     <span class="text-[rgb(var(--ec-page-text-muted))]">Publishes</span>
-                    <span class="font-mono text-[rgb(var(--ec-page-text))]">
+                    <span class="break-words text-[rgb(var(--ec-page-text))]">
                       {sendsWithVersions.slice(0, 2).map((msg: any, idx: number) => (
                         <>
                           {msg.resolvedVersion && msg.resolvedCollection ? (
                             <a
                               href={buildUrl(`/docs/${msg.resolvedCollection}/${msg.id}/${msg.resolvedVersion}`)}
-                              class="hover:underline hover:text-[rgb(var(--ec-accent))]"
+                              class="hover:text-[rgb(var(--ec-accent))] hover:underline"
                             >
                               {msg.id}
                             </a>
@@ -323,18 +318,18 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
                       ))}
                       {sends.length > 2 && <span class="text-[rgb(var(--ec-page-text-muted))]"> +{sends.length - 2}</span>}
                     </span>
-                  </span>
+                  </>
                 )}
                 {isService && receives.length > 0 && (
-                  <span class="flex items-baseline gap-2">
+                  <>
                     <span class="text-[rgb(var(--ec-page-text-muted))]">Subscribes</span>
-                    <span class="font-mono text-[rgb(var(--ec-page-text))]">
+                    <span class="break-words text-[rgb(var(--ec-page-text))]">
                       {receivesWithVersions.slice(0, 2).map((msg: any, idx: number) => (
                         <>
                           {msg.resolvedVersion && msg.resolvedCollection ? (
                             <a
                               href={buildUrl(`/docs/${msg.resolvedCollection}/${msg.id}/${msg.resolvedVersion}`)}
-                              class="hover:underline hover:text-[rgb(var(--ec-accent))]"
+                              class="hover:text-[rgb(var(--ec-accent))] hover:underline"
                             >
                               {msg.id}
                             </a>
@@ -346,17 +341,17 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
                       ))}
                       {receives.length > 2 && <span class="text-[rgb(var(--ec-page-text-muted))]"> +{receives.length - 2}</span>}
                     </span>
-                  </span>
+                  </>
                 )}
                 {hasSpecifications && (
-                  <span class="flex items-baseline gap-2">
+                  <>
                     <span class="text-[rgb(var(--ec-page-text-muted))]">APIs</span>
-                    <span class="font-mono text-[rgb(var(--ec-page-text))]">
+                    <span class="break-words text-[rgb(var(--ec-page-text))]">
                       {specifications.map((spec: any, idx: number) => (
                         <>
                           <a
                             href={getSpecUrl(spec, resourceId, resource?.data?.version)}
-                            class="hover:underline hover:text-[rgb(var(--ec-accent))]"
+                            class="hover:text-[rgb(var(--ec-accent))] hover:underline"
                           >
                             {spec.type === 'generic' && spec.name ? spec.name : getSpecLabel(spec.type)}
                           </a>
@@ -364,79 +359,71 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
                         </>
                       ))}
                     </span>
-                  </span>
+                  </>
                 )}
                 {owners.length > 0 && (
-                  <span class="flex items-baseline gap-2">
-                    <span class="text-[rgb(var(--ec-page-text-muted))]">Owner</span>
-                    <span class="font-mono text-[rgb(var(--ec-page-text))]">
-                      {owners.map((o: any, idx: number) => {
-                        const ownerId = o.id;
-                        return (
-                          <>
-                            {o.href ? (
-                              <a href={o.href} class="hover:underline hover:text-[rgb(var(--ec-accent))]">
-                                {ownerId}
-                              </a>
-                            ) : (
-                              <span>{ownerId}</span>
-                            )}
-                            {idx < owners.length - 1 && ', '}
-                          </>
-                        );
-                      })}
+                  <>
+                    <span class="text-[rgb(var(--ec-page-text-muted))]">{owners.length > 1 ? 'Owners' : 'Owner'}</span>
+                    <span class="break-words text-[rgb(var(--ec-page-text))]">
+                      {owners.map((o: any, idx: number) => (
+                        <>
+                          {o.href ? (
+                            <a href={o.href} class="hover:text-[rgb(var(--ec-accent))] hover:underline">
+                              {o.id}
+                            </a>
+                          ) : (
+                            <span>{o.id}</span>
+                          )}
+                          {idx < owners.length - 1 && ', '}
+                        </>
+                      ))}
                     </span>
-                  </span>
+                  </>
                 )}
               </span>
             ) : null}
+          </span>
 
-            {/* Actions */}
-            <span class="flex items-center justify-between pt-1 text-[0.7rem]">
-              <span class="flex items-center gap-3">
-                {type === 'flow' && (
-                  <a
-                    href={buildUrl(`/visualiser/${collection}/${resourceId}/${resource?.data?.version}`)}
-                    class="text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
-                  >
-                    View flow
-                  </a>
-                )}
-                {hasSchema && (
-                  <a
-                    href={buildUrl(`/schemas/${collection}/${resourceId}/${resource?.data?.version}`)}
-                    class="text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
-                  >
-                    Schema
-                  </a>
-                )}
-                {hasVisualizer && type !== 'flow' && (
-                  <a
-                    href={buildUrl(`/visualiser/${collection}/${resourceId}/${resource?.data?.version}`)}
-                    class="text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
-                  >
-                    Map
-                  </a>
-                )}
-                {repositoryUrl && (
-                  <a
-                    href={repositoryUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
-                  >
-                    Repo
-                  </a>
-                )}
-              </span>
-              <a
-                href={href}
-                class="text-[var(--ec-resource-ref-color)] hover:underline font-medium"
-                style="color: var(--ec-resource-ref-color);"
-              >
-                {type === 'diagram' ? 'View diagram' : type === 'doc' ? 'View doc' : 'View docs'}
-              </a>
+          {/* Where to go: the other views on the left, its docs on the right */}
+          <span class="flex items-center justify-between gap-3 border-t border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.025)] px-3.5 py-2 text-xs">
+            <span class="flex items-center gap-3 text-[rgb(var(--ec-page-text-muted))]">
+              {type === 'flow' && (
+                <a
+                  href={buildUrl(`/visualiser/${collection}/${resourceId}/${resource?.data?.version}`)}
+                  class="hover:text-[rgb(var(--ec-page-text))]"
+                >
+                  View flow
+                </a>
+              )}
+              {hasSchema && (
+                <a
+                  href={buildUrl(`/schemas/${collection}/${resourceId}/${resource?.data?.version}`)}
+                  class="hover:text-[rgb(var(--ec-page-text))]"
+                >
+                  Schema
+                </a>
+              )}
+              {hasVisualizer && type !== 'flow' && (
+                <a
+                  href={buildUrl(`/visualiser/${collection}/${resourceId}/${resource?.data?.version}`)}
+                  class="hover:text-[rgb(var(--ec-page-text))]"
+                >
+                  Diagram
+                </a>
+              )}
+              {repositoryUrl && (
+                <a href={repositoryUrl} target="_blank" rel="noopener noreferrer" class="hover:text-[rgb(var(--ec-page-text))]">
+                  Repository
+                </a>
+              )}
             </span>
+            <a
+              href={href}
+              class="inline-flex items-center gap-1 font-medium text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))]"
+            >
+              {type === 'diagram' ? 'View diagram' : type === 'doc' ? 'View doc' : 'View docs'}
+              <span aria-hidden="true">→</span>
+            </a>
           </span>
         </span>
       </>

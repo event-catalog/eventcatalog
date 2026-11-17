@@ -23,7 +23,7 @@ export default function SchemaFlows({ message, flows }: SchemaFlowsProps) {
   if (!selected) return null;
 
   return (
-    <div className="flex h-full flex-col overflow-auto pr-1">
+    <div className="flex h-full flex-1 flex-col overflow-auto pr-1">
       <div className="mb-4 flex shrink-0 flex-wrap items-center gap-3">
         {flows.length > 1 ? (
           <label className="relative inline-flex items-center">

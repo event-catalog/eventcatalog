@@ -1,4 +1,6 @@
 ---
+import DocsBreadcrumb from '@components/DocsBreadcrumb.astro';
+import { buildUrl } from '@utils/url-builder';
 import type { PageTypes } from '@types';
 import { getCollection, render } from 'astro:content';
 import components from '@components/MDX/components';
@@ -213,7 +215,7 @@ const versionChoices = sortedVersions.map(({ graph: _graph, ...version }) => {
   }
   <div
     id="schema-detail-page"
-    class="min-h-[calc(100vh-4rem)] flex flex-col"
+    class="flex min-h-[calc(100dvh-var(--ec-header-offset))] flex-col"
     style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1);"
   >
     {
@@ -227,6 +229,19 @@ const versionChoices = sortedVersions.map(({ graph: _graph, ...version }) => {
           initialTab={initialTab}
           hasRenderedExamples={(currentMessage.examples?.length ?? 0) > 0}
         >
+          {/* Events / Shipment Created / Schema: the type's list, the message's docs, then this page */}
+          <div slot="breadcrumb">
+            <DocsBreadcrumb
+              collection={currentMessage.collection}
+              items={[
+                {
+                  label: currentMessage.data.name,
+                  href: buildUrl(`/docs/${currentMessage.collection}/${currentMessage.data.id}/${currentMessage.data.version}`),
+                },
+                { label: 'Schema' },
+              ]}
+            />
+          </div>
           {(currentMessage.examples?.length ?? 0) > 0 && (
             <div slot="examples" class="divide-y divide-[rgb(var(--ec-page-border))]">
               {currentMessage.examples?.map((example) => {
@@ -235,11 +250,11 @@ const versionChoices = sortedVersions.map(({ graph: _graph, ...version }) => {
                 return (
                   <section
                     id={`example-${example.fileName.replace(/[^a-zA-Z0-9]+/g, '-')}`}
-                    class="w-full pr-12 py-8 first:pt-0 last:pb-0"
+                    class="w-full py-10 first:pt-2 last:pb-0"
                   >
                     {example.summary && <p class="mb-4 text-sm text-[rgb(var(--ec-page-text-muted))]">{example.summary}</p>}
                     {Content ? (
-                      <div class="prose prose-sm max-w-none prose-h1:mt-0 prose-h1:text-4xl prose-h1:font-bold prose-h1:tracking-tight prose-headings:text-[rgb(var(--ec-page-text))] prose-p:text-[rgb(var(--ec-page-text-muted))] prose-li:text-[rgb(var(--ec-page-text-muted))] prose-strong:text-[rgb(var(--ec-page-text))] prose-a:text-[rgb(var(--ec-accent))] prose-blockquote:border-[rgb(var(--ec-page-border))] prose-hr:border-[rgb(var(--ec-page-border))]">
+                      <div class="prose ec-example-prose max-w-none text-[15px] prose-h1:mt-0 prose-h1:text-[28px] prose-h1:font-semibold prose-h1:tracking-tight prose-headings:text-[rgb(var(--ec-page-text))] prose-p:text-[rgb(var(--ec-page-text-muted))] prose-li:text-[rgb(var(--ec-page-text-muted))] prose-strong:text-[rgb(var(--ec-page-text))] prose-a:text-[rgb(var(--ec-accent))] prose-blockquote:border-[rgb(var(--ec-page-border))] prose-hr:border-[rgb(var(--ec-page-border))]">
                         <Content components={exampleComponents} />
                       </div>
                     ) : (

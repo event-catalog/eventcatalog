@@ -361,11 +361,11 @@
   border: 1px solid rgb(33 38 45); /* #21262d */
 }
 
-:root[data-theme='dark'] .prose a {
+:root[data-theme='dark'] .prose a:not(:where(.not-prose *)) {
   color: rgb(168 85 247); /* purple-500 */
 }
 
-:root[data-theme='dark'] .prose a:hover {
+:root[data-theme='dark'] .prose a:not(:where(.not-prose *)):hover {
   color: rgb(192 132 252); /* purple-400 */
 }
 

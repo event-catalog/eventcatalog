@@ -2,14 +2,11 @@
 import components from '@components/MDX/components';
 
 import { render } from 'astro:content';
-import EnvelopeIcon from '@heroicons/react/16/solid/EnvelopeIcon';
 import { Github } from 'lucide-react';
 import { buildUrl } from '@utils/url-builder';
-import { getTeamMemberIds } from '@utils/collections/teams';
-import { getUsers } from '@utils/collections/users';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import OnThisPage from '@components/OnThisPage.astro';
-import OwnedResourceStats from '@components/OwnedResourceStats.astro';
+import DocsBreadcrumb from '@components/DocsBreadcrumb.astro';
 import { Page } from './_index.data';
 
 export const prerender = Page.prerender;
@@ -21,9 +18,6 @@ if (!props) return Astro.rewrite('/404');
 
 const { Content, headings } = await render(props);
 
-// Members that are in the catalog, as the sidebar's Members section lists them.
-const userIds = new Set((await getUsers()).map((user) => user.data.id));
-const memberCount = getTeamMemberIds(props, userIds).length;
 
 const pageTitle = `Team | ${props.data.name}`;
 const source = props.data.source;
@@ -42,93 +36,36 @@ const sourceTitle = sourceLabel ? `Synced from ${sourceLabel}` : undefined;
     data-pagefind-meta={`title:${pageTitle}`}
   >
     <div class="flex docs-layout w-full">
-      <div class="w-full min-w-0 lg:mr-2 xl:pr-12 py-8 bg-[rgb(var(--ec-page-bg))]">
-        <div class="border-b border-[rgb(var(--ec-page-border))] pb-6">
-          <div class="flex justify-start">
-            <div class="flex flex-col justify-between space-y-3">
-              <div>
-                <h2 class="text-3xl font-bold text-[rgb(var(--ec-page-text))]">{props.data.name}</h2>
-              </div>
-              {
-                props.data.summary && (
-                  <p class="text-base text-[rgb(var(--ec-page-text-muted))] max-w-2xl">{props.data.summary}</p>
-                )
-              }
-              <div class="flex flex-wrap gap-3 pt-1">
-                {
-                  props.data.email && (
-                    <a
-                      href={`mailto:${props.data.email}`}
-                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
-                    >
-                      <EnvelopeIcon className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />
-                      <span>Email</span>
+      <div class="w-full min-w-0 lg:mr-2 xl:pr-8 pt-5 pb-8 bg-[rgb(var(--ec-page-bg))]">
+        {/* As the docs pages: Teams / Customer Platform / Overview, then the title and summary (what they own is in Owned Resources). Contact
+            details live in the sidebar, so they are not repeated here */}
+        <div class="border-b border-[rgb(var(--ec-page-border))] pt-2 pb-6">
+          <div class="flex flex-col gap-3">
+            <DocsBreadcrumb collection="teams" items={[{ label: props.data.name, href: buildUrl(`/docs/teams/${props.data.id}`) }, { label: 'Overview' }]} />
+            <div>
+              <h2 class="text-[28px] md:text-[34px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))]">
+                {props.data.name}
+              </h2>
+              {props.data.summary && <p class="ec-docs-summary">{props.data.summary}</p>}
+            {
+              source && sourceLabel && (
+                <p class="mt-3 inline-flex items-center gap-1.5 text-[13px] text-[rgb(var(--ec-page-text-muted))]" title={sourceTitle}>
+                  {source.provider === 'github' && <Github className="h-3.5 w-3.5" />}
+                  {source.provider === 'microsoft-entra' && <img src={buildUrl('/icons/azure.svg', true)} class="ec-mono-icon h-3.5 w-3.5" alt="" />}
+                  {source.url ? (
+                    <a href={source.url} target="_blank" rel="noopener noreferrer" class="hover:text-[rgb(var(--ec-page-text))] hover:underline">
+                      {sourceTitle}
                     </a>
-                  )
-                }
-                {
-                  props.data.slackDirectMessageUrl && (
-                    <a
-                      href={props.data.slackDirectMessageUrl}
-                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
-                    >
-                      <img src={buildUrl('/slack-icon.svg', true)} class="w-4 h-4" alt="Slack" />
-                      <span>Slack</span>
-                    </a>
-                  )
-                }
-                {
-                  props.data.msTeamsDirectMessageUrl && (
-                    <a
-                      href={props.data.msTeamsDirectMessageUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
-                    >
-                      <img src={buildUrl('/icons/ms-teams.svg', true)} class="w-4 h-4" alt="Teams" />
-                      <span>Teams</span>
-                    </a>
-                  )
-                }
-                {
-                  source && sourceLabel && source.url && (
-                    <a
-                      href={source.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={sourceTitle}
-                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
-                    >
-                      {source.provider === 'github' && <Github className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />}
-                      {source.provider === 'microsoft-entra' && <img src={buildUrl('/icons/azure.svg', true)} class="w-4 h-4" alt="" />}
-                      <span>{sourceLabel}</span>
-                    </a>
-                  )
-                }
-                {
-                  source && sourceLabel && !source.url && (
-                    <span
-                      title={sourceTitle}
-                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))]"
-                    >
-                      {source.provider === 'github' && <Github className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />}
-                      {source.provider === 'microsoft-entra' && <img src={buildUrl('/icons/azure.svg', true)} class="w-4 h-4" alt="" />}
-                      <span>{sourceLabel}</span>
-                    </span>
-                  )
-                }
-              </div>
+                  ) : (
+                    <span>{sourceTitle}</span>
+                  )}
+                </p>
+              )
+            }
             </div>
           </div>
-          <div class="pt-4">
-            <OwnedResourceStats
-              owner={props}
-              resourcesHref={buildUrl(`/docs/teams/${props.data.id}/resources`)}
-              people={{ label: 'Members', count: memberCount }}
-            />
-          </div>
         </div>
-        <div class="prose prose-md py-4 w-full">
+        <div class="prose prose-md pt-8 pb-4 w-full text-[15px]">
           <Content components={components(props)} />
         </div>
       </div>

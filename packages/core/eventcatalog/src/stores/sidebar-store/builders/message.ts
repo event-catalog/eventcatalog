@@ -37,12 +37,22 @@ const getSchemasForMessage = (message: MessageEntry, schemas: MessageSchemaEntry
   );
 };
 
-const getSchemaNavTitle = (schemas: MessageSchemaEntry[]) => {
-  if (schemas.length > 1) return 'Schemas';
+/** The icons for the schema formats the catalog ships one for, shown on the schema's row instead of naming the format */
+const SCHEMA_FORMAT_ICONS: Record<string, string> = {
+  json: '/icons/json-schema.svg',
+  avro: '/icons/avro.svg',
+  avsc: '/icons/avro.svg',
+  proto: '/icons/proto.svg',
+};
+
+/** The schema's row: "Schema" (or "Schemas"), with its format's icon when there's one schema of a known format */
+const getSchemaNavItem = (schemas: MessageSchemaEntry[]) => {
+  if (schemas.length > 1) return { title: 'Schemas' };
 
   const schemaPath = schemas[0]?.data.file || schemas[0]?.data.source.path || schemas[0]?.data.ref || schemas[0]?.id;
-  const format = schemaPath ? getSchemaFormatFromURL(schemaPath) : schemas[0]?.data.format;
-  return format ? `Schema (${format.toUpperCase()})` : 'Schema';
+  const format = (schemaPath ? getSchemaFormatFromURL(schemaPath) : schemas[0]?.data.format)?.toLowerCase();
+  const icon = format ? SCHEMA_FORMAT_ICONS[format] : undefined;
+  return { title: 'Schema', ...(icon ? { leftIcon: icon } : {}) };
 };
 
 /**
@@ -186,7 +196,7 @@ export const buildMessageSections = (
           pages: [
             {
               type: 'item',
-              title: getSchemaNavTitle(resolvedSchemas),
+              ...getSchemaNavItem(resolvedSchemas),
               href: buildUrl(`/schemas/${collection}/${message.data.id}/${message.data.version}`),
             },
             hasFieldUsage && {

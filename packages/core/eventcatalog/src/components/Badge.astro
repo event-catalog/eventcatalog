@@ -33,11 +33,9 @@ const iconURL = badge?.iconURL;
 const iconURLLight = badge?.iconURLLight;
 const iconURLDark = badge?.iconURLDark;
 const style = badge ? getBadgeStyle(badge) : '';
+// A pill: its own colours when it has them (with a faint ring in its text colour), else a soft grey fill
 const classes = `
-  inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs font-medium
-  ${badge?.backgroundColor ? 'bg-[rgb(var(--ec-content-hover))]' : 'bg-transparent'} border border-[rgb(var(--ec-page-border))]
-  text-[rgb(var(--ec-page-text))]
-  shadow-xs
+  ec-badge ${badge?.backgroundColor ? 'ec-badge--colored' : 'ec-badge--plain'} ${href ? 'ec-badge--link' : ''}
   ${badge?.class ? badge.class : ''}
   ${className}
 `;
@@ -47,52 +45,66 @@ const classes = `
   badge &&
     (href ? (
       <a id={badgeId} href={href} class={classes} style={style} title={content}>
-        {Icon && <Icon className="w-3 h-3 flex-shrink-0" />}
+        {Icon && <Icon className="ec-badge-icon" aria-hidden="true" />}
+        {hasThemedIcon && <img src={iconURLLight} class="ec-badge-img dark:hidden" alt="" onerror="this.style.display='none'" />}
         {hasThemedIcon && (
-          <img
-            src={iconURLLight}
-            class="w-3 h-3 flex-shrink-0 opacity-80 dark:hidden"
-            alt=""
-            onerror="this.style.display='none'"
-          />
+          <img src={iconURLDark} class="ec-badge-img hidden dark:inline-block" alt="" onerror="this.style.display='none'" />
         )}
-        {hasThemedIcon && (
-          <img
-            src={iconURLDark}
-            class="hidden w-3 h-3 flex-shrink-0 opacity-80 dark:inline-block"
-            alt=""
-            onerror="this.style.display='none'"
-          />
-        )}
-        {!hasThemedIcon && iconURL && (
-          <img src={iconURL} class="w-3 h-3 flex-shrink-0 opacity-80" alt="" onerror="this.style.display='none'" />
-        )}
+        {!hasThemedIcon && iconURL && <img src={iconURL} class="ec-badge-img" alt="" onerror="this.style.display='none'" />}
         <span>{content}</span>
         {isExternalHref && <ArrowTopRightOnSquareIcon className="w-2.5 h-2.5 flex-shrink-0 opacity-70" aria-hidden="true" />}
       </a>
     ) : (
       <span id={badgeId} class={classes} style={style} title={content}>
-        {Icon && <Icon className="w-3 h-3 flex-shrink-0" />}
+        {Icon && <Icon className="ec-badge-icon" aria-hidden="true" />}
+        {hasThemedIcon && <img src={iconURLLight} class="ec-badge-img dark:hidden" alt="" onerror="this.style.display='none'" />}
         {hasThemedIcon && (
-          <img
-            src={iconURLLight}
-            class="w-3 h-3 flex-shrink-0 opacity-80 dark:hidden"
-            alt=""
-            onerror="this.style.display='none'"
-          />
+          <img src={iconURLDark} class="ec-badge-img hidden dark:inline-block" alt="" onerror="this.style.display='none'" />
         )}
-        {hasThemedIcon && (
-          <img
-            src={iconURLDark}
-            class="hidden w-3 h-3 flex-shrink-0 opacity-80 dark:inline-block"
-            alt=""
-            onerror="this.style.display='none'"
-          />
-        )}
-        {!hasThemedIcon && iconURL && (
-          <img src={iconURL} class="w-3 h-3 flex-shrink-0 opacity-80" alt="" onerror="this.style.display='none'" />
-        )}
+        {!hasThemedIcon && iconURL && <img src={iconURL} class="ec-badge-img" alt="" onerror="this.style.display='none'" />}
         <span>{content}</span>
       </span>
     ))
 }
+
+<style is:global>
+  .ec-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    color: rgb(var(--ec-page-text) / 0.85);
+    transition:
+      filter 150ms,
+      background-color 150ms;
+  }
+  .ec-badge--plain {
+    background: rgb(var(--ec-page-text) / 0.06);
+  }
+  .ec-badge--colored {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 18%, transparent);
+  }
+  .ec-badge--link:hover {
+    filter: brightness(0.96);
+  }
+  .ec-badge--plain.ec-badge--link:hover {
+    background: rgb(var(--ec-page-text) / 0.1);
+    filter: none;
+  }
+  .ec-badge-icon,
+  .ec-badge-img {
+    width: 12px;
+    height: 12px;
+    flex: none;
+  }
+  .ec-badge-img {
+    object-fit: contain;
+    opacity: 0.85;
+  }
+</style>

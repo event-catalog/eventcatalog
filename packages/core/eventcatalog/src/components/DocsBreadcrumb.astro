@@ -1,0 +1,219 @@
+---
+import * as LucideIcons from 'lucide-react';
+import { buildUrl } from '@utils/url-builder';
+
+/**
+ * Above a docs page's title: where it sits, e.g. "Services / Payment Worker / Overview". Given the resource's
+ * `collection`, it starts with that type (its icon, linking to its list). Small and quiet, as GitBook draws them: muted
+ * steps with a chevron between, links that take the accent colour and an underline on hover, and the last step (where you are) in full colour.
+ */
+interface Props {
+  /** The resource's collection (e.g. `services`): the first step, linking to that type's list */
+  collection?: string;
+  items: {
+    label: string;
+    href?: string;
+    /** The resource's collection (e.g. `services`), for its type's icon */
+    collection?: string;
+    /** The resource's own icon (an image, e.g. a technology's logo), drawn in greys before its name */
+    iconSrc?: string;
+  }[];
+}
+
+const { collection, items: pageItems } = Astro.props;
+
+// Each type as the first step: its name, and its list where it has one (Discover, or the directory for people)
+const TYPE_LABELS: Record<string, string> = {
+  domains: 'Domains',
+  systems: 'Systems',
+  services: 'Services',
+  agents: 'Agents',
+  events: 'Events',
+  commands: 'Commands',
+  queries: 'Queries',
+  channels: 'Channels',
+  containers: 'Data Stores',
+  entities: 'Entities',
+  flows: 'Flows',
+  'data-products': 'Data Products',
+  adrs: 'Decision Records',
+  teams: 'Teams',
+  users: 'Users',
+};
+const DISCOVER_TYPES = [
+  'domains',
+  'systems',
+  'services',
+  'agents',
+  'events',
+  'commands',
+  'queries',
+  'flows',
+  'containers',
+  'data-products',
+  'adrs',
+];
+const typeHref = (type: string) =>
+  DISCOVER_TYPES.includes(type)
+    ? buildUrl(`/discover/${type}`)
+    : type === 'teams' || type === 'users'
+      ? buildUrl(`/directory/${type}`)
+      : undefined;
+// Every step is a link, as GitBook's are: the last (this page) links to itself when no other link is given
+const withCurrentLink = pageItems.map((item, index) =>
+  index === pageItems.length - 1 && !item.href ? { ...item, href: Astro.url.pathname } : item
+);
+const items =
+  collection && TYPE_LABELS[collection]
+    ? [{ label: TYPE_LABELS[collection], href: typeHref(collection), collection }, ...withCurrentLink]
+    : withCurrentLink;
+
+// Each type's icon, as the sidebar and the rail use them
+const TYPE_ICONS: Record<string, string> = {
+  domains: 'Boxes',
+  systems: 'Group',
+  services: 'Server',
+  agents: 'Bot',
+  events: 'Zap',
+  commands: 'MessageSquare',
+  queries: 'Search',
+  channels: 'ArrowRightLeft',
+  containers: 'Database',
+  entities: 'Box',
+  flows: 'Waypoints',
+  'data-products': 'Package',
+  teams: 'Users',
+  users: 'User',
+  'custom-docs': 'BookOpen',
+};
+const iconFor = (collection?: string) =>
+  collection ? (LucideIcons as unknown as Record<string, any>)[TYPE_ICONS[collection] ?? ''] : undefined;
+---
+
+<nav aria-label="Breadcrumb" class="ec-breadcrumb">
+  <ol>
+    {
+      items.map((item, index) => {
+        const isLast = index === items.length - 1;
+        const Icon = iconFor(item.collection);
+        const content = (
+          <>
+            {Icon && <Icon className="ec-breadcrumb-icon" aria-hidden="true" />}
+            {!Icon && item.iconSrc && <img src={item.iconSrc} alt="" class="ec-breadcrumb-logo ec-mono-icon" />}
+            <span class="truncate">{item.label}</span>
+          </>
+        );
+        return (
+          <li>
+            {index > 0 && (
+              <svg class="ec-breadcrumb-sep" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="m6 4 4 4-4 4" />
+              </svg>
+            )}
+            {item.href ? (
+              <a
+                href={item.href}
+                aria-current={isLast ? 'page' : undefined}
+                class:list={['ec-breadcrumb-step ec-breadcrumb-link', isLast && 'ec-breadcrumb-current']}
+              >
+                {content}
+              </a>
+            ) : isLast ? (
+              <span aria-current="page" class="ec-breadcrumb-step ec-breadcrumb-current">
+                {content}
+              </span>
+            ) : (
+              <span class="ec-breadcrumb-step">{content}</span>
+            )}
+          </li>
+        );
+      })
+    }
+  </ol>
+</nav>
+
+<style is:global>
+  .ec-breadcrumb ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 13px;
+    line-height: 1;
+  }
+  .ec-breadcrumb li {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 2px;
+  }
+  .ec-breadcrumb-step {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 5px;
+    height: 24px;
+    color: rgb(var(--ec-page-text-muted));
+  }
+  .ec-breadcrumb ol {
+    column-gap: 6px;
+  }
+  .ec-breadcrumb li {
+    column-gap: 6px;
+  }
+  .ec-breadcrumb-link {
+    transition: color 120ms;
+  }
+  .ec-breadcrumb-link:hover {
+    color: rgb(var(--ec-accent));
+  }
+  /* The label (it truncates, so it needs the line height to show an underline) */
+  .ec-breadcrumb-step > span {
+    line-height: 1.6;
+  }
+  /* The label (not the icon) underlines on hover, as GitBook does */
+  .ec-breadcrumb-link:hover > span {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  .ec-breadcrumb-current {
+    font-weight: 500;
+    color: rgb(var(--ec-page-text));
+  }
+  .ec-breadcrumb-icon {
+    width: 13px;
+    height: 13px;
+    flex: none;
+    color: rgb(var(--ec-page-text-muted) / 0.85);
+  }
+  /* A resource's own logo: the icons' height, its own width (some logos are wide, like Go's) */
+  .ec-breadcrumb-logo {
+    height: 16px;
+    width: auto;
+    max-width: 32px;
+    flex: none;
+    object-fit: contain;
+    opacity: 0.8;
+  }
+  .ec-breadcrumb-current .ec-breadcrumb-icon {
+    color: rgb(var(--ec-page-text));
+  }
+  .ec-breadcrumb-link:hover .ec-breadcrumb-icon {
+    color: rgb(var(--ec-accent));
+  }
+  /* A small chevron between steps */
+  .ec-breadcrumb-sep {
+    width: 12px;
+    height: 12px;
+    flex: none;
+    fill: none;
+    stroke: rgb(var(--ec-page-text-muted) / 0.55);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+</style>

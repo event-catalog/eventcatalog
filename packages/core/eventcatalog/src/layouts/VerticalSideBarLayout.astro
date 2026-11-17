@@ -95,7 +95,8 @@ const wrapContent = Astro.props.wrapContent ?? true;
 
 const getDefaultUrl = (route: string, defaultValue: string) => {
   if (route === 'docs/custom') {
-    return firstCustomDocsPage ? buildUrl(`/${route}/${firstCustomDocsPage.slug}`) : buildUrl(defaultValue);
+    // The docs' first page; there's no page at /docs/custom itself (it sends you home)
+    return firstCustomDocsPage ? buildUrl(`/${route}/${firstCustomDocsPage.slug}`) : buildUrl('/');
   }
 
   const collections = [
@@ -237,7 +238,7 @@ const builtinNavigationItems: Record<string, Omit<VerticalNavigationItem, 'curre
     id: '/docs/custom',
     matchId: '/docs/custom',
     label: 'Docs',
-    icon: 'FileText',
+    icon: 'BookOpen',
     href: getDefaultUrl('docs/custom', '/docs/custom'),
   },
   '/studio': {
@@ -250,15 +251,15 @@ const builtinNavigationItems: Record<string, Omit<VerticalNavigationItem, 'curre
   '/discover': {
     id: '/discover',
     matchId: '/discover',
-    label: 'Catalog',
-    icon: 'TableProperties',
+    label: 'Resources',
+    icon: 'Layers',
     href: defaultDiscoverTarget?.href ?? buildUrl('/discover/domains'),
   },
   '/schemas/explorer': {
     id: '/schemas/explorer',
     matchId: '/schemas/explorer',
     label: 'Schemas & APIs',
-    icon: 'FileCode',
+    icon: 'Braces',
     href: buildUrl('/schemas/explorer'),
   },
   '/schemas/fields': {
@@ -294,12 +295,7 @@ const builtinNavigationItems: Record<string, Omit<VerticalNavigationItem, 'curre
 const defaultNavigationGroups: NavigationGroupConfig[] = [
   {
     id: 'main',
-    items: [
-      { id: '/' },
-      { id: '/docs/custom', visible: customDocs.length > 0 },
-      // Collaborative canvases, where they're on
-      { id: '/studio', visible: isCanvasEnabled() },
-    ],
+    items: [{ id: '/' }, { id: '/docs/custom', visible: customDocs.length > 0 }],
   },
   {
     id: 'browse',
@@ -308,12 +304,15 @@ const defaultNavigationGroups: NavigationGroupConfig[] = [
       { id: '/discover', visible: Boolean(defaultDiscoverTarget) },
       { id: '/schemas/explorer' },
       { id: '/schemas/fields', visible: isSSR() },
+      // Collaborative canvases, where they're on (last in Browse, just above Teams)
+      { id: '/studio', visible: isCanvasEnabled() },
     ],
   },
   {
     id: 'organization',
     label: 'Organization',
-    items: [{ id: '/directory/teams' }, { id: '/directory/users' }],
+    // One entry for people: the Teams and Users directories share it, with tabs between them on the page
+    items: [{ id: '/directory/teams', match: ['/directory/teams', '/directory/users'] }],
   },
   {
     id: 'settings',
@@ -526,7 +525,7 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       }
       @media (min-width: 1280px) {
         .app-content-wrapper {
-          --ec-app-content-padding-left: 3.5rem;
+          --ec-app-content-padding-left: 2.5rem;
           --ec-app-content-padding-right: 2rem;
         }
       }
@@ -535,7 +534,8 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
         --ec-app-content-padding-right: 2rem;
       }
       .app-shell {
-        min-height: calc(100vh - 4rem);
+        /* The window under the banner and the header, so a short page doesn't scroll */
+        min-height: calc(100vh - var(--ec-header-offset));
         flex: 1;
       }
       .app-shell--rail-only {
@@ -713,7 +713,7 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       .content-panel {
         min-width: 0;
         flex: 1;
-        min-height: calc(100vh - 4rem);
+        min-height: calc(100vh - var(--ec-header-offset));
       }
       .sidebar-transition {
         transition-property: width, transform;
@@ -893,6 +893,33 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
     </div>
   </main>
 </BaseLayout>
+
+<script>
+  // Links to a heading on the same page (On this page, a heading's own link) glide there rather than jump, landing
+  // under the header (headings carry its height as scroll-margin). Once per window: the layout's script persists
+  // across navigations. Runs before the router's own handler, which steps aside for a handled click.
+  const w = window as Window & { __ecSmoothAnchors?: boolean };
+  if (!w.__ecSmoothAnchors) {
+    w.__ecSmoothAnchors = true;
+    document.addEventListener(
+      'click',
+      (event) => {
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+          return;
+        const link = (event.target as HTMLElement | null)?.closest<HTMLAnchorElement>('a[href^="#"]');
+        const hash = link?.getAttribute('href') ?? '';
+        if (!link || hash.length < 2 || hash.includes('=')) return;
+        const target = document.getElementById(decodeURIComponent(hash.slice(1)));
+        if (!target) return;
+        event.preventDefault();
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+        if (location.hash !== hash) history.pushState(history.state, '', hash);
+      },
+      true
+    );
+  }
+</script>
 
 <ClientRouter />
 <script

@@ -40,6 +40,7 @@ import {
   DatabaseZapIcon,
   ShieldCheckIcon,
   AlignLeft,
+  Tag,
   Package,
   ClipboardList,
   CalendarDays,
@@ -64,6 +65,7 @@ import {
 import { getSchemasFromResource } from '@utils/collections/schemas';
 import { getIcon } from '@utils/badges';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
+import DocsBreadcrumb from '@components/DocsBreadcrumb.astro';
 import { getGenericSpecificationIcon, isIconPath, resolveIconUrl } from '@utils/icon';
 import {
   isEventCatalogChatVisible,
@@ -448,26 +450,23 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
   <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
     <div class="flex docs-layout w-full">
-      <div class="w-full min-w-0 lg:mr-2 xl:pr-12 py-8 bg-[rgb(var(--ec-page-bg))]">
-        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-4">
+      <div class="w-full min-w-0 lg:mr-2 xl:pr-8 pt-5 pb-8 bg-[rgb(var(--ec-page-bg))]">
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-4 pt-2">
           <div>
             <div>
-              <div class="flex flex-col gap-4">
-                <span class="text-xs md:text-sm font-semibold text-[rgb(var(--ec-accent))] capitalize">
-                  {friendlyCollectionName}
-                </span>
+              <div class="flex flex-col gap-3">
+                <DocsBreadcrumb collection={props.collection} items={[
+                    {
+                      label: props.data.name,
+                      href: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`),
+                      // The resource's own icon (a technology's logo) sits in the breadcrumb, not beside the title
+                      iconSrc: headerIconSrc ?? undefined,
+                    },
+                    { label: 'Overview' },
+                  ]} />
                 <div class="flex items-center gap-3">
-                  {
-                    headerIconSrc && (
-                      <img
-                        src={headerIconSrc}
-                        alt={props.data.name}
-                        class="w-8 h-8 md:w-10 md:h-10 object-contain rounded-md shrink-0"
-                      />
-                    )
-                  }
-                  <div class="flex items-center gap-2">
-                    <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">
+                  <div class="flex items-center gap-1.5">
+                    <h2 id="doc-page-header" class="text-[28px] md:text-[34px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))]">
                       {props.data.name}
                       {props.data.latestVersion !== props.data.version && <span>(v{props.data.version})</span>}
                     </h2>
@@ -487,10 +486,11 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
               </div>
             </div>
 
-            <p class="text-base pt-4 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</p>
+            <p class="ec-docs-summary">{props.data.summary}</p>
             {
+              // Under the summary while there's no side column; beside the page (under On this page) when there is
               badges && (
-                <div class="flex flex-wrap gap-1.5 pt-4">
+                <div class="flex flex-wrap gap-1.5 pt-4 xl:hidden">
                   {badges.map((badge: any) => {
                     return <Badge badge={badge} />;
                   })}
@@ -739,7 +739,8 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
         id="eventcatalog-docs-sidebar"
         class="hidden xl:block sticky top-[calc(var(--ec-header-offset)+0.25rem)] self-start w-[280px] max-h-[calc(100vh-var(--ec-header-offset)-0.25rem)] overflow-y-auto py-2 flex-shrink-0 pr-4 bg-[rgb(var(--ec-page-bg))]"
       >
-        <div class="mt-8 space-y-8">
+        {/* On this page, Tags, Versions: separated by hairlines */}
+        <div class="mt-8 divide-y divide-[rgb(var(--ec-page-border))] [&>*]:py-6 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
           {
             headings.length > 0 && (
               <div>
@@ -765,6 +766,22 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                       );
                     })}
                   </nav>
+                </div>
+              </div>
+            )
+          }
+          {
+            // The page's tags, as properties beside it
+            badges && badges.length > 0 && (
+              <div>
+                <h3 class="text-xs text-[rgb(var(--ec-page-text))] font-semibold flex items-center gap-2 mb-4">
+                  <Tag className="w-4 h-4" />
+                  Tags
+                </h3>
+                <div class="flex flex-wrap gap-1.5">
+                  {badges.map((badge: any) => (
+                    <Badge badge={badge} />
+                  ))}
                 </div>
               </div>
             )

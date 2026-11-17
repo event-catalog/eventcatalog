@@ -2,6 +2,7 @@
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains';
 import { buildUrl } from '@utils/url-builder';
+import DocsBreadcrumb from '@components/DocsBreadcrumb.astro';
 import { ClientRouter } from 'astro:transitions';
 import * as LucideIcons from 'lucide-react';
 import { RectangleGroupIcon } from '@heroicons/react/24/outline';
@@ -33,16 +34,25 @@ const ownerTypeLabel = props.collection === 'domains' ? 'Domain' : 'System';
     data-pagefind-meta={`title:${pageTitle}`}
   >
     <div class="flex docs-layout w-full">
-      <div class="w-full min-w-0 lg:mr-2 xl:pr-12 py-8 min-h-[50em]">
+      <div class="w-full min-w-0 lg:mr-2 xl:pr-8 pt-5 pb-8 min-h-[50em]">
         {/* Header mirrors the resource page (docs/[type]/[id]/[version]/index.astro). */}
-        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-4">
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-2">
           <div class="flex flex-col gap-4">
-            <span class="text-xs md:text-sm font-semibold text-[rgb(var(--ec-accent))] capitalize">{ownerTypeLabel}</span>
-            <h1 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">
+            <DocsBreadcrumb
+              collection={props.collection}
+              items={[
+                {
+                  label: props.data.name,
+                  href: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion ?? props.data.version}`),
+                },
+                { label: 'Ubiquitous Language' },
+              ]}
+            />
+            <h1 id="doc-page-header" class="text-[28px] md:text-[34px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))]">
               Ubiquitous Language
             </h1>
           </div>
-          <p class="text-base pt-4 pb-1 text-[rgb(var(--ec-page-text-muted))] font-light">
+          <p class="ec-docs-summary">
             {termCount} {termCount === 1 ? 'term' : 'terms'} used in the {props.data.name} {ownerTypeLabel.toLowerCase()}{
               subdomains.length > 0 ? ' and its subdomains' : ''
             }.

@@ -1461,7 +1461,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelP
             element?.toggleAttribute('inert', !isOpen);
           }}
           aria-hidden={!isOpen}
-          className="ec-chat-surface fixed top-0 right-0 h-[100dvh] z-[200] border-l border-[rgb(var(--ec-page-border))] flex flex-col overflow-hidden"
+          className="ec-chat-surface fixed top-[var(--ec-banner-height,0px)] right-0 h-[calc(100dvh-var(--ec-banner-height,0px))] z-[200] border-l border-[rgb(var(--ec-page-border))] flex flex-col overflow-hidden"
           style={{
             width: `min(${shownWidth}px, 100vw)`,
             transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
