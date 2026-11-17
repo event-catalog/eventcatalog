@@ -109,11 +109,22 @@ const parseAccept = (accept: string) =>
     return { mediaType: mediaType.trim(), quality: Number.isNaN(quality) ? 1 : quality };
   });
 
-/** True when the Accept header asks for Markdown at least as much as HTML (browsers never send text/markdown) */
+// The quality of the most specific range that matches (RFC 9110 §12.5.1): `text/html`, then `text/*`, then `*/*`
+const qualityOf = (types: ReturnType<typeof parseAccept>, ranges: string[]) => {
+  for (const range of ranges) {
+    const matches = types.filter((t) => t.mediaType === range);
+    if (matches.length) return Math.max(...matches.map((t) => t.quality));
+  }
+  return 0;
+};
+
+/**
+ * True when the Accept header asks for Markdown at least as much as HTML. Markdown has to be named: a wildcard
+ * (`*\/*`, `text/*`) only counts for HTML, so browsers and generic clients keep getting the page.
+ */
 export const prefersMarkdown = (accept: string | null | undefined): boolean => {
   if (!accept) return false;
   const types = parseAccept(accept);
-  const qualityOf = (mediaType: string) => Math.max(0, ...types.filter((t) => t.mediaType === mediaType).map((t) => t.quality));
-  const markdown = qualityOf('text/markdown');
-  return markdown > 0 && markdown >= qualityOf('text/html');
+  const markdown = qualityOf(types, ['text/markdown']);
+  return markdown > 0 && markdown >= qualityOf(types, ['text/html', 'text/*', '*/*']);
 };

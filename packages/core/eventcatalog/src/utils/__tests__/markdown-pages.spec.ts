@@ -52,6 +52,10 @@ describe('prefersMarkdown', () => {
     ['text/markdown;q=0.9, text/html;q=0.9', true],
     ['text/html;q=0.5, text/markdown', true],
     ['text/plain, TEXT/MARKDOWN', true],
+    ['text/markdown, */*;q=0.1', true],
+    ['text/markdown;q=0.8, text/*;q=0.5', true],
+    // The exact text/html range wins over text/*, so HTML ranks 0.4 here
+    ['text/markdown;q=0.5, text/html;q=0.4, text/*;q=0.9', true],
   ])('wants Markdown for "%s"', (accept, expected) => {
     expect(prefersMarkdown(accept)).toBe(expected);
   });
@@ -63,6 +67,9 @@ describe('prefersMarkdown', () => {
     ['text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'],
     ['text/html, text/markdown;q=0.5'],
     ['text/markdown;q=0'],
+    ['text/markdown;q=0.5, text/*;q=0.9'],
+    ['text/markdown;q=0.5, */*'],
+    ['text/markdown;q=0.5, text/html;q=0.6, text/*;q=0.1'],
   ])('wants HTML for "%s"', (accept) => {
     expect(prefersMarkdown(accept)).toBe(false);
   });
