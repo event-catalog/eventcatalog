@@ -12,7 +12,11 @@ import NodeGraph from "./NodeGraph";
 
 const flow = vi.hoisted(() => ({
   fitView: vi.fn(),
-  props: {} as { onPaneClick?: () => void; nodes?: Node[] },
+  props: {} as {
+    onPaneClick?: () => void;
+    nodes?: Node[];
+    children?: React.ReactNode;
+  },
 }));
 
 // The canvas needs a real browser to draw: all that's looked at here is what NodeGraph gives it, and what it moves
@@ -27,6 +31,26 @@ vi.mock("@xyflow/react", async (importOriginal) => {
     useReactFlow: () => ({ ...actual.useReactFlow(), fitView: flow.fitView }),
   };
 });
+
+// Stands in for the minimap, so the tests can look for it among what NodeGraph draws on the canvas
+vi.mock("./DiagramMiniMap", () => ({
+  default: function DiagramMiniMap() {
+    return null;
+  },
+}));
+
+/** Whether NodeGraph puts the minimap on the canvas (among the children it gives ReactFlow) */
+const showsMinimap = () => {
+  const find = (children: React.ReactNode): boolean =>
+    React.Children.toArray(children).some(
+      (child) =>
+        React.isValidElement<{ children?: React.ReactNode }>(child) &&
+        ((typeof child.type === "function" &&
+          child.type.name === "DiagramMiniMap") ||
+          find(child.props.children)),
+    );
+  return find(flow.props.children);
+};
 
 const PORTAL_ID = "diagram";
 
@@ -95,6 +119,44 @@ describe("NodeGraph", () => {
       await act(async () => flow.props.onPaneClick?.());
 
       expect(isSelected()).toBe(false);
+    });
+  });
+
+  describe("the minimap", () => {
+    const renderDiagram = async (props: { rememberMinimap?: boolean }) => {
+      await act(async () => {
+        root.render(
+          <NodeGraph
+            id="orders-diagram"
+            portalId={PORTAL_ID}
+            nodes={nodes}
+            edges={edges}
+            {...props}
+          />,
+        );
+      });
+    };
+
+    beforeEach(() => {
+      act(() => root.unmount());
+      root = createRoot(container);
+      // The person turned the minimap on, on another diagram
+      localStorage.setItem("EventCatalog:showMinimap", "true");
+    });
+
+    afterEach(() => localStorage.clear());
+
+    it("stays on, on the visualiser's pages, when the person turned it on on another diagram", async () => {
+      await renderDiagram({});
+
+      expect(showsMinimap()).toBe(true);
+    });
+
+    it("starts hidden on a diagram embedded in a page, whatever the person chose on the visualiser's pages", async () => {
+      await renderDiagram({ rememberMinimap: false });
+
+      expect(showsMinimap()).toBe(false);
+      expect(localStorage.getItem("EventCatalog:showMinimap")).toBe("true");
     });
   });
 });

@@ -40,6 +40,9 @@ import { resolveIconUrl } from '@utils/icon';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
 
+/** Pages already prefetched for a drill-down (see prefetchResourcePage), kept across ClientRouter navigations */
+const prefetchedHrefs = new Set<string>();
+
 /** The pages every resource has, each with an icon of its own (not their section's, which would make them all alike) */
 const PAGE_ICONS: Record<string, string> = {
   Overview: 'FileText',
@@ -584,6 +587,25 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
   };
 
   /**
+   * Fetch the page a drill-down opens (its Overview) as the pointer or focus reaches it, so the click swaps it in
+   * straight away. Astro prefetches links on hover, but drill-down rows are buttons, so they'd wait for the fetch.
+   * A `<link rel="prefetch">`, as Astro's own prefetch adds (`astro:prefetch` needs the `prefetch` config set).
+   */
+  const prefetchResourcePage = (node: NavNode) => {
+    const href = getResourcePageHref(node);
+    if (!href || urlsMatch(href, currentPath) || prefetchedHrefs.has(href)) return;
+    prefetchedHrefs.add(href);
+    const link = document.createElement('link');
+    if (link.relList?.supports?.('prefetch')) {
+      link.rel = 'prefetch';
+      link.href = href;
+      document.head.append(link);
+    } else {
+      fetch(href, { priority: 'low' } as RequestInit).catch(() => prefetchedHrefs.delete(href));
+    }
+  };
+
+  /**
    * Navigate back one level
    */
   const navigateBack = () => {
@@ -916,6 +938,8 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
         key={`item-${itemKey || index}`}
         title={item.title}
         onClick={() => handleDrillDown(item, itemKey)}
+        onPointerEnter={() => prefetchResourcePage(item)}
+        onFocus={() => prefetchResourcePage(item)}
         data-active={isActive ? 'true' : undefined}
         className={cn(baseClasses, activeClasses)}
       >
