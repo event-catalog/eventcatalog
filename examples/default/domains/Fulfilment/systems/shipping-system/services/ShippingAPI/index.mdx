@@ -11,6 +11,14 @@ owners:
 receives:
   - id: order-ready-for-shipping
     version: 1.0.0
+    contract:
+      path: ./contracts/shipping-api-warehouse-service.pact.json
+      name: Warehouse Service pact
+      type: pact
+specifications:
+  - type: openapi
+    path: openapi.yml
+    name: Shipping API
 repository:
   language: TypeScript
   url: 'https://github.com/acme/shipping-api'

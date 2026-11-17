@@ -74,6 +74,32 @@ describe('parseIndex', () => {
     expect(parseIndex(index)).toEqual(index);
   });
 
+  it('parses a service that has a consumer contract for a message it receives', () => {
+    const index = {
+      indexVersion: 1,
+      source: 'acme/shipping',
+      commit: '4a1b7e2',
+      resources: [
+        {
+          type: 'service',
+          id: 'shipping-service',
+          version: '1.0.0',
+          name: 'Shipping Service',
+          contentPath: 'services/shipping-service/index.mdx',
+          receives: [
+            {
+              id: 'order-paid',
+              version: '1.0.0',
+              contract: { path: './contracts/orders.pact.json', name: 'Orders pact', type: 'pact' },
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(parseIndex(index)).toEqual(index);
+  });
+
   it('parses a flow that references systems and channels in its steps', () => {
     const index = {
       indexVersion: 1,

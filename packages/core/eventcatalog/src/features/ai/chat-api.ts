@@ -25,6 +25,7 @@ import {
   getCustomDocs as getCustomDocsImpl,
   searchCustomDocs as searchCustomDocsImpl,
   getCustomDoc as getCustomDocImpl,
+  getConsumerContracts,
   collectionSchema,
   resourceCollectionSchema,
   messageCollectionSchema,
@@ -79,6 +80,7 @@ const builtInToolsMetadata = [
   { name: 'getMessagesProducedOrConsumedByResource', description: 'Get messages produced or consumed by a resource' },
   { name: 'getProducerAndConsumerForMessage', description: 'Get the producers and consumers for a message' },
   { name: 'getConsumersOfMessage', description: 'Get the consumers for a message' },
+  { name: 'getConsumerContracts', description: 'Get consumer contracts: what a consumer expects of a message it receives' },
   { name: 'getSchemaForResource', description: 'Get the schema or specifications (OpenAPI, AsyncAPI, GraphQL) for a resource' },
   { name: 'getDataProductInputs', description: 'Get the inputs (resources consumed) for a data product' },
   { name: 'getDataProductOutputs', description: 'Get the outputs (resources produced) for a data product with data contracts' },
@@ -305,6 +307,24 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
           const consumers = await getConsumersOfMessage(services, message as any);
           return consumers;
         },
+      }),
+      getConsumerContracts: tool({
+        description: toolDescriptions.getConsumerContracts,
+        inputSchema: z.object({
+          messageId: z.string().describe('The id of a message, to get the consumer contracts for it').optional(),
+          messageVersion: z.string().describe('The version of the message. Leave it out for the latest version').optional(),
+          messageCollection: messageCollectionSchema.describe('The collection of the message').default('events'),
+          consumerId: z
+            .string()
+            .describe('The id of a consumer (a service, agent or domain), to get the contracts it has')
+            .optional(),
+          consumerCollection: z
+            .enum(['services', 'agents', 'domains'])
+            .describe('The collection of the consumer, when the same id is used in more than one')
+            .optional(),
+          includeContent: z.boolean().describe('Also return each contract file as written').optional(),
+        }),
+        execute: async (params) => getConsumerContracts(params),
       }),
       getSchemaForResource: tool({
         description: toolDescriptions.getSchemaForResource,

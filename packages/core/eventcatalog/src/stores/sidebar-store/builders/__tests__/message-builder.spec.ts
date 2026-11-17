@@ -111,3 +111,54 @@ describe('buildMessageNode with a custom sidebar', () => {
     ]);
   });
 });
+
+describe('Consumer Contracts section of a message', () => {
+  const consumerContracts = [
+    {
+      consumer: { collection: 'services', id: 'ShippingService', version: '2.0.0', name: 'Shipping Service' },
+      contract: {
+        path: './contracts/orders.pact.json',
+        name: 'Orders pact',
+        filename: 'orders.pact.json',
+        slug: 'orders-pact',
+        messages: [{ id: 'OrderCreated', version: '1.0.0' }],
+      },
+      slug: 'ShippingService',
+    },
+  ];
+
+  const findSection = (node: ReturnType<typeof buildMessageNode>) =>
+    node.pages?.find((page) => typeof page !== 'string' && page.title === 'Consumer Contracts') as any;
+
+  it('comes right after the Consumers section', () => {
+    const node = buildMessageNode(
+      createEvent({ consumers: [{ collection: 'services', data: { id: 'ShippingService', version: '2.0.0' } }] }),
+      [],
+      emptyContext,
+      false,
+      [],
+      undefined,
+      { consumerContracts }
+    );
+    const sections = titles(node);
+
+    expect(sections.indexOf('Consumer Contracts')).toBe(sections.indexOf('Consumers') + 1);
+  });
+
+  it('lists each consumer that has a contract for the message, linking to the contract on a page of the message', () => {
+    const node = buildMessageNode(createEvent(), [], emptyContext, false, [], undefined, { consumerContracts });
+
+    expect(findSection(node).pages).toEqual([
+      {
+        type: 'item',
+        title: 'Shipping Service',
+        summary: 'Orders pact',
+        href: '/docs/events/OrderCreated/1.0.0/contracts/ShippingService',
+      },
+    ]);
+  });
+
+  it('is not shown when no consumer has a contract for the message', () => {
+    expect(findSection(buildMessageNode(createEvent(), [], emptyContext))).toBeUndefined();
+  });
+});

@@ -144,6 +144,20 @@ describe('createScopedCatalogTools', () => {
     ).resolves.toEqual({ error: 'Resource not found: services/ordering-service' });
   });
 
+  it('answers for a consumer outside the scope as it does for one that does not exist, when asked for its consumer contracts', async () => {
+    const tools = createScopedCatalogTools(createScope());
+
+    // The ordering domain is in the catalog, but not in this scope
+    expect(await tools.getConsumerContracts({ consumerId: 'ordering' })).toEqual({ error: 'Consumer not found: ordering' });
+    expect(await tools.getConsumerContracts({ consumerId: 'missing' })).toEqual({ error: 'Consumer not found: missing' });
+  });
+
+  it('returns the consumer contracts of a consumer inside the scope', async () => {
+    const tools = createScopedCatalogTools(createScope());
+
+    expect(await tools.getConsumerContracts({ consumerId: 'payment-service' })).toMatchObject({ contracts: [], count: 0 });
+  });
+
   it('searches owners only across resources in the scope', async () => {
     const tools = createScopedCatalogTools(createScope());
 

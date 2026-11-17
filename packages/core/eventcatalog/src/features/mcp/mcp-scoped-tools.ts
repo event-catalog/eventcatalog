@@ -4,6 +4,7 @@ import {
   explainUbiquitousLanguageTerms,
   findMessageBySchemaId,
   getArchitectureDiagramAsMermaid,
+  getConsumerContracts,
   getConsumersOfMessage,
   getMessagesProducedOrConsumedByResource,
   getProducersOfMessage,
@@ -113,6 +114,29 @@ export function createScopedCatalogTools(scope: McpScope) {
       if ('error' in result) return result;
       const consumers = filterScopedReferences(scope, result.consumers);
       return { ...result, consumers, count: consumers.length, scope: scope.ref };
+    },
+
+    async getConsumerContracts(params: Parameters<typeof getConsumerContracts>[0]) {
+      // A message asked about has to be in scope. Contracts are then kept for the consumers that are.
+      const entry = params.messageId && scope.find(params.messageCollection || 'events', params.messageId, params.messageVersion);
+      if (params.messageId && !entry) {
+        return notFound(params.messageCollection || 'events', params.messageId, params.messageVersion);
+      }
+      // A consumer asked about has to be in scope too, with the answer an unknown one gets
+      if (
+        params.consumerId &&
+        !(params.consumerCollection ? [params.consumerCollection] : ['services', 'agents', 'domains']).some((collection) =>
+          scope.has(collection, params.consumerId!)
+        )
+      ) {
+        return {
+          error: `Consumer not found: ${params.consumerId}${params.consumerCollection ? ` in ${params.consumerCollection}` : ''}`,
+        };
+      }
+      const result = await getConsumerContracts(entry ? { ...params, messageVersion: entry.data.version } : params);
+      if ('error' in result) return result;
+      const contracts = result.contracts.filter((contract) => isScopedReference(scope, contract.consumer));
+      return { ...result, contracts, count: contracts.length, scope: scope.ref };
     },
 
     async analyzeChangeImpact(params: { messageId: string; messageVersion?: string; messageCollection: string }) {

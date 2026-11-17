@@ -151,10 +151,21 @@ export type TriggerPointer = {
   condition?: string;
 };
 
+/**
+ * The contract a consumer has with the producer of a message it receives, for example a Pact file.
+ * `path` is relative to the consumer's folder. Any file format: EventCatalog shows it as written.
+ */
+export type ConsumerContract = {
+  path: string;
+  name?: string;
+  type?: string;
+};
+
 export type ReceivesPointer = {
   id: string;
   version?: string;
   fields?: string[];
+  contract?: ConsumerContract;
   from?: ChannelPointer[];
   group?: string;
   triggers?: TriggerPointer[];
@@ -164,6 +175,8 @@ export type MessagePointerInput = {
   id: string;
   version: string;
   fields?: string[];
+  /** The consumer's contract for the message. Only kept on `receives`. */
+  contract?: ConsumerContract;
   group?: string;
   triggers?: TriggerPointer[];
 };

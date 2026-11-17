@@ -518,16 +518,18 @@ export const copyDir = async (catalogDir: string, source: string, target: string
 };
 
 // Builds the frontmatter pointer used by sends/receives relationships.
-export const buildMessagePointer = (message: MessagePointerInput, options: { includeTriggers?: boolean } = {}) => {
+// Triggers and a consumer contract only belong on a receives pointer.
+export const buildMessagePointer = (message: MessagePointerInput, options: { receives?: boolean } = {}) => {
   const pointer: MessagePointerInput = {
     id: message.id,
     version: message.version,
   };
   if (message.fields) pointer.fields = message.fields;
   if (message.group) pointer.group = message.group;
-  if (options.includeTriggers && message.triggers) {
+  if (options.receives && message.triggers) {
     pointer.triggers = message.triggers.map((trigger) => ({ ...trigger }));
   }
+  if (options.receives && message.contract) pointer.contract = { ...message.contract };
   return pointer;
 };
 

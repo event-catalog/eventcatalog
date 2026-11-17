@@ -10,7 +10,8 @@ import { LinterConfig, getEffectiveRules } from '../config';
  *
  * Mirrors how EventCatalog core resolves each reference:
  *  - `schemaPath`, `schemas[].file`, `schemas[].path`, `specifications` paths and
- *    data product `outputs[].contract.path` are relative to the resource's own folder
+ *    data product `outputs[].contract.path` and consumer contracts (`receives[].contract.path`) are relative
+ *    to the resource's own folder
  *  - `schemas[].ref` may be a `file://<relative>` or `file:///<absolute>` reference
  *  - `styles.icon` values starting with `/` are served from the catalog's `public/` folder
  *
@@ -124,6 +125,16 @@ export const extractFileReferences = (parsedFile: ParsedFile, options: FileExist
       const contract = (output as Record<string, unknown>).contract;
       if (!contract || typeof contract !== 'object') return;
       addLocal(`outputs[${index}].contract.path`, (contract as Record<string, unknown>).path, 'contract');
+    });
+  }
+
+  // consumer contracts: the contract a service, agent or domain has for a message it receives
+  if (Array.isArray(frontmatter.receives)) {
+    frontmatter.receives.forEach((receive, index) => {
+      if (!receive || typeof receive !== 'object') return;
+      const contract = (receive as Record<string, unknown>).contract;
+      if (!contract || typeof contract !== 'object') return;
+      addLocal(`receives[${index}].contract.path`, (contract as Record<string, unknown>).path, 'contract');
     });
   }
 

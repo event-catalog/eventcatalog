@@ -134,6 +134,20 @@ receives:
 ---
 ```
 
+#### Consumer contracts
+
+A received message can have a `contract`: the file (for example a Pact file) that says what this service expects of the message. See [Consumer Contracts](../schemas/04-explore-schemas/04-consumer-contracts.md).
+
+```md title="Example"
+---
+receives:
+  - id: OrderPaid
+    version: 1.0.0
+    contract:
+      path: ./contracts/orders.pact.json
+---
+```
+
 #### Map commands to events
 
 <AddedIn version="4.2.0" />

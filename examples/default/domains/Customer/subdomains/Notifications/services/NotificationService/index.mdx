@@ -11,15 +11,33 @@ owners:
 receives:
   - id: order-confirmed
     version: 1.0.0
+    contract:
+      path: ./contracts/notification-service-order-service.pact.json
+      name: Order Service pact
+      type: pact
     from:
       - id: ordering.order-events
         version: 1.0.0
   - id: shipment-delivered
     version: 1.0.0
+  - id: order-ready-for-shipping
+    version: 1.0.0
+    contract:
+      path: ./contracts/notification-service-warehouse-service.pact.json
+      name: Warehouse Service pact
+      type: pact
   - id: payment-failed
     version: 1.0.0
+    contract:
+      path: ./contracts/notification-service-stripe-webhook-endpoint.pact.json
+      name: Stripe Webhook Endpoint pact
+      type: pact
   - id: refund-processed
     version: 1.0.0
+    contract:
+      path: ./contracts/notification-service-stripe-webhook-endpoint.pact.json
+      name: Stripe Webhook Endpoint pact
+      type: pact
   - id: review-published
     version: 1.0.0
   - id: loyalty-points-earned
@@ -37,6 +55,10 @@ sends:
     version: 1.0.0
 readsFrom:
   - id: notification-preferences
+specifications:
+  - type: openapi
+    path: openapi.yml
+    name: Notification Service API
 repository:
   language: TypeScript
   url: 'https://github.com/acme/notification-service'

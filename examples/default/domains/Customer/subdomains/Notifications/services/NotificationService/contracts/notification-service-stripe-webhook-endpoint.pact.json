@@ -1,0 +1,47 @@
+{
+  "consumer": { "name": "notification-service" },
+  "provider": { "name": "stripe-webhook-endpoint" },
+  "messages": [
+    {
+      "description": "a payment failed event",
+      "providerStates": [{ "name": "a charge has failed" }],
+      "contents": {
+        "orderId": "7e86e1d8-cd5f-4d6f-ae8e-bdc5ed3a0d13",
+        "reason": "CARD_DECLINED"
+      },
+      "matchingRules": {
+        "body": {
+          "$.orderId": { "matchers": [{ "match": "regex", "regex": "^[0-9a-f-]{36}$" }] },
+          "$.reason": {
+            "matchers": [
+              { "match": "regex", "regex": "^(CARD_DECLINED|INSUFFICIENT_FUNDS|EXPIRED_CARD|PROCESSING_ERROR)$" }
+            ]
+          }
+        }
+      },
+      "metaData": { "contentType": "application/json" }
+    },
+    {
+      "description": "a refund processed event",
+      "providerStates": [{ "name": "a refund has been processed" }],
+      "contents": {
+        "refundId": "0b0f1c1e-2c59-4a53-9f0e-6f1d3f3c2a11",
+        "paymentId": "f3b6d8a2-6c1e-4b7a-8d57-1c2a9e4b5d60",
+        "amount": 4500,
+        "currency": "GBP"
+      },
+      "matchingRules": {
+        "body": {
+          "$.refundId": { "matchers": [{ "match": "regex", "regex": "^[0-9a-f-]{36}$" }] },
+          "$.paymentId": { "matchers": [{ "match": "regex", "regex": "^[0-9a-f-]{36}$" }] },
+          "$.amount": { "matchers": [{ "match": "integer" }] },
+          "$.currency": { "matchers": [{ "match": "regex", "regex": "^[A-Z]{3}$" }] }
+        }
+      },
+      "metaData": { "contentType": "application/json" }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": { "version": "3.0.0" }
+  }
+}

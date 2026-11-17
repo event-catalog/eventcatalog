@@ -186,6 +186,7 @@ describe('MCP tool metadata', () => {
     ['getMessagesProducedOrConsumedByResource', { resourceId: 'OrderService' }],
     ['getProducersOfMessage', { messageId: 'OrderCreated' }],
     ['getConsumersOfMessage', { messageId: 'OrderCreated' }],
+    ['getConsumerContracts', { messageId: 'OrderCreated' }],
     ['analyzeChangeImpact', { messageId: 'OrderCreated' }],
     ['explainBusinessFlow', { flowId: 'OrderFlow' }],
     ['getDataProductInputs', { dataProductId: 'orders-analytics' }],

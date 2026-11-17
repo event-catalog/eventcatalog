@@ -644,7 +644,7 @@ export const addMessageToDomain =
           return;
         }
       }
-      domain.receives.push(buildMessagePointer(message, { includeTriggers: true }));
+      domain.receives.push(buildMessagePointer(message, { receives: true }));
     } else {
       throw new Error(`Direction ${direction} is invalid, only 'receives' and 'sends' are supported`);
     }

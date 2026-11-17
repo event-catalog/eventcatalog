@@ -17,6 +17,7 @@ import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { iconFieldsForResource } from '@utils/icon';
 import { collectionToResourceMap } from '@utils/collections/util';
 import type { MessageTrigger } from '@utils/collections/message-triggers';
+import { getConsumerContractPath, type MessageConsumerContract } from '@utils/collections/consumer-contracts';
 import { resolveSidebarPages, toCustomSidebarContext, type SidebarSpec } from '../custom-sidebar';
 
 type MessageSchemaEntry = CollectionEntry<'schemas'>;
@@ -58,6 +59,7 @@ export type MessageSectionKey =
   | 'api-and-contracts'
   | 'producers'
   | 'consumers'
+  | 'consumer-contracts'
   | 'triggered-by'
   | 'triggers'
   | 'appears-in-flows'
@@ -81,6 +83,7 @@ export const DEFAULT_MESSAGE_SECTION_ORDER: MessageSectionKey[] = [
   'api-and-contracts',
   'producers',
   'consumers',
+  'consumer-contracts',
   'triggered-by',
   'triggers',
   'appears-in-flows',
@@ -95,7 +98,8 @@ export const buildMessageSections = (
   context: ResourceGroupContext,
   hasFieldUsage: boolean = false,
   flowRefs: string[] = [],
-  messageTriggers: MessageTriggers = { triggers: [], triggeredBy: [] }
+  messageTriggers: MessageTriggers = { triggers: [], triggeredBy: [] },
+  consumerContracts: MessageConsumerContract[] = []
 ): MessageSections => {
   const producers = message.data.producers || [];
   const consumers = message.data.consumers || [];
@@ -215,6 +219,22 @@ export const buildMessageSections = (
           visible: consumers.length > 0,
         }
       : null,
+    // Right under the consumers: what each of them expects of this message. A contract opens on a page of
+    // this message, so moving between its consumers' contracts stays on the message.
+    'consumer-contracts':
+      consumerContracts.length > 0
+        ? {
+            type: 'group',
+            title: 'Consumer Contracts',
+            icon: 'FileCheck',
+            pages: consumerContracts.map(({ consumer, contract, slug }) => ({
+              type: 'item',
+              title: consumer.name,
+              summary: contract.name,
+              href: buildUrl(getConsumerContractPath({ collection, id: message.data.id, version: message.data.version }, slug)),
+            })),
+          }
+        : null,
     'triggered-by': renderTriggeredBy
       ? {
           type: 'group',
@@ -254,6 +274,8 @@ export const buildMessageSections = (
 export type BuildMessageNodeOptions = {
   /** A parsed `sidebar.json` for this message. When present it replaces the generated sidebar. */
   sidebar?: SidebarSpec;
+  /** The contracts consumers have for this message, from their `receives` pointers */
+  consumerContracts?: MessageConsumerContract[];
 };
 
 export const buildMessageNode = (
@@ -282,7 +304,15 @@ export const buildMessageNode = (
   };
   const defaultIcon = iconMap[collection] || 'Mail';
 
-  const sections = buildMessageSections(message, owners, context, hasFieldUsage, flowRefs, messageTriggers);
+  const sections = buildMessageSections(
+    message,
+    owners,
+    context,
+    hasFieldUsage,
+    flowRefs,
+    messageTriggers,
+    options.consumerContracts
+  );
 
   const pages = resolveSidebarPages(sections, DEFAULT_MESSAGE_SECTION_ORDER, {
     sidebar: options.sidebar,

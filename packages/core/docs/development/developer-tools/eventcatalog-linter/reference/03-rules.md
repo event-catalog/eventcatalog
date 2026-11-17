@@ -186,6 +186,7 @@ A file referenced from frontmatter doesn't exist. The linter resolves each path 
 | `schemas[].ref` | `file://<relative>` against the resource folder; `file:///<absolute>` as given. Other refs (schema registries) are skipped |
 | `specifications.openapiPath` / `asyncapiPath` / `graphqlPath`, `specifications[].path` | the resource's own folder; `http(s)://` values are skipped |
 | data product `outputs[].contract.path` | the resource's own folder |
+| consumer contract `receives[].contract.path` | the resource's own folder |
 | `styles.icon` starting with `/` | the catalog's `public/` folder; icon names and URLs are skipped |
 
 Because paths resolve against the resource's own folder, a versioned copy under `versioned/1.0.0/` must have its own schema file next to it.

@@ -67,11 +67,20 @@ const SendsPointerSchema = z
   })
   .strict();
 
+const ConsumerContractSchema = z
+  .object({
+    path: nonEmptyString,
+    name: z.string().optional(),
+    type: z.string().optional(),
+  })
+  .strict();
+
 const ReceivesPointerSchema = z
   .object({
     id: nonEmptyString,
     version: nonEmptyString.optional(),
     fields: z.array(z.string()).optional(),
+    contract: ConsumerContractSchema.optional(),
     from: z.array(ChannelPointerSchema).optional(),
     group: z.string().optional(),
     triggers: z.array(TriggerPointerSchema).optional(),

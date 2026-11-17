@@ -130,7 +130,7 @@ function getServerInstructions(scope?: McpScope) {
     'To find something, call getResources with a collection and a search term, then fetch the details with getResource. Use getSchemaForResource when you need a schema or OpenAPI/AsyncAPI specification for yourself, not to show it to the user.',
     'When the user wants to see or understand how something works or fits together (e.g. "show me how the Order Service works"), call showResource with view "architecture": it shows them an interactive diagram. Do not draw your own diagram of the architecture.',
     'When the user wants to see a schema, payload or the fields of a message (e.g. "show me the schema for OrderCreated"), call showResource with view "schema", not getSchemaForResource: it shows them an interactive schema viewer. Do not print the schema yourself.',
-    'For relationships use getMessagesProducedOrConsumedByResource, getProducersOfMessage and getConsumersOfMessage. Before changing a message, call analyzeChangeImpact to find the affected services, agents and owning teams.',
+    'For relationships use getMessagesProducedOrConsumedByResource, getProducersOfMessage and getConsumersOfMessage. To see what a consumer relies on in a message (its consumer contract, for example from Pact), use getConsumerContracts. Before changing a message, call analyzeChangeImpact to find the affected services, agents and owning teams.',
     ...(!scope || scope.ref.kind === 'domain'
       ? [
           'To find out what a business term means, or to use the right names when writing about or building for a domain, call explainUbiquitousLanguageTerms. A term can mean different things in different domains, so use the meaning from the domain you are working in.',
@@ -269,6 +269,35 @@ function createMcpServer(
       annotations: readOnlyAnnotations,
     },
     createToolHandler(tools.getConsumersOfMessage, 'Failed to get consumers')
+  );
+
+  server.registerTool(
+    'getConsumerContracts',
+    {
+      title: 'Get consumer contracts',
+      description: catalogTools.toolDescriptions.getConsumerContracts,
+      inputSchema: z.object({
+        messageId: z.string().describe('The id of a message, to get the consumer contracts for it').optional(),
+        messageVersion: optionalVersion('message'),
+        messageCollection: catalogTools.messageCollectionSchema
+          .describe('The collection type of the message (events, commands, or queries)')
+          .default('events'),
+        consumerId: z
+          .string()
+          .describe('The id of a consumer (a service, agent or domain), to get the contracts it has')
+          .optional(),
+        consumerCollection: z
+          .enum(['services', 'agents', 'domains'])
+          .describe('The collection of the consumer, when the same id is used in more than one')
+          .optional(),
+        includeContent: z
+          .boolean()
+          .describe('Also return each contract file as written. Leave it out unless the fields listed are not enough.')
+          .optional(),
+      }),
+      annotations: readOnlyAnnotations,
+    },
+    createToolHandler(tools.getConsumerContracts, 'Failed to get consumer contracts')
   );
 
   if (!scope) {
@@ -886,6 +915,7 @@ const globalBuiltInTools = [
   'findResourcesByOwner',
   'getProducersOfMessage',
   'getConsumersOfMessage',
+  'getConsumerContracts',
   'getC4Diagram',
   'analyzeChangeImpact',
   'explainBusinessFlow',

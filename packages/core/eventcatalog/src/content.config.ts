@@ -76,10 +76,19 @@ const triggersPointer = z.object({
   condition: z.string().optional(),
 });
 
+// The contract a consumer has with the producer of a message it receives (for example a Pact file).
+// Any file format: EventCatalog shows it as written.
+const consumerContractPointer = z.object({
+  path: z.string(),
+  name: z.string().optional(),
+  type: z.string().optional(),
+});
+
 const receivesPointer = z.object({
   id: z.string(),
   version: z.string().optional().default('latest'),
   fields: z.array(z.string()).optional(),
+  contract: consumerContractPointer.optional(),
   group: z.string().optional(),
   triggers: z.array(triggersPointer).optional(),
   from: z
