@@ -45,6 +45,10 @@ export const buildUbiquitousLanguageTermPage = ({
     ubiquitousLanguage: term,
     filePath: collection.filePath,
     collectionEditUrl: collection.data.editUrl,
+    // The glossary's other terms, listed beside this one
+    otherTerms: (collection.data.dictionary ?? [])
+      .filter((other) => other.id !== term.id)
+      .map((other) => ({ id: other.id, name: other.name })),
   },
 });
 

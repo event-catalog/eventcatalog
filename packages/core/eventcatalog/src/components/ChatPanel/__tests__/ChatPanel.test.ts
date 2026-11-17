@@ -154,6 +154,20 @@ describe('Ask AI setup experience', () => {
     expect(document.activeElement).toBe(trigger);
   });
 
+  it('asks the question it was opened with, once (e.g. from the homepage search box)', async () => {
+    await act(async () => root.render(createElement(ChatPanelButton, { configured: false })));
+    const askFromPage = (question: string) =>
+      act(async () => window.dispatchEvent(new CustomEvent('eventcatalog:open-chat', { detail: { question } })));
+
+    await askFromPage('Who owns payments?');
+    await act(async () => vi.advanceTimersByTime(1200));
+    expect(container.textContent?.match(/Who owns payments\?/g)).toHaveLength(1);
+
+    // Opening it again, without a question, asks nothing more
+    await act(async () => window.dispatchEvent(new CustomEvent('eventcatalog:open-chat')));
+    expect(container.textContent?.match(/Who owns payments\?/g)).toHaveLength(1);
+  });
+
   it('opens from a page action on mobile without squeezing the page, and adapts when resized', async () => {
     const media = { matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() };
     vi.stubGlobal(

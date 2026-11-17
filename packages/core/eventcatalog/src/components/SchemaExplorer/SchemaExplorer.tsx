@@ -464,10 +464,10 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
       <div className="flex flex-1 min-h-0 gap-0 overflow-hidden">
         <div
           id="schema-explorer-sidebar"
-          className="fixed top-0 z-20 flex h-screen flex-col overflow-hidden border-r border-[rgb(var(--ec-page-border))] bg-linear-to-b from-[rgb(var(--ec-page-bg))] via-[rgb(var(--ec-page-bg))] to-[rgb(var(--ec-accent)/0.06)]"
+          className="fixed top-[var(--ec-banner-height,0px)] z-20 flex h-[calc(100vh-var(--ec-banner-height,0px))] flex-col overflow-hidden border-r border-[rgb(var(--ec-page-border))] bg-linear-to-b from-[rgb(var(--ec-page-bg))] via-[rgb(var(--ec-page-bg))] to-[rgb(var(--ec-accent)/0.06)]"
           style={{ left: 'var(--ec-vertical-nav-width)', width: 'var(--ec-schema-sidebar-width, 360px)' }}
         >
-          <div className="flex h-[60px] flex-shrink-0 items-center justify-between gap-2 border-b border-[rgb(var(--ec-page-border))] px-4">
+          <div className="flex h-[var(--ec-header-height)] flex-shrink-0 items-center justify-between gap-2 border-b border-[rgb(var(--ec-page-border))] px-4">
             <div className="relative min-w-0 flex-1">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <MagnifyingGlassIcon className="h-4 w-4 text-[rgb(var(--ec-icon-color))]" />

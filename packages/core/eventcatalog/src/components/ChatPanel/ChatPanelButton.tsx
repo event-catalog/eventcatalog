@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Sparkles } from 'lucide-react';
-import ChatPanel from './ChatPanel';
+import ChatPanel, { type ChatQuestion } from './ChatPanel';
 import { OPEN_CHAT_EVENT } from './assistant-events';
 
 const ChatPanelButton = ({ configured = false }: { configured?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [question, setQuestion] = useState<ChatQuestion>();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const closePanel = useCallback(() => {
     setIsOpen(false);
@@ -14,7 +15,10 @@ const ChatPanelButton = ({ configured = false }: { configured?: boolean }) => {
 
   // Listen for custom event to open chat panel from other components
   useEffect(() => {
-    const handleOpenChat = () => {
+    // The event can carry a question to ask: detail { question }
+    const handleOpenChat = (event: Event) => {
+      const text = (event as CustomEvent<{ question?: string } | undefined>).detail?.question?.trim();
+      if (text) setQuestion((previous) => ({ id: (previous?.id ?? 0) + 1, text }));
       setIsOpen(true);
     };
 
@@ -37,17 +41,20 @@ const ChatPanelButton = ({ configured = false }: { configured?: boolean }) => {
     <>
       <button
         ref={buttonRef}
+        // The homepage hides it, as its search box asks the assistant too (see Header.astro)
+        data-chat-button
         onClick={() => setIsOpen(true)}
-        className="flex h-9 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap px-4 rounded-md bg-[rgb(var(--ec-card-bg))] hover:bg-[rgb(var(--ec-content-hover))] ring-1 ring-inset ring-[rgb(var(--ec-page-border))] shadow-xs transition-colors text-sm"
+        // Beside the search field, the same height: a quiet bordered button that brightens on hover
+        className="group flex h-8 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-2.5 text-[13px] font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors hover:border-[rgb(var(--ec-page-text)/0.2)] hover:bg-[rgb(var(--ec-page-text)/0.04)] hover:text-[rgb(var(--ec-page-text))]"
         aria-label="Open AI Assistant"
         aria-keyshortcuts="Meta+i Control+i"
         title={`Open Event Catalog Assistant (${shortcut})`}
       >
-        <Sparkles size={16} className="shrink-0 text-gray-500" aria-hidden="true" />
-        <span className="font-light text-gray-500">Ask</span>
+        <Sparkles size={14} className="shrink-0 transition-colors group-hover:text-[rgb(var(--ec-accent))]" aria-hidden="true" />
+        <span>Ask AI</span>
       </button>
 
-      <ChatPanel configured={configured} isOpen={isOpen} onClose={closePanel} />
+      <ChatPanel configured={configured} isOpen={isOpen} onClose={closePanel} question={question} />
     </>
   );
 };

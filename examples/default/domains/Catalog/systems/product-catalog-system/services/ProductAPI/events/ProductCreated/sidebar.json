@@ -1,6 +1,6 @@
 {
   "sections": [
-    { "section": "$quick-reference", "title": "Overview" },
+    "$quick-reference",
     "$api-and-contracts",
     "$producers",
     "$consumers",

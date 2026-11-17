@@ -298,3 +298,38 @@ export const getBadgeClasses = (badge: string): string => {
   };
   return badgeColors[badge.toLowerCase()] || 'bg-[rgb(var(--ec-badge-default-bg))] text-[rgb(var(--ec-badge-default-text))]';
 };
+
+/**
+ * A child that's another resource: a reference to one (`service:orders:1.0.0`, not a `list:`), or a link to a
+ * resource's own page, as entities and owners are listed (`/docs/entities/product/1.0.0`, `/docs/teams/payments`). Not
+ * a page inside one (a guide, a spec), a link elsewhere, or a link back to the resource the sidebar is in (its Overview,
+ * whose id is `selfId`)
+ */
+const RESOURCE_PAGE = /\/docs\/(?:teams|users|[a-z-]+)\/([^/]+)(?:\/\d[^/]*)?\/?$/;
+export const isResourceRef = (ref: ChildRef, selfId?: string) => {
+  if (typeof ref === 'string') return !ref.startsWith('list:');
+  if (ref.type !== 'item' || !ref.href) return false;
+  const match = RESOURCE_PAGE.exec(ref.href);
+  const isPage = !!match && (/\/docs\/(teams|users)\//.test(ref.href) || /\/\d[^/]*\/?$/.test(ref.href));
+  return isPage && match![1] !== selfId;
+};
+
+/**
+ * A resource's own page, to open when the sidebar drills into it: its link, else the Overview it lists (in Quick
+ * Reference or Overview). A list (e.g. Browse > Domains) has none.
+ */
+export const getResourcePageHref = (node: NavNode): string | undefined => {
+  if (node.href) return node.href;
+  const find = (pages: ChildRef[] | undefined): string | undefined => {
+    for (const page of pages ?? []) {
+      if (typeof page === 'string') continue;
+      if (page.type === 'item' && page.title === 'Overview' && page.href) return page.href;
+      if (page.type === 'group') {
+        const href = find(page.pages);
+        if (href) return href;
+      }
+    }
+    return undefined;
+  };
+  return find(node.pages);
+};

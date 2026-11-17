@@ -26,83 +26,171 @@
 /*
  * Docs typography scale.
  *
- * Tailwind Typography's defaults are tuned for long-form articles: 1.75 line-height,
- * paragraph gaps of 1.25em and heading gaps of 2em. Reference documentation (Stripe,
- * GitHub, Vercel, Mintlify) measures at ~1.6 line-height, 1em paragraph gaps and heading
- * gaps of ~1.5em with 500–600 weight headings. Tighten to match so pages read as reference
- * material rather than essays.
+ * One rhythm for reference documentation (as Stripe, Vercel and Mintlify set theirs): a 15px body at 1.7, headings at
+ * fixed sizes with more space above them than below (each reads as the start of what follows), 16px between
+ * paragraphs, lists, tables and code, and 24px around every block component (tiles, steps, tabs, admonitions,
+ * diagrams…), whatever margins those set for themselves. Sizes and spacing are in rem so they don't drift with a
+ * heading's own size.
  *
- * Scoped to `.docs-layout` (resource, resource-doc, resources, language pages) and
- * `.custom-docs-shell` (custom documentation) so other
- * prose surfaces — chat panel, admonitions on custom pages, the homepage — keep the plugin
- * defaults. These rules are unlayered, so they win over the plugin's `@layer utilities`
- * output regardless of source order; `h2 + *` etc. are restated because the plugin's
- * zero-specificity `:where()` versions would otherwise lose to the rules above them.
+ * Scoped to `.docs-layout` (resource, resource-doc, resources, language pages) and `.custom-docs-shell` (custom
+ * documentation) so other prose surfaces (the chat panel, the homepage) keep the plugin's defaults. These rules are
+ * unlayered, so they win over the plugin's and the components' `@layer utilities` output regardless of source order.
  */
 .docs-layout .prose,
-.custom-docs-shell .prose {
-  line-height: 1.6;
+.custom-docs-shell .prose,
+.ec-example-prose {
+  line-height: 1.7;
 }
 
-.docs-layout .prose p,
-.custom-docs-shell .prose p,
-.docs-layout .prose ul,
-.custom-docs-shell .prose ul,
-.docs-layout .prose ol,
-.custom-docs-shell .prose ol,
-.docs-layout .prose blockquote,
-.custom-docs-shell .prose blockquote,
-.docs-layout .prose table,
-.custom-docs-shell .prose table {
-  margin-top: 1em;
-  margin-bottom: 1em;
+/* Text blocks */
+.docs-layout .prose :is(p, ul, ol, blockquote, table, pre):not(:where(.not-prose *)),
+.custom-docs-shell .prose :is(p, ul, ol, blockquote, table, pre):not(:where(.not-prose *)),
+.ec-example-prose :is(p, ul, ol, blockquote, table, pre):not(:where(.not-prose *)) {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
-.docs-layout .prose li,
-.custom-docs-shell .prose li {
-  margin-top: 0.25em;
-  margin-bottom: 0.25em;
+.docs-layout .prose li:not(:where(.not-prose *)),
+.custom-docs-shell .prose li:not(:where(.not-prose *)),
+.ec-example-prose li:not(:where(.not-prose *)) {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
 }
 
-.docs-layout .prose h2,
-.custom-docs-shell .prose h2 {
+.docs-layout .prose li > :is(ul, ol):not(:where(.not-prose *)),
+.custom-docs-shell .prose li > :is(ul, ol):not(:where(.not-prose *)),
+.ec-example-prose li > :is(ul, ol):not(:where(.not-prose *)) {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Headings: fixed sizes, closer to what they introduce than to what came before */
+.docs-layout .prose :is(h2, h3, h4):not(:where(.not-prose *)),
+.custom-docs-shell .prose :is(h2, h3, h4):not(:where(.not-prose *)),
+.ec-example-prose :is(h2, h3, h4):not(:where(.not-prose *)) {
   font-weight: 600;
-  letter-spacing: -0.01em;
-  margin-top: 1.6em;
-  margin-bottom: 0.6em;
+  color: rgb(var(--ec-page-text));
+  scroll-margin-top: calc(var(--ec-header-offset, 60px) + 1rem);
 }
 
-.docs-layout .prose h3,
-.custom-docs-shell .prose h3 {
-  font-weight: 600;
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
+.docs-layout .prose h2:not(:where(.not-prose *)),
+.custom-docs-shell .prose h2:not(:where(.not-prose *)),
+.ec-example-prose h2:not(:where(.not-prose *)) {
+  font-size: 1.375rem;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.docs-layout .prose h4,
-.custom-docs-shell .prose h4 {
-  font-weight: 600;
-  margin-top: 1.4em;
-  margin-bottom: 0.4em;
+.docs-layout .prose h3:not(:where(.not-prose *)),
+.custom-docs-shell .prose h3:not(:where(.not-prose *)),
+.ec-example-prose h3:not(:where(.not-prose *)) {
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
 }
 
-.docs-layout .prose h2 + *,
-.custom-docs-shell .prose h2 + *,
-.docs-layout .prose h3 + *,
-.custom-docs-shell .prose h3 + *,
-.docs-layout .prose h4 + *,
-.custom-docs-shell .prose h4 + * {
+.docs-layout .prose h4:not(:where(.not-prose *)),
+.custom-docs-shell .prose h4:not(:where(.not-prose *)),
+.ec-example-prose h4:not(:where(.not-prose *)) {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  margin-top: 1.25rem;
+  margin-bottom: 0.375rem;
+}
+
+/* Block components (anything at the top level that isn't text): the same space around each */
+.docs-layout .prose > :not(h1, h2, h3, h4, h5, h6, p, ul, ol, blockquote, table, pre, hr, script, style),
+.custom-docs-shell .prose > :not(h1, h2, h3, h4, h5, h6, p, ul, ol, blockquote, table, pre, hr, script, style),
+.ec-example-prose > :not(h1, h2, h3, h4, h5, h6, p, ul, ol, blockquote, table, pre, hr, script, style) {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* A diagram draws its caption (~2.5rem) just under its box, outside it: the box keeps room for it, plus a section's gap */
+.docs-layout .prose > [id$='-portal'],
+.custom-docs-shell .prose > [id$='-portal'],
+.ec-example-prose > [id$='-portal'] {
+  margin-bottom: 5rem;
+}
+
+/* A heading at the top of a column starts the column */
+.docs-layout .prose .ec-column > :first-child,
+.custom-docs-shell .prose .ec-column > :first-child,
+.ec-example-prose .ec-column > :first-child {
+  margin-top: 0;
+}
+
+/* What follows a heading starts right under it */
+.docs-layout .prose :is(h2, h3, h4):not(:where(.not-prose *)) + *,
+.custom-docs-shell .prose :is(h2, h3, h4):not(:where(.not-prose *)) + *,
+.ec-example-prose :is(h2, h3, h4):not(:where(.not-prose *)) + * {
   margin-top: 0;
 }
 
 .docs-layout .prose > :first-child,
-.custom-docs-shell .prose > :first-child {
+.custom-docs-shell .prose > :first-child,
+.ec-example-prose > :first-child {
   margin-top: 0;
 }
 
 .docs-layout .prose > :last-child,
-.custom-docs-shell .prose > :last-child {
+.custom-docs-shell .prose > :last-child,
+.ec-example-prose > :last-child {
   margin-bottom: 0;
+}
+
+/* Tables: a step smaller than the body, quiet header, comfortable rows */
+.docs-layout .prose table:not(:where(.not-prose *)),
+.custom-docs-shell .prose table:not(:where(.not-prose *)),
+.ec-example-prose table:not(:where(.not-prose *)) {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.docs-layout .prose thead th:not(:where(.not-prose *)),
+.custom-docs-shell .prose thead th:not(:where(.not-prose *)),
+.ec-example-prose thead th:not(:where(.not-prose *)) {
+  font-weight: 600;
+  color: rgb(var(--ec-page-text));
+  padding-bottom: 0.625rem;
+}
+
+.docs-layout .prose :is(tbody td, thead th):not(:where(.not-prose *)),
+.custom-docs-shell .prose :is(tbody td, thead th):not(:where(.not-prose *)),
+.ec-example-prose :is(tbody td, thead th):not(:where(.not-prose *)) {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+
+/* Blockquotes: a quiet aside, no quote marks or italics */
+.docs-layout .prose blockquote:not(:where(.not-prose *)),
+.custom-docs-shell .prose blockquote:not(:where(.not-prose *)),
+.ec-example-prose blockquote:not(:where(.not-prose *)) {
+  font-style: normal;
+  font-weight: 400;
+  color: rgb(var(--ec-page-text-muted));
+  border-left-width: 2px;
+  padding-left: 1rem;
+}
+
+.docs-layout .prose blockquote p:not(:where(.not-prose *))::before,
+.docs-layout .prose blockquote p:not(:where(.not-prose *))::after,
+.custom-docs-shell .prose blockquote p:not(:where(.not-prose *))::before,
+.ec-example-prose blockquote p:not(:where(.not-prose *))::before,
+.custom-docs-shell .prose blockquote p:not(:where(.not-prose *))::after,
+.ec-example-prose blockquote p:not(:where(.not-prose *))::after {
+  content: none;
+}
+
+.docs-layout .prose hr:not(:where(.not-prose *)),
+.custom-docs-shell .prose hr:not(:where(.not-prose *)),
+.ec-example-prose hr:not(:where(.not-prose *)) {
+  margin-top: 2.5rem;
+  margin-bottom: 2.5rem;
 }
 
 /* Dark mode uses data-theme attribute, not prefers-color-scheme */
@@ -203,3 +291,55 @@
 @source inline("{dark:,group-hover:,}text-{orange,blue,green,emerald,amber,violet,pink,purple,gray,yellow,teal,cyan,indigo}-{100,300,400,500,600,800}");
 @source inline("{dark:,}ring-{orange,blue,green,emerald,amber,violet,pink,purple,gray,yellow,teal,cyan,indigo}-500/30");
 @source inline("{group-hover:,dark:group-hover:,}text-{orange,blue,green,emerald,amber,violet,pink,purple,gray,yellow,teal,cyan,indigo}-{400,600}");
+
+/*
+ * A docs page's summary, under its title: one step lighter and smaller than the title, regular weight, comfortable
+ * line height and a readable line length
+ */
+.ec-docs-summary {
+  margin-top: 0.5rem;
+  max-width: 72ch;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.65;
+  color: rgb(var(--ec-page-text-muted));
+}
+
+/* A column that starts with a React component (a code group, a table) starts with it: the island wrapper hides the
+   component from the column's own first-child rule, so its top margin pushed it below the column beside it */
+.ec-column > astro-island:first-child > div:first-of-type {
+  margin-top: 0;
+}
+.ec-column > astro-island:last-child > div:last-of-type {
+  margin-bottom: 0;
+}
+
+/* A resource's own icon (a technology's logo, a schema format) beside its page title and in the sidebar, in greys as
+   the other icons are. A filter rather than a mask, so logos drawn with white detail (OpenAPI) keep it; dark mode
+   inverts it, so black logos stay visible */
+.ec-mono-icon {
+  filter: grayscale(1);
+  opacity: 0.6;
+  transition: opacity 120ms;
+}
+.group:hover .ec-mono-icon,
+.ec-mono-icon--active {
+  opacity: 0.9;
+}
+:root[data-theme='dark'] .ec-mono-icon {
+  filter: grayscale(1) invert(1);
+}
+
+/* Controls drawn over a surface that's always light (the AsyncAPI viewer): the light theme's colours, in either theme,
+   so a primary button fills black and an outlined one reads as it does on a light page */
+.ec-light-surface {
+  --ec-page-bg: 255 255 255;
+  --ec-page-text: 15 23 42;
+  --ec-page-text-muted: 100 116 139;
+  --ec-page-border: 229 229 229;
+  --ec-dropdown-bg: 255 255 255;
+  --ec-dropdown-text: 51 65 85;
+  --ec-dropdown-hover: 248 250 252;
+  --ec-dropdown-border: 226 232 240;
+  --ec-icon-color: 100 116 139;
+}

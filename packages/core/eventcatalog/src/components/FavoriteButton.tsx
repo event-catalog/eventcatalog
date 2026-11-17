@@ -24,7 +24,7 @@ export default function FavoriteButton({ nodeKey, title, badge, href, size = 'md
 
   const sizeClasses = {
     sm: 'h-4 w-4',
-    md: 'h-6 w-6',
+    md: 'h-[18px] w-[18px]',
     lg: 'h-8 w-8',
   };
 
@@ -42,8 +42,11 @@ export default function FavoriteButton({ nodeKey, title, badge, href, size = 'md
   return (
     <button
       onClick={handleToggleFavorite}
-      className={`p-2 rounded-md transition-colors ${
-        isFavorite ? 'text-amber-400 hover:text-amber-500' : 'text-[rgb(var(--ec-icon-color))] hover:text-amber-400'
+      // Quiet until it matters: light grey, amber on hover with a soft wash; amber once favourited
+      className={`p-1.5 rounded-md transition-colors ${
+        isFavorite
+          ? 'text-amber-400 hover:bg-amber-500/10 hover:text-amber-500'
+          : 'text-[rgb(var(--ec-page-text-muted)/0.45)] hover:bg-amber-500/10 hover:text-amber-500'
       }`}
       aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
       title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}

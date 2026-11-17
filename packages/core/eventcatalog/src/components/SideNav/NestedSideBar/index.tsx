@@ -25,8 +25,9 @@ import {
   canCollapseGroup,
   findNodeKeyByUrl,
   getBadgeClasses,
+  isResourceRef,
+  getResourcePageHref,
   getDefaultCollapsedState,
-  hidesDefaultItemIcon,
   isGroupCollapsed,
   resolveNavRef,
   rootLevel,
@@ -38,6 +39,33 @@ import {
 import { resolveIconUrl } from '@utils/icon';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
+
+/** The pages every resource has, each with an icon of its own (not their section's, which would make them all alike) */
+const PAGE_ICONS: Record<string, string> = {
+  Overview: 'FileText',
+  Resources: 'Layers',
+  'Owned Resources': 'Layers',
+  'Ubiquitous Language': 'BookA',
+};
+
+/** Each resource type's icon (as the sidebar data gives its other rows), for rows whose data has none, e.g. domains */
+const TYPE_ICONS: Record<string, string> = {
+  domain: 'Boxes',
+  system: 'Group',
+  service: 'Server',
+  agent: 'Bot',
+  event: 'Zap',
+  command: 'MessageSquare',
+  query: 'Search',
+  channel: 'ArrowRightLeft',
+  container: 'Database',
+  entity: 'Box',
+  flow: 'Waypoints',
+  'data-product': 'Package',
+  adr: 'ClipboardList',
+  team: 'Users',
+  user: 'User',
+};
 
 // ============================================
 // Component
@@ -382,19 +410,19 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
   }, [isInitialized, findAndNavigateToUrl, currentPath]);
 
   /**
-   * Keep the selected item visible. On a full page load the nav remounts scrolled to the
-   * top, so first restore the offset saved for this drill-down path, then nudge the
-   * active item into view if it still isn't. `block: 'nearest'` never scrolls when the
-   * item is already visible, so clicking around near the top doesn't jump.
+   * A new page's sidebar starts at the top, with the selected item nudged into view if it's further down. Going Back
+   * up a level returns to where that level was scrolled. `block: 'nearest'` never scrolls when the item is already
+   * visible, so clicking around near the top doesn't jump.
    */
   useEffect(() => {
     if (!isInitialized) return;
     const nav = navRef.current;
     if (!nav) return;
 
-    const pathKey = getCurrentPath().join('/') || 'root';
-    const savedScrollTop = loadScrollPosition(pathKey);
-    if (savedScrollTop !== null) nav.scrollTop = savedScrollTop;
+    if (slideDirection === 'backward') {
+      const savedScrollTop = loadScrollPosition(getCurrentPath().join('/') || 'root');
+      if (savedScrollTop !== null) nav.scrollTop = savedScrollTop;
+    }
 
     const active = nav.querySelector<HTMLElement>('[data-active="true"]');
     if (!active) return;
@@ -403,7 +431,7 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
     const activeRect = active.getBoundingClientRect();
     const isVisible = activeRect.top >= navRect.top && activeRect.bottom <= navRect.bottom;
     if (!isVisible) active.scrollIntoView({ block: 'nearest' });
-  }, [isInitialized, currentPath, navigationStack, getCurrentPath]);
+  }, [isInitialized, currentPath, navigationStack, getCurrentPath, slideDirection]);
 
   /**
    * Persist the nav scroll offset as it changes.
@@ -448,10 +476,8 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
   if (!data || roots.length === 0) {
     return (
       <aside className="flex h-full min-h-0 w-full flex-1 flex-col bg-[rgb(var(--ec-rail-bg))] font-sans">
-        <div className="flex h-[60px] items-center px-6 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10">
-          <span className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-sidebar-text)/0.5)] truncate">
-            All resources
-          </span>
+        <div className="flex h-[var(--ec-header-height)] items-center px-4 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10">
+          <span className="text-[13px] font-semibold text-[rgb(var(--ec-page-text))] truncate">All resources</span>
         </div>
         {/* Content skeleton */}
         <div className="p-4 space-y-3">
@@ -543,6 +569,17 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
       // Reset hover states to prevent showing path preview immediately after navigation
       setShowPathPreview(false);
       setShowFullPath(false);
+
+      // And open the resource's own page (its Overview), where it has one: a list (Browse > Domains) just drills in.
+      // The path drilled through is saved (see below) and put back on that page, so Back still goes where you came from
+      const href = getResourcePageHref(node);
+      if (href && !urlsMatch(href, currentPath)) {
+        import('astro:transitions/client')
+          .then(({ navigate }) => navigate(href))
+          .catch(() => {
+            window.location.href = href;
+          });
+      }
     }
   };
 
@@ -625,11 +662,6 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
 
   const isTopLevel = navigationStack.length === 1;
 
-  // The list drilled into (e.g. Channels): its items, even those in groups under it (e.g. ADRs
-  // grouped by status), drop a default icon that repeats the list's own
-  const levelNode = currentLevel.key ? resolveRef(currentLevel.key) : null;
-  const repeatsLevelIcon = (item: NavNode) => !!levelNode && hidesDefaultItemIcon(levelNode, item, false);
-
   /**
    * Render a list of child refs (resolving keys as needed)
    */
@@ -640,8 +672,8 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
     const flushItemGroup = () => {
       if (currentItemGroup.length > 0) {
         result.push(
-          <div key={`items-${result.length}`} className="flex flex-col gap-0.5 mb-1.5">
-            {currentItemGroup.map((item, idx) => renderItem(item.node, item.key, idx, repeatsLevelIcon(item.node)))}
+          <div key={`items-${result.length}`} className="flex flex-col gap-px mb-1">
+            {currentItemGroup.map((item, idx) => renderItem(item.node, item.key, idx))}
           </div>
         );
         currentItemGroup = [];
@@ -693,55 +725,56 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
     const canCollapse = canCollapseGroup(isTopLevel, group.collapsible, group.collapsed);
     const defaultCollapsed = getDefaultCollapsedState(visibleChildren.length, group.collapsed);
     const isCollapsed = isGroupCollapsed(canCollapse, groupId, sectionCollapsePreferences, defaultCollapsed);
-    const header = isNested ? (
-      <>
-        {GroupIcon && <GroupIcon className="w-3.5 h-3.5 flex-shrink-0 text-[rgb(var(--ec-content-text-muted))]" />}
-        <span className="text-[12px] font-medium text-[rgb(var(--ec-content-text))] truncate">{group.title}</span>
-        {canCollapse && (
-          <ChevronDown
-            className={cn(
-              'ml-auto w-3.5 h-3.5 flex-shrink-0 text-[rgb(var(--ec-icon-color))] transition-transform',
-              isCollapsed && '-rotate-90'
-            )}
-          />
+    // Groups are small muted labels with a count (nested ones keep their icon and hang off a guide line)
+    // A count only on a list of resources (e.g. Systems, Integration Events, Entities, Owners), not on pages
+    // (Overview, Guides) or the browse lists
+    const selfId = currentLevel.key?.split(':')[1];
+    const isResourceList = visibleChildren.length > 0 && visibleChildren.every((ref) => isResourceRef(ref, selfId));
+
+    const chevron = canCollapse && (
+      <ChevronDown
+        className={cn(
+          'w-3.5 h-3.5 flex-shrink-0 text-[rgb(var(--ec-page-text-muted))] opacity-0 transition group-hover:opacity-100',
+          !isResourceList && 'ml-auto',
+          isCollapsed && '-rotate-90 opacity-100'
         )}
-      </>
-    ) : (
+      />
+    );
+    // A level's sections are small light labels over darker rows, a little space between sections; a section inside
+    // one is a sub-heading with its icon, its rows hanging off a guide line
+    const header = (
       <>
-        {GroupIcon && (
-          <span className="flex items-center justify-center w-5 h-5 flex-shrink-0 rounded bg-[rgb(var(--ec-group-icon-bg))] text-[rgb(var(--ec-group-icon-text))]">
-            <GroupIcon className="w-3 h-3" />
-          </span>
-        )}
-        <span className="text-[12px] font-semibold tracking-tight text-[rgb(var(--ec-content-text))] truncate">
+        {isNested && GroupIcon && <GroupIcon className="w-3.5 h-3.5 flex-shrink-0 text-[rgb(var(--ec-page-text-muted)/0.75)]" />}
+        <span
+          className={cn(
+            'truncate',
+            isNested
+              ? 'text-[12.5px] font-medium text-[rgb(var(--ec-page-text-muted))]'
+              : 'text-[12px] font-medium text-[rgb(var(--ec-page-text-muted)/0.75)]'
+          )}
+        >
           {group.title}
         </span>
-        {canCollapse && (
-          <ChevronDown
-            className={cn(
-              'ml-auto w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))] transition-transform',
-              isCollapsed && '-rotate-90'
-            )}
-          />
+        {isResourceList && (
+          <span className="ml-auto font-mono text-[11px] tabular-nums text-[rgb(var(--ec-page-text-muted)/0.6)]">
+            {visibleChildren.length}
+          </span>
         )}
+        {chevron}
       </>
     );
 
     const headerClasses = cn(
-      'group flex items-center w-full rounded-md text-left transition-colors',
-      isNested ? 'gap-1.5 px-2 py-1.5' : 'gap-2 px-2 py-1.5',
-      canCollapse && 'cursor-pointer hover:bg-[rgb(var(--ec-content-hover))]'
+      'group flex items-center w-full gap-1.5 rounded-md px-2 text-left transition-colors',
+      isNested ? 'h-7' : 'h-6 mb-0.5',
+      canCollapse && 'cursor-pointer hover:text-[rgb(var(--ec-page-text))]'
     );
 
-    // Top level: the guide line sits under the centre of the icon tile (8px padding + half of
-    // 20px). Nested: carets sit on the right, so the guide is simply inset from the label.
-    const childrenClasses = cn(
-      'flex flex-col gap-px mt-0.5 border-l border-[rgb(var(--ec-content-border))]',
-      isNested ? 'ml-3 pl-1.5' : 'ml-[18px] pl-2'
-    );
+    // Rows hang off a tree line: down the section, with a branch into each row (see .ec-sidebar-tree below)
+    const childrenClasses = cn('ec-sidebar-tree flex flex-col', isNested ? 'ml-[15px] mt-px mb-1' : 'ml-2.5');
 
     return (
-      <div key={`group-${groupKey || index}`} className={cn(isNested ? 'mt-0.5' : 'mb-4 last:mb-1')}>
+      <div key={`group-${groupKey || index}`} className={cn(isNested ? 'mt-0.5' : 'mt-3.5 first:mt-0')}>
         {canCollapse ? (
           <button type="button" onClick={() => toggleSectionCollapse(groupId, defaultCollapsed)} className={headerClasses}>
             {header}
@@ -762,12 +795,7 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
                 return renderGroup(child, childKey, childIndex, depth + 1);
               }
 
-              return renderItem(
-                child,
-                childKey,
-                childIndex,
-                hidesDefaultItemIcon(group, child, isNested) || repeatsLevelIcon(child)
-              );
+              return renderItem(child, childKey, childIndex, group.icon);
             })}
           </div>
         )}
@@ -778,17 +806,28 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
   /**
    * Render a single item
    */
-  const renderItem = (item: NavNode, itemKey: string | null, index: number, suppressDefaultIcon = false) => {
+  const renderItem = (item: NavNode, itemKey: string | null, index: number, groupIcon?: string) => {
     const itemHasChildren = hasChildren(item);
     const isActive = urlsMatch(item.href, currentPath) || (itemKey !== null && itemKey === activeNodeKey);
     const isFav = isFavorited(itemKey);
     const canFavorite = itemKey !== null; // Only items with keys can be favorited
 
-    // Get icon component from lucide-react. When suppressDefaultIcon is set (the group heading
-    // already shows the item's type, see hidesDefaultItemIcon) the default per-collection glyph
-    // is hidden; a custom icon (item.leftIcon) is always still shown.
+    // A resource's own icon (item.leftIcon, e.g. a technology's logo) shows alone; its own docs (guides, runbooks) show
+    // none. Otherwise the first of its icon, its type's, its page's (Overview, Resources), its group's or a page that
+    // exists (the data can name one the icon set doesn't have)
+    const icons = LucideIcons as unknown as Record<string, LucideIcons.LucideIcon | undefined>;
     const IconComponent =
-      item.icon && !suppressDefaultIcon ? (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[item.icon] : null;
+      item.doc || item.leftIcon
+        ? null
+        : ([
+            item.icon,
+            itemKey ? TYPE_ICONS[itemKey.slice(0, itemKey.indexOf(':'))] : undefined,
+            PAGE_ICONS[item.title],
+            groupIcon,
+            'FileText',
+          ]
+            .map((name) => (name ? icons[name] : undefined))
+            .find(Boolean) ?? null);
     const handleStarClick = (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
@@ -797,24 +836,32 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
 
     const content = (
       <>
-        <div className="flex items-center gap-2.5 min-w-0 flex-1 ">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
           {IconComponent && (
-            <span
+            <IconComponent
               className={cn(
-                'flex items-center justify-center w-5 h-5 flex-shrink-0',
-                isActive ? 'text-[rgb(var(--ec-accent-text))]' : 'text-[rgb(var(--ec-content-text-muted))]'
+                'w-4 h-4 flex-shrink-0 transition-colors',
+                isActive
+                  ? 'text-[rgb(var(--ec-page-text))]'
+                  : 'text-[rgb(var(--ec-page-text-muted)/0.7)] group-hover:text-[rgb(var(--ec-page-text)/0.85)]'
               )}
-            >
-              <IconComponent className="w-4 h-4" />
-            </span>
+            />
           )}
-          {item.leftIcon && <img src={resolveIconUrl(item.leftIcon)} alt="" loading="lazy" className="w-4 h-4 flex-shrink-0" />}
+          {/* A row's own icon (a schema format, a technology's logo) in greys, as the other icons are (.ec-mono-icon) */}
+          {item.leftIcon && (
+            <img
+              src={resolveIconUrl(item.leftIcon)}
+              alt=""
+              aria-hidden="true"
+              className={cn('ec-mono-icon w-4 h-4 flex-shrink-0 object-contain', isActive && 'ec-mono-icon--active')}
+            />
+          )}
           <span
             className={cn(
-              'text-[12px] truncate',
+              'text-[13px] truncate transition-colors',
               isActive
-                ? 'text-[rgb(var(--ec-accent-text))] font-medium'
-                : 'text-[rgb(var(--ec-content-text-secondary))] group-hover:text-[rgb(var(--ec-content-text))]'
+                ? 'text-[rgb(var(--ec-page-text))] font-medium'
+                : 'text-[rgb(var(--ec-page-text-muted))] group-hover:text-[rgb(var(--ec-page-text))]'
             )}
           >
             {item.title}
@@ -828,25 +875,23 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
                 'flex items-center justify-center w-5 h-5 rounded transition-colors cursor-pointer',
                 isFav
                   ? 'text-amber-400 hover:text-amber-500'
-                  : 'text-[rgb(var(--ec-content-text-muted))] opacity-0 group-hover:opacity-100 hover:text-amber-400'
+                  : 'text-[rgb(var(--ec-page-text-muted))] opacity-0 group-hover:opacity-100 hover:text-amber-400'
               )}
             >
               <Star className={cn('w-3.5 h-3.5', isFav && 'fill-current')} />
             </div>
           )}
           {itemHasChildren && (
-            <span className="flex items-center justify-center w-5 h-5 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-content-text))] group-hover:translate-x-0.5 transition-transform">
-              <ChevronRight className="w-4 h-4" />
-            </span>
+            <ChevronRight className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100 group-focus-visible:opacity-100" />
           )}
         </div>
       </>
     );
 
+    // Rows: a faint wash on hover, a stronger one for the current page
     const baseClasses =
-      'group flex items-center justify-between w-full px-2 py-1.5 rounded-md cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] active:bg-[rgb(var(--ec-content-hover))]';
-    const parentClasses = itemHasChildren ? 'font-medium' : '';
-    const activeClasses = isActive ? 'bg-[rgb(var(--ec-rail-active-bg))] hover:bg-[rgb(var(--ec-rail-active-bg))]' : '';
+      'group flex items-center justify-between w-full h-[30px] px-2 rounded-md cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-page-text)/0.045)]';
+    const activeClasses = isActive ? 'bg-[rgb(var(--ec-page-text)/0.075)] hover:bg-[rgb(var(--ec-page-text)/0.075)]' : '';
 
     // Leaf item with href → render as link
     if (item.href && !itemHasChildren) {
@@ -858,7 +903,7 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
           target={item.external ? '_blank' : undefined}
           aria-current={isActive ? 'page' : undefined}
           data-active={isActive ? 'true' : undefined}
-          className={cn(baseClasses, parentClasses, activeClasses)}
+          className={cn(baseClasses, activeClasses)}
         >
           {content}
         </a>
@@ -872,7 +917,7 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
         title={item.title}
         onClick={() => handleDrillDown(item, itemKey)}
         data-active={isActive ? 'true' : undefined}
-        className={cn(baseClasses, parentClasses, activeClasses)}
+        className={cn(baseClasses, activeClasses)}
       >
         {content}
       </button>
@@ -889,53 +934,59 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
   return (
     <aside className="flex h-full min-h-0 w-full flex-1 flex-col bg-[rgb(var(--ec-rail-bg))] font-sans">
       {isTopLevel && (
-        <div className="flex h-[60px] items-center px-6 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10">
-          <span className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-sidebar-text)/0.5)] truncate">
-            All resources
-          </span>
+        <div className="flex h-[var(--ec-header-height)] items-center px-4 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10">
+          <span className="text-[13px] font-semibold text-[rgb(var(--ec-page-text))] truncate">All resources</span>
         </div>
       )}
 
       {!isTopLevel && (
         <div
-          className="flex h-[60px] items-center px-4 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10"
+          className="flex h-[var(--ec-header-height)] items-center px-4 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10"
           onMouseEnter={() => !isTopLevel && setShowPathPreview(true)}
           onMouseLeave={() => {
             setShowPathPreview(false);
             setShowFullPath(false);
           }}
         >
+          {/* Back, and where you are (its type on the right) */}
           <button
             onClick={navigateBack}
             disabled={isTopLevel}
-            className={cn(
-              'flex items-center gap-2 w-full px-2 py-1.5 -mx-2 rounded-md transition-colors',
-              !isTopLevel && 'hover:bg-[rgb(var(--ec-content-hover))] cursor-pointer',
-              isTopLevel && 'cursor-default'
-            )}
+            aria-label={`Back to ${navigationStack[navigationStack.length - 2]?.title || 'All resources'}`}
+            className="group flex items-center gap-2 w-full min-w-0 rounded-md px-1.5 py-1 -mx-1.5 text-left transition-colors hover:bg-[rgb(var(--ec-page-text)/0.045)]"
           >
-            <span
-              className={cn(
-                'flex items-center justify-center w-5 h-5 text-[rgb(var(--ec-icon-color))] transition-all',
-                isTopLevel && 'opacity-0',
-                !isTopLevel && 'group-hover:-translate-x-0.5'
-              )}
-            >
+            <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center text-[rgb(var(--ec-page-text-muted))] transition group-hover:-translate-x-0.5 group-hover:text-[rgb(var(--ec-page-text))]">
               <ChevronLeft className="w-4 h-4" />
             </span>
-            <span className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-sidebar-text))] truncate">
+            {/* The resource's own icon (a technology's logo) before its name, in greys as the rows draw it */}
+            {(() => {
+              const leftIcon = currentLevel.key ? resolveRef(currentLevel.key)?.leftIcon : undefined;
+              return leftIcon ? (
+                <img
+                  src={resolveIconUrl(leftIcon)}
+                  alt=""
+                  aria-hidden="true"
+                  className="ec-mono-icon ec-mono-icon--active h-4 w-4 flex-shrink-0 object-contain"
+                />
+              ) : null;
+            })()}
+            <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-[rgb(var(--ec-page-text))]">
               {currentLevel.title}
             </span>
-            {currentLevel.badge && (
-              <span
-                className={cn(
-                  'ml-auto px-2 py-0.5 text-[8px] font-semibold uppercase tracking-wide rounded',
-                  getBadgeClasses(currentLevel.badge)
-                )}
-              >
-                {currentLevel.badge}
-              </span>
-            )}
+            {/* The type as a tag, as the page shows it under its title (icon and name in a hairline chip) */}
+            {currentLevel.badge &&
+              (() => {
+                const typeKey = currentLevel.key ? currentLevel.key.slice(0, currentLevel.key.indexOf(':')) : '';
+                const TypeIcon = (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon | undefined>)[
+                  TYPE_ICONS[typeKey] ?? ''
+                ];
+                return (
+                  <span className="ml-auto inline-flex flex-shrink-0 items-center gap-1 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-1.5 py-0.5 text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))]">
+                    {TypeIcon && <TypeIcon className="h-3 w-3" aria-hidden="true" />}
+                    {currentLevel.badge}
+                  </span>
+                );
+              })()}
           </button>
 
           {/* Path Preview Dropdown */}
@@ -1043,7 +1094,7 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
       <nav
         key={animationKey}
         ref={navRef}
-        className={cn('min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4 px-2', getAnimationClass())}
+        className={cn('min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-2 pt-2.5 pb-6', getAnimationClass())}
         style={{
           scrollbarWidth: 'thin',
           scrollbarColor: 'rgb(var(--ec-content-border)) transparent',
@@ -1051,14 +1102,24 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
       >
         {/* Favorites Section */}
         {favorites.length > 0 && isTopLevel && (
-          <div className="mb-6">
-            <div className="flex items-center px-2 py-1.5">
-              <Star className="w-3.5 h-3.5 mr-2 text-amber-400 fill-current" />
-              <span className="text-[12px] text-[rgb(var(--ec-content-text))] font-semibold">Favorites</span>
+          <div className="mb-3.5">
+            <div className="mb-0.5 flex h-6 items-center gap-1.5 px-2">
+              <Star className="w-3 h-3 text-amber-400 fill-current" />
+              <span className="text-[12px] font-medium text-[rgb(var(--ec-page-text-muted)/0.75)]">Favorites</span>
+              <span className="ml-auto font-mono text-[11px] tabular-nums text-[rgb(var(--ec-page-text-muted)/0.6)]">
+                {favorites.length}
+              </span>
             </div>
-            <div className="flex flex-col gap-0.5 border-l ml-3.5 border-amber-200">
+            <div className="ec-sidebar-tree ml-2.5 flex flex-col">
               {favorites.map((fav, index) => {
                 const node = resolveRef(fav.nodeKey);
+                // The resource's icon, as its row elsewhere in the sidebar shows it (its own, else its type's)
+                const favIcons = LucideIcons as unknown as Record<string, LucideIcons.LucideIcon | undefined>;
+                const FavIcon = node?.leftIcon
+                  ? null
+                  : (node?.icon && favIcons[node.icon]) ||
+                    favIcons[TYPE_ICONS[fav.nodeKey.slice(0, fav.nodeKey.indexOf(':'))] ?? ''] ||
+                    null;
                 const isActive = fav.href && currentPath === fav.href;
 
                 return (
@@ -1066,34 +1127,42 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
                     key={`fav-${index}`}
                     onClick={() => navigateToFavorite(fav)}
                     className={cn(
-                      'group flex items-center justify-between w-full px-3 py-2 border border-transparent cursor-pointer text-left transition-colors hover:bg-amber-500/10 active:bg-amber-500/20',
-                      isActive &&
-                        'border-[rgb(var(--ec-accent)/0.16)] bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle))] shadow-sm'
+                      'group flex items-center justify-between w-full h-[30px] px-2 rounded-md cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-page-text)/0.045)]',
+                      isActive && 'bg-[rgb(var(--ec-page-text)/0.075)] hover:bg-[rgb(var(--ec-page-text)/0.075)]'
                     )}
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      {node?.leftIcon ? (
+                        <img
+                          src={resolveIconUrl(node.leftIcon)}
+                          alt=""
+                          aria-hidden="true"
+                          className="ec-mono-icon w-4 h-4 flex-shrink-0 object-contain"
+                        />
+                      ) : (
+                        FavIcon && (
+                          <FavIcon
+                            className={cn(
+                              'w-4 h-4 flex-shrink-0 transition-colors',
+                              isActive
+                                ? 'text-[rgb(var(--ec-page-text))]'
+                                : 'text-[rgb(var(--ec-page-text-muted)/0.7)] group-hover:text-[rgb(var(--ec-page-text)/0.85)]'
+                            )}
+                          />
+                        )
+                      )}
                       <span
                         className={cn(
-                          'text-[12px] truncate',
+                          'text-[13px] truncate',
                           isActive
-                            ? 'text-[rgb(var(--ec-accent-text))] font-medium'
-                            : 'text-[rgb(var(--ec-content-text-secondary))] group-hover:text-[rgb(var(--ec-content-text))]'
+                            ? 'text-[rgb(var(--ec-page-text))] font-medium'
+                            : 'text-[rgb(var(--ec-page-text-muted))] group-hover:text-[rgb(var(--ec-page-text))]'
                         )}
                       >
                         {fav.title}
                       </span>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
-                      {fav.badge && (
-                        <span
-                          className={cn(
-                            'px-1.5 py-0.5 text-[7px] font-semibold uppercase tracking-wide rounded',
-                            getBadgeClasses(fav.badge)
-                          )}
-                        >
-                          {fav.badge}
-                        </span>
-                      )}
                       <div
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1109,9 +1178,7 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
                         <Star className="w-3.5 h-3.5 fill-current" />
                       </div>
                       {node?.pages && node.pages.length > 0 && (
-                        <span className="flex items-center justify-center w-5 h-5 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-content-text))]">
-                          <ChevronRight className="w-4 h-4" />
-                        </span>
+                        <ChevronRight className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100 group-focus-visible:opacity-100" />
                       )}
                     </div>
                   </button>
@@ -1145,6 +1212,38 @@ export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
 
       {/* Animation keyframes */}
       <style>{`
+                /*
+                 * Tree lines: each row draws its piece of the line down the section (to its middle for the last row)
+                 * and a branch into itself, so the line runs |- row, |- row, then ends at the last
+                 */
+                .ec-sidebar-tree {
+                    padding-left: 14px;
+                }
+                .ec-sidebar-tree > * {
+                    position: relative;
+                }
+                .ec-sidebar-tree > *::before,
+                .ec-sidebar-tree > *::after {
+                    content: '';
+                    position: absolute;
+                    left: -12px;
+                    background: rgb(var(--ec-page-border));
+                    pointer-events: none;
+                }
+                .ec-sidebar-tree > *::before {
+                    top: 0;
+                    bottom: 0;
+                    width: 1px;
+                }
+                .ec-sidebar-tree > *:last-child::before {
+                    bottom: auto;
+                    height: 15px;
+                }
+                .ec-sidebar-tree > *::after {
+                    top: 15px;
+                    width: 8px;
+                    height: 1px;
+                }
                 @keyframes slideInRight {
                     from { opacity: 0; transform: translateX(40px); }
                     to { opacity: 1; transform: translateX(0); }

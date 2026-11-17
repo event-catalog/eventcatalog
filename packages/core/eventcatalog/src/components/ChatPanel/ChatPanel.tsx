@@ -482,10 +482,14 @@ const getSuggestedQuestions = (pathname: string): SuggestedQuestion[] => {
   return suggestedQuestionsConfig[suggestedQuestionsConfig.length - 1].questions;
 };
 
+/** A question the panel was opened with (e.g. asked from the homepage), sent once: a new one has a new id */
+export type ChatQuestion = { id: number; text: string };
+
 interface ChatPanelProps {
   configured?: boolean;
   isOpen: boolean;
   onClose: () => void;
+  question?: ChatQuestion;
 }
 
 /** The window's width without its scrollbar, which the panel (fixed, on the right) sits inside of (or the window's, where
@@ -1054,7 +1058,7 @@ const modalMarkdownComponents = {
   ),
 };
 
-const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
+const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelProps) => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const modalInputRef = useRef<HTMLTextAreaElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -1362,6 +1366,15 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
     [configured, isLoading, sendMessage, setMessages, canvasId]
   );
 
+  // Ask the question the panel was opened with, once it's open and free: one asked while an answer is still coming
+  // waits for it to finish rather than being dropped (submitMessage ignores questions while it's busy)
+  const askedQuestion = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (!isOpen || !question || isLoading || askedQuestion.current === question.id) return;
+    askedQuestion.current = question.id;
+    submitMessage(question.text);
+  }, [isOpen, question, isLoading, submitMessage]);
+
   const stopResponse = useCallback(() => {
     if (setupReplyTimer.current !== null) {
       clearTimeout(setupReplyTimer.current);
@@ -1449,7 +1462,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
             element?.toggleAttribute('inert', !isOpen);
           }}
           aria-hidden={!isOpen}
-          className="ec-chat-surface fixed top-0 right-0 h-[100dvh] z-[200] border-l border-[rgb(var(--ec-page-border))] flex flex-col overflow-hidden"
+          className="ec-chat-surface fixed top-[var(--ec-banner-height,0px)] right-0 h-[calc(100dvh-var(--ec-banner-height,0px))] z-[200] border-l border-[rgb(var(--ec-page-border))] flex flex-col overflow-hidden"
           style={{
             width: `min(${shownWidth}px, 100vw)`,
             transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
@@ -1462,8 +1475,9 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
         >
           <PanelResizeHandle panel={panelRef} width={shownWidth} onResize={resizePanel} />
           {/* Header */}
-          <div className="flex-none shrink-0 border-b border-[rgb(var(--ec-page-border))]">
-            <div className="flex items-center justify-between px-4 py-3">
+          {/* The page header's height, so their bottom lines meet */}
+          <div className="flex h-[var(--ec-header-height,52px)] flex-none shrink-0 items-center border-b border-[rgb(var(--ec-page-border))]">
+            <div className="flex w-full items-center justify-between px-4">
               <div className="flex items-center space-x-2">
                 <Sparkles size={16} className="text-[rgb(var(--ec-accent))]" />
                 <span className="font-medium text-[rgb(var(--ec-header-text))] text-sm">Assistant</span>

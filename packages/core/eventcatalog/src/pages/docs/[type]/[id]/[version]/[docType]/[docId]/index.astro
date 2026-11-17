@@ -11,7 +11,9 @@ import { AlignLeftIcon, HistoryIcon } from 'lucide-react';
 import { isEventCatalogChatVisible, isMarkdownDownloadEnabled } from '@utils/feature';
 import { getIcon } from '@utils/badges';
 import { getResourceNoun } from '@utils/collections/util';
-import { getResourceDocTypeLabel } from '@utils/collections/resource-docs';
+import { getResourceDocSectionLabel, getResourceDocTypeLabel } from '@utils/collections/resource-docs';
+import { getCollection } from 'astro:content';
+import DocsBreadcrumb from '@components/DocsBreadcrumb.astro';
 
 import { Page } from './_index.data';
 
@@ -32,6 +34,17 @@ const badges = (props.data.badges || []).map((badge: any) => ({
 
 const docsBasePath = `/docs/${props.data.resourceCollection}/${props.data.resourceId}/${props.data.resourceVersion}/${encodeURIComponent(props.data.type)}/${encodeURIComponent(props.data.id)}`;
 const singularResourceName = getResourceNoun(props.data.resourceCollection);
+// The breadcrumb: the resource the doc belongs to (by its name), then the doc's section, e.g. "Catalog / Guides"
+const owningResource = (await getCollection(props.data.resourceCollection as any)).find(
+  (entry: any) => entry.data.id === props.data.resourceId && entry.data.version === props.data.resourceVersion
+) as any;
+const breadcrumb = [
+  {
+    label: owningResource?.data?.name ?? props.data.resourceId,
+    href: buildUrl(`/docs/${props.data.resourceCollection}/${props.data.resourceId}/${props.data.resourceVersion}`),
+  },
+  { label: getResourceDocSectionLabel(props.data.type) },
+];
 const typeLabel = getResourceDocTypeLabel(props.data.type);
 const chatEnabled = isEventCatalogChatVisible();
 const chatQuery = `Tell me about the ${props.data.type} doc "${title}" for ${props.data.resourceId} (version ${props.data.version})`;
@@ -48,16 +61,16 @@ const pagefindAttributes =
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
   <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
     <div class="flex docs-layout w-full">
-      <div class="w-full min-w-0 lg:mr-2 xl:pr-12 py-8 bg-[rgb(var(--ec-page-bg))]">
+      <div class="w-full min-w-0 lg:mr-2 xl:pr-8 pt-5 pb-8 bg-[rgb(var(--ec-page-bg))]">
         {/* Header mirrors the resource page (docs/[type]/[id]/[version]/index.astro) so docs feel like part of the resource. */}
-        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-4">
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-2">
           <div class="flex flex-col gap-4">
-            <span class="text-xs md:text-sm font-semibold text-[rgb(var(--ec-accent))] capitalize">{typeLabel}</span>
-            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{title}</h2>
+            <DocsBreadcrumb collection={props.data.resourceCollection} items={breadcrumb} />
+            <h2 id="doc-page-header" class="text-[28px] md:text-[34px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))]">{title}</h2>
           </div>
           {
             props.data.summary && (
-              <p class="text-base pt-4 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</p>
+              <p class="ec-docs-summary">{props.data.summary}</p>
             )
           }
           {
@@ -101,7 +114,7 @@ const pagefindAttributes =
         </div>
       </div>
       <aside
-        class="hidden xl:block sticky top-[4rem] self-start w-[280px] max-h-[calc(100vh-4rem)] overflow-y-auto py-2 flex-shrink-0 pr-4 bg-[rgb(var(--ec-page-bg))]"
+        class="hidden xl:block sticky top-[calc(var(--ec-header-offset)+0.25rem)] self-start w-[280px] max-h-[calc(100vh-var(--ec-header-offset)-0.25rem)] overflow-y-auto py-2 flex-shrink-0 pr-4 bg-[rgb(var(--ec-page-bg))]"
       >
         <div class="mt-8 space-y-8">
           <h3 class="text-xs text-[rgb(var(--ec-page-text))] font-semibold capitalize flex items-center gap-2 mb-4">

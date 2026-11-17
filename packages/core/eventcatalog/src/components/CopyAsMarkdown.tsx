@@ -412,25 +412,25 @@ export function CopyPageMenu({
 
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen}>
-      {/* Container for the split button */}
-      <div className="inline-flex h-8 items-stretch overflow-hidden rounded-md border border-[rgb(var(--ec-dropdown-border)/0.75)] bg-[rgb(var(--ec-page-bg))]">
+      {/* The split button: filled in the text colour (black, or white in dark mode), as the app's primary buttons are */}
+      <div className="inline-flex h-8 items-stretch overflow-hidden rounded-md bg-[rgb(var(--ec-page-text))] text-[rgb(var(--ec-page-bg))] shadow-xs">
         {/* Left Button: Default Action */}
         <button
           type="button"
           onClick={handleDefaultAction}
-          className="inline-flex h-full items-center justify-center gap-2 whitespace-nowrap bg-transparent pl-4 pr-3 text-sm font-medium text-[rgb(var(--ec-dropdown-text))] transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover)/0.75)] focus:z-10 focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent))]"
+          className="inline-flex h-full items-center justify-center gap-1.5 whitespace-nowrap bg-transparent pl-3 pr-2.5 text-[13px] font-medium transition-colors duration-150 hover:bg-[rgb(var(--ec-page-bg)/0.14)] focus-visible:z-10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgb(var(--ec-page-bg)/0.5)]"
         >
-          <defaultAction.icon className="h-4 w-4" />
+          <defaultAction.icon className="h-3.5 w-3.5" />
           {buttonText}
         </button>
         {/* Right Button: Dropdown Trigger */}
         <DropdownMenu.Trigger asChild>
           <button
             type="button"
-            className="inline-flex h-full w-8 items-center justify-center border-l border-[rgb(var(--ec-dropdown-border)/0.75)] bg-transparent text-sm font-medium text-[rgb(var(--ec-icon-color))] transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover)/0.75)] focus:z-10 focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent))]"
+            className="inline-flex h-full w-7 items-center justify-center border-l border-[rgb(var(--ec-page-bg)/0.2)] bg-transparent transition-colors duration-150 hover:bg-[rgb(var(--ec-page-bg)/0.14)] focus-visible:z-10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgb(var(--ec-page-bg)/0.5)]"
             aria-label="More options"
           >
-            <ChevronDownIcon className={`h-4 w-4 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+            <ChevronDownIcon className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
           </button>
         </DropdownMenu.Trigger>
       </div>

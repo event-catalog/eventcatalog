@@ -242,10 +242,10 @@
   border: 1px solid rgb(30 41 59); /* slate-800 */
 }
 
-:root[data-catalog-theme='ocean'][data-theme='dark'] .prose a {
+:root[data-catalog-theme='ocean'][data-theme='dark'] .prose a:not(:where(.not-prose *)) {
   color: rgb(45 212 191); /* teal-400 */
 }
 
-:root[data-catalog-theme='ocean'][data-theme='dark'] .prose a:hover {
+:root[data-catalog-theme='ocean'][data-theme='dark'] .prose a:not(:where(.not-prose *)):hover {
   color: rgb(94 234 212); /* teal-300 */
 }

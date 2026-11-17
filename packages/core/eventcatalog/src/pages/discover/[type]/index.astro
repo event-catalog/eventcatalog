@@ -61,7 +61,7 @@ const typeConfig: Record<
 > = {
   events: {
     label: 'Events',
-    description: 'Explore the events flowing through your catalog and understand who produces and consumes them.',
+    description: 'Every event in your catalog, and who produces and consumes it.',
     propertyOptions: [
       { id: 'hasProducers', label: 'Has Producers' },
       { id: 'hasConsumers', label: 'Has Consumers' },
@@ -71,7 +71,7 @@ const typeConfig: Record<
   },
   commands: {
     label: 'Commands',
-    description: 'Browse the commands in your catalog and see which services issue and respond to them.',
+    description: 'Every command in your catalog, and who sends and handles it.',
     propertyOptions: [
       { id: 'hasProducers', label: 'Has Producers' },
       { id: 'hasConsumers', label: 'Has Consumers' },
@@ -81,7 +81,7 @@ const typeConfig: Record<
   },
   queries: {
     label: 'Queries',
-    description: 'Explore the queries available across your catalog and trace the services connected to them.',
+    description: 'Every query in your catalog, and who asks and answers it.',
     propertyOptions: [
       { id: 'hasProducers', label: 'Has Producers' },
       { id: 'hasConsumers', label: 'Has Consumers' },
@@ -91,7 +91,7 @@ const typeConfig: Record<
   },
   domains: {
     label: 'Domains',
-    description: 'Organize and explore the business domains that shape your architecture.',
+    description: 'The business domains that shape your architecture.',
     propertyOptions: [
       { id: 'hasServices', label: 'Has Services' },
       { id: 'hasOwners', label: 'Has Owners' },
@@ -100,7 +100,7 @@ const typeConfig: Record<
   },
   systems: {
     label: 'Systems',
-    description: 'Explore the systems that group services and flows across your architecture, independently of domains.',
+    description: 'Systems that group services and flows, apart from domains.',
     propertyOptions: [
       { id: 'hasServices', label: 'Has Services' },
       { id: 'hasFlows', label: 'Has Flows' },
@@ -110,7 +110,7 @@ const typeConfig: Record<
   },
   services: {
     label: 'Services',
-    description: 'Browse the internal services in your catalog and inspect the capabilities they expose.',
+    description: 'The services in your catalog and what they expose.',
     propertyOptions: [
       { id: 'hasSpecifications', label: 'Has Specifications' },
       { id: 'hasOwners', label: 'Has Owners' },
@@ -121,7 +121,7 @@ const typeConfig: Record<
   },
   agents: {
     label: 'Agents',
-    description: 'Browse AI agents in your catalog and inspect the models, tools, and messages they use.',
+    description: 'AI agents in your catalog, with their models, tools and messages.',
     propertyOptions: [
       { id: 'hasModel', label: 'Has Model' },
       { id: 'hasTools', label: 'Has Tools' },
@@ -133,7 +133,7 @@ const typeConfig: Record<
   },
   adrs: {
     label: 'Decision Records',
-    description: 'Browse the decision records across your catalog and inspect their status and scope.',
+    description: 'Decisions across your catalog, with their status and scope.',
     propertyOptions: [
       { id: 'hasOwners', label: 'Has Owners' },
       { id: 'hasAppliesTo', label: 'Applies To Resources' },
@@ -142,7 +142,7 @@ const typeConfig: Record<
   },
   'external-systems': {
     label: 'External Systems',
-    description: 'Explore the external systems connected to your architecture and the contracts around them.',
+    description: 'External systems you connect to, and the contracts around them.',
     propertyOptions: [
       { id: 'hasSpecifications', label: 'Has Specifications' },
       { id: 'hasOwners', label: 'Has Owners' },
@@ -153,7 +153,7 @@ const typeConfig: Record<
   },
   flows: {
     label: 'Flows',
-    description: 'Inspect the business and technical flows that connect resources across your catalog.',
+    description: 'Business and technical flows that connect your resources.',
     propertyOptions: [
       { id: 'hasOwners', label: 'Has Owners' },
       { id: 'isDeprecated', label: 'Is Deprecated' },
@@ -161,7 +161,7 @@ const typeConfig: Record<
   },
   containers: {
     label: 'Data',
-    description: 'Explore the data stores and containers that services read from and write to.',
+    description: 'Data stores your services read from and write to.',
     propertyOptions: [
       { id: 'hasOwners', label: 'Has Owners' },
       { id: 'hasWriters', label: 'Has Writers' },
@@ -171,7 +171,7 @@ const typeConfig: Record<
   },
   'data-products': {
     label: 'Data Products',
-    description: 'Browse your data products and understand the inputs, outputs, and ownership behind them.',
+    description: 'Data products, with their inputs, outputs and owners.',
     propertyOptions: [
       { id: 'hasOwners', label: 'Has Owners' },
       { id: 'hasInputs', label: 'Has Inputs' },
@@ -466,7 +466,7 @@ const title = `${currentTypeConfig.label} (${data.length})`;
   <main
     id="discover-page"
     class="ml-0 flex h-full min-h-0 flex-col overflow-hidden bg-[rgb(var(--ec-page-bg))]"
-    style={`--ec-discover-sidebar-width: 320px; margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);`}
+    style={`--ec-discover-sidebar-width: 320px; margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - var(--ec-header-offset));`}
   >
     <div class="flex-1 min-h-0 overflow-hidden">
       <DiscoverTable

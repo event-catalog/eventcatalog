@@ -18,6 +18,8 @@ export type DashboardEntry = {
     version: string;
     summary?: string;
     owners?: Owner[];
+    /** The messages a service sends */
+    sends?: unknown[];
     schemaPath?: string;
     schemas?: LastUpdatedEntry['data']['schemas'];
     specifications?: LastUpdatedEntry['data']['specifications'];
@@ -160,7 +162,17 @@ const getUpdatedAt = (entry: DashboardEntry, part?: DashboardPart) => {
 };
 
 /** The homepage dashboard for this catalog */
-export const getDashboard = async (): Promise<DashboardData> => {
+export const getDashboard = async (): Promise<DashboardData> => buildDashboardFromCatalog(getUpdatedAt);
+
+/** How much of each type the catalog has, without reading when things changed (that's from git) */
+export const getCatalogOverview = async (): Promise<Pick<DashboardData, 'counts'>> => {
+  const { counts } = await buildDashboardFromCatalog(() => undefined);
+  return { counts };
+};
+
+const buildDashboardFromCatalog = async (
+  updatedAt: (entry: DashboardEntry, part?: DashboardPart) => number | undefined
+): Promise<DashboardData> => {
   const [domains, services, events, commands, queries, flows, teams, users] = await Promise.all([
     getCollection('domains'),
     getCollection('services'),
@@ -178,6 +190,6 @@ export const getDashboard = async (): Promise<DashboardData> => {
     >,
     teams: teams as unknown as DashboardEntry[],
     users: users as unknown as DashboardEntry[],
-    getUpdatedAt,
+    getUpdatedAt: updatedAt,
   });
 };

@@ -23,7 +23,7 @@ const {
 <VisualiserLayout title={`Visualiser | ${props.data.name} (${props.collection})`} description={props.data.summary}>
   <div id="visualiser-page" class="p-2">
     <div
-      class="visualiser-viewport h-[calc(100vh-5rem)] w-full relative border border-[rgb(var(--ec-page-border))]"
+      class="visualiser-viewport h-[calc(100vh-var(--ec-header-offset)-1rem)] w-full relative border border-[rgb(var(--ec-page-border))]"
       id={`${id}-portal`}
       transition:name="visualiser-graph"
     >

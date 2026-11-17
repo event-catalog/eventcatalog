@@ -88,7 +88,10 @@ const BadgesCell = ({
         );
       })}
       {hiddenCount > 0 && (
-        <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-[rgb(var(--ec-accent))] hover:underline">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:underline"
+        >
           {isExpanded ? 'less' : `+${hiddenCount}`}
         </button>
       )}
@@ -120,14 +123,14 @@ const ResourceNameCell = ({ item }: { item: DiscoverTableData }) => {
     <div className="flex min-w-0 flex-col gap-2">
       <a
         href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
-        className="group inline-flex items-center gap-2.5 hover:text-[rgb(var(--ec-accent))] transition-colors"
+        className="group inline-flex items-center gap-2.5"
       >
         {resourceIconUrl ? (
           <img src={resourceIconUrl} alt="" className="h-5 w-5 flex-shrink-0 rounded-sm object-contain" />
         ) : (
           <Icon className={`h-4 w-4 flex-shrink-0 ${getCollectionTextColorClass(color, 'text-[rgb(var(--ec-icon-color))]')}`} />
         )}
-        <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
+        <span className="text-[13px] font-medium text-[rgb(var(--ec-page-text))] group-hover:underline group-hover:underline-offset-2">
           {item.data.name}
         </span>
         {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
@@ -144,10 +147,10 @@ const ResourceNameCell = ({ item }: { item: DiscoverTableData }) => {
             <a
               key={`${domain.data.id}-${domain.data.version}`}
               href={buildUrl(`/docs/${domain.collection || 'domains'}/${domain.data.id}/${domain.data.version}`)}
-              className="group/subdomain inline-flex w-fit items-center gap-1.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-accent))]"
+              className="group/subdomain inline-flex w-fit items-center gap-1.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
             >
-              <CornerDownRight className="h-3.5 w-3.5 flex-shrink-0 text-[rgb(var(--ec-icon-color))] group-hover/subdomain:text-[rgb(var(--ec-accent))]" />
-              <span className="font-medium text-[rgb(var(--ec-page-text))] group-hover/subdomain:text-[rgb(var(--ec-accent))]">
+              <CornerDownRight className="h-3.5 w-3.5 flex-shrink-0 text-[rgb(var(--ec-page-text-muted)/0.6)]" />
+              <span className="text-[rgb(var(--ec-page-text-muted))] group-hover/subdomain:text-[rgb(var(--ec-page-text))]">
                 {domain.data.name}
               </span>
             </a>
@@ -203,7 +206,7 @@ const createSummaryColumn = (tableConfiguration: TableConfiguration) =>
       const isDraft = info.row.original.data.draft;
       const displayText = `${summary || ''}${isDraft ? ' (Draft)' : ''}`;
       return (
-        <span className="text-[0.8rem] text-[rgb(var(--ec-icon-color))] line-clamp-2" title={displayText}>
+        <span className="line-clamp-2 text-[13px] leading-5 text-[rgb(var(--ec-page-text-muted))]" title={displayText}>
           {displayText}
         </span>
       );
@@ -246,7 +249,7 @@ const CollectionListCell = ({
         <a
           key={`${item.data.id}-${index}`}
           href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
-          className="group inline-flex items-center gap-1.5 text-[0.8rem] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-accent))] transition-colors"
+          className="group inline-flex items-center gap-1.5 text-[13px] text-[rgb(var(--ec-page-text-muted))] transition-colors hover:text-[rgb(var(--ec-page-text))]"
         >
           <item.Icon className={`h-3.5 w-3.5 ${getCollectionTextColorClass(item.color)} flex-shrink-0`} />
           <span className="truncate max-w-[120px]" title={item.data.name}>
@@ -257,7 +260,7 @@ const CollectionListCell = ({
       {hiddenCount > 0 && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-xs text-[rgb(var(--ec-accent))] hover:underline text-left"
+          className="text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:underline text-left"
         >
           {isExpanded ? 'Show less' : `+${hiddenCount} more`}
         </button>
@@ -288,7 +291,7 @@ export const getAgentColumns = (tableConfiguration: TableConfiguration) => [
       return (
         <span className="inline-flex items-center gap-2" title={provider} aria-label={provider}>
           <AgentProviderIcon provider={provider} className="h-3 w-3 flex-shrink-0 rounded-sm object-contain" />
-          <span className="text-[0.8rem] font-medium text-[rgb(var(--ec-page-text))]">{provider}</span>
+          <span className="text-[13px] text-[rgb(var(--ec-page-text))]">{provider}</span>
         </span>
       );
     },
@@ -303,7 +306,7 @@ export const getAgentColumns = (tableConfiguration: TableConfiguration) => [
       const model = info.getValue() as any;
       if (!model?.name) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>;
       return (
-        <div className="flex flex-col gap-0.5 text-[0.8rem]">
+        <div className="flex flex-col gap-0.5 text-[13px]">
           <span className="font-medium text-[rgb(var(--ec-page-text))]">{model.name}</span>
         </div>
       );

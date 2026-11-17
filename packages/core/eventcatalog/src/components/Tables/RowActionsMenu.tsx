@@ -1,11 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CodeBracketIcon, DocumentTextIcon, MapIcon } from '@heroicons/react/24/solid';
-import { EllipsisVerticalIcon, StarIcon } from '@heroicons/react/24/outline';
+import { BookOpen, Braces, Ellipsis, Star, Workflow } from 'lucide-react';
 import { useStore } from '@nanostores/react';
 import { favoritesStore, toggleFavorite } from '@stores/favorites-store';
 
-const MENU_WIDTH = 280;
+const MENU_WIDTH = 208;
 const MENU_GAP = 6;
 
 interface RowActionsMenuProps {
@@ -18,6 +17,10 @@ interface RowActionsMenuProps {
   schemaHref?: string;
   favorite: { nodeKey: string; badge: string };
 }
+
+const itemClass =
+  'flex h-8 w-full items-center gap-2.5 rounded-md px-2 text-left text-[13px] text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)] focus:bg-[rgb(var(--ec-page-text)/0.05)] focus:outline-none';
+const iconClass = 'h-3.5 w-3.5 shrink-0 text-[rgb(var(--ec-page-text-muted))]';
 
 /** The "..." menu at the end of a table row, with links to the resource and a favorite toggle. */
 export function RowActionsMenu({ title, href, visualiserHref, schemaHref, favorite }: RowActionsMenuProps) {
@@ -96,9 +99,11 @@ export function RowActionsMenu({ title, href, visualiserHref, schemaHref, favori
         aria-haspopup="menu"
         aria-expanded={isOpen}
         onClick={() => setIsOpen((prev) => !prev)}
-        className="rounded-md p-1.5 text-[rgb(var(--ec-icon-color))] transition-colors hover:bg-[rgb(var(--ec-content-hover)/0.5)] hover:text-[rgb(var(--ec-page-text))]"
+        className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-[rgb(var(--ec-page-text)/0.06)] hover:text-[rgb(var(--ec-page-text))] ${
+          isOpen ? 'bg-[rgb(var(--ec-page-text)/0.06)] text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text-muted))]'
+        }`}
       >
-        <EllipsisVerticalIcon className="h-4 w-4" />
+        <Ellipsis className="h-4 w-4" />
       </button>
 
       {isOpen &&
@@ -114,39 +119,28 @@ export function RowActionsMenu({ title, href, visualiserHref, schemaHref, favori
               width: MENU_WIDTH,
               visibility: menuPosition ? 'visible' : 'hidden',
             }}
-            className="z-50 overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] shadow-xl"
+            // A small popover: rounded rows with line icons, the favourite on its own under a hairline
+            className="z-50 overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] p-1 shadow-[0_8px_30px_rgb(0_0_0/0.12)]"
           >
-            <a
-              href={href}
-              className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
-            >
-              <DocumentTextIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+            <a href={href} role="menuitem" className={itemClass}>
+              <BookOpen className={iconClass} />
               View documentation
             </a>
             {visualiserHref && (
-              <a
-                href={visualiserHref}
-                className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
-              >
-                <MapIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+              <a href={visualiserHref} role="menuitem" className={itemClass}>
+                <Workflow className={iconClass} />
                 View in visualiser
               </a>
             )}
             {schemaHref && (
-              <a
-                href={schemaHref}
-                className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
-              >
-                <CodeBracketIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+              <a href={schemaHref} role="menuitem" className={itemClass}>
+                <Braces className={iconClass} />
                 View schema
               </a>
             )}
-            <button
-              type="button"
-              onClick={handleToggleFavorite}
-              className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
-            >
-              <StarIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+            <div className="-mx-1 my-1 h-px bg-[rgb(var(--ec-page-border))]" role="separator" />
+            <button type="button" role="menuitem" onClick={handleToggleFavorite} className={itemClass}>
+              <Star className={isFavorite ? 'h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400' : iconClass} />
               {isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             </button>
           </div>,

@@ -8,6 +8,7 @@ import {
   highlightQuery,
   mapPagefindResultsToSearchItems,
   normalizeResultUrl,
+  normalizeSearchText,
   rankResourceSearchItems,
 } from './search-utils';
 
@@ -28,6 +29,9 @@ describe('getUrlForSearchItem', () => {
     ['data-product:Customer360:1.0.0', '/docs/data-products/Customer360/1.0.0'],
     ['entity:Order:1.0.0', '/docs/entities/Order/1.0.0'],
     ['flow:CheckoutFlow:1.0.0', '/docs/flows/CheckoutFlow/1.0.0'],
+    ['system:CheckoutSystem:1.0.0', '/docs/systems/CheckoutSystem/1.0.0'],
+    ['agent:SupportAgent:1.0.0', '/docs/agents/SupportAgent/1.0.0'],
+    ['adr:adr-001-event-sourcing:1.0.0', '/docs/adrs/adr-001-event-sourcing/1.0.0'],
   ])('builds a docs URL for %s', (key, expected) => {
     expect(getUrlForSearchItem({}, key)).toBe(expected);
   });
@@ -36,6 +40,13 @@ describe('getUrlForSearchItem', () => {
     expect(getUrlForSearchItem({ href: '/custom/search-result' }, 'data-product:Customer360:1.0.0')).toBe(
       '/custom/search-result'
     );
+  });
+
+  it('opens teams and users, which have no version, at their own page', () => {
+    expect(getUrlForSearchItem({ href: '/docs/teams/payments-platform' }, 'team:payments-platform')).toBe(
+      '/docs/teams/payments-platform'
+    );
+    expect(getUrlForSearchItem({ href: '/docs/users/dboyne' }, 'user:dboyne')).toBe('/docs/users/dboyne');
   });
 
   it('keeps ids that contain ":" whole, so each resource gets its own URL', () => {
@@ -159,6 +170,16 @@ describe('indexed search result helpers', () => {
       { id: 'all', name: 'All (2)', count: 2 },
       { id: 'Service', name: 'Services (1)', count: 1 },
       { id: 'Message', name: 'Messages (1)', count: 1 },
+    ]);
+  });
+
+  it('gives systems and decision records their own tabs', () => {
+    expect(
+      getSearchFilters({ items: [{ type: 'System' }, { type: 'System' }, { type: 'Decision record' }], query: 'checkout' })
+    ).toEqual([
+      { id: 'all', name: 'All (3)', count: 3 },
+      { id: 'System', name: 'Systems (2)', count: 2 },
+      { id: 'Decision record', name: 'Decision Records (1)', count: 1 },
     ]);
   });
 
@@ -291,5 +312,84 @@ describe('resource search ranking', () => {
     );
 
     expect(ranked.map((item) => item.name)).toEqual(['Place Order', 'Cancel Customer Order Request', 'Reorder Requested']);
+  });
+
+  describe('word by word', () => {
+    const catalog = [
+      resource('Order Created', 'event:OrderCreated:1.0.0', 'Published when a new order is created'),
+      resource('Refund Processed', 'event:RefundProcessed:1.0.0', 'Published by Stripe when a refund has been processed'),
+      resource('Order Management System', 'system:order-management:1.0.0', 'Takes a checked-out cart and turns it into an order'),
+      resource('Payments Platform', 'team:payments-platform'),
+    ];
+
+    it('finds a name whatever order its words are typed in', () => {
+      expect(rankResourceSearchItems(catalog, 'created order')[0].name).toBe('Order Created');
+    });
+
+    it('ignores case, spaces and separators, so camelCase and kebab-case ids find the name', () => {
+      expect(rankResourceSearchItems(catalog, 'OrderCreated')[0].name).toBe('Order Created');
+      expect(rankResourceSearchItems(catalog, 'order-created')[0].name).toBe('Order Created');
+    });
+
+    it('matches words spread across the name and the summary', () => {
+      expect(rankResourceSearchItems(catalog, 'stripe refund').map((item) => item.name)).toEqual(['Refund Processed']);
+    });
+
+    it('needs every word to appear somewhere', () => {
+      expect(rankResourceSearchItems(catalog, 'order kafka')).toEqual([]);
+    });
+
+    it('ranks an exact name above resources that only have the words somewhere', () => {
+      const withSummaryMatch = [
+        resource('Checkout API', 'service:checkout-api:1.0.0', 'Takes payments through the payments platform'),
+        ...catalog,
+      ];
+      expect(rankResourceSearchItems(withSummaryMatch, 'payments platform').map((item) => item.name)).toEqual([
+        'Payments Platform',
+        'Checkout API',
+      ]);
+    });
+
+    it('ranks words starting words in the name above words found inside them, and both above other fields', () => {
+      const ranked = rankResourceSearchItems(
+        [
+          resource('Stock Reordered', 'event:stock-reordered:1.0.0'),
+          resource('Order Shipped', 'event:order-shipped:1.0.0'),
+          resource('Shipping Service', 'service:shipping:1.0.0', 'Ships every order'),
+        ],
+        'shipped order'
+      );
+      expect(ranked.map((item) => item.name)).toEqual(['Order Shipped']);
+      expect(
+        rankResourceSearchItems(
+          [resource('Stock Reordered', 'event:x:1.0.0'), resource('Order Stocked', 'event:y:1.0.0')],
+          'order stock'
+        ).map((item) => item.name)
+      ).toEqual(['Order Stocked', 'Stock Reordered']);
+    });
+
+    it('does not join words across a gap to match ("ordering" is not "Order Ingested")', () => {
+      expect(rankResourceSearchItems([resource('Order Ingested', 'event:order-ingested:1.0.0')], 'ordering')).toEqual([]);
+    });
+
+    it('treats an id typed with different separators as exact', () => {
+      const items = [
+        resource('Placed', 'event:OrderPlaced:1.0.0'),
+        resource('Order Placed Twice', 'event:order-placed-twice:1.0.0'),
+      ];
+      expect(rankResourceSearchItems(items, 'order-placed')[0].key).toBe('event:OrderPlaced:1.0.0');
+    });
+  });
+
+  describe('normalizeSearchText', () => {
+    it.each([
+      ['OrderCreated', 'order created'],
+      ['order-created', 'order created'],
+      ['order_created.v2', 'order created v2'],
+      ['HTTPServer', 'http server'],
+      ['  Mixed   Spacing  ', 'mixed spacing'],
+    ])('reads %s as "%s"', (input, expected) => {
+      expect(normalizeSearchText(input)).toBe(expected);
+    });
   });
 });

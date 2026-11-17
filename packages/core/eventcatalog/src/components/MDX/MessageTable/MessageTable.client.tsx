@@ -212,10 +212,10 @@ const MessageTable = (props: MessageTableProps) => {
 
     return (
       <div className="flow-root bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border-[rgb(var(--ec-page-border))] border  p-4 pb-2 rounded-lg text-[rgb(var(--ec-page-text))]">
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">
+        <div className="space-y-3">
+          <h3 className="text-[15px] font-semibold">
             {title} ({searchTerm || typeFilter ? `${filteredMessages.length}/${messages.length}` : messages.length})
-          </h2>
+          </h3>
           <span className="text-sm text-[rgb(var(--ec-page-text-muted))]">
             Quickly find the message you need by searching for the name, type, or summary.
           </span>
@@ -413,8 +413,8 @@ const MessageTable = (props: MessageTableProps) => {
   };
 
   return (
-    <div className={`mx-auto not-prose py-4  space-y-4  my-4`}>
-      <h2 className="text-2xl font-semibold text-[rgb(var(--ec-page-text))]">Messages for this {collection.slice(0, -1)}</h2>
+    // No heading of its own: the page introduces it, and each table names what it lists
+    <div className="mx-auto not-prose space-y-4">
       <div>
         {shouldRenderSends && (
           <div>

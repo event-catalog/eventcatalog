@@ -2,6 +2,7 @@
 import { Table, type TData, type TCollectionTypes } from '@components/Tables/Table';
 import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
 import config from '@config';
+import { buildUrl } from '@utils/url-builder';
 
 export interface Props<T extends TCollectionTypes> {
   title: string;
@@ -11,6 +12,16 @@ export interface Props<T extends TCollectionTypes> {
 }
 
 const { title, subtitle, data, type } = Astro.props;
+
+// Teams and Users share one entry in the rail: tabs between the two directories
+const [teams, users] = await Promise.all([
+  import('@utils/collections/teams').then(({ getTeams }) => getTeams()),
+  import('@utils/collections/users').then(({ getUsers }) => getUsers()),
+]);
+const directoryTabs = [
+  { type: 'teams', label: 'Teams', count: teams.length, href: buildUrl('/directory/teams') },
+  { type: 'users', label: 'Users', count: users.length, href: buildUrl('/directory/users') },
+];
 
 const checkboxLatestId = 'latest-only';
 const checkboxDraftsId = 'drafts-only';
@@ -24,7 +35,28 @@ const tableConfiguration = config[type as keyof typeof config]?.tableConfigurati
     class="ml-0 bg-[rgb(var(--ec-page-bg))]"
     style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1);"
   >
-    <div class="p-8 pb-20">
+    <div class="px-8 pt-2 pb-12">
+      <nav class="mb-5 flex gap-1 border-b border-[rgb(var(--ec-page-border))]" aria-label="Directory">
+        {
+          directoryTabs.map((tab) => (
+            <a
+              href={tab.href}
+              aria-current={tab.type === type ? 'page' : undefined}
+              class:list={[
+                'relative -mb-px inline-flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm transition-colors',
+                tab.type === type
+                  ? 'border-[rgb(var(--ec-page-text))] font-medium text-[rgb(var(--ec-page-text))]'
+                  : 'border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]',
+              ]}
+            >
+              {tab.label}
+              <span class="rounded-full border border-[rgb(var(--ec-page-border))] px-1.5 font-mono text-[11px] tabular-nums text-[rgb(var(--ec-page-text-muted))]">
+                {tab.count}
+              </span>
+            </a>
+          ))
+        }
+      </nav>
       <div class="min-w-0">
         <h1 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] capitalize md:text-4xl">{title}</h1>
         <p class="max-w-3xl pt-2 text-base font-light text-[rgb(var(--ec-page-text-muted))]">{subtitle}</p>

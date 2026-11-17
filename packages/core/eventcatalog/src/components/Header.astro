@@ -1,5 +1,6 @@
 ---
 import catalog from '@utils/eventcatalog-config/catalog';
+import config from '@config';
 import Search from '@components/Search/Search.astro';
 import { buildUrl } from '@utils/url-builder';
 import { getSession } from '@utils/auth-astro/server';
@@ -8,8 +9,6 @@ import { EnvironmentDropdown } from './EnvironmentDropdown';
 import ChatPanelButton from './ChatPanel/ChatPanelButton';
 import ThemeToggle from './ThemeToggle';
 import TrialBadge from './TrialBadge.astro';
-
-const { showNestedSideBar = true } = Astro.props;
 
 let session = null;
 if (isAuthEnabled()) {
@@ -23,6 +22,7 @@ const logo = {
 };
 
 const repositoryUrl = catalog?.repositoryUrl;
+const catalogName = config?.organizationName || config?.title || 'EventCatalog';
 
 // Header icons match the theme toggle: a 20px icon in a padded button, coloured with the theme's icon colour
 const headerIconLinkClass =
@@ -57,15 +57,14 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
 
 <nav
   id="eventcatalog-header"
-  class="fixed top-0 right-0 h-[60px] bg-[rgb(var(--ec-header-bg))] border-b border-[rgb(var(--ec-header-border))] py-3 font-bold text-xl z-50 text-[rgb(var(--ec-header-text))]"
-  style={showNestedSideBar
-    ? 'left: calc(var(--ec-vertical-nav-width, 14rem) + var(--ec-sidebar-panel-width, 20rem));'
-    : 'left: var(--ec-vertical-nav-width, 14rem);'}
+  class="fixed top-[var(--ec-banner-height,0px)] right-0 flex h-[var(--ec-header-height)] items-center bg-[rgb(var(--ec-header-bg))] border-b border-[rgb(var(--ec-header-border))] font-bold text-xl z-50 text-[rgb(var(--ec-header-text))]"
 >
-  <div class="px-6">
+  <div class="w-full px-6">
     <div class="flex justify-between items-center gap-4">
-      <div class="flex min-w-0 flex-1 items-center gap-3">
-        <div class="hidden lg:block min-w-0 flex-1 max-w-xl">
+      <div class="flex min-w-0 flex-1 items-center gap-2">
+        <!-- On the homepage, the catalog's name in place of the search box: its search is the page itself -->
+        <p data-header-title class="hidden min-w-0 truncate text-sm font-semibold">{catalogName}</p>
+        <div class="hidden lg:block min-w-0 flex-1 max-w-sm">
           <Search />
         </div>
         {isEventCatalogChatVisible() && <ChatPanelButton configured={isEventCatalogChatEnabled()} client:idle />}
@@ -74,7 +73,7 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
       <div class="hidden md:block shrink-0 ml-auto">
         {
           session ? (
-            <div class="flex items-center gap-3 justify-end pr-2">
+            <div class="flex items-center gap-3 justify-end">
               <TrialBadge />
               {catalog.environments && catalog.environments.length > 0 && (
                 <EnvironmentDropdown environments={catalog.environments} client:idle />
@@ -173,7 +172,7 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
             </div>
           ) : (
             <>
-              <div class="flex items-center gap-3 justify-end pr-2">
+              <div class="flex items-center gap-3 justify-end">
                 <TrialBadge />
                 {catalog.environments && catalog.environments.length > 0 && (
                   <EnvironmentDropdown environments={catalog.environments} client:idle />
@@ -186,7 +185,8 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
                     Sign In
                   </button>
                 )}
-                <ul class="flex items-center gap-1">
+                {/* -mr-2: the last icon's own padding, so its edge lines up with the left side's */}
+                <ul class="flex items-center gap-1 -mr-2">
                   <li>
                     <ThemeToggle client:idle />
                   </li>
@@ -197,24 +197,6 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
                       </a>
                     </li>
                   )}
-                  <li>
-                    <a
-                      href="https://discord.com/invite/3rjaZMmrAm"
-                      class={headerIconLinkClass}
-                      aria-label="Join our Discord community"
-                    >
-                      <span class={headerIconClass} style={iconMask('discord')} aria-hidden="true" />
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="https://github.com/event-catalog/eventcatalog"
-                      class={headerIconLinkClass}
-                      aria-label="View EventCatalog on GitHub"
-                    >
-                      <span class={headerIconClass} style={iconMask('github')} aria-hidden="true" />
-                    </a>
-                  </li>
                 </ul>
               </div>
             </>
@@ -256,7 +238,7 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
   </div>
 </nav>
 
-<div id="eventcatalog-header-spacer" class="h-[60px]"></div>
+<div id="eventcatalog-header-spacer" class="h-[var(--ec-header-offset)]"></div>
 <!-- Spacer to prevent content from being hidden under the fixed header -->
 
 <script>
@@ -320,6 +302,32 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
   initializeHeader();
   document.addEventListener('astro:page-load', initializeHeader);
 </script>
+
+<style is:global>
+  /*
+   * The header starts where the page does: after the sidebar when the page has one. It's kept across navigations, so
+   * this follows the page it's on (#eventcatalog-application's app shell) rather than the page it was first drawn on
+   */
+  #eventcatalog-header {
+    left: calc(var(--ec-vertical-nav-width, 14rem) + var(--ec-sidebar-panel-width, 20rem));
+  }
+  #eventcatalog-application:has(.app-shell--rail-only) #eventcatalog-header {
+    left: var(--ec-vertical-nav-width, 14rem);
+  }
+
+  /*
+   * The header is kept across navigations (and the assistant's conversation with it), so the homepage changes it here:
+   * on a page with the search-first homepage (<SearchHome />), its own search box stands in for the header's search box
+   * and Ask button, and the header shows the catalog's name instead
+   */
+  #eventcatalog-application:has([data-search-home]) #eventcatalog-header [data-search-input],
+  #eventcatalog-application:has([data-search-home]) #eventcatalog-header [data-chat-button] {
+    display: none;
+  }
+  #eventcatalog-application:has([data-search-home]) #eventcatalog-header [data-header-title] {
+    display: flex;
+  }
+</style>
 
 <style>
   /* Custom class for toggling dropdowns/menus */

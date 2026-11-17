@@ -2,12 +2,11 @@
 import components from '@components/MDX/components';
 
 import { render } from 'astro:content';
-import EnvelopeIcon from '@heroicons/react/16/solid/EnvelopeIcon';
 import { Github } from 'lucide-react';
 import { buildUrl } from '@utils/url-builder';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import OnThisPage from '@components/OnThisPage.astro';
-import OwnedResourceStats from '@components/OwnedResourceStats.astro';
+import DocsBreadcrumb from '@components/DocsBreadcrumb.astro';
 import { Page } from './_index.data';
 
 export const prerender = Page.prerender;
@@ -36,107 +35,52 @@ const sourceTitle = sourceLabel ? `Synced from ${sourceLabel}` : undefined;
     data-pagefind-meta={`title:${pageTitle}`}
   >
     <div class="flex docs-layout w-full">
-      <div class="w-full min-w-0 lg:mr-2 xl:pr-12 py-8 bg-[rgb(var(--ec-page-bg))]">
-        <div class="border-b border-[rgb(var(--ec-page-border))] pb-6">
-          <div class="flex justify-start gap-6">
-            {
-              props.data.avatarUrl && (
-                <img
-                  src={props.data.avatarUrl}
-                  alt={`${props.data.name}'s profile picture`}
-                  class="w-20 h-20 rounded-md object-cover border-2 border-[rgb(var(--ec-page-border))]"
-                />
-              )
-            }
-            <div class="flex flex-col justify-center space-y-2">
-              <div>
-                <h2 class="text-3xl font-bold text-[rgb(var(--ec-page-text))]">{props.data.name}</h2>
-                {
-                  props.data.role && (
-                    <span class="text-base font-medium text-[rgb(var(--ec-page-text-muted))]">{props.data.role}</span>
-                  )
-                }
-              </div>
-              <div class="flex flex-wrap gap-3">
-                {
-                  props.data.email && (
-                    <a
-                      href={`mailto:${props.data.email}`}
-                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
-                    >
-                      <EnvelopeIcon className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />
-                      <span>Email</span>
-                    </a>
-                  )
-                }
-                {
-                  props.data.slackDirectMessageUrl && (
-                    <a
-                      href={props.data.slackDirectMessageUrl}
-                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
-                    >
-                      <img src={buildUrl('/slack-icon.svg', true)} class="w-4 h-4" alt="Slack" />
-                      <span>Slack</span>
-                    </a>
-                  )
-                }
-                {
-                  props.data.msTeamsDirectMessageUrl && (
-                    <a
-                      href={props.data.msTeamsDirectMessageUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
-                    >
-                      <img src={buildUrl('/icons/ms-teams.svg', true)} class="w-4 h-4" alt="Teams" />
-                      <span>Teams</span>
-                    </a>
-                  )
-                }
-                {
-                  source && sourceLabel && source.url && (
-                    <a
-                      href={source.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={sourceTitle}
-                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
-                    >
-                      {source.provider === 'github' && <Github className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />}
-                      {source.provider === 'microsoft-entra' && <img src={buildUrl('/icons/azure.svg', true)} class="w-4 h-4" alt="" />}
-                      <span>{sourceLabel}</span>
-                    </a>
-                  )
-                }
-                {
-                  source && sourceLabel && !source.url && (
-                    <span
-                      title={sourceTitle}
-                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))]"
-                    >
-                      {source.provider === 'github' && <Github className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />}
-                      {source.provider === 'microsoft-entra' && <img src={buildUrl('/icons/azure.svg', true)} class="w-4 h-4" alt="" />}
-                      <span>{sourceLabel}</span>
-                    </span>
-                  )
-                }
+      <div class="w-full min-w-0 lg:mr-2 xl:pr-8 pt-5 pb-8 bg-[rgb(var(--ec-page-bg))]">
+        {/* As the docs pages: Users / David Boyne / Overview, the photo beside the name and role (what they own is in Owned Resources).
+            Contact details live in the sidebar, so they are not repeated here */}
+        <div class="border-b border-[rgb(var(--ec-page-border))] pt-2 pb-6">
+          <div class="flex flex-col gap-3">
+            <DocsBreadcrumb collection="users" items={[{ label: props.data.name, href: buildUrl(`/docs/users/${props.data.id}`) }, { label: 'Overview' }]} />
+            <div class="flex items-center gap-4">
+              {
+                props.data.avatarUrl && (
+                  <img
+                    src={props.data.avatarUrl}
+                    alt={`${props.data.name}'s profile picture`}
+                    class="h-16 w-16 shrink-0 rounded-full object-cover ring-1 ring-[rgb(var(--ec-page-border))]"
+                  />
+                )
+              }
+              <div class="min-w-0">
+                <h2 class="text-[28px] md:text-[34px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))]">
+                  {props.data.name}
+                </h2>
+                {props.data.role && <p class="mt-1 text-[17px] text-[rgb(var(--ec-page-text-muted))]">{props.data.role}</p>}
               </div>
             </div>
-          </div>
-          <div class="pt-4">
-            <OwnedResourceStats
-              owner={props}
-              resourcesHref={buildUrl(`/docs/users/${props.data.id}/resources`)}
-              people={{ label: 'Teams', count: props.data.associatedTeams?.length ?? 0 }}
-            />
+            {
+              source && sourceLabel && (
+                <p class="inline-flex items-center gap-1.5 text-[13px] text-[rgb(var(--ec-page-text-muted))]" title={sourceTitle}>
+                  {source.provider === 'github' && <Github className="h-3.5 w-3.5" />}
+                  {source.provider === 'microsoft-entra' && <img src={buildUrl('/icons/azure.svg', true)} class="ec-mono-icon h-3.5 w-3.5" alt="" />}
+                  {source.url ? (
+                    <a href={source.url} target="_blank" rel="noopener noreferrer" class="hover:text-[rgb(var(--ec-page-text))] hover:underline">
+                      {sourceTitle}
+                    </a>
+                  ) : (
+                    <span>{sourceTitle}</span>
+                  )}
+                </p>
+              )
+            }
           </div>
         </div>
-        <div class="prose prose-md py-4 w-full">
+        <div class="prose prose-md pt-8 pb-4 w-full text-[15px]">
           <Content components={components(props)} />
         </div>
       </div>
       <aside
-        class="hidden xl:block sticky top-[4rem] self-start w-[280px] max-h-[calc(100vh-4rem)] overflow-y-auto py-2 flex-shrink-0 pr-4 bg-[rgb(var(--ec-page-bg))]"
+        class="hidden xl:block sticky top-[calc(var(--ec-header-offset)+0.25rem)] self-start w-[280px] max-h-[calc(100vh-var(--ec-header-offset)-0.25rem)] overflow-y-auto py-2 flex-shrink-0 pr-4 bg-[rgb(var(--ec-page-bg))]"
         data-pagefind-ignore
       >
         <div class="mt-8 space-y-8">

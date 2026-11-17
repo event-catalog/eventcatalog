@@ -315,15 +315,16 @@ export function ResourcesTable({ resources, title, description, typeLabels }: Re
     setSelectedDirections((prev) => (prev.includes(direction) ? prev.filter((d) => d !== direction) : [...prev, direction]));
   };
 
+  // Takes the room under the breadcrumb (the page is one screen tall): its rows scroll, the pagination stays in view
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       {/* Header: title on the left, type filters and search on the right */}
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 px-6 py-5">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 px-10 pt-3 pb-5">
         <div className="min-w-0">
-          <h2 className="text-2xl font-semibold text-[rgb(var(--ec-page-text))] md:text-4xl">{title}</h2>
-          {description && (
-            <p className="max-w-3xl pt-2 text-base font-light text-[rgb(var(--ec-page-text-muted))]">{description}</p>
-          )}
+          <h2 className="text-[28px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))] md:text-[34px]">
+            {title}
+          </h2>
+          {description && <p className="ec-docs-summary">{description}</p>}
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           {showDirectionFilters &&
@@ -371,7 +372,7 @@ export function ResourcesTable({ resources, title, description, typeLabels }: Re
       </div>
 
       {/* Table */}
-      <div className="min-h-0 flex-1 overflow-auto px-6 pb-5">
+      <div className="min-h-0 flex-1 overflow-auto px-10 pb-5">
         <div className="overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border)/0.72)] bg-[rgb(var(--ec-dropdown-bg)/0.66)]">
           <table className="min-w-full divide-y divide-[rgb(var(--ec-page-border)/0.62)]">
             <thead className="sticky top-0 z-10 bg-[rgb(var(--ec-content-hover)/0.45)]">
@@ -434,7 +435,7 @@ export function ResourcesTable({ resources, title, description, typeLabels }: Re
         </div>
       </div>
 
-      <TablePagination table={table} pageSize={pageSize} onPageSizeChange={setPageSize} />
+      <TablePagination table={table} pageSize={pageSize} onPageSizeChange={setPageSize} paddingX="px-10" />
     </div>
   );
 }

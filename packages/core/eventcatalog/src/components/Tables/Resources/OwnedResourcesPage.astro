@@ -1,13 +1,15 @@
 ---
 // The Owned Resources page of a team or user: everything they own, in the Resources table.
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import DocsBreadcrumb from '@components/DocsBreadcrumb.astro';
+import { buildUrl } from '@utils/url-builder';
 import { ResourcesTable } from '@components/Tables/Resources/ResourcesTable';
 import { getSchemaKeys, toResourceItem } from '@components/Tables/Resources/resource-items';
 import { getOwnedResources } from '@utils/collections/owned-resources';
 
 interface Props {
   /** A team or user from getTeams / getUsers. */
-  owner: { data: { name: string; [key: string]: unknown } };
+  owner: { collection?: string; data: { name: string; id?: string; [key: string]: unknown } };
   description: string;
 }
 
@@ -18,6 +20,8 @@ const resources = getOwnedResources(owner).flatMap(({ collection, items }) =>
   items.map((item) => toResourceItem(collection, item, schemaKeys))
 );
 const count = `${resources.length} ${resources.length === 1 ? 'resource' : 'resources'}`;
+// Teams / Payments Platform / Owned Resources
+const ownerCollection = owner.collection === 'users' ? 'users' : 'teams';
 ---
 
 <VerticalSideBarLayout title={`${owner.data.name} | Owned Resources`}>
@@ -30,8 +34,17 @@ const count = `${resources.length} ${resources.length === 1 ? 'resource' : 'reso
   <main
     id="resources-page"
     class="flex h-full min-h-0 flex-col overflow-hidden bg-[rgb(var(--ec-page-bg))]"
-    style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);"
+    style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - var(--ec-header-offset));"
   >
+    <div class="shrink-0 px-10 pt-7">
+      <DocsBreadcrumb
+        collection={ownerCollection}
+        items={[
+          { label: owner.data.name, href: buildUrl(`/docs/${ownerCollection}/${owner.data.id}`) },
+          { label: 'Owned Resources' },
+        ]}
+      />
+    </div>
     <ResourcesTable
       resources={resources}
       title={`${owner.data.name} Owned Resources`}

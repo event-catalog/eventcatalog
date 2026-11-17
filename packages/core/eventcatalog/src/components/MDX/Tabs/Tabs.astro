@@ -32,7 +32,7 @@ const tabItems: TabItem[] = await Promise.all(
 const tabsId = Math.random().toString(36).substring(2, 9);
 ---
 
-<div class="bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text))] pb-10 not-prose" data-tabs-container={tabsId}>
+<div class="bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text))] not-prose" data-tabs-container={tabsId}>
   {title && <h2 class="text-2xl font-bold text-[rgb(var(--ec-page-text))] mb-6">{title}</h2>}
 
   {/* Tab List */}
@@ -41,7 +41,7 @@ const tabsId = Math.random().toString(36).substring(2, 9);
       {
         tabItems.map((item) => (
           <button
-            class="whitespace-nowrap py-4 px-1 border-b-2 px-6 font-bold text-sm border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] focus:outline-hidden tab-button"
+            class="whitespace-nowrap py-2.5 px-3 border-b-2 font-medium text-sm border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] focus:outline-hidden tab-button"
             data-tab={item.id}
             aria-selected="false"
           >
@@ -53,7 +53,7 @@ const tabsId = Math.random().toString(36).substring(2, 9);
   </div>
 
   {/* Tab Panels */}
-  <div class="mt-4">
+  <div class="mt-3">
     {
       tabItems.map((item) => (
         <div class="hidden tab-content" data-tab-content={item.id} role="tabpanel">

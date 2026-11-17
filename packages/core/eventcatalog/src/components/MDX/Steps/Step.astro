@@ -2,16 +2,16 @@
 const { title } = Astro.props;
 ---
 
-<li class="mb-8 ml-6 w-full xl:max-w-[90%] step">
-  <div class="flex items-center mb-4">
+<li class="mb-6 last:mb-0 ml-6 w-full xl:max-w-[90%] step">
+  <div class="flex items-center mb-1">
     <span
       class="step-number absolute flex items-center justify-center w-6 h-6 rounded-md -left-3 text-xs font-semibold bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent))] ring-4 ring-[rgb(var(--ec-page-bg))]"
     >
       <div></div>
     </span>
-    <h3 class="font-semibold text-lg ml-0">{title}</h3>
+    <h3 class="ml-0 text-[15px] font-semibold leading-6 text-[rgb(var(--ec-page-text))]">{title}</h3>
   </div>
-  <p class="text-[rgb(var(--ec-page-text-muted))] text-sm ml-4"><slot /></p>
+  <p class="ml-0 text-[14px] leading-relaxed text-[rgb(var(--ec-page-text-muted))]"><slot /></p>
 </li>
 
 <script>

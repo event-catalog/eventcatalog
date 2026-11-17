@@ -892,7 +892,7 @@
         },
         {
           "path": "domains/Catalog/sidebar.json",
-          "hash": "sha256:955f15ce2c9d8dbf196d606d18f539f1388d14f07b70848b1e03a7e64745bef4"
+          "hash": "sha256:d151f2601e004e98d7adbe725913f4279f103e11d7f41c58f9d943b633352949"
         },
         {
           "path": "domains/Catalog/ubiquitous-language.mdx",
@@ -975,7 +975,7 @@
         },
         {
           "path": "domains/Customer/sidebar.json",
-          "hash": "sha256:d65edab1ae01531d840223c93b5e4a8e0e6df0d9d8625e6012e8a4247d160758"
+          "hash": "sha256:24c93da080e05ae4625a0465b4e2c6a73f24ae16377f6106308be6fbf8756bba"
         },
         {
           "path": "domains/Customer/ubiquitous-language.mdx",
@@ -1074,7 +1074,7 @@
         },
         {
           "path": "domains/Fulfilment/sidebar.json",
-          "hash": "sha256:85d4853fb67103755d6c6255702c75edb664c2312d7958e34b91de13c98a0dda"
+          "hash": "sha256:a12f6e17b7628d85c4929e430e1bde5882e5f0996646d1455189d7f3bcf99e0e"
         },
         {
           "path": "domains/Fulfilment/ubiquitous-language.mdx",
@@ -1234,7 +1234,7 @@
         },
         {
           "path": "domains/Ordering/sidebar.json",
-          "hash": "sha256:3f7bb1b0e385d707aced83503ddfb922c5d3a95bb66f55accd43ee78c6ae9510"
+          "hash": "sha256:02b08b26370592eaa58aa8a185e063908ec017940377c8bddf879808668d9382"
         },
         {
           "path": "domains/Ordering/ubiquitous-language.mdx",
@@ -1315,7 +1315,7 @@
         },
         {
           "path": "domains/Payments/sidebar.json",
-          "hash": "sha256:99edb0bb15b1ed266140a67fca8588cd044ecc66cde0c62df89e97391983d713"
+          "hash": "sha256:7aeb9e778b92baaff52916822801321d6810ad25ea4ba35e606ffc62f4d6e7f2"
         },
         {
           "path": "domains/Payments/ubiquitous-language.mdx",
@@ -1431,7 +1431,7 @@
         },
         {
           "path": "domains/Reviews/sidebar.json",
-          "hash": "sha256:79744a37664c137194d27aab65f5b2b997f95200be17780a693adcd5528cb6ba"
+          "hash": "sha256:5487eaa28f8ec3437decfaadf087db4425690173fcca6012ee785e57806a9815"
         }
       ],
       "sends": [
@@ -1567,7 +1567,7 @@
         },
         {
           "path": "domains/Shopping/sidebar.json",
-          "hash": "sha256:9c6bac91aa200aa95ab513bba9d0a7aa4af7907ea276d1f0fc9abf33f886ce14"
+          "hash": "sha256:39b79d9e61fde017513f1013048fa8322f1cbcc800431a2882ca25a00e4908d2"
         },
         {
           "path": "domains/Shopping/ubiquitous-language.mdx",
@@ -2597,7 +2597,7 @@
         },
         {
           "path": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/events/ProductCreated/sidebar.json",
-          "hash": "sha256:cdb030836b21e5090c1dd8b09a889ea948e68f3b1ec4eda372ee5205dea7ae69"
+          "hash": "sha256:2c63207893f11594e1a263f8fe96765a47576a7f684d5ebebd654266eddb8fc4"
         }
       ]
     },
@@ -4645,7 +4645,7 @@
       "sidecars": [
         {
           "path": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/sidebar.json",
-          "hash": "sha256:d11be81cac551fa3894c6a7c04e4a15ba0d02f78d1a757c15d7586c971000cd2"
+          "hash": "sha256:59524ee18af28348358c464c293aa467bcd164448fd80e8ad4a4df2c83d43525"
         }
       ],
       "receives": [

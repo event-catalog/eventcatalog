@@ -11,6 +11,8 @@ import {
   hidesDefaultItemIcon,
   isGroupCollapsed,
   toggleGroupCollapsed,
+  isResourceRef,
+  getResourcePageHref,
 } from './utils';
 
 const preferences = (expanded: string[] = [], collapsed: string[] = []) => createSectionCollapsePreferences(expanded, collapsed);
@@ -225,5 +227,39 @@ describe('sidebar item icons', () => {
         true
       )
     ).toBe(true);
+  });
+});
+
+describe('isResourceRef', () => {
+  it('is a reference to a resource, or a link to a resource of its own (not a list, a page inside one, or the resource itself)', () => {
+    expect(isResourceRef('service:orders:1.0.0')).toBe(true);
+    expect(isResourceRef('list:domains')).toBe(false);
+    expect(isResourceRef({ type: 'item', title: 'Product', href: '/docs/entities/product/1.0.0' })).toBe(true);
+    expect(isResourceRef({ type: 'item', title: 'Payments Platform', href: '/docs/teams/payments-platform' })).toBe(true);
+    expect(isResourceRef({ type: 'item', title: 'A guide', href: '/docs/domains/catalog/1.0.0/guides/a-guide' })).toBe(false);
+    expect(isResourceRef({ type: 'item', title: 'Language', href: '/docs/domains/catalog/language' })).toBe(false);
+    expect(isResourceRef({ type: 'item', title: 'Overview', href: '/docs/domains/catalog/1.0.0' }, 'catalog')).toBe(false);
+    expect(isResourceRef({ type: 'item', title: 'Status', href: 'https://status.example.com' })).toBe(false);
+  });
+});
+
+describe('getResourcePageHref', () => {
+  it("is a resource's link, else the Overview it lists; a list has none", () => {
+    expect(getResourcePageHref({ type: 'item', title: 'Linked', href: '/docs/custom/a' })).toBe('/docs/custom/a');
+    expect(
+      getResourcePageHref({
+        type: 'item',
+        title: 'Orders',
+        pages: [
+          {
+            type: 'group',
+            title: 'Quick Reference',
+            pages: [{ type: 'item', title: 'Overview', href: '/docs/services/orders/1.0.0' }],
+          },
+          'event:order-placed',
+        ],
+      })
+    ).toBe('/docs/services/orders/1.0.0');
+    expect(getResourcePageHref({ type: 'item', title: 'Domains', pages: ['domain:orders'] })).toBeUndefined();
   });
 });

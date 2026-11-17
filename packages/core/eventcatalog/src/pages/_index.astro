@@ -1,21 +1,10 @@
 ---
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import CatalogDashboard from '@components/Homepage/CatalogDashboard.astro';
+import SearchHome from '@components/Homepage/SearchHome.astro';
 
 const { showNestedSideBar = true } = Astro.props;
 ---
 
 <VerticalSideBarLayout showNestedSideBar={showNestedSideBar}>
-  <div class="ec-home">
-    <CatalogDashboard />
-  </div>
+  <SearchHome customizeLink />
 </VerticalSideBarLayout>
-
-<style is:global>
-  .ec-home {
-    /* The layout pads its content: the homepage sets its own, wider spacing */
-    margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1);
-    margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1);
-    padding: 2rem 2rem 0;
-  }
-</style>

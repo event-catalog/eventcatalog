@@ -15,7 +15,7 @@ export const prerender = false;
   </style>
   <main
     class="min-h-0 overflow-hidden bg-[rgb(var(--ec-page-bg))]"
-    style="--ec-fields-sidebar-width: 320px; margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);"
+    style="--ec-fields-sidebar-width: 320px; margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - var(--ec-header-offset));"
   >
     <FieldsExplorer client:load />
   </main>

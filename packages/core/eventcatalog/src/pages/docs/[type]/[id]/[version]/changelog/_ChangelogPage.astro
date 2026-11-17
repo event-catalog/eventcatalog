@@ -77,22 +77,22 @@ const releaseCount = `${logList.length} ${logList.length === 1 ? 'release' : 're
 <VerticalSideBarLayout title={`${props.data.name} | Changelog`} description={props.data.summary}>
   <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]">
     <div class="flex docs-layout w-full">
-      <div class="w-full min-w-0 lg:mr-2 xl:pr-12 py-8 bg-[rgb(var(--ec-page-bg))]">
-        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-4">
+      <div class="w-full min-w-0 lg:mr-2 xl:pr-8 pt-5 pb-8 bg-[rgb(var(--ec-page-bg))]">
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-2">
           <div class="flex flex-col gap-4">
             <span class="text-xs md:text-sm font-semibold text-[rgb(var(--ec-accent))]">Changelog</span>
             <div class="flex items-center gap-3">
               {
                 headerIconSrc && (
-                  <img src={headerIconSrc} alt={props.data.name} class="w-8 h-8 md:w-10 md:h-10 object-contain rounded-md shrink-0" />
+                  <img src={headerIconSrc} alt={props.data.name} class="ec-mono-icon w-8 h-8 md:w-9 md:h-9 object-contain shrink-0" />
                 )
               }
-              <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">
+              <h2 id="doc-page-header" class="text-[28px] md:text-[34px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))]">
                 {props.data.name}
               </h2>
             </div>
           </div>
-          <p class="text-base pt-4 text-[rgb(var(--ec-page-text-muted))] font-light">
+          <p class="ec-docs-summary">
             What changed in each version of {props.data.name}, newest first.
           </p>
           <div class="flex flex-wrap items-center gap-x-3 gap-y-2 pt-5 text-xs text-[rgb(var(--ec-page-text-muted))]">
@@ -188,7 +188,7 @@ const releaseCount = `${logList.length} ${logList.length === 1 ? 'release' : 're
       </div>
       {
         logList.length > 0 && (
-          <aside class="hidden xl:block sticky top-[4rem] self-start w-[280px] max-h-[calc(100vh-4rem)] overflow-y-auto py-2 flex-shrink-0 pr-4 bg-[rgb(var(--ec-page-bg))]">
+          <aside class="hidden xl:block sticky top-[calc(var(--ec-header-offset)+0.25rem)] self-start w-[280px] max-h-[calc(100vh-var(--ec-header-offset)-0.25rem)] overflow-y-auto py-2 flex-shrink-0 pr-4 bg-[rgb(var(--ec-page-bg))]">
             <div class="mt-8">
               <h3 class="text-xs text-[rgb(var(--ec-page-text))] font-semibold capitalize flex items-center gap-2 mb-4">
                 <HistoryIcon className="w-4 h-4" />

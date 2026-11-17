@@ -12,6 +12,8 @@ interface SchemaPageViewerProps {
   /** Examples rendered on the server through the MDX pipeline, passed as the `examples` slot. */
   examples?: ReactNode;
   hasRenderedExamples?: boolean;
+  /** The page's breadcrumb, rendered on the server and passed as the `breadcrumb` slot */
+  breadcrumb?: ReactNode;
 }
 
 export default function SchemaPageViewer({
@@ -22,6 +24,7 @@ export default function SchemaPageViewer({
   initialTab,
   examples,
   hasRenderedExamples = false,
+  breadcrumb,
 }: SchemaPageViewerProps) {
   const handleVersionChange = (version: string) => {
     // Construct new URL
@@ -40,6 +43,8 @@ export default function SchemaPageViewer({
       showProducersConsumers={showProducersConsumers}
       initialTab={initialTab}
       renderedExamples={hasRenderedExamples ? examples : undefined}
+      variant="page"
+      breadcrumb={breadcrumb}
     />
   );
 }

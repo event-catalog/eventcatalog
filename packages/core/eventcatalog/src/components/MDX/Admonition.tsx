@@ -60,7 +60,7 @@ export default function Admonition({ children, type = 'info', className = '', ti
 
   return (
     <div
-      className={`ec-admonition ${config.containerClasses} rounded-md px-3 py-2.5 my-4 text-[0.85rem] leading-relaxed not-prose ${className}`}
+      className={`ec-admonition ${config.containerClasses} rounded-lg px-4 py-3 my-4 text-[14px] leading-relaxed not-prose ${className}`}
     >
       <div className={`flex items-center gap-1.5 mb-1 ${config.accentClasses}`}>
         <svg
@@ -78,9 +78,9 @@ export default function Admonition({ children, type = 'info', className = '', ti
         >
           <path d={config.iconPath} />
         </svg>
-        <span className="text-[0.7rem] font-semibold uppercase tracking-wider">{title || config.title}</span>
+        <span className="text-[13px] font-semibold">{title || config.title}</span>
       </div>
-      <div className="prose prose-sm dark:prose-invert w-full max-w-none! prose-p:my-0.5 prose-p:text-inherit prose-p:text-[0.85rem] prose-p:leading-relaxed prose-code:text-[0.8rem]">
+      <div className="prose prose-sm dark:prose-invert w-full max-w-none! prose-p:my-0.5 prose-p:text-inherit prose-p:text-[14px] prose-p:leading-relaxed prose-code:text-[13px]">
         {children}
       </div>
     </div>

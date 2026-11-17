@@ -190,7 +190,7 @@ const pagefindAttributes =
       // https://github.com/CloudCannon/pagefind/issues/437
     }
     <h2 class="hidden">{pageTitle}</h2>
-    <div class="absolute top-3 right-4 z-10 flex items-center gap-2" data-pagefind-ignore>
+    <div class="ec-light-surface absolute top-3 right-4 z-10 flex items-center gap-2" data-pagefind-ignore>
       {lastUpdated && <LastUpdated date={lastUpdated} class="m-0 whitespace-nowrap text-xs text-[rgb(var(--ec-page-text-muted))] mr-1" />}
       {(fileExists || isRemote) && <SpecificationDownloadButton href={downloadUrl} filename={filename} />}
       {
