@@ -129,6 +129,33 @@ describe('validateSchema', () => {
     });
   });
 
+  describe('query validation', () => {
+    it.each(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'QUERY'])(
+      'accepts the HTTP %s method on an operation',
+      (method) => {
+        const parsedFile = createParsedFile('query', {
+          id: 'list-books',
+          name: 'List Books',
+          version: '1.0.0',
+          operation: { method, path: '/api/v1/books', statusCodes: ['200', '400'] },
+        });
+
+        expect(validateSchema(parsedFile)).toHaveLength(0);
+      }
+    );
+
+    it('rejects an operation method that is not an HTTP method', () => {
+      const parsedFile = createParsedFile('query', {
+        id: 'list-books',
+        name: 'List Books',
+        version: '1.0.0',
+        operation: { method: 'FETCH', path: '/api/v1/books' },
+      });
+
+      expect(validateSchema(parsedFile).length).toBeGreaterThan(0);
+    });
+  });
+
   describe('flow validation', () => {
     it('should pass with valid flow frontmatter', () => {
       const parsedFile = createParsedFile('flow', {

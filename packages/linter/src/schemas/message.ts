@@ -3,7 +3,7 @@ import { baseSchema, channelPointerSchema, detailPanelPropertySchema } from './c
 
 const operationSchema = z
   .object({
-    method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']).optional(),
+    method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'QUERY']).optional(),
     path: z.string().optional(),
     statusCodes: z.array(z.string()).optional(),
   })
