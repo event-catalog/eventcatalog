@@ -423,6 +423,12 @@ interface Props {
   links?: { label: string; url: string }[];
   mode?: "full" | "simple";
   showFlowWalkthrough?: boolean;
+  /**
+   * Start with the minimap as the person last left it on another diagram, and remember their choice. Defaults to
+   * true. Turn it off for diagrams embedded in a page (e.g. docs), whose minimap starts hidden and is shown only
+   * while they're there.
+   */
+  rememberMinimap?: boolean;
   showSearch?: boolean;
   /** Show the settings menu (top left). Defaults to true. */
   showMenu?: boolean;
@@ -676,6 +682,7 @@ const NodeGraphBuilder = ({
   links = [],
   mode = "full",
   showFlowWalkthrough = true,
+  rememberMinimap = true,
   showSearch = true,
   showMenu = true,
   compactSearch = false,
@@ -848,12 +855,18 @@ const NodeGraphBuilder = ({
     () => setIsMermaidView(true),
     [setIsMermaidView],
   );
-  // Remembered, so the minimap stays on when switching levels (each level is its own page) or diagrams
-  const [showMinimap, setShowMinimapState] = useState(getStoredShowMinimap);
-  const setShowMinimap = useCallback((show: boolean) => {
-    setShowMinimapState(show);
-    storeShowMinimap(show);
-  }, []);
+  // Remembered, so the minimap stays on when switching levels (each level is its own page) or diagrams. A diagram
+  // embedded in a page starts without it, and showing it there isn't remembered (see rememberMinimap)
+  const [showMinimap, setShowMinimapState] = useState(
+    () => rememberMinimap && getStoredShowMinimap(),
+  );
+  const setShowMinimap = useCallback(
+    (show: boolean) => {
+      setShowMinimapState(show);
+      if (rememberMinimap) storeShowMinimap(show);
+    },
+    [rememberMinimap],
+  );
   const [hasLayoutChanges, setHasLayoutChanges] = useState(false);
   const [isSavingLayout, setIsSavingLayout] = useState(false);
   const initialPositionsRef = useRef<Record<string, { x: number; y: number }>>(
@@ -3157,6 +3170,12 @@ interface NodeGraphProps {
   links?: { label: string; url: string }[];
   mode?: "full" | "simple";
   portalId?: string;
+  /**
+   * Start with the minimap as the person last left it on another diagram, and remember their choice. Defaults to
+   * true. Turn it off for diagrams embedded in a page (e.g. docs), whose minimap starts hidden and is shown only
+   * while they're there.
+   */
+  rememberMinimap?: boolean;
   showFlowWalkthrough?: boolean;
   showSearch?: boolean;
   /** Show the settings menu (top left). Defaults to true. */
@@ -3237,6 +3256,7 @@ const NodeGraph = ({
   initialLevel,
   mode = "full",
   portalId,
+  rememberMinimap,
   showFlowWalkthrough = true,
   showSearch: showSearchProp,
   showMenu,
@@ -3377,6 +3397,7 @@ const NodeGraph = ({
             links={links}
             mode={mode}
             showFlowWalkthrough={showFlowWalkthrough}
+            rememberMinimap={rememberMinimap}
             showSearch={showSearch}
             showMenu={showMenu}
             compactSearch={compactSearch}

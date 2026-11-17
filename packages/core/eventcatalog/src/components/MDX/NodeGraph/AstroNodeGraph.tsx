@@ -190,6 +190,9 @@ const AstroNodeGraph = ({
         onSaveLayout={handleSaveLayout}
         onResetLayout={handleResetLayout}
         onOpenInStudio={studioApiUrl ? setToOpen : undefined}
+        // The visualiser's own pages (the ones that keep the view in the URL) remember the minimap; a diagram
+        // embedded in a page (<NodeGraph /> in docs) starts without it
+        rememberMinimap={!!otherProps.syncRenderModeWithUrl}
       />
       {toOpen && (
         // Its own, so the diagram isn't swapped for "Loading graph..." while the dialog loads
