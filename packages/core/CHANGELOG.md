@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 5.13.2
+
+### Patch Changes
+
+- 75ad4f9: fix(core): the vertical nav rail no longer flashes open and closes again when navigating between pages, and the theme and a resized sidebar's width are kept through each navigation
+
 ## 5.13.1
 
 ### Patch Changes
