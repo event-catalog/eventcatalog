@@ -5116,10 +5116,10 @@ describe('getNestedSideBarData', () => {
       const domainAdrs = getChildNodeByTitle('ADR', domainDocs.pages ?? []);
       const domainPages = getChildNodeByTitle('Pages', domainDocs.pages ?? []);
       expect(domainAdrs.pages).toEqual([
-        { type: 'item', title: 'Order Boundary ADR', href: '/docs/domains/Shipping/0.0.1/adrs/order-boundary' },
+        { type: 'item', doc: true, title: 'Order Boundary ADR', href: '/docs/domains/Shipping/0.0.1/adrs/order-boundary' },
       ]);
       expect(domainPages.pages).toEqual([
-        { type: 'item', title: 'Operating Model', href: '/docs/domains/Shipping/0.0.1/pages/operating-model' },
+        { type: 'item', doc: true, title: 'Operating Model', href: '/docs/domains/Shipping/0.0.1/pages/operating-model' },
       ]);
 
       const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
@@ -5128,6 +5128,7 @@ describe('getNestedSideBarData', () => {
       expect(serviceAdrs.pages).toEqual([
         {
           type: 'item',
+          doc: true,
           title: 'Service Boundary ADR',
           href: '/docs/services/ShippingService/0.0.1/adrs/service-boundary',
         },
@@ -5139,6 +5140,7 @@ describe('getNestedSideBarData', () => {
       expect(messageRunbooks.pages).toEqual([
         {
           type: 'item',
+          doc: true,
           title: 'Retry Failures',
           href: '/docs/events/PaymentProcessed/0.0.1/runbooks/retry-failures',
         },
@@ -5150,6 +5152,7 @@ describe('getNestedSideBarData', () => {
       expect(flowAdrs.pages).toEqual([
         {
           type: 'item',
+          doc: true,
           title: 'Orchestration Strategy ADR',
           href: '/docs/flows/PaymentFlow/0.0.1/adrs/orchestration-strategy',
         },
@@ -5161,6 +5164,7 @@ describe('getNestedSideBarData', () => {
       expect(containerAdrs.pages).toEqual([
         {
           type: 'item',
+          doc: true,
           title: 'Data Retention ADR',
           href: '/docs/containers/PaymentDataStore/0.0.1/adrs/data-retention',
         },
@@ -5172,6 +5176,7 @@ describe('getNestedSideBarData', () => {
       expect(channelGuides.pages).toEqual([
         {
           type: 'item',
+          doc: true,
           title: 'Channel Usage Guide',
           href: '/docs/channels/PaymentChannel/0.0.1/guides/channel-usage',
         },
@@ -5183,6 +5188,7 @@ describe('getNestedSideBarData', () => {
       expect(dataProductContracts.pages).toEqual([
         {
           type: 'item',
+          doc: true,
           title: 'Fact Table Definition',
           href: '/docs/data-products/PaymentAnalytics/0.0.1/contracts/fact-table-definition',
         },
