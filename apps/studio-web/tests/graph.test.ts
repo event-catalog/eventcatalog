@@ -16,6 +16,24 @@ describe('orders fixture', () => {
     expect(graph.nodes.every((n) => typeof n.position?.x === 'number')).toBe(true);
   });
 
+  it("doesn't say which channels the messages between systems go through on L1 (like the catalog's L1)", async () => {
+    // A channel carrying both systems' events sits between them, outside both
+    const withSharedChannel = Model.parse({
+      ...fixture,
+      resources: [...fixture.resources, { id: 'shared-bus', type: 'channel', name: 'shared-bus', technology: 'Kafka' }],
+      relations: [
+        ...fixture.relations,
+        { from: 'OrderPlaced', to: 'shared-bus', kind: 'routes-through' },
+        { from: 'PaymentProcessed', to: 'shared-bus', kind: 'routes-through' },
+      ],
+    });
+    const graph = await buildArchitectureGraph(withSharedChannel);
+
+    expect(graph.overview?.edges.map((e) => String(e.label ?? '')).filter((label) => label.includes('via'))).toEqual([]);
+    // L2 still says it
+    expect(graph.hiddenMessages.edges.some((e) => String(e.label ?? '').includes('via shared-bus'))).toBe(true);
+  });
+
   it('places an event with its sender, and a command and its channel with their receiver', () => {
     // The Orders service (Ordering) sends ProcessPayment through a queue to the Payment service (Payments)
     const withCommand = Model.parse({

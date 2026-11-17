@@ -31,6 +31,28 @@ export function hasGit() {
   return gitInstalledByPath.get(searchPath)!;
 }
 
+const repositoryByDirectory = new Map<string, boolean>();
+
+/** Whether the catalog is in a git repository (git can be installed without one, e.g. a Docker image of a catalog) */
+export function isGitRepository() {
+  const cwd = process.cwd();
+  if (!repositoryByDirectory.has(cwd)) {
+    repositoryByDirectory.set(cwd, runGit(['rev-parse', '--is-inside-work-tree'])?.trim() === 'true');
+  }
+  return repositoryByDirectory.get(cwd)!;
+}
+
+const shallowByRepository = new Map<string, boolean>();
+
+/** Whether this is a shallow clone (e.g. CI's default checkout), where files' commit dates can't be trusted */
+export function isShallowRepository() {
+  const cwd = process.cwd();
+  if (!shallowByRepository.has(cwd)) {
+    shallowByRepository.set(cwd, runGit(['rev-parse', '--is-shallow-repository'])?.trim() === 'true');
+  }
+  return shallowByRepository.get(cwd)!;
+}
+
 const parseCommit = (header: string): Commit => {
   const [timestamp, ...author] = header.split(',');
   return { timestamp: Number(timestamp) * 1_000, author: author.join(',') };

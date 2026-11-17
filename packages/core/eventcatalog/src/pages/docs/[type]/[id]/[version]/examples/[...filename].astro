@@ -5,7 +5,6 @@ import { getCollection, render } from 'astro:content';
 import components from '@components/MDX/components';
 import { getExampleEntriesForMessage } from '@utils/collections/examples';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import Footer from '@layouts/Footer.astro';
 import { Page } from './_[...filename].data';
 
 export const prerender = Page.prerender;
@@ -66,7 +65,6 @@ const exampleHtml = !Content && example.renderMode === 'markdown' ? await marked
           }
         </div>
 
-        <Footer />
       </div>
     </div>
   </main>

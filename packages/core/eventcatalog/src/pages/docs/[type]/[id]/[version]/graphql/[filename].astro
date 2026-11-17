@@ -1,9 +1,11 @@
 ---
+import LastUpdated from '@components/LastUpdated.astro';
+import { getResourceFileLastUpdated } from '@utils/last-updated';
+import { isLastUpdatedEnabled } from '@utils/feature';
 import { Code } from 'astro-expressive-code/components';
 import fs from 'fs';
 
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import Footer from '@layouts/Footer.astro';
 import { Page } from './_[filename].data';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
@@ -27,6 +29,8 @@ const fileName = filename || 'schema.graphql';
 const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, fileName);
 const fileExists = fs.existsSync(pathToSpec);
 const isRemote = relativeSpecPath.includes('https://');
+// When this specification file was last committed (with lastUpdated on)
+const lastUpdated = isLastUpdatedEnabled() ? getResourceFileLastUpdated(pageData, relativeSpecPath) : undefined;
 let content = '';
 
 if (fileExists && !isRemote) {
@@ -154,7 +158,14 @@ const pagefindAttributes =
           )
         }
 
-        <Footer />
+        {
+          lastUpdated && (
+            <footer class="mt-12 border-t border-[rgb(var(--ec-page-border))] pt-6 pb-4">
+              <LastUpdated date={lastUpdated} />
+            </footer>
+          )
+        }
+
       </div>
     </div>
   </main>

@@ -12,6 +12,7 @@ export const isVisualiserEnabled = () => config?.visualiser?.enabled ?? true;
 export const isArchitectureGraphEnabled = () =>
   isVisualiserEnabled() && (config?.visualiser?.architectureGraph?.enabled ?? false);
 export const isChangelogEnabled = () => config?.changelog?.enabled ?? false;
+export const isLastUpdatedEnabled = () => config?.lastUpdated?.enabled ?? false;
 export const isRSSEnabled = () => config?.rss?.enabled ?? false;
 export const isLLMSTxtEnabled = () => config?.llmsTxt?.enabled ?? true;
 export const isMarkdownDownloadEnabled = () => config?.llmsTxt?.enabled ?? true;

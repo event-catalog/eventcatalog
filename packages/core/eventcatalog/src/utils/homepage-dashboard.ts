@@ -1,7 +1,7 @@
-import path from 'node:path';
-import { statSync } from 'node:fs';
 import { getCollection } from 'astro:content';
-import { getLastCommitDate } from '@utils/git';
+import { isLastUpdatedEnabled } from '@utils/feature';
+import { getLastUpdated, getResourceFileLastUpdated, getSchemasLastUpdated, type LastUpdatedEntry } from '@utils/last-updated';
+import { PAGE_SEGMENT_BY_SPECIFICATION_TYPE, processSpecifications } from '@utils/collections/util';
 import { buildUrl } from '@utils/url-builder';
 
 /** The resources the dashboard shows, by collection */
@@ -19,10 +19,16 @@ export type DashboardEntry = {
     summary?: string;
     owners?: Owner[];
     schemaPath?: string;
+    schemas?: LastUpdatedEntry['data']['schemas'];
+    specifications?: LastUpdatedEntry['data']['specifications'];
   };
 };
 
 export type DashboardResource = {
+  /** A resource itself, or one of its files listed on its own: a message's schema, or a specification */
+  kind: 'resource' | 'schema' | 'specification';
+  /** For a specification, its name, e.g. "OpenAPI" */
+  label?: string;
   collection: DashboardCollection;
   id: string;
   version: string;
@@ -32,6 +38,9 @@ export type DashboardResource = {
   owners: { id: string; name: string }[];
   updatedAt?: number;
 };
+
+/** Part of a resource whose date the dashboard asks for on its own */
+export type DashboardPart = 'schemas' | { specification: string };
 
 export type DashboardData = {
   counts: Record<DashboardCollection | 'messages' | 'schemas' | 'teams' | 'users', number>;
@@ -55,13 +64,18 @@ export const buildDashboard = ({
   collections: Record<DashboardCollection, DashboardEntry[]>;
   teams: DashboardEntry[];
   users: DashboardEntry[];
-  /** When a resource's file last changed (unix ms), if known */
-  getUpdatedAt: (entry: DashboardEntry) => number | undefined;
+  /**
+   * When something last changed (unix ms), if known: the resource itself, not counting its schemas and specifications
+   * (they're listed on their own); `'schemas'`, a message's schemas; or `{ specification }`, that specification file
+   * (relative to the resource)
+   */
+  getUpdatedAt: (entry: DashboardEntry, part?: DashboardPart) => number | undefined;
 }): DashboardData => {
   const ownerNames = new Map<string, string>();
   for (const owner of [...teams, ...users]) ownerNames.set(owner.data.id, owner.data.name ?? owner.data.id);
 
   const toResource = (collection: DashboardCollection, entry: DashboardEntry): DashboardResource => ({
+    kind: 'resource',
     collection,
     id: entry.data.id,
     version: entry.data.version,
@@ -80,8 +94,39 @@ export const buildDashboard = ({
     current[collection].map((entry) => ({ entry, resource: toResource(collection, entry) }))
   );
 
-  const recentlyUpdated = all
-    .map(({ resource }) => resource)
+  // A message's schema and a resource's specifications, each listed on its own
+  const files = all.flatMap(({ entry, resource }): DashboardResource[] => {
+    // Messages only, whichever way their schemas are declared (a schema from a registry has no date here)
+    const isMessage = (MESSAGE_COLLECTIONS as readonly string[]).includes(resource.collection);
+    const schemasUpdatedAt = isMessage ? getUpdatedAt(entry, 'schemas') : undefined;
+    const schema: DashboardResource[] =
+      schemasUpdatedAt !== undefined
+        ? [
+            {
+              ...resource,
+              kind: 'schema',
+              href: buildUrl(
+                `/schemas/explorer?id=${encodeURIComponent(resource.id)}&version=${encodeURIComponent(resource.version)}&collection=${resource.collection}`
+              ),
+              updatedAt: schemasUpdatedAt,
+            },
+          ]
+        : [];
+    const specifications = processSpecifications(entry.data.specifications).map(
+      (specification): DashboardResource => ({
+        ...resource,
+        kind: 'specification',
+        label: specification.name,
+        href: buildUrl(
+          `/docs/${resource.collection}/${resource.id}/${resource.version}/${PAGE_SEGMENT_BY_SPECIFICATION_TYPE[specification.type]}/${specification.filenameWithoutExtension}`
+        ),
+        updatedAt: getUpdatedAt(entry, { specification: specification.path }),
+      })
+    );
+    return [...schema, ...specifications];
+  });
+
+  const recentlyUpdated = [...all.map(({ resource }) => resource), ...files]
     .filter((resource) => resource.updatedAt !== undefined)
     .sort((a, b) => b.updatedAt! - a.updatedAt!)
     .slice(0, 8);
@@ -105,17 +150,13 @@ export const buildDashboard = ({
   };
 };
 
-// When a resource's file last changed: its last commit, or (without git, or before it's committed) the file's date
-const getUpdatedAt = (entry: DashboardEntry) => {
-  if (!entry.filePath) return undefined;
-  const file = path.resolve(process.env.PROJECT_DIR || process.cwd(), entry.filePath);
-  const committed = getLastCommitDate(file);
-  if (committed) return committed.getTime();
-  try {
-    return statSync(file).mtimeMs;
-  } catch {
-    return undefined;
-  }
+// When something last changed, from git. Only with lastUpdated on (the homepage shows what changed recently only then),
+// so git isn't read otherwise
+const getUpdatedAt = (entry: DashboardEntry, part?: DashboardPart) => {
+  if (!isLastUpdatedEnabled()) return undefined;
+  if (part === 'schemas') return getSchemasLastUpdated(entry)?.getTime();
+  if (part) return getResourceFileLastUpdated(entry, part.specification)?.getTime();
+  return getLastUpdated(entry, { schemas: false })?.getTime();
 };
 
 /** The homepage dashboard for this catalog */

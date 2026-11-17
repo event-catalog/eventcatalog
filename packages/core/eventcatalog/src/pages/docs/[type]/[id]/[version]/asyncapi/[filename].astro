@@ -14,7 +14,9 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
 import SpecificationDownloadButton from '@components/SpecificationDownloadButton.astro';
 import { getRawSpecificationUrl } from '@utils/raw-specification';
-import { isEventCatalogChatVisible } from '@utils/feature';
+import { isEventCatalogChatVisible, isLastUpdatedEnabled } from '@utils/feature';
+import LastUpdated from '@components/LastUpdated.astro';
+import { getResourceFileLastUpdated } from '@utils/last-updated';
 import Config from '@utils/eventcatalog-config/catalog';
 import { Page } from './_[filename].data';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
@@ -31,6 +33,8 @@ const fileName = filename || 'asyncapi.yaml';
 const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, fileName);
 const fileExists = fs.existsSync(pathToSpec);
 const isRemote = relativeSpecPath.includes('https://');
+// When this specification file was last committed (with lastUpdated on)
+const lastUpdated = isLastUpdatedEnabled() ? getResourceFileLastUpdated(pageData, relativeSpecPath) : undefined;
 let content = '';
 
 const allowAnyEnvInSpecHeaders = Config?.asyncAPI?.allowAnyEnvInSpecHeaders ?? false;
@@ -187,6 +191,7 @@ const pagefindAttributes =
     }
     <h2 class="hidden">{pageTitle}</h2>
     <div class="absolute top-3 right-4 z-10 flex items-center gap-2" data-pagefind-ignore>
+      {lastUpdated && <LastUpdated date={lastUpdated} class="m-0 whitespace-nowrap text-xs text-[rgb(var(--ec-page-text-muted))] mr-1" />}
       {(fileExists || isRemote) && <SpecificationDownloadButton href={downloadUrl} filename={filename} />}
       {
         chatEnabled && (

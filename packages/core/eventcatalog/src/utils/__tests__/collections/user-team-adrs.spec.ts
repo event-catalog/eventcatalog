@@ -130,3 +130,59 @@ describe('user and team system ownership', () => {
     expect((teams[0].data as any).ownedSystems.map((system: any) => system.data.id)).toEqual(['PaymentsPlatform']);
   });
 });
+
+describe('getOwnedResources', () => {
+  it('groups the resources a team owns by collection, leaving out older versions', async () => {
+    const { getOwnedResources, ownsResources } = await import('../../collections/owned-resources');
+    const currentService = {
+      collection: 'services',
+      filePath: 'services/Orders/index.mdx',
+      data: { id: 'Orders', version: '2.0.0' },
+    };
+    const oldService = {
+      collection: 'services',
+      filePath: 'services/Orders/versioned/1.0.0/index.mdx',
+      data: { id: 'Orders', version: '1.0.0' },
+    };
+    const team = {
+      id: 'teams/platform.mdx',
+      collection: 'teams',
+      data: { id: 'platform', name: 'Platform', ownedServices: [currentService, oldService], ownedSystems: [teamOwnedSystem] },
+    } as any;
+
+    const groups = getOwnedResources(team);
+
+    expect(groups.map(({ collection }) => collection)).toEqual([
+      'domains',
+      'systems',
+      'agents',
+      'services',
+      'events',
+      'commands',
+      'queries',
+      'adrs',
+    ]);
+    expect(groups.find(({ collection }) => collection === 'services')?.items).toEqual([currentService]);
+    expect(groups.find(({ collection }) => collection === 'systems')?.items).toEqual([teamOwnedSystem]);
+    expect(ownsResources(team)).toBe(true);
+  });
+
+  it('reports an owner that owns nothing', async () => {
+    const { ownsResources } = await import('../../collections/owned-resources');
+
+    expect(ownsResources({ collection: 'teams', data: { id: 'empty', name: 'Empty' } } as any)).toBe(false);
+  });
+});
+
+describe('user Owned Resources', () => {
+  it('includes resources owned by the user and by their teams', async () => {
+    const { getUsers } = await import('../../collections/users');
+    const { getOwnedResources, ownsResources } = await import('../../collections/owned-resources');
+
+    const [dave] = await getUsers();
+    const systems = getOwnedResources(dave).find(({ collection }) => collection === 'systems')?.items ?? [];
+
+    expect(systems.map((system: any) => system.data.id)).toEqual(['CoreMonolith', 'PaymentsPlatform']);
+    expect(ownsResources(dave)).toBe(true);
+  });
+});

@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { ResourcesTable, type ResourceItem } from '../ResourcesTable';
+import { getTypesFromSearch, ResourcesTable, type ResourceItem } from '../ResourcesTable';
 import { favoritesStore } from '../../../../stores/favorites-store';
 
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
@@ -89,6 +89,21 @@ describe('ResourcesTable', () => {
       input.dispatchEvent(new Event('input', { bubbles: true }));
     });
     expect(rowNames(container)).toEqual(['Service 12']);
+  });
+
+  it('starts filtered to the types in the URL that have resources', () => {
+    // Commands have no rows here, so no pill could clear them: they are left out.
+    window.history.replaceState(null, '', '/?type=entities,commands');
+    try {
+      const container = render(<ResourcesTable resources={resources} title="Ordering Resources" />);
+      expect(rowNames(container)).toEqual(['Order']);
+
+      const entitiesPill = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Entities')!;
+      act(() => entitiesPill.click());
+      expect(rowNames(container)).toHaveLength(10);
+    } finally {
+      window.history.replaceState(null, '', '/');
+    }
   });
 
   it('opens a row actions menu linking to the resource docs and visualiser', () => {
@@ -290,5 +305,16 @@ describe('ResourcesTable', () => {
 
     act(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })));
     expect(openActionsFor(container, 'Order').textContent).not.toContain('View schema');
+  });
+});
+
+describe('getTypesFromSearch', () => {
+  it('reads the resource types to filter by from the type query parameter', () => {
+    expect(getTypesFromSearch('?type=events,commands,queries')).toEqual(['events', 'commands', 'queries']);
+  });
+
+  it('ignores unknown types and a missing parameter', () => {
+    expect(getTypesFromSearch('?type=services,teams')).toEqual(['services']);
+    expect(getTypesFromSearch('')).toEqual([]);
   });
 });

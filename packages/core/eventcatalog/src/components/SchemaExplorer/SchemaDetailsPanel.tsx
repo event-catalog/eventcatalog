@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import { buildUrl } from '@utils/url-builder';
+import { formatShortDate } from '@utils/dates';
 import { getCollectionStyles } from '@components/Grids/utils';
 import SchemaContentViewer from './SchemaContentViewer';
 import DiffViewer from './DiffViewer';
@@ -113,7 +114,14 @@ const SchemaMetadata = ({ message, owners }: { message: SchemaItem; owners: Owne
     },
     {
       label: 'Updated',
-      value: source?.updatedAt ? formatSchemaDateTime(source.updatedAt) : <MetadataEmpty />,
+      // From the schema's file in git (with lastUpdated on), or when its registry says it changed
+      value: source?.updatedAt ? (
+        formatSchemaDateTime(source.updatedAt)
+      ) : message.lastUpdated ? (
+        formatShortDate(message.lastUpdated)
+      ) : (
+        <MetadataEmpty />
+      ),
     },
   ];
 
@@ -620,6 +628,11 @@ export default function SchemaDetailsPanel({
               </div>
               {message.data.summary && (
                 <p className="mt-3 text-sm leading-relaxed text-[rgb(var(--ec-page-text-muted))]">{message.data.summary}</p>
+              )}
+              {message.lastUpdated && (
+                <p className="mt-1.5 text-xs text-[rgb(var(--ec-page-text-muted))]">
+                  Last updated on <time dateTime={message.lastUpdated}>{formatShortDate(message.lastUpdated)}</time>
+                </p>
               )}
             </div>
 

@@ -86,8 +86,100 @@ describe("hideMessageNodes", () => {
     expect(edges[0]).toMatchObject({
       source: "ProductPublisher",
       target: "SearchIndexer",
-      label: "publishes\nProduct Created",
+      // One route through three channels: where it starts and ends, the channel between counted
+      label:
+        "publishes\nProduct Created\nvia product-events\n→ +1 → search-indexer-queue",
     });
+  });
+
+  it("says which channel a bridged edge goes through, and its protocol", () => {
+    const { edges } = hideMessageNodes(
+      [
+        node("OrderService", "services"),
+        node("OrderPlaced", "events", "Order Placed"),
+        {
+          id: "orders-topic",
+          type: "channels",
+          position: { x: 0, y: 0 },
+          data: { channel: { name: "orders", protocols: ["kafka"] } },
+        },
+        node("PaymentService", "services"),
+      ],
+      [
+        edge("OrderService", "OrderPlaced"),
+        edge("OrderPlaced", "orders-topic"),
+        edge("orders-topic", "PaymentService"),
+      ],
+    );
+
+    expect(edges[0].label).toBe("publishes\nOrder Placed\nvia orders (kafka)");
+  });
+
+  it("leaves the channels out of the label with channelRoutes off (L1)", () => {
+    const { edges } = hideMessageNodes(
+      [
+        node("OrderService", "services"),
+        node("OrderPlaced", "events", "Order Placed"),
+        node("orders-topic", "channels"),
+        node("PaymentService", "services"),
+      ],
+      [
+        edge("OrderService", "OrderPlaced"),
+        edge("OrderPlaced", "orders-topic"),
+        edge("orders-topic", "PaymentService"),
+      ],
+      { channelRoutes: false },
+    );
+
+    expect(edges[0].label).toBe("publishes\nOrder Placed");
+  });
+
+  it("counts every route into the same channel", () => {
+    // Either topic, then the same queue: two routes (which one is walked first doesn't matter)
+    const { edges } = hideMessageNodes(
+      [
+        node("OrderService", "services"),
+        node("OrderPlaced", "events", "Order Placed"),
+        node("topic-a", "channels"),
+        node("topic-b", "channels"),
+        node("queue", "channels"),
+        node("PaymentService", "services"),
+      ],
+      [
+        edge("OrderService", "OrderPlaced"),
+        edge("OrderPlaced", "topic-a"),
+        edge("OrderPlaced", "topic-b"),
+        edge("topic-a", "queue"),
+        edge("topic-b", "queue"),
+        edge("queue", "PaymentService"),
+      ],
+    );
+
+    expect(edges).toHaveLength(1);
+    expect(edges[0].label).toBe("publishes\nOrder Placed\nvia 3 channels");
+  });
+
+  it("doesn't loop through channels that route back into each other", () => {
+    const { edges } = hideMessageNodes(
+      [
+        node("OrderService", "services"),
+        node("OrderPlaced", "events", "Order Placed"),
+        node("topic-a", "channels"),
+        node("topic-b", "channels"),
+        node("PaymentService", "services"),
+      ],
+      [
+        edge("OrderService", "OrderPlaced"),
+        edge("OrderPlaced", "topic-a"),
+        edge("topic-a", "topic-b"),
+        edge("topic-b", "topic-a"),
+        edge("topic-b", "PaymentService"),
+      ],
+    );
+
+    expect(edges[0].label).toBe(
+      "publishes\nOrder Placed\nvia topic-a\n→ topic-b",
+    );
   });
 
   it("merges multiple messages between the same nodes into one edge", () => {

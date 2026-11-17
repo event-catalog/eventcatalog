@@ -1,5 +1,13 @@
 # @eventcatalog/linter
 
+## 1.3.3
+
+### Patch Changes
+
+- c8b2e85: Allow `QUERY`, `HEAD` and `OPTIONS` as the `operation.method` of a message, so endpoints that use the HTTP `QUERY` method (OpenAPI 3.2 `query` operations) can be documented
+- Updated dependencies [c8b2e85]
+  - @eventcatalog/sdk@2.32.2
+
 ## 1.3.2
 
 ### Patch Changes

@@ -434,8 +434,11 @@ shows the diagram's own L1 and L2 (`meta.diagramLevels`) until its structure cha
 - **L1 and L2 match the visualiser's levels** (`utils/node-graphs/domain-levels-node-graph.ts`, the visualiser's
   `hide-messages.ts`); compare with them when changing either:
   - Edges joined through hidden messages or channels are "bridged": dashed, muted, `bridged-<from>-<to>`, labelled
-    only with the messages they carry (`getMessagesLabel`, no truncation), no label through channels alone. On L1,
-    edges to and from systems are plain instead (the visualiser folds a system's messages into it).
+    with the messages they carry, then on L2 how they travel (`getBridgedLabel`, no truncation): one channel
+    "via orders (kafka)", a route through several its first and last on two lines ("via a (kafka)\n→ +1 → b (sqs)"),
+    separate routes counted ("via 2 channels (kafka)"). Through channels alone it's just the "via" line. L1 never
+    says "via" (the visualiser's L1 edges come from the messages): `collapseGraph`'s `channelRoutes` is on for L2
+    only, and the L1 builders call `hideMessageNodes` with `{ channelRoutes: false }`. On L1, edges to and from systems are plain instead (the visualiser folds a system's messages into it).
   - L1 edges between folded nodes are plain (solid, 20px arrow, `level-<from>-<to>`), labelled with messages only.
     Edges drawn straight between two nodes L1 keeps (systems, actors, domains) are relationships
     (`relationship-<from>-<to>`): they keep their label and replace the message edges between the same pair.

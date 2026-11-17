@@ -1,5 +1,4 @@
 ---
-import Footer from '@layouts/Footer.astro';
 import { BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon, ServerIcon } from '@heroicons/react/24/outline';
 import { getCollection } from 'astro:content';
 import path from 'node:path';
@@ -335,7 +334,6 @@ const badge = getBadge();
       )
     }
 
-    <Footer />
   </main>
   <ClientRouter />
 </VerticalSideBarLayout>

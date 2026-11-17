@@ -120,6 +120,27 @@ export const buildOwnersSection = (owners: any[]): NavNode | null => {
   };
 };
 
+/** Email, Slack and Microsoft Teams links for a team or user, when they have any. */
+export const buildContactSection = (contact: {
+  email?: string;
+  slackDirectMessageUrl?: string;
+  msTeamsDirectMessageUrl?: string;
+}): NavNode | null => {
+  // Same icons as the contact links on the team and user pages.
+  const links: NavNode[] = [];
+  const addLink = (title: string, href: string, icon: Pick<NavNode, 'icon' | 'leftIcon'>) =>
+    links.push({ type: 'item', title, href, ...icon, external: true });
+
+  if (contact.email) addLink('Email', `mailto:${contact.email}`, { icon: 'Mail' });
+  if (contact.slackDirectMessageUrl) addLink('Slack', contact.slackDirectMessageUrl, { leftIcon: '/slack-icon.svg' });
+  if (contact.msTeamsDirectMessageUrl) {
+    addLink('Microsoft Teams', contact.msTeamsDirectMessageUrl, { leftIcon: '/icons/ms-teams.svg' });
+  }
+  if (links.length === 0) return null;
+
+  return { type: 'group', title: 'Contact', icon: 'MessageCircle', pages: links };
+};
+
 const byAdrName = (a: Adr, b: Adr) => {
   const name = (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
   if (name !== 0) return name;

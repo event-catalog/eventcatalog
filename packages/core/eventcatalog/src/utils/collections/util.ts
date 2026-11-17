@@ -20,6 +20,14 @@ export const getFolderNameFromFilePath = (filePath: string): string => {
 
 export type SpecificationType = 'asyncapi' | 'openapi' | 'graphql' | 'generic';
 
+/** The folder each kind of specification page lives in, under /docs/{type}/{id}/{version}/ */
+export const PAGE_SEGMENT_BY_SPECIFICATION_TYPE: Record<SpecificationType, string> = {
+  asyncapi: 'asyncapi',
+  openapi: 'spec',
+  graphql: 'graphql',
+  generic: 'generic',
+};
+
 export interface SpecificationInput {
   type: SpecificationType;
   path: string;

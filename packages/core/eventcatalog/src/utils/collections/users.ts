@@ -5,13 +5,14 @@ import { getAdrs } from './adrs';
 
 export type User = CollectionEntry<'users'>;
 
+const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 // Simple in-memory cache
 let memoryCache: User[] = [];
 
 export const getUsers = async (): Promise<User[]> => {
   // console.time('✅ New getUsers');
 
-  if (memoryCache.length > 0) {
+  if (memoryCache.length > 0 && CACHE_ENABLED) {
     // console.timeEnd('✅ New getUsers');
     return memoryCache;
   }

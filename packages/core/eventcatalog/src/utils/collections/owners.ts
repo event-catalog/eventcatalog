@@ -1,5 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 
+const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
+
 const getOwners = (function () {
   type Owners = CollectionEntry<'users' | 'teams'>;
   let cachedOwners: Map<string, Owners> | null = null;
@@ -24,7 +26,7 @@ const getOwners = (function () {
   }
 
   return () =>
-    cachedOwners || // Return cached owners if already initialized
+    (CACHE_ENABLED && cachedOwners) || // Return cached owners if already initialized
     initializingPromise || // Return the promise if initialization is in progress
     (initializingPromise = init()); // Initialize if neither cache nor promise exists
 })();

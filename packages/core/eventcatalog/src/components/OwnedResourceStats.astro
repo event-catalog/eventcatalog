@@ -1,0 +1,94 @@
+---
+// The counts on team and user pages, styled like the homepage dashboard cards: how many of each
+// kind of resource they own (each opening Owned Resources filtered to that kind), and their
+// members or teams.
+import { Bot, Boxes, ClipboardList, Group, Mail, Server, Users, type LucideIcon } from 'lucide-react';
+import { getOwnedResources, type OwnedResourceCollection } from '@utils/collections/owned-resources';
+
+interface Props {
+  /** A team or user from getTeams / getUsers. */
+  owner: { data: Record<string, unknown> };
+  /** Their Owned Resources page. */
+  resourcesHref: string;
+  /** Members of a team, or the teams a user belongs to. */
+  people: { label: string; count: number };
+}
+
+const { owner, resourcesHref, people } = Astro.props;
+
+const KINDS: Array<{ label: string; icon: LucideIcon; collections: OwnedResourceCollection[] }> = [
+  { label: 'Domains', icon: Boxes, collections: ['domains'] },
+  { label: 'Systems', icon: Group, collections: ['systems'] },
+  { label: 'Services', icon: Server, collections: ['services'] },
+  { label: 'Agents', icon: Bot, collections: ['agents'] },
+  { label: 'Messages', icon: Mail, collections: ['events', 'commands', 'queries'] },
+  { label: 'Decisions', icon: ClipboardList, collections: ['adrs'] },
+];
+
+const owned = getOwnedResources(owner);
+
+const stats = [
+  ...KINDS.map(({ label, icon, collections }) => {
+    const count = owned
+      .filter(({ collection }) => collections.includes(collection))
+      .reduce((total, { items }) => total + items.length, 0);
+    // Nothing to filter to when they own none of this kind.
+    return { label, icon, count, href: count > 0 ? `${resourcesHref}?type=${collections.join(',')}` : undefined };
+  }),
+  // Members and teams are listed in the sidebar.
+  { label: people.label, icon: Users, count: people.count, href: undefined },
+];
+---
+
+<div class="ec-owner-stats" data-pagefind-ignore>
+  {
+    stats.map(({ label, icon: Icon, count, href }) => {
+      const Card = href ? 'a' : 'div';
+      return (
+        <Card href={href} class:list={['ec-owner-stat group', { 'ec-owner-stat-link': href }]}>
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[12px] font-medium text-[rgb(var(--ec-page-text-muted))]">{label}</span>
+            <Icon className="h-4 w-4 shrink-0 text-[rgb(var(--ec-page-text-muted))] transition-colors group-hover:text-[rgb(var(--ec-page-text))]" />
+          </div>
+          <span
+            class:list={[
+              'mt-2 block text-[24px] font-semibold leading-none tracking-tight tabular-nums',
+              count > 0 ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text-muted))]',
+            ]}
+          >
+            {count}
+          </span>
+        </Card>
+      );
+    })
+  }
+</div>
+
+<style>
+  .ec-owner-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  @media (min-width: 768px) {
+    .ec-owner-stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1536px) {
+    .ec-owner-stats {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+  }
+  .ec-owner-stat {
+    display: block;
+    padding: 0.875rem 1rem;
+    border: 1px solid rgb(var(--ec-page-border));
+    border-radius: 0.875rem;
+    background: rgb(var(--ec-card-bg, var(--ec-page-bg)));
+    transition: border-color 150ms;
+  }
+  .ec-owner-stat-link:hover {
+    border-color: rgb(var(--ec-page-text) / 0.35);
+  }
+</style>

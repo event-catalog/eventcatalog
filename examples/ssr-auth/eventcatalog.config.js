@@ -4,7 +4,7 @@ export default {
   tagline: 'A minimal catalog used to verify that a server catalog loads its auth files.',
   organizationName: 'SSR Auth Test Catalog',
   homepageLink: 'https://eventcatalog.dev',
-  editUrl: 'https://github.com/event-catalog/eventcatalog',
+  editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main/examples/ssr-auth',
   base: '/',
   trailingSlash: false,
   output: 'server',

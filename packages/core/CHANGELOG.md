@@ -1,5 +1,44 @@
 # @eventcatalog/core
 
+## 5.12.2
+
+### Patch Changes
+
+- c8b2e85: Allow `QUERY`, `HEAD` and `OPTIONS` as the `operation.method` of a message, so endpoints that use the HTTP `QUERY` method (OpenAPI 3.2 `query` operations) can be documented
+- Updated dependencies [c8b2e85]
+  - @eventcatalog/linter@1.3.3
+  - @eventcatalog/sdk@2.32.2
+  - @eventcatalog/visualiser@5.4.1
+  - @eventcatalog/exporters@0.1.6
+  - @eventcatalog/fitness@0.1.3
+
+## 5.12.1
+
+### Patch Changes
+
+- 458181d: feat(visualiser): L2 edges that skip hidden channels now say how the messages travel: the channel and its protocol ("publishes OrderPlaced via orders (kafka)"), or for a route through several channels where it starts and ends ("via Product Events (kafka) → +1 → Search Indexer Queue (sqs)"), in diagrams and in Studio
+- 16328d0: fix(core): search ranks exact matches first. A resource whose name or id is the query comes first, then names whose last segment is the query (so `outgoing-sms` finds `persistent://tenant/ns/outgoing-sms` before messages and dead-letter topics that mention it), and shorter names lead within a rank. Resources with `:` in their id get their own search links, so results no longer repeat or go stale while you type.
+- Updated dependencies [458181d]
+  - @eventcatalog/visualiser@5.4.0
+
+## 5.12.0
+
+### Minor Changes
+
+- 32f08fa: feat(core): show when things were last updated, from git. Turn it on with `lastUpdated: { enabled: true }`:
+
+  - Resource pages show "Last updated on 10 Nov 2026": the newest commit to the resource's page, schema, specifications or changelog.
+  - Specification pages (OpenAPI, AsyncAPI, GraphQL and generic) and the Schemas & APIs explorer show when each schema or specification file last changed (for a schema from a registry, when the registry says it changed).
+  - The homepage lists what changed recently, beside the architecture graph: resources, message schemas and specifications, each on its own.
+
+  Nothing is shown when git can't tell (no git, no repository, or a shallow clone, where every file looks just updated), and the build warns once saying why. The homepage's recently updated list now needs this option: it used to show whenever the architecture graph was off.
+
+- 131d11b: feat(core): team and user pages now have a sidebar. Teams show Overview, Owned Resources, Contact and Members; users show Overview, Owned Resources, Contact and the Teams they belong to. Owned Resources (`/docs/teams/{id}/resources`, `/docs/users/{id}/resources`) lists everything they own in a searchable table, and the overview pages show "On this page" headings on the right like other docs pages.
+
+### Patch Changes
+
+- 32f08fa: chore(core): resource pages no longer end with EventCatalog's social links and "Powered by EventCatalog". Their footer is now about the page: when it was last updated and a link to edit it.
+
 ## 5.11.0
 
 ### Minor Changes

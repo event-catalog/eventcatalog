@@ -79,6 +79,8 @@ export interface SchemaItem {
   schemaName?: string;
   source?: SchemaSourceInfo;
   specType?: string;
+  /** When the schema or specification last changed, as an ISO date (with lastUpdated on) */
+  lastUpdated?: string;
   /** A generic specification's custom icon */
   specIcon?: string;
   specName?: string;

@@ -293,6 +293,44 @@ const addLatestMetadata = (schemas: MessageSchemaResource[]) => {
   });
 };
 
+const isRemoteSchemaFile = (file: string) => /^[a-z]+:\/\//i.test(file);
+
+// A message's schemas: its `schemas` list, or else its `schemaPath`
+const getSchemaReferences = (data: Pick<MessageFrontmatter, 'schemas' | 'schemaPath'>): SchemaReference[] =>
+  data.schemas?.filter((schema) => getSchemaRef(schema) || getSchemaFile(schema)) ??
+  (data.schemaPath
+    ? [
+        {
+          file: data.schemaPath,
+          name: 'Schema',
+          default: true,
+        },
+      ]
+    : []);
+
+/**
+ * The local files a message's schemas are read from, as absolute paths: its `schemas` files and `file://` refs, or its
+ * `schemaPath`. Not schemas from a registry or a URL. E.g. to know when a message's schema last changed.
+ */
+export const getLocalSchemaFilePaths = ({
+  data,
+  messageFilePath,
+}: {
+  data: Pick<MessageFrontmatter, 'schemas' | 'schemaPath'>;
+  messageFilePath: string;
+}): string[] =>
+  getSchemaReferences(data).flatMap((reference) => {
+    const schemaFile = getSchemaFile(reference);
+    if (schemaFile) return isRemoteSchemaFile(schemaFile) ? [] : [path.resolve(path.dirname(messageFilePath), schemaFile)];
+    const schemaRef = getSchemaRef(reference);
+    if (!isFileSchemaRef(schemaRef)) return [];
+    try {
+      return [getFileSchemaRefPath(schemaRef as string, messageFilePath).filePath];
+    } catch {
+      return [];
+    }
+  });
+
 export const getMessageSchemasFromFrontmatter = ({
   data,
   collection,
@@ -313,19 +351,7 @@ export const getMessageSchemasFromFrontmatter = ({
     owners: data.owners,
   };
 
-  const schemaReferences =
-    data.schemas?.filter((schema) => getSchemaRef(schema) || getSchemaFile(schema)) ??
-    (data.schemaPath
-      ? [
-          {
-            file: data.schemaPath,
-            name: 'Schema',
-            default: true,
-          },
-        ]
-      : []);
-
-  return schemaReferences.map((reference) => {
+  return getSchemaReferences(data).map((reference) => {
     const schemaFile = getSchemaFile(reference);
     const schemaRef = getSchemaRef(reference);
     const fileSchemaRef = isFileSchemaRef(schemaRef) ? getFileSchemaRefPath(schemaRef as string, messageFilePath) : undefined;

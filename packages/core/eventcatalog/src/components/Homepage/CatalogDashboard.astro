@@ -1,12 +1,13 @@
 ---
 import config from '@config';
 import { buildUrl } from '@utils/url-builder';
-import { getColorForCollection } from '@utils/collection-colors';
-import { isArchitectureGraphEnabled, isEventCatalogChatEnabled } from '@utils/feature';
+import { formatShortDate } from '@utils/dates';
+import { getColorAndIconForCollection } from '@utils/collections/icons';
+import { isArchitectureGraphEnabled, isEventCatalogChatEnabled, isLastUpdatedEnabled } from '@utils/feature';
 import CatalogForceGraph from '@components/CatalogGraph/CatalogForceGraph';
 import { getCatalogForceGraph, toCatalogForceGraphWire } from '@utils/node-graphs/catalog-force-graph';
 import { getDashboard, type DashboardCollection } from '@utils/homepage-dashboard';
-import { Boxes, Clock, FileJson, Mail, Network, Search, Server, Sparkles, Users, Waypoints } from 'lucide-react';
+import { Boxes, Clock, FileCode, FileJson, Mail, Network, Search, Server, Sparkles, Users, Waypoints } from 'lucide-react';
 
 interface Props {
   /** The heading, the catalog's title by default */
@@ -23,8 +24,10 @@ const {
 const dashboard = await getDashboard();
 const { counts, recentlyUpdated } = dashboard;
 const chatEnabled = isEventCatalogChatEnabled();
-// The architecture graph leads the dashboard; it's opt-in while in beta, and without it the dashboard shows what changed recently
+// The architecture graph leads the dashboard (it's opt-in while in beta), with what changed recently beside it
 const graph = isArchitectureGraphEnabled() ? toCatalogForceGraphWire(await getCatalogForceGraph()) : undefined;
+// What changed recently, with lastUpdated on (its dates come from git)
+const showRecentlyUpdated = isLastUpdatedEnabled();
 
 const TYPE_LABELS: Record<DashboardCollection, string> = {
   domains: 'Domain',
@@ -34,11 +37,9 @@ const TYPE_LABELS: Record<DashboardCollection, string> = {
   queries: 'Query',
   flows: 'Flow',
 };
-// The colour each kind of resource has across the catalog, from the theme's badge colours
-const badgeStyle = (collection: string) => {
-  const color = getColorForCollection(collection);
-  return `color: rgb(var(--ec-badge-color-${color}-text)); background: rgb(var(--ec-badge-color-${color}-background));`;
-};
+// A resource's icon in the colour its type has across the catalog (as in search), from the theme's badge colours
+const iconStyle = (color: string) =>
+  `color: rgb(var(--ec-badge-color-${color}-text)); background: rgb(var(--ec-badge-color-${color}-background)); box-shadow: inset 0 0 0 1px rgb(var(--ec-badge-color-${color}-text) / 0.18);`;
 
 const stats = [
   { label: 'Domains', value: counts.domains, href: buildUrl('/discover/domains'), icon: Boxes },
@@ -48,9 +49,6 @@ const stats = [
   { label: 'Schemas', value: counts.schemas, href: buildUrl('/schemas/explorer'), icon: FileJson },
   { label: 'Teams', value: counts.teams, href: buildUrl('/directory/teams'), icon: Users },
 ];
-
-const formatDate = (timestamp: number) =>
-  new Date(timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 ---
 
 <div class="ec-dashboard">
@@ -98,11 +96,11 @@ const formatDate = (timestamp: number) =>
     }
   </section>
 
-  <!-- The architecture graph, or what changed recently without it -->
-  <div class="mt-6">
+  <!-- The architecture graph and, beside it on wide screens, what changed recently -->
+  <div class={`mt-6 ${graph && showRecentlyUpdated ? 'grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]' : ''}`}>
     {
-      graph ? (
-        <section class="ec-dashboard-card overflow-hidden">
+      graph && (
+        <section class="ec-dashboard-card min-w-0 overflow-hidden">
           <div class="ec-dashboard-card-header">
             <h2 class="ec-dashboard-title">
               <Network className="h-4 w-4" /> Architecture
@@ -125,49 +123,59 @@ const formatDate = (timestamp: number) =>
             />
           </div>
         </section>
-      ) : (
-        <section class="ec-dashboard-card">
-          <div class="ec-dashboard-card-header">
+      )
+    }
+    {
+      showRecentlyUpdated && (
+        <section class="ec-dashboard-card flex min-w-0 flex-col overflow-hidden">
+          <div class="ec-dashboard-card-header border-b border-[rgb(var(--ec-page-border))]">
             <h2 class="ec-dashboard-title">
               <Clock className="h-4 w-4" /> Recently updated
             </h2>
           </div>
           {recentlyUpdated.length === 0 ? (
-            <p class="px-5 pb-5 text-[13px] text-[rgb(var(--ec-page-text-muted))]">Nothing to show yet.</p>
+            <p class="px-5 py-5 text-[13px] text-[rgb(var(--ec-page-text-muted))]">Nothing to show yet.</p>
           ) : (
-            <ul class="divide-y divide-[rgb(var(--ec-page-border))]">
-              {recentlyUpdated.map((resource) => (
-                <li>
-                  <a href={resource.href} class="ec-dashboard-row">
-                    <span class="ec-dashboard-type" style={badgeStyle(resource.collection)}>
-                      {TYPE_LABELS[resource.collection]}
-                    </span>
-                    <span class="min-w-0 flex-1">
-                      <span class="block truncate text-[13.5px] font-medium text-[rgb(var(--ec-page-text))]">
-                        {resource.name}
-                        <span class="ml-1.5 font-mono text-[11.5px] font-normal text-[rgb(var(--ec-page-text-muted))]">
-                          v{resource.version}
+            // Beside the graph, no taller than it
+            <ul class={`flex flex-col gap-0.5 p-2 ${graph ? 'xl:max-h-[34rem] xl:overflow-y-auto' : ''}`}>
+              {recentlyUpdated.map((resource) => {
+                // A schema or specification has its own icon, in the colour of the resource it belongs to
+                const { Icon: ResourceIcon, color } = getColorAndIconForCollection(resource.collection);
+                const Icon = { resource: ResourceIcon, schema: FileJson, specification: FileCode }[resource.kind];
+                const kindLabel = {
+                  resource: TYPE_LABELS[resource.collection],
+                  schema: `${TYPE_LABELS[resource.collection]} schema`,
+                  specification: resource.label,
+                }[resource.kind];
+                return (
+                  <li>
+                    <a href={resource.href} class="ec-dashboard-row">
+                      <span class="ec-dashboard-icon" style={iconStyle(color)}>
+                        <Icon className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                      <span class="min-w-0 flex-1">
+                        <span class="block truncate text-[13.5px] font-medium text-[rgb(var(--ec-page-text))]">
+                          {resource.name}
+                        </span>
+                        <span class="block truncate text-[12px] text-[rgb(var(--ec-page-text-muted))]">
+                          {kindLabel} · v{resource.version}
+                          {resource.owners[0] && (
+                            // Not beside the graph, where there's no room for it
+                            <span class={graph ? 'xl:hidden' : ''}> · {resource.owners[0].name}</span>
+                          )}
                         </span>
                       </span>
-                      {resource.summary && (
-                        <span class="block truncate text-[12.5px] text-[rgb(var(--ec-page-text-muted))]">{resource.summary}</span>
-                      )}
-                    </span>
-                    {resource.owners[0] && (
-                      <span class="hidden shrink-0 text-[12px] text-[rgb(var(--ec-page-text-muted))] md:block">
-                        {resource.owners[0].name}
-                      </span>
-                    )}
-                    <time
-                      class="w-24 shrink-0 text-right text-[12px] tabular-nums text-[rgb(var(--ec-page-text-muted))]"
-                      datetime={new Date(resource.updatedAt!).toISOString()}
-                      data-relative-time
-                    >
-                      {formatDate(resource.updatedAt!)}
-                    </time>
-                  </a>
-                </li>
-              ))}
+                      <time
+                        class="shrink-0 text-right text-[12px] tabular-nums text-[rgb(var(--ec-page-text-muted))]"
+                        datetime={new Date(resource.updatedAt!).toISOString()}
+                        data-relative-time
+                      >
+                        {formatShortDate(resource.updatedAt!)}
+                      </time>
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
@@ -177,6 +185,8 @@ const formatDate = (timestamp: number) =>
 </div>
 
 <script>
+  import { showRelativeTimes } from '@utils/dates';
+
   // The search bar and Ask button open the catalog's search and assistant
   const bind = () => {
     document.querySelector('[data-dashboard-search]')?.addEventListener('click', () => {
@@ -186,22 +196,7 @@ const formatDate = (timestamp: number) =>
       window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'));
     });
 
-    // "3 days ago", counted in the browser so a prerendered page stays current
-    const format = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
-    const units: [Intl.RelativeTimeFormatUnit, number][] = [
-      ['year', 365 * 24 * 3600],
-      ['month', 30 * 24 * 3600],
-      ['week', 7 * 24 * 3600],
-      ['day', 24 * 3600],
-      ['hour', 3600],
-      ['minute', 60],
-    ];
-    document.querySelectorAll<HTMLTimeElement>('time[data-relative-time]').forEach((time) => {
-      const seconds = (new Date(time.dateTime).getTime() - Date.now()) / 1000;
-      const [unit, size] = units.find(([, size]) => Math.abs(seconds) >= size) ?? ['minute', 60];
-      time.textContent = format.format(Math.round(seconds / size), unit);
-      time.title = new Date(time.dateTime).toLocaleString();
-    });
+    showRelativeTimes();
   };
   bind();
   document.addEventListener('astro:page-load', bind);
@@ -319,21 +314,22 @@ const formatDate = (timestamp: number) =>
   .ec-dashboard-row {
     display: flex;
     align-items: center;
-    gap: 0.875rem;
-    padding: 0.7rem 1.25rem;
+    gap: 0.75rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 0.625rem;
     transition: background 150ms;
   }
   .ec-dashboard-row:hover {
-    background: rgb(var(--ec-page-text) / 0.03);
+    background: rgb(var(--ec-content-hover));
   }
-  .ec-dashboard-type {
+  .ec-dashboard-icon {
+    display: flex;
     flex-shrink: 0;
-    width: 4.75rem;
-    border-radius: 0.375rem;
-    padding: 0.15rem 0;
-    text-align: center;
-    font-size: 11px;
-    font-weight: 600;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
   }
   @media (min-width: 640px) {
   }

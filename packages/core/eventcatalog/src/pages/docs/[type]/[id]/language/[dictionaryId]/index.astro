@@ -1,7 +1,6 @@
 ---
 import RectangleGroupIcon from '@heroicons/react/24/outline/RectangleGroupIcon';
 import Badge from '@components/Badge.astro';
-import Footer from '@layouts/Footer.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { buildUrl } from '@utils/url-builder';
 import { ClientRouter } from 'astro:transitions';
@@ -94,22 +93,20 @@ const badges = [
           }
         </div>
 
-        <Footer />
-        <div class="flex justify-end">
-          {
-            editUrl && (
-              <div class="flex justify-end">
-                <a
-                  href={editUrl}
-                  class="text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] border border-[rgb(var(--ec-page-border))] rounded-md p-2"
-                >
-                  <SquarePenIcon className="w-4 h-4 inline-block mr-1" />
-                  Edit this page
-                </a>
-              </div>
-            )
-          }
-        </div>
+        {
+          // The page's footer, as on resource pages
+          editUrl && (
+            <footer class="mt-12 flex border-t border-[rgb(var(--ec-page-border))] pt-6 pb-4">
+              <a
+                href={editUrl}
+                class="ml-auto inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-accent))]"
+              >
+                <SquarePenIcon className="h-4 w-4" />
+                Edit this page
+              </a>
+            </footer>
+          )
+        }
       </div>
     </div>
     <ClientRouter />

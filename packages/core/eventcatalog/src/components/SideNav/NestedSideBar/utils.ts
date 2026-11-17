@@ -247,7 +247,12 @@ export const findNodeKeyByUrl = (
     { pattern: /^\/docs\/entities\/([^/]+)\/([^/]+)/, type: 'entity' },
   ];
 
-  const urlPatternsWithoutVersion = [{ pattern: /^\/docs\/domains\/([^/]+)\/language/, type: 'domain' }];
+  const urlPatternsWithoutVersion = [
+    { pattern: /^\/docs\/domains\/([^/]+)\/language/, type: 'domain' },
+    // Teams and users (overview and Owned Resources)
+    { pattern: /^\/docs\/teams\/([^/]+)/, type: 'team' },
+    { pattern: /^\/docs\/users\/([^/]+)/, type: 'user' },
+  ];
 
   for (const { pattern, type } of urlPatternsWithVersion) {
     const match = url.match(pattern);

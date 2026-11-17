@@ -1067,7 +1067,7 @@ const buildLevels = async ({ id, version, mode = 'full', channelRenderMode }: No
     domainMessages,
     receivedBy
   );
-  const overview = hideMessageNodes(collapsed.nodes, collapsed.edges);
+  const overview = hideMessageNodes(collapsed.nodes, collapsed.edges, { channelRoutes: false });
 
   return layoutLevels(detailedGraph, overview);
 };
