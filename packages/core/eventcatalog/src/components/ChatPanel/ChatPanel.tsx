@@ -1474,8 +1474,9 @@ const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelP
         >
           <PanelResizeHandle panel={panelRef} width={shownWidth} onResize={resizePanel} />
           {/* Header */}
-          <div className="flex-none shrink-0 border-b border-[rgb(var(--ec-page-border))]">
-            <div className="flex items-center justify-between px-4 py-3">
+          {/* The page header's height, so their bottom lines meet */}
+          <div className="flex h-[var(--ec-header-height,52px)] flex-none shrink-0 items-center border-b border-[rgb(var(--ec-page-border))]">
+            <div className="flex w-full items-center justify-between px-4">
               <div className="flex items-center space-x-2">
                 <Sparkles size={16} className="text-[rgb(var(--ec-accent))]" />
                 <span className="font-medium text-[rgb(var(--ec-header-text))] text-sm">Assistant</span>

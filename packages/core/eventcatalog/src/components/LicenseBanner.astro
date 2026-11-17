@@ -8,12 +8,13 @@ import { getLicenseNotice } from '@utils/license-notice';
 const notice = await getLicenseNotice(Astro.url);
 ---
 
-{
+<!-- The amber sits over a solid page colour: the dark theme's amber is see-through, and pages scroll beneath the banner -->{
   notice?.warning && (
     <div
       id="ec-license-banner"
       role="status"
-      class="fixed inset-x-0 top-0 z-[60] flex h-[var(--ec-banner-height)] items-center justify-center gap-3 border-b border-[rgb(var(--ec-badge-color-amber-text)/0.2)] bg-[rgb(var(--ec-badge-color-amber-background))] px-4 text-xs text-[rgb(var(--ec-badge-color-amber-text))]"
+      class="fixed inset-x-0 top-0 z-[60] flex h-[var(--ec-banner-height)] items-center justify-center gap-3 border-b border-[rgb(var(--ec-badge-color-amber-text)/0.2)] px-4 text-xs text-[rgb(var(--ec-badge-color-amber-text))]"
+      style="background: linear-gradient(rgb(var(--ec-badge-color-amber-background)), rgb(var(--ec-badge-color-amber-background))), rgb(var(--ec-page-bg));"
     >
       <p class="min-w-0 truncate">{notice.message}</p>
       <a

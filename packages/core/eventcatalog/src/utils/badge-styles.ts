@@ -212,6 +212,15 @@ export const getBadgeStyle = (badge?: Badge | null) => {
     .join(' ');
 };
 
+/**
+ * A tag's accent colour, for drawing it as a dot or a tinted icon on a neutral chip: its text colour, else its
+ * background colour (the bolder of the two in the presets)
+ */
+export const getBadgeTint = (badge?: Badge | null) => {
+  if (!badge) return undefined;
+  return resolveBadgeColor(badge.textColor, 'text') ?? resolveBadgeColor(badge.backgroundColor, 'background');
+};
+
 export const getBadgeReactStyle = (badge?: Badge | null) => {
   if (!badge) return {};
 

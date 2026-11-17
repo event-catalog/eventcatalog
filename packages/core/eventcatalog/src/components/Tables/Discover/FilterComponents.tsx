@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, ChevronUp, ChevronDown } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 import { CheckIcon } from '@heroicons/react/24/outline';
 
 // Filter Dropdown Component
@@ -53,10 +53,11 @@ export const FilterDropdown = ({
             setIsOpen(!isOpen);
           }
         }}
-        className={`w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg border transition-colors cursor-pointer ${
-          hasSelection || isOpen
-            ? 'border-[rgb(var(--ec-accent))] bg-[rgb(var(--ec-accent)/0.05)]'
-            : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-input-bg))] hover:border-[rgb(var(--ec-icon-color))]'
+        // A quiet field: hairline border that darkens on hover, a soft ring while open; picked values as grey chips
+        className={`flex min-h-8 w-full cursor-pointer items-center justify-between rounded-md border bg-[rgb(var(--ec-page-bg))] px-2.5 py-1 text-[13px] transition-[border-color,box-shadow] ${
+          isOpen
+            ? 'border-[rgb(var(--ec-page-text)/0.3)] shadow-[0_0_0_3px_rgb(var(--ec-page-text)/0.06)]'
+            : 'border-[rgb(var(--ec-page-border))] hover:border-[rgb(var(--ec-page-text)/0.25)]'
         }`}
       >
         <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
@@ -65,7 +66,7 @@ export const FilterDropdown = ({
               {selectedItems.map((item) => (
                 <span
                   key={item}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-[rgb(var(--ec-accent)/0.15)] text-[rgb(var(--ec-accent))] rounded-full"
+                  className="inline-flex h-5 items-center gap-1 rounded bg-[rgb(var(--ec-page-text)/0.07)] pl-1.5 pr-1 text-xs text-[rgb(var(--ec-page-text))]"
                 >
                   {item}
                   {onRemoveItem && (
@@ -83,9 +84,9 @@ export const FilterDropdown = ({
                           onRemoveItem(item);
                         }
                       }}
-                      className="hover:text-[rgb(var(--ec-page-text))] cursor-pointer"
+                      className="cursor-pointer rounded-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="h-3 w-3" />
                     </span>
                   )}
                 </span>
@@ -111,22 +112,21 @@ export const FilterDropdown = ({
                   onClear();
                 }
               }}
-              className="p-0.5 hover:bg-[rgb(var(--ec-content-hover))] rounded cursor-pointer"
+              aria-label="Clear"
+              className="cursor-pointer rounded p-0.5 text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-page-text)/0.06)] hover:text-[rgb(var(--ec-page-text))]"
             >
-              <X className="w-3.5 h-3.5 text-[rgb(var(--ec-icon-color))]" />
+              <X className="h-3.5 w-3.5" />
             </span>
           )}
-          {isOpen ? (
-            <ChevronUp className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />
-          ) : (
-            <ChevronDown className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />
-          )}
+          <ChevronDown
+            className={`h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))] transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}
+          />
         </div>
       </div>
 
       {isOpen && (
-        <div className="absolute z-20 left-0 right-0 mt-1 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-lg overflow-hidden">
-          <div className="max-h-64 overflow-y-auto p-2">{children}</div>
+        <div className="absolute left-0 right-0 z-20 mt-1.5 overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] shadow-[0_8px_30px_rgb(0_0_0/0.12)]">
+          <div className="max-h-64 overflow-y-auto p-1">{children}</div>
         </div>
       )}
     </div>
@@ -140,30 +140,39 @@ export interface CheckboxItemProps {
   onChange: () => void;
   count?: number;
   icon?: React.ReactNode;
+  /** `radio` for a single choice (like Kind): a circle with a dot instead of a box with a tick */
+  variant?: 'checkbox' | 'radio';
 }
 
-export const CheckboxItem = ({ label, checked, onChange, count, icon }: CheckboxItemProps) => (
+// A row: a small checkbox (filled in the text colour when ticked), the name, and how many match on the right
+export const CheckboxItem = ({ label, checked, onChange, count, icon, variant = 'checkbox' }: CheckboxItemProps) => (
   <button
+    type="button"
+    role={variant}
+    aria-checked={checked}
     onClick={onChange}
-    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left transition-colors ${
-      checked ? 'bg-[rgb(var(--ec-accent)/0.1)]' : 'hover:bg-[rgb(var(--ec-content-hover))]'
-    }`}
+    className="group flex h-8 w-full items-center gap-2.5 rounded-md px-2 text-left transition-colors hover:bg-[rgb(var(--ec-page-text)/0.045)]"
   >
-    <div
-      className={`w-4 h-4 flex-shrink-0 rounded border flex items-center justify-center transition-colors ${
+    <span
+      className={`flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center border transition-colors ${
+        variant === 'radio' ? 'rounded-full' : 'rounded-[4px]'
+      } ${
         checked
-          ? 'bg-[rgb(var(--ec-accent))] border-[rgb(var(--ec-accent))]'
-          : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-input-bg))]'
+          ? 'border-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-page-text))]'
+          : 'border-[rgb(var(--ec-page-text)/0.25)] bg-[rgb(var(--ec-page-bg))] group-hover:border-[rgb(var(--ec-page-text)/0.45)]'
       }`}
     >
-      {checked && <CheckIcon className="w-3 h-3 text-white" />}
-    </div>
-    {icon && <span className="flex-shrink-0 text-[rgb(var(--ec-icon-color))]">{icon}</span>}
-    <span
-      className={`text-xs flex-1 truncate ${checked ? 'font-medium text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text))]'}`}
-    >
-      {label}
+      {checked &&
+        (variant === 'radio' ? (
+          <span className="h-1.5 w-1.5 rounded-full bg-[rgb(var(--ec-page-bg))]" />
+        ) : (
+          <CheckIcon className="h-2.5 w-2.5 stroke-[3] text-[rgb(var(--ec-page-bg))]" />
+        ))}
     </span>
-    {count !== undefined && <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">{count}</span>}
+    {icon && <span className="flex-shrink-0 text-[rgb(var(--ec-icon-color))]">{icon}</span>}
+    <span className="min-w-0 flex-1 truncate text-[13px] text-[rgb(var(--ec-page-text))]">{label}</span>
+    {count !== undefined && (
+      <span className="flex-shrink-0 text-xs tabular-nums text-[rgb(var(--ec-page-text-muted))]">{count}</span>
+    )}
   </button>
 );

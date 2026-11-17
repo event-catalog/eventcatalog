@@ -61,10 +61,10 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
 >
   <div class="w-full px-6">
     <div class="flex justify-between items-center gap-4">
-      <div class="flex min-w-0 flex-1 items-center gap-3">
+      <div class="flex min-w-0 flex-1 items-center gap-2">
         <!-- On the homepage, the catalog's name in place of the search box: its search is the page itself -->
         <p data-header-title class="hidden min-w-0 truncate text-sm font-semibold">{catalogName}</p>
-        <div class="hidden lg:block min-w-0 flex-1 max-w-xl">
+        <div class="hidden lg:block min-w-0 flex-1 max-w-sm">
           <Search />
         </div>
         {isEventCatalogChatVisible() && <ChatPanelButton configured={isEventCatalogChatEnabled()} client:idle />}

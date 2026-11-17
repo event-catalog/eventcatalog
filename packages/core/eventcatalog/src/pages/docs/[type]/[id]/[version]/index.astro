@@ -19,30 +19,16 @@ import FavoriteButton from '@components/FavoriteButton';
 import Badge from '@components/Badge.astro';
 import { shouldRenderSideBarSection } from '@stores/sidebar-store/builders/shared';
 
-import {
-  QueueListIcon,
-  RectangleGroupIcon,
-  ServerIcon,
-  BoltIcon,
-  ChatBubbleLeftIcon,
-  MagnifyingGlassIcon,
-  MapIcon,
-  ClockIcon,
-} from '@heroicons/react/24/outline';
-import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
+import { MapIcon, ClockIcon } from '@heroicons/react/24/outline';
 import {
   Bot,
-  Box,
   Boxes,
-  Group,
   SquarePenIcon,
   DatabaseIcon,
   DatabaseZapIcon,
   ShieldCheckIcon,
   AlignLeft,
   Tag,
-  Package,
-  ClipboardList,
   CalendarDays,
 } from 'lucide-react';
 
@@ -155,9 +141,11 @@ const getAgentProviderIconURLs = (provider: string) => {
       };
 };
 
+// Tags that say more than the type (the breadcrumb already names that: Services > Payment Worker > Overview): an
+// agent's provider and model, a decision's date and status, a data store's kind and technology, an aggregate root
 const getBadge = () => {
   if (props.collection === 'agents') {
-    const badges = [createResourceBadge('Agent', Bot)];
+    const badges = [];
     if (props.data?.model?.provider) {
       badges.push({
         content: props.data.model.provider,
@@ -173,39 +161,7 @@ const getBadge = () => {
   }
 
   if (isAdrPage) {
-    return [
-      createResourceBadge('Decision Record', ClipboardList),
-      createResourceBadge(formatAdrDate(props.data.date), CalendarDays),
-      createAdrStatusBadge(props.data.status),
-    ];
-  }
-
-  if (props.collection === 'services') {
-    return [createResourceBadge('Service', ServerIcon)];
-  }
-  if (props.collection === 'events') {
-    return [createResourceBadge('Event', BoltIcon)];
-  }
-  if (props.collection === 'commands') {
-    return [createResourceBadge('Command', ChatBubbleLeftIcon)];
-  }
-  if (props.collection === 'queries') {
-    return [createResourceBadge('Query', MagnifyingGlassIcon)];
-  }
-  if (props.collection === 'domains') {
-    return [createResourceBadge('Domain', RectangleGroupIcon)];
-  }
-
-  if (props.collection === 'systems') {
-    return [createResourceBadge('System', Group)];
-  }
-
-  if (props.collection === 'flows') {
-    return [createResourceBadge('Flow', QueueListIcon)];
-  }
-
-  if (props.collection === 'channels') {
-    return [createResourceBadge('Channel', ArrowsRightLeftIcon)];
+    return [createResourceBadge(formatAdrDate(props.data.date), CalendarDays), createAdrStatusBadge(props.data.status)];
   }
 
   if (props.collection === 'containers') {
@@ -233,19 +189,11 @@ const getBadge = () => {
     return badges;
   }
 
-  if (props.collection === 'entities') {
-    const entityBadges = [createResourceBadge('Entity', Box)];
-    if (props.data.aggregateRoot) {
-      entityBadges.push(createResourceBadge('(Aggregate Root)', Boxes));
-    }
-    return entityBadges;
+  if (props.collection === 'entities' && props.data.aggregateRoot) {
+    return [createResourceBadge('Aggregate Root', Boxes)];
   }
 
-  if (props.collection === 'data-products') {
-    return [createResourceBadge('Data Product', Package)];
-  }
-
-  return [createResourceBadge('', QueueListIcon)];
+  return [];
 };
 
 const getSpecificationBadges = () => {

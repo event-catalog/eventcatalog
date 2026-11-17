@@ -1,5 +1,5 @@
 ---
-import { getBadgeHref, getBadgeStyle } from '@utils/badge-styles';
+import { getBadgeHref, getBadgeTint } from '@utils/badge-styles';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/20/solid';
 
 type Badge = {
@@ -32,10 +32,14 @@ const content = badge?.content ?? '';
 const iconURL = badge?.iconURL;
 const iconURLLight = badge?.iconURLLight;
 const iconURLDark = badge?.iconURLDark;
-const style = badge ? getBadgeStyle(badge) : '';
-// A pill: its own colours when it has them (with a faint ring in its text colour), else a soft grey fill
+// A neutral chip with a hairline border; a tag's colour is its accent: a small dot before the name, or its icon
+// tinted. The text stays the page's, so tags read the same in every theme and don't clash side by side
+const tint = getBadgeTint(badge);
+const style = tint ? `--ec-badge-tint: ${tint};` : '';
+const hasImage = hasThemedIcon || !!iconURL;
+const showDot = !!tint && !Icon && !hasImage;
 const classes = `
-  ec-badge ${badge?.backgroundColor ? 'ec-badge--colored' : 'ec-badge--plain'} ${href ? 'ec-badge--link' : ''}
+  ec-badge ${tint ? 'ec-badge--tinted' : ''} ${href ? 'ec-badge--link' : ''}
   ${badge?.class ? badge.class : ''}
   ${className}
 `;
@@ -45,6 +49,7 @@ const classes = `
   badge &&
     (href ? (
       <a id={badgeId} href={href} class={classes} style={style} title={content}>
+        {showDot && <span class="ec-badge-dot" aria-hidden="true" />}
         {Icon && <Icon className="ec-badge-icon" aria-hidden="true" />}
         {hasThemedIcon && <img src={iconURLLight} class="ec-badge-img dark:hidden" alt="" onerror="this.style.display='none'" />}
         {hasThemedIcon && (
@@ -56,6 +61,7 @@ const classes = `
       </a>
     ) : (
       <span id={badgeId} class={classes} style={style} title={content}>
+        {showDot && <span class="ec-badge-dot" aria-hidden="true" />}
         {Icon && <Icon className="ec-badge-icon" aria-hidden="true" />}
         {hasThemedIcon && <img src={iconURLLight} class="ec-badge-img dark:hidden" alt="" onerror="this.style.display='none'" />}
         {hasThemedIcon && (
@@ -71,31 +77,28 @@ const classes = `
   .ec-badge {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     height: 22px;
-    padding: 0 9px;
-    border-radius: 999px;
+    padding: 0 8px;
+    border: 1px solid rgb(var(--ec-page-border));
+    border-radius: 6px;
+    background: rgb(var(--ec-page-bg));
     font-size: 12px;
     font-weight: 500;
     line-height: 1;
     white-space: nowrap;
     color: rgb(var(--ec-page-text) / 0.85);
     transition:
-      filter 150ms,
-      background-color 150ms;
+      border-color 150ms,
+      background-color 150ms,
+      color 150ms;
   }
-  .ec-badge--plain {
-    background: rgb(var(--ec-page-text) / 0.06);
-  }
-  .ec-badge--colored {
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 18%, transparent);
-  }
-  .ec-badge--link:hover {
-    filter: brightness(0.96);
-  }
-  .ec-badge--plain.ec-badge--link:hover {
-    background: rgb(var(--ec-page-text) / 0.1);
-    filter: none;
+  .ec-badge-dot {
+    width: 6px;
+    height: 6px;
+    flex: none;
+    border-radius: 999px;
+    background: var(--ec-badge-tint);
   }
   .ec-badge-icon,
   .ec-badge-img {
@@ -103,8 +106,15 @@ const classes = `
     height: 12px;
     flex: none;
   }
+  .ec-badge-icon {
+    color: var(--ec-badge-tint, rgb(var(--ec-page-text-muted)));
+  }
   .ec-badge-img {
     object-fit: contain;
-    opacity: 0.85;
+  }
+  .ec-badge--link:hover {
+    border-color: rgb(var(--ec-page-text) / 0.25);
+    background: rgb(var(--ec-page-text) / 0.04);
+    color: rgb(var(--ec-page-text));
   }
 </style>

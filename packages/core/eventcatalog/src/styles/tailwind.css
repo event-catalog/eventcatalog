@@ -329,3 +329,17 @@
 :root[data-theme='dark'] .ec-mono-icon {
   filter: grayscale(1) invert(1);
 }
+
+/* Controls drawn over a surface that's always light (the AsyncAPI viewer): the light theme's colours, in either theme,
+   so a primary button fills black and an outlined one reads as it does on a light page */
+.ec-light-surface {
+  --ec-page-bg: 255 255 255;
+  --ec-page-text: 15 23 42;
+  --ec-page-text-muted: 100 116 139;
+  --ec-page-border: 229 229 229;
+  --ec-dropdown-bg: 255 255 255;
+  --ec-dropdown-text: 51 65 85;
+  --ec-dropdown-hover: 248 250 252;
+  --ec-dropdown-border: 226 232 240;
+  --ec-icon-color: 100 116 139;
+}
