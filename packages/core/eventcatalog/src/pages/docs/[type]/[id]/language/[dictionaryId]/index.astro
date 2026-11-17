@@ -1,6 +1,4 @@
 ---
-import RectangleGroupIcon from '@heroicons/react/24/outline/RectangleGroupIcon';
-import Badge from '@components/Badge.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { buildUrl } from '@utils/url-builder';
 import DocsBreadcrumb from '@components/DocsBreadcrumb.astro';
@@ -30,23 +28,9 @@ const editUrl = resolveUbiquitousLanguageTermEditUrl({
 // state and leaks between pages (and between HMR reloads) in the same process.
 const renderMarkdown = (markdown: string) => marked.parse(markdown, { gfm: true, breaks: false }) as string;
 
-const TermIcon = ubiquitousLanguage.icon
-  ? ((LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[ubiquitousLanguage.icon] ?? null)
-  : null;
-
-// Badges double as navigation back up the hierarchy: the owning domain and its glossary.
-const badges = [
-  {
-    content: props.domain.name,
-    icon: RectangleGroupIcon,
-    url: buildUrl(`/docs/${props.type}/${props.domainId}/${props.domain.latestVersion}`),
-  },
-  {
-    content: 'Ubiquitous Language',
-    icon: LucideIcons.BookOpen,
-    url: buildUrl(`/docs/${props.type}/${props.domainId}/language`),
-  },
-];
+// Up the hierarchy, for the breadcrumb and the term details: the owning domain, and its glossary
+const domainHref = buildUrl(`/docs/${props.type}/${props.domainId}/${props.domain.latestVersion}`);
+const glossaryHref = buildUrl(`/docs/${props.type}/${props.domainId}/language`);
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={ubiquitousLanguage.summary}>
@@ -58,36 +42,23 @@ const badges = [
     <div class="flex docs-layout w-full">
       <div class="w-full min-w-0 lg:mr-2 xl:pr-8 pt-5 pb-8">
         {/* Header mirrors the resource page (docs/[type]/[id]/[version]/index.astro). */}
-        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-2">
-          <div class="flex flex-col gap-4">
+        <div class="border-b border-[rgb(var(--ec-page-border))] pb-6 pt-2">
+          {/* As the resource pages: the breadcrumb, then the title with its summary just under it */}
+          <div class="flex flex-col gap-3">
             <DocsBreadcrumb
               collection={props.type}
               items={[
-                { label: props.domain.name, href: badges[0].url },
-                { label: 'Ubiquitous Language', href: badges[1].url },
+                { label: props.domain.name, href: domainHref },
+                { label: 'Ubiquitous Language', href: glossaryHref },
                 { label: ubiquitousLanguage.name },
               ]}
             />
-            <div class="flex items-center gap-3">
-              {
-                TermIcon && (
-                  <div class="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-md bg-[rgb(var(--ec-accent-subtle))] shrink-0">
-                    <TermIcon className="w-5 h-5 md:w-6 md:h-6 text-[rgb(var(--ec-accent))]" />
-                  </div>
-                )
-              }
+            <div>
               <h2 id="doc-page-header" class="text-[28px] md:text-[34px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))]">
                 {ubiquitousLanguage.name}
               </h2>
+              {ubiquitousLanguage.summary && <p class="ec-docs-summary">{ubiquitousLanguage.summary}</p>}
             </div>
-          </div>
-          {
-            ubiquitousLanguage.summary && (
-              <p class="ec-docs-summary">{ubiquitousLanguage.summary}</p>
-            )
-          }
-          <div class="flex flex-wrap gap-1.5 pt-4 pb-1">
-            {badges.map((badge: any) => <Badge badge={badge} />)}
           </div>
         </div>
 
@@ -96,7 +67,7 @@ const badges = [
             ubiquitousLanguage.description ? (
               <Fragment set:html={renderMarkdown(ubiquitousLanguage.description)} />
             ) : (
-              <p>No description for {ubiquitousLanguage.name} available.</p>
+              <p class="text-sm text-[rgb(var(--ec-page-text-muted))]">{ubiquitousLanguage.name} has no detailed description yet.</p>
             )
           }
         </div>
@@ -120,7 +91,7 @@ const badges = [
         class="hidden xl:block sticky top-[calc(var(--ec-header-offset)+0.25rem)] self-start w-[280px] max-h-[calc(100vh-var(--ec-header-offset)-0.25rem)] overflow-y-auto py-2 flex-shrink-0 pr-4 bg-[rgb(var(--ec-page-bg))]"
       >
         {/* Beside the term, as "On this page" sits beside a resource: where it's defined, and the glossary's other terms */}
-        <div class="mt-8 space-y-8 text-xs">
+        <div class="mt-8 divide-y divide-[rgb(var(--ec-page-border))] text-xs [&>*]:py-6 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
           <div>
             <h3 class="mb-4 flex items-center gap-2 text-xs font-semibold text-[rgb(var(--ec-page-text))]">
               <LucideIcons.Info className="h-4 w-4" />
@@ -130,7 +101,7 @@ const badges = [
               <div class="flex justify-between gap-3">
                 <dt class="text-[rgb(var(--ec-page-text-muted))]">Domain</dt>
                 <dd>
-                  <a href={badges[0].url} class="font-medium text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))]">
+                  <a href={domainHref} class="font-medium text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))]">
                     {props.domain.name}
                   </a>
                 </dd>
@@ -138,7 +109,7 @@ const badges = [
               <div class="flex justify-between gap-3">
                 <dt class="text-[rgb(var(--ec-page-text-muted))]">Glossary</dt>
                 <dd>
-                  <a href={badges[1].url} class="font-medium text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))]">
+                  <a href={glossaryHref} class="font-medium text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))]">
                     Ubiquitous Language
                   </a>
                 </dd>

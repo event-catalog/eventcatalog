@@ -46,6 +46,8 @@ interface PagefindResult {
 }
 
 const docsPathByType: Record<string, string> = {
+  adr: 'adrs',
+  agent: 'agents',
   channel: 'channels',
   command: 'commands',
   container: 'containers',
@@ -56,6 +58,7 @@ const docsPathByType: Record<string, string> = {
   flow: 'flows',
   query: 'queries',
   service: 'services',
+  system: 'systems',
 };
 
 /**
@@ -75,6 +78,10 @@ export const parseSearchNodeKey = (key: string) => {
   return { type, id: rest.slice(0, versionStart), version: rest.slice(versionStart + 1) };
 };
 
+/**
+ * Where a search result opens: the resource's own page link when the index has one (teams and users have no version,
+ * so it's their only way in), else its docs page built from the key.
+ */
 export const getUrlForSearchItem = (node: { href?: string }, key: string) => {
   const parts = parseSearchNodeKey(key);
   if (!parts) return null;
@@ -83,9 +90,9 @@ export const getUrlForSearchItem = (node: { href?: string }, key: string) => {
 
   if (type === 'list') return null;
 
-  if (!version) return null;
-
   if (node.href) return node.href;
+
+  if (!version) return null;
 
   const docsPath = docsPathByType[type];
   if (!docsPath) return null;
@@ -209,32 +216,98 @@ const containsWholeWords = (text: string, query: string) => {
 const NAME_MATCH_RANK = 3;
 
 /**
- * How well a resource matches a resource search query: an exact name or id (7), a name whose
- * last path segment is the query (6), a name starting with the query (5), containing it as whole
- * words (4) or anywhere (3), then the id (2), then the summary (1). 0 is no match.
+ * Text as search compares it: lower case, with camelCase and separators turned into spaces, so "OrderCreated",
+ * "order-created" and "Order Created" all read "order created"
  */
-export const getResourceResultRank = (item: Pick<SearchItem, 'name' | 'key' | 'rawNode'>, query: string) => {
+export const normalizeSearchText = (value: string) =>
+  value
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+type SearchFields = {
+  name: string;
+  id: string;
+  summary: string;
+  normName: string;
+  normId: string;
+  normAll: string;
+  compactName: string;
+  compactId: string;
+};
+
+// Each item's text, prepared once rather than on every keystroke
+const fieldCache = new WeakMap<object, SearchFields>();
+const getSearchFields = (item: Pick<SearchItem, 'name' | 'key' | 'rawNode'> & { type?: string }): SearchFields => {
+  const cached = fieldCache.get(item);
+  if (cached) return cached;
+  const id = (item.key ? parseSearchNodeKey(item.key)?.id : undefined) ?? '';
+  const summary = item.rawNode.summary ?? '';
+  const normName = normalizeSearchText(item.name);
+  const normId = normalizeSearchText(id);
+  const fields: SearchFields = {
+    name: item.name.toLowerCase(),
+    id: id.toLowerCase(),
+    summary: summary.toLowerCase(),
+    normName,
+    normId,
+    normAll: normalizeSearchText(`${item.name} ${id} ${summary} ${item.type ?? item.rawNode.badge ?? ''}`),
+    compactName: normName.replace(/ /g, ''),
+    compactId: normId.replace(/ /g, ''),
+  };
+  fieldCache.set(item, fields);
+  return fields;
+};
+
+/** Whether the word starts a word in the (normalised) text: "ord" in "place order", not "rder" */
+const startsAWord = (text: string, word: string) => text.startsWith(word) || text.includes(` ${word}`);
+
+/**
+ * How well a resource matches a resource search query, as the whole query first: an exact name or id (7, also
+ * ignoring case, spaces and separators, so "OrderCreated" is "Order Created"), a name whose last path segment is the
+ * query (6), a name starting with it (5), containing it as whole words (4) or anywhere (3), then the id (2), then the
+ * summary (1). Failing that, word by word, in any order: every word starting a word in the name (3.5), every word in
+ * the name (2.5), in the name or id (2), some in the name with the rest in its id, summary or type (1.5), or all of
+ * them somewhere in those (1). 0 is no match.
+ */
+export const getResourceResultRank = (item: Pick<SearchItem, 'name' | 'key' | 'rawNode'> & { type?: string }, query: string) => {
   const lowerQuery = query.trim().toLowerCase();
   if (!lowerQuery) return 0;
-  const name = item.name.toLowerCase();
-  // Match against the id too, so users can find resources by their raw id.
-  const id = (item.key ? parseSearchNodeKey(item.key)?.id : undefined)?.toLowerCase() ?? '';
+  const { name, id, summary, normName, normId, normAll, compactName, compactId } = getSearchFields(item);
+  const normQuery = normalizeSearchText(query);
+  const compactQuery = normQuery.replace(/ /g, '');
 
-  if (name === lowerQuery || id === lowerQuery) return 7;
+  // The query as one phrase
+  if (name === lowerQuery || id === lowerQuery || (compactQuery && (compactName === compactQuery || compactId === compactQuery)))
+    return 7;
   if (endsWithSegment(name, lowerQuery)) return 6;
-  if (name.startsWith(lowerQuery)) return 5;
-  if (containsWholeWords(name, lowerQuery)) return 4;
+  if (name.startsWith(lowerQuery) || (normQuery && normName.startsWith(normQuery))) return 5;
+  if (containsWholeWords(name, lowerQuery) || (normQuery && containsWholeWords(normName, normQuery))) return 4;
   if (name.includes(lowerQuery)) return 3;
-  if (id.includes(lowerQuery)) return 2;
-  if (item.rawNode.summary?.toLowerCase().includes(lowerQuery)) return 1;
-  return 0;
+  if (id.includes(lowerQuery) || (normQuery && normId.includes(normQuery))) return 2;
+  if (summary.includes(lowerQuery)) return 1;
+
+  // Word by word, in any order
+  const words = [...new Set(normQuery.split(' ').filter(Boolean))];
+  if (words.length < 2) return 0;
+  if (!words.every((word) => normAll.includes(word))) return 0;
+  if (words.every((word) => startsAWord(normName, word))) return 3.5;
+  if (words.every((word) => normName.includes(word))) return 2.5;
+  if (words.every((word) => normName.includes(word) || normId.includes(word))) return 2;
+  if (words.some((word) => normName.includes(word))) return 1.5;
+  return 1;
 };
 
 /**
  * Resources that match a resource search query, best matches first. Within a name match rank,
  * shorter names come first (the query is more of the name); otherwise index order.
  */
-export const rankResourceSearchItems = <T extends Pick<SearchItem, 'name' | 'key' | 'rawNode'>>(items: T[], query: string) =>
+export const rankResourceSearchItems = <T extends Pick<SearchItem, 'name' | 'key' | 'rawNode'> & { type?: string }>(
+  items: T[],
+  query: string
+) =>
   items
     .map((item, index) => ({ item, index, rank: getResourceResultRank(item, query) }))
     .filter(({ rank }) => rank > 0)
@@ -268,6 +341,8 @@ export const getSearchFilters = ({ items, query }: { items: Array<{ type: string
     all: items.length,
     Agent: 0,
     Domain: 0,
+    System: 0,
+    'Decision record': 0,
     Service: 0,
     Message: 0,
     Team: 0,
@@ -304,6 +379,7 @@ export const getSearchFilters = ({ items, query }: { items: Array<{ type: string
   };
 
   addFilter('Domain', 'Domains');
+  addFilter('System', 'Systems');
   addFilter('Agent', 'Agents');
   addFilter('Service', 'Services');
   addFilter('Message', 'Messages');
@@ -315,6 +391,7 @@ export const getSearchFilters = ({ items, query }: { items: Array<{ type: string
   addFilter('Custom Doc', 'Custom Docs');
   addFilter('Resource Doc', 'Resource Docs');
   addFilter('Changelog', 'Changelogs');
+  addFilter('Decision record', 'Decision Records');
   addFilter('Design', 'Designs');
   addFilter('Team', 'Teams & Users');
 

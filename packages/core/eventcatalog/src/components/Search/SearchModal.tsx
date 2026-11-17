@@ -23,7 +23,7 @@ import {
   ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid, CircleStackIcon } from '@heroicons/react/24/solid';
-import { Bot } from 'lucide-react';
+import { Bot, ClipboardList, Group } from 'lucide-react';
 import { useStore } from '@nanostores/react';
 import { favoritesStore, toggleFavorite as toggleFavoriteAction } from '../../stores/favorites-store';
 import { sidebarStore } from '../../stores/sidebar-store';
@@ -47,6 +47,8 @@ const SEARCH_RESULT_DISPLAY_LIMIT = 25;
 const typeIcons: any = {
   Agent: Bot,
   Domain: RectangleGroupIcon,
+  System: Group,
+  'Decision record': ClipboardList,
   Service: ServerIcon,
   Event: BoltIcon,
   Command: ChatBubbleLeftIcon,
@@ -72,6 +74,8 @@ const typeColors: any = {
   Agent: 'text-sky-500 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 ring-sky-200 dark:ring-sky-500/30',
   Domain: 'text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 ring-orange-200 dark:ring-orange-500/30',
   Service: 'text-pink-500 dark:text-pink-400 bg-pink-50 dark:bg-pink-500/10 ring-pink-200 dark:ring-pink-500/30',
+  System: 'text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 ring-violet-200 dark:ring-violet-500/30',
+  'Decision record': 'text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-500/10 ring-slate-200 dark:ring-slate-500/30',
   Event: 'text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 ring-orange-200 dark:ring-orange-500/30',
   Command: 'text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 ring-blue-200 dark:ring-blue-500/30',
   Query: 'text-green-500 dark:text-green-400 bg-green-50 dark:bg-green-500/10 ring-green-200 dark:ring-green-500/30',

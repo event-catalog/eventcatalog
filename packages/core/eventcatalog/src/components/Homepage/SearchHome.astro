@@ -3,7 +3,7 @@ import { buildUrl } from '@utils/url-builder';
 import { isEventCatalogChatEnabled } from '@utils/feature';
 import { getCatalogOverview } from '@utils/homepage-dashboard';
 import { getColorForCollection } from '@utils/collection-colors';
-import { ArrowRight, Boxes, ChevronRight, FileCode, Search, Server, UsersRound, Waypoints, Zap } from 'lucide-react';
+import { Boxes, ChevronRight, FileCode, Search, Server, UsersRound, Waypoints, Zap } from 'lucide-react';
 
 interface Props {
   /** A link to the docs on customizing the homepage: on the default homepage only, not on one that's been customized */
@@ -14,8 +14,8 @@ const { customizeLink = false } = Astro.props;
 
 /** The default homepage: search first. One search box that finds a resource or asks the assistant, then the catalog by type */
 
-const { counts, suggestedQuestions } = await getCatalogOverview();
-// The assistant (asking from the search box, its suggested questions) only shows when it's set up and running
+const { counts } = await getCatalogOverview();
+// The assistant (asking from the search box) only shows when it's set up and running
 const chatEnabled = isEventCatalogChatEnabled();
 
 // Each type's icon on a chip in the colour it has across the catalog (search, the sidebar), from the theme's badges
@@ -80,9 +80,7 @@ const types = [
   <div class="ec-search-home-grid-bg" aria-hidden="true"></div>
   <section class="ec-search-home-hero">
     <h1 class="ec-search-home-title">What are you looking for?</h1>
-    <p class="ec-search-home-lead">
-      Search everything documented across your architecture{chatEnabled ? ', or ask a question in plain words' : ''}.
-    </p>
+    <p class="ec-search-home-lead">Search everything documented across your architecture.</p>
 
     <form class="ec-search-home-box" data-home-search data-mode="find" role="search">
       <div class="flex items-center gap-3 px-4">
@@ -109,30 +107,13 @@ const types = [
                 Find a resource
               </button>
               <button type="button" data-mode-button="ask" aria-pressed="false">
-                Ask the assistant
+                Ask AI
               </button>
             </div>
-            <span class="flex-1" />
-            <span class="ec-search-home-mono text-[rgb(var(--ec-page-text-muted))]">Answers cite their sources</span>
           </div>
         )
       }
     </form>
-
-    {
-      chatEnabled && suggestedQuestions.length > 0 && (
-        <ul class="ec-search-home-chips" aria-label="Questions to ask">
-          {suggestedQuestions.map((question) => (
-            <li>
-              <button type="button" class="ec-search-home-chip" data-ask-question={question}>
-                {question}
-                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )
-    }
   </section>
 
   {
@@ -218,10 +199,6 @@ const types = [
         handOverToSearch();
       }
     });
-
-    document.querySelectorAll<HTMLButtonElement>('[data-ask-question]').forEach((chip) => {
-      chip.addEventListener('click', () => ask(chip.dataset.askQuestion!));
-    });
   };
   bind();
   document.addEventListener('astro:page-load', bind);
@@ -286,13 +263,8 @@ const types = [
       linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
     -webkit-mask-composite: source-in;
   }
-  .ec-search-home-mono {
-    font-family: var(--ec-search-home-mono);
-    font-size: 12px;
-  }
-
   /* The hero */
-  /* Spacing: 16px within a group (heading and lead, box and questions), 32px before the search box, 56px between
+  /* Spacing: 16px within a group (heading and lead), 32px before the search box, 56px between
      the search and the types */
   .ec-search-home-hero {
     display: flex;
@@ -375,34 +347,6 @@ const types = [
   .ec-search-home-segmented button[aria-pressed='true'] {
     background: rgb(var(--ec-page-text));
     color: rgb(var(--ec-page-bg));
-  }
-  .ec-search-home-chips {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-    max-width: var(--ec-search-home-search);
-  }
-  .ec-search-home-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 6px 12px;
-    border: 1px solid rgb(var(--ec-page-border));
-    border-radius: 999px;
-    background: rgb(var(--ec-page-bg));
-    font-size: 13px;
-    color: rgb(var(--ec-page-text-muted));
-    transition:
-      border-color 150ms,
-      color 150ms;
-  }
-  .ec-search-home-chip svg {
-    opacity: 0.5;
-  }
-  .ec-search-home-chip:hover {
-    border-color: rgb(var(--ec-page-text) / 0.35);
-    color: rgb(var(--ec-page-text));
   }
 
   /*

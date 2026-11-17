@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getNestedSideBarData } from '@stores/sidebar-store/state';
 import { getSearchIndexNodeEntries } from '@stores/sidebar-store/search-index';
+import { getResourcePageHref } from '@components/SideNav/NestedSideBar/utils';
 import { isLastUpdatedEnabled } from '@utils/feature';
 import { getDashboard, type DashboardCollection } from '@utils/homepage-dashboard';
 
@@ -46,12 +47,16 @@ export const GET: APIRoute = async () => {
     if (SKIPPED_PREFIXES.some((prefix) => key.startsWith(prefix))) return acc;
     if (!node.title) return acc;
 
+    // The resource's page: its own link, else its Overview page (as the sidebar opens it), so every resource that
+    // has a page can be opened from search, whatever its type
+    const href = getResourcePageHref(node);
+
     acc.push({
       k: key,
       t: node.title,
       ...(node.badge ? { b: node.badge } : {}),
       ...(node.summary ? { s: node.summary } : {}),
-      ...(node.href ? { h: node.href } : {}),
+      ...(href ? { h: href } : {}),
       ...(node.icon ? { i: node.icon } : {}),
       ...(node.leftIcon ? { li: node.leftIcon } : {}),
     });

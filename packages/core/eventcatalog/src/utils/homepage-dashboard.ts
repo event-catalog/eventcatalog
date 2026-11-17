@@ -47,8 +47,6 @@ export type DashboardPart = 'schemas' | { specification: string };
 export type DashboardData = {
   counts: Record<DashboardCollection | 'messages' | 'schemas' | 'teams' | 'users', number>;
   recentlyUpdated: DashboardResource[];
-  /** Questions to ask the assistant, about resources in this catalog */
-  suggestedQuestions: string[];
 };
 
 const MESSAGE_COLLECTIONS = ['events', 'commands', 'queries'] as const;
@@ -137,25 +135,6 @@ export const buildDashboard = ({
 
   const withSchema = messages.filter((entry) => entry.data.schemaPath).length;
 
-  // Questions about the catalog's busiest service, the team that owns the most, and a flow
-  const byName = (a: DashboardEntry, b: DashboardEntry) => (a.data.name ?? a.data.id).localeCompare(b.data.name ?? b.data.id);
-  const nameOf = (entry: DashboardEntry) => entry.data.name ?? entry.data.id;
-  const busiestService = [...current.services]
-    .filter((service) => (service.data.sends?.length ?? 0) > 0)
-    .sort((a, b) => (b.data.sends?.length ?? 0) - (a.data.sends?.length ?? 0) || byName(a, b))[0];
-  const teamIds = new Set(teams.filter(isCurrent).map((team) => team.data.id));
-  const owned = new Map<string, number>();
-  for (const { entry } of all) {
-    for (const { id } of entry.data.owners ?? []) if (teamIds.has(id)) owned.set(id, (owned.get(id) ?? 0) + 1);
-  }
-  const [topTeam] = [...owned].sort(([a, countA], [b, countB]) => countB - countA || a.localeCompare(b))[0] ?? [];
-  const flow = [...current.flows].sort(byName)[0];
-  const suggestedQuestions = [
-    busiestService && `Who consumes the ${nameOf(busiestService)} events?`,
-    topTeam && `What does ${ownerNames.get(topTeam)} own?`,
-    flow && `Walk me through ${nameOf(flow)}`,
-  ].filter((question): question is string => Boolean(question));
-
   return {
     counts: {
       domains: current.domains.length,
@@ -170,7 +149,6 @@ export const buildDashboard = ({
       users: users.filter(isCurrent).length,
     },
     recentlyUpdated,
-    suggestedQuestions,
   };
 };
 
@@ -186,11 +164,10 @@ const getUpdatedAt = (entry: DashboardEntry, part?: DashboardPart) => {
 /** The homepage dashboard for this catalog */
 export const getDashboard = async (): Promise<DashboardData> => buildDashboardFromCatalog(getUpdatedAt);
 
-/** How much of each type the catalog has, and questions to ask the assistant about it, without reading when things
- * changed (that's from git) */
-export const getCatalogOverview = async (): Promise<Pick<DashboardData, 'counts' | 'suggestedQuestions'>> => {
-  const { counts, suggestedQuestions } = await buildDashboardFromCatalog(() => undefined);
-  return { counts, suggestedQuestions };
+/** How much of each type the catalog has, without reading when things changed (that's from git) */
+export const getCatalogOverview = async (): Promise<Pick<DashboardData, 'counts'>> => {
+  const { counts } = await buildDashboardFromCatalog(() => undefined);
+  return { counts };
 };
 
 const buildDashboardFromCatalog = async (

@@ -72,37 +72,4 @@ describe('buildDashboard', () => {
 
     expect(recentlyUpdated.map(({ kind }) => kind)).toEqual(['resource']);
   });
-
-  it("suggests questions about the catalog's busiest service, the team that owns the most, and a flow", () => {
-    const { suggestedQuestions } = buildDashboard({
-      collections: collections({
-        services: [
-          entry('Orders', { sends: [{}], owners: [{ id: 'checkout' }] }),
-          entry('Payments', { name: 'Payments Service', sends: [{}, {}], owners: [{ id: 'payments' }] }),
-          entry('Inventory', { owners: [{ id: 'payments' }, { id: 'dboyne' }] }),
-        ],
-        flows: [entry('Returns', { name: 'Returns' }), entry('Checkout', { name: 'Checkout' })],
-      }),
-      teams: [entry('checkout', { name: 'Checkout Team' }), entry('payments', { name: 'Payments Platform' })],
-      users: [entry('dboyne', { name: 'David' })],
-      getUpdatedAt: () => undefined,
-    });
-
-    expect(suggestedQuestions).toEqual([
-      'Who consumes the Payments Service events?',
-      'What does Payments Platform own?',
-      'Walk me through Checkout',
-    ]);
-  });
-
-  it('suggests nothing about what the catalog does not have', () => {
-    const { suggestedQuestions } = buildDashboard({
-      collections: collections({ services: [entry('Orders')] }),
-      teams: [],
-      users: [],
-      getUpdatedAt: () => undefined,
-    });
-
-    expect(suggestedQuestions).toEqual([]);
-  });
 });
