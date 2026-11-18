@@ -377,6 +377,33 @@ describe('JSONSchemaViewer additionalProperties', () => {
     expect(container.textContent).toContain('price');
   });
 
+  it('renders additionalProperties shared by every option of array items', () => {
+    render({
+      type: 'object',
+      properties: {
+        entries: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: { type: 'object', properties: { price: { type: 'number' } } },
+            oneOf: [{ title: 'Has id', required: ['id'] }],
+          },
+        },
+        lines: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            oneOf: [{ title: 'Line', properties: { sku: { type: 'string' } } }],
+          },
+        },
+      },
+    });
+
+    expect(container.textContent).toContain('price');
+    expect(container.textContent).toContain('Additional properties: not allowed');
+  });
+
   it('keeps additionalProperties from an allOf schema', () => {
     render({
       type: 'object',

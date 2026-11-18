@@ -610,7 +610,8 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                       expand={expand}
                     />
                   )}
-                  {!details.items.variants && <ObjectSchemaExtras schema={details.items} level={level + 1} expand={expand} />}
+                  {/* The item schema's own additionalProperties apply to every option, so show them as well */}
+                  <ObjectSchemaExtras schema={details.items} level={level + 1} expand={expand} />
                   {(details.items.allOf || details.items.oneOf || details.items.anyOf || details.items.$ref) &&
                     !details.items.properties &&
                     !details.items.variants && (
