@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 5.4.3
+
+### Patch Changes
+
+- acad2b9: Edit an entity's properties from its card in Studio (rename, retype, add and remove them), as Studio on the web does. Connections from a property now follow it when it's renamed, and join the entity itself when it's removed, instead of disappearing.
+
 ## 5.4.2
 
 ### Patch Changes
