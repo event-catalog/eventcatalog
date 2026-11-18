@@ -2,22 +2,24 @@ import type { APIContext } from 'astro';
 import {
   convertToModelMessages,
   createUIMessageStreamResponse,
-  isStepCount,
-  streamText,
-  toUIMessageStream,
   tool,
   type LanguageModel,
+  type SystemModelMessage,
   type UIMessage,
 } from 'ai';
 import { importCatalogModule } from '@utils/catalog-modules';
 import { isCanvasEnabled, isDevMode } from '@utils/feature';
-import { getCollection, getEntry } from 'astro:content';
 import { z } from 'astro/zod';
-import { getConsumersOfMessage, getProducersOfMessage } from '@utils/collections/services';
 import {
   getResources as getResourcesImpl,
   getResource as getResourceImpl,
   getMessagesProducedOrConsumedByResource as getMessagesImpl,
+  getProducersOfMessage as getProducersOfMessageImpl,
+  getConsumersOfMessage as getConsumersOfMessageImpl,
+  findResourcesByOwner as findResourcesByOwnerImpl,
+  getTeam as getTeamImpl,
+  analyzeChangeImpact as analyzeChangeImpactImpl,
+  explainUbiquitousLanguageTerms as explainUbiquitousLanguageTermsImpl,
   getSchemaForResource as getSchemaImpl,
   getDataProductInputs as getDataProductInputsImpl,
   getDataProductOutputs as getDataProductOutputsImpl,
@@ -32,21 +34,7 @@ import {
   architectureDiagramDetailSchema,
   toolDescriptions,
 } from '@features/tools/catalog-tools';
-
-// How many model calls one answer may take. Questions across several domains need many tool calls, so the last
-// step has tools turned off: the model has to answer with what it found, rather than stop without a reply.
-const MAX_STEPS = 10;
-// Drawing a diagram on a Studio canvas takes more: finding the resources, adding them, connecting and tidying
-const MAX_CANVAS_STEPS = 20;
-
-export const defaultConfiguration = {
-  temperature: 0.4,
-  topP: 0.9,
-  topK: 40,
-  frequencyPenalty: 0.1,
-  presencePenalty: 0.0,
-  maxTokens: 1000,
-};
+import { MAX_CANVAS_STEPS, MAX_STEPS, callSettingsFrom, streamChatAnswer } from './chat-loop';
 
 let hasChatConfiguration = false;
 // Why eventcatalog.chat.js didn't load (e.g. its model provider package isn't installed)
@@ -58,7 +46,7 @@ let extendedTools: any;
 try {
   const providerConfiguration = await importCatalogModule('eventcatalog.chat.js');
   model = await providerConfiguration.default();
-  modelConfiguration = providerConfiguration.configuration || defaultConfiguration;
+  modelConfiguration = providerConfiguration.configuration || {};
   hasChatConfiguration = true;
 
   extendedTools = providerConfiguration.tools || {};
@@ -75,10 +63,13 @@ const builtInToolsMetadata = [
     description: 'Get events, services, commands, queries, flows, domains, systems, channels, entities from EventCatalog',
   },
   { name: 'getResource', description: 'Get a specific resource by its id and version' },
-  { name: 'getProducersAndConsumersFromSchema', description: 'Get the producers and consumers for a schema' },
   { name: 'getMessagesProducedOrConsumedByResource', description: 'Get messages produced or consumed by a resource' },
-  { name: 'getProducerAndConsumerForMessage', description: 'Get the producers and consumers for a message' },
+  { name: 'getProducersOfMessage', description: 'Get the producers for a message' },
   { name: 'getConsumersOfMessage', description: 'Get the consumers for a message' },
+  { name: 'findResourcesByOwner', description: 'Find what a team or user owns' },
+  { name: 'getTeam', description: 'Get a team, its members and how to contact them' },
+  { name: 'analyzeChangeImpact', description: 'Find what a change to a message affects, and the teams that own it' },
+  { name: 'explainUbiquitousLanguageTerms', description: "Explain a domain's business terms" },
   { name: 'getSchemaForResource', description: 'Get the schema or specifications (OpenAPI, AsyncAPI, GraphQL) for a resource' },
   { name: 'getDataProductInputs', description: 'Get the inputs (resources consumed) for a data product' },
   { name: 'getDataProductOutputs', description: 'Get the outputs (resources produced) for a data product with data contracts' },
@@ -98,8 +89,9 @@ const getExtendedToolsMetadata = () => {
   }));
 };
 
+// The same on every request, so providers can cache it: the page the user is on goes in a message after it
 const getBaseSystemPrompt = (
-  referrer: string
+  maxSteps: number
 ) => `You are an expert in software architecture and domain-driven design, specializing in the open source tool EventCatalog.
 
 You assist developers, architects, and business stakeholders who need information about their software architecture catalog.
@@ -115,7 +107,7 @@ There are many different resource types in EventCatalog, including:
   - example docs url: /docs/services/MyService/1.0.0
 - Domains (collection name 'domains') (business capabilities or functional areas)
   - example docs url: /docs/domains/MyDomain/1.0.0
-- Systems (collection name 'systems') (business capabilities or functional areas)
+- Systems (collection name 'systems') (groups of services, data stores and other resources that work together, inside a domain)
   - example docs url: /docs/systems/MySystem/1.0.0
 - Flows (collection name 'flows') (state machines)
   - example docs url: /docs/flows/MyFlow/1.0.0
@@ -130,14 +122,12 @@ There are many different resource types in EventCatalog, including:
 
 The user will ask you some questions about the software architecture catalog, you should use the tools provided to you to get the information they need.
 
-At point the referer url (${referrer}) will be the URL of the page the user is on, you should use this to help you answer the question,
-You may be able to get the resource from the URL
+You are told the URL of the page the user is on at the end of these instructions. Use it to help you answer the question:
+you may be able to get the resource from the URL
   - Example if the url is like /docs|visualiser/{collection}/{id}/{version} 
     - (e.g /docs/events/MyEvent/1.0.0) in this case the id is MyEvent and the version is 1.0.0 and collection is events.
     - (e.g /visualiser/domains/MyDomain/1.0.0) in this case the id is MyDomain and the version is 1.0.0 and collection is domains.
     - (e.g /docs/services/MyService/1.0.0/resources) in this case the id is MyService and the version is 1.0.0 and collection is services; the user is looking at the resources the service uses.
-
-The referer URL is: ${referrer}
 
 IMPORTANT: When the user is on a visualiser page (/visualiser/*) or asks about architecture, dependencies, data flow, or connections:
 - Use the getArchitectureDiagramAsMermaid tool to fetch the architecture diagram
@@ -151,26 +141,48 @@ Sometimes the user will be on the specification page (openapi, asyncapi, graphql
 
 Your primary goal is to help users understand their software architecture through accurate documentation interpretation.
 
-Use the tools provided to get the context you need to an answer the question.
+Use the tools provided to get the context you need to answer the question. Be quick and economical: the user is waiting, and every lookup re-reads the whole conversation.
+- Make lookups that don't depend on each other at the same time (several tool calls in one response), not one after another.
+- For the messages a domain or system sends and receives, call getMessagesProducedOrConsumedByResource on the domain or system once: it includes everything inside it, and lists who sends or receives each message. Don't look up each service or message one by one.
+- To find a resource by name, use getResources with a search term. If an id isn't found, the error lists the resources you may have meant (didYouMean): use one of those rather than guessing other ids.
+- Stop looking things up as soon as you can answer. You can look things up at most ${maxSteps - 1} times, then you have to answer with what you found.
 
 When responding:
-1.  Explain connections between resources when relevant.
+1. Explain connections between resources when relevant.
 2. Use appropriate technical terminology.
 3. Use clear formatting with headings and bullet points when helpful.
 4. State clearly when information is missing rather than making assumptions.
 5. Don't provide code examples unless specifically requested.
 6. When you refer to a resource in EventCatalog, try and create a link to the resource in the response
-    - Example, if you return a message in the text, rather than than just the id or version you should return a markdown link to the resource e.g [MyEvent - 1.0.0](/docs/events/MyEvent/1.0.0)
+    - Example, if you return a message in the text, rather than just the id or version you should return a markdown link to the resource e.g [MyEvent - 1.0.0](/docs/events/MyEvent/1.0.0)
     - CRITICAL: NEVER use "latest" in any URL or link. Always use the actual semantic version number (e.g., 1.0.0, 2.1.3). The word "latest" is not a valid version and will result in broken links.
     - The link options are:
         - If you want to get the documentation for a resource use the /docs/ prefix (e.g /docs/{collection}/{id}/{version})
         - If you want to let the user know they can visualize a resource use the /visualiser/ prefix (e.g /visualiser/{collection}/{id}/{version})
         - If you want to show the user everything a domain, system, service, flow, channel or message (event, command, query) contains, uses or connects to, link its Resources page (e.g /docs/{collection}/{id}/{version}/resources). Only those collections have a Resources page.
     - If you don't know the version, use the getResource tool to fetch the resource and get the actual version number before creating the link.
+    - Build links only from ids that tools gave you. A Mermaid diagram's node ids and labels are not resource ids: use the \`links\` that come with it.
 7. When you return a schema, use code blocks to render the schema to the user too, for example if the schema is in JSON format use \`\`\`json and if the schema is in YAML format use \`\`\`yaml
-8. IMPORTANT: After answering each question, ALWAYS use the suggestFollowUpQuestions tool to suggest 2-3 relevant follow-up questions the user might want to ask next. These should be contextual to the conversation and help the user explore related topics.
+8. When a picture helps the user see how things connect (who produces and consumes a message, what a change affects, the steps of a flow), add one small Mermaid diagram in a \`\`\`mermaid code block. Draw it yourself from what you found, rather than pasting a diagram from getArchitectureDiagramAsMermaid:
+    - \`flowchart TD\` (the chat is a narrow column), at most 12 nodes, with short labelled edges, e.g. \`OS["Order Service"] -->|publishes| OC["Order Created"]\`
+    - Node ids are short and plain (letters and numbers only); the label is just the resource's name, with details (owners, versions) in the text
+    - No styles, classes or click handlers
+    - No diagram for definitions, schemas, documentation or plain lists
 
 If you have additional context, use it to answer the question.`;
+
+/**
+ * The instructions: what's the same on every request first, marked for Anthropic's prompt cache (other providers cache
+ * a repeated prefix themselves, or ignore it), then the page the user is on.
+ */
+const getInstructions = (maxSteps: number, extraInstructions: string, referrer: string): SystemModelMessage[] => [
+  {
+    role: 'system',
+    content: getBaseSystemPrompt(maxSteps) + extraInstructions,
+    providerOptions: { anthropic: { cacheControl: { type: 'ephemeral' } } },
+  },
+  { role: 'system', content: `The URL of the page the user is on: ${referrer}` },
+];
 
 interface Message {
   content: string;
@@ -226,11 +238,11 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
         description: toolDescriptions.getResources,
         inputSchema: z.object({
           collection: collectionSchema.describe('The collection to get the resources from'),
+          search: z.string().optional().describe('Only resources whose id, name or summary contains this (case-insensitive)'),
+          cursor: z.string().optional().describe('The nextCursor from the previous page, to get the next page'),
         }),
-        execute: async ({ collection }) => {
-          const result = await getResourcesImpl({ collection });
-          if ('error' in result) return result;
-          return result.resources;
+        execute: async ({ collection, search, cursor }) => {
+          return await getResourcesImpl({ collection, search, cursor });
         },
       }),
       getResource: tool({
@@ -242,23 +254,6 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
         }),
         execute: async ({ collection, id, version }) => {
           return await getResourceImpl({ collection, id, version });
-        },
-      }),
-      getProducersAndConsumersFromSchema: tool({
-        description: 'Use this tool to get the producers and consumers for a schema by its id and version',
-        inputSchema: z.object({
-          collection: messageCollectionSchema.describe('The collection to get the producers and consumers from'),
-          id: z.string().describe('The id of the message to get the producers and consumers for'),
-          version: z.string().describe('The version of the message to get the producers and consumers for'),
-        }),
-        execute: async ({ collection, id, version }) => {
-          const resource = await getEntry(collection as any, `${id}-${version}`);
-          const producers = resource.data.producers || [];
-          const consumers = resource.data.consumers || [];
-          return {
-            producers,
-            consumers,
-          };
         },
       }),
       getMessagesProducedOrConsumedByResource: tool({
@@ -274,36 +269,67 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
           return await getMessagesImpl({ resourceId, resourceVersion, resourceCollection });
         },
       }),
-      getProducerAndConsumerForMessage: tool({
-        description: 'Use this tool to get the producers and consumers for a message by its id and version',
+      getProducersOfMessage: tool({
+        description: toolDescriptions.getProducersOfMessage,
         inputSchema: z.object({
-          messageId: z.string().describe('The id of the message to get the producers and consumers for'),
-          messageVersion: z.string().describe('The version of the message to get the producers and consumers for'),
-          messageCollection: messageCollectionSchema
-            .describe('The collection of the message to get the producers and consumers for')
-            .default('events'),
+          messageId: z.string().describe('The id of the message to get the producers for'),
+          messageVersion: z.string().optional().describe('The version of the message (omit for the latest)'),
+          messageCollection: messageCollectionSchema.describe('The collection of the message').default('events'),
         }),
         execute: async ({ messageId, messageVersion, messageCollection }) => {
-          const services = await getCollection('services');
-          const message = await getEntry(messageCollection as any, `${messageId}-${messageVersion}`);
-          const consumers = await getProducersOfMessage(services, message as any);
-          return consumers;
+          return await getProducersOfMessageImpl({ messageId, messageVersion, messageCollection });
         },
       }),
       getConsumersOfMessage: tool({
-        description: 'Use this tool to get the consumers for a message by its id and version',
+        description: toolDescriptions.getConsumersOfMessage,
         inputSchema: z.object({
           messageId: z.string().describe('The id of the message to get the consumers for'),
-          messageVersion: z.string().describe('The version of the message to get the consumers for'),
-          messageCollection: messageCollectionSchema
-            .describe('The collection of the message to get the consumers for')
-            .default('events'),
+          messageVersion: z.string().optional().describe('The version of the message (omit for the latest)'),
+          messageCollection: messageCollectionSchema.describe('The collection of the message').default('events'),
         }),
         execute: async ({ messageId, messageVersion, messageCollection }) => {
-          const services = await getCollection('services');
-          const message = await getEntry(messageCollection as any, `${messageId}-${messageVersion}`);
-          const consumers = await getConsumersOfMessage(services, message as any);
-          return consumers;
+          return await getConsumersOfMessageImpl({ messageId, messageVersion, messageCollection });
+        },
+      }),
+      findResourcesByOwner: tool({
+        description: toolDescriptions.findResourcesByOwner,
+        inputSchema: z.object({
+          ownerId: z.string().describe('The id of the owner (team or user) to find resources for'),
+        }),
+        execute: async ({ ownerId }) => {
+          return await findResourcesByOwnerImpl({ ownerId });
+        },
+      }),
+      getTeam: tool({
+        description: toolDescriptions.getTeam,
+        inputSchema: z.object({
+          id: z.string().describe('The id of the team to get'),
+        }),
+        execute: async ({ id }) => {
+          return await getTeamImpl({ id });
+        },
+      }),
+      analyzeChangeImpact: tool({
+        description: toolDescriptions.analyzeChangeImpact,
+        inputSchema: z.object({
+          messageId: z.string().describe('The id of the message to analyze impact for'),
+          messageVersion: z.string().optional().describe('The version of the message (omit for the latest)'),
+          messageCollection: messageCollectionSchema.describe('The collection of the message').default('events'),
+        }),
+        execute: async ({ messageId, messageVersion, messageCollection }) => {
+          return await analyzeChangeImpactImpl({ messageId, messageVersion, messageCollection });
+        },
+      }),
+      explainUbiquitousLanguageTerms: tool({
+        description: toolDescriptions.explainUbiquitousLanguageTerms,
+        inputSchema: z.object({
+          domainId: z.string().optional().describe('The id of the domain to get terms for. Omit it to look across every domain.'),
+          domainVersion: z.string().optional().describe('The version of the domain (omit for the latest)'),
+          term: z.string().optional().describe('Only return terms whose name or id contains this text (case-insensitive)'),
+          cursor: z.string().optional().describe('The nextCursor from the previous page, when looking across every domain'),
+        }),
+        execute: async (params) => {
+          return await explainUbiquitousLanguageTermsImpl(params);
         },
       }),
       getSchemaForResource: tool({
@@ -385,31 +411,20 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
           return await getCustomDocImpl({ id, section });
         },
       }),
-      suggestFollowUpQuestions: tool({
-        description:
-          'Use this tool after answering a question to suggest 2-3 relevant follow-up questions the user might want to ask. These will be displayed as clickable suggestions.',
-        inputSchema: z.object({
-          questions: z.array(z.string()).min(1).max(3).describe('Array of 2-3 follow-up questions relevant to the conversation'),
-        }),
-        execute: async ({ questions }) => {
-          // This tool doesn't need to do anything - it just returns the questions
-          // which will be captured by the UI
-          return { suggestions: questions };
-        },
-      }),
       ...canvas?.tools,
       ...extendedTools,
     };
 
-    const result = streamText({
+    const stream = streamChatAnswer({
       model,
-      instructions: getBaseSystemPrompt(referrer ?? '') + (canvas?.instructions ?? ''),
+      instructions: getInstructions(maxSteps, canvas?.instructions ?? '', referrer ?? ''),
       messages: await convertToModelMessages(messages),
-      temperature: modelConfiguration?.temperature ?? 0.7,
+      ...callSettingsFrom(modelConfiguration),
       // The provider's own options (e.g. { anthropic: { effort: 'low' } }), from eventcatalog.chat.js's configuration
       providerOptions: modelConfiguration?.providerOptions,
-      stopWhen: isStepCount(maxSteps),
-      prepareStep: ({ stepNumber }) => (stepNumber === maxSteps - 1 ? { toolChoice: 'none' } : undefined),
+      maxSteps,
+      // Model calls and tokens for each answer, read by the evals (packages/core/evals/chat)
+      includeStats: isDevMode(),
       onError: (error) => {
         console.error('[Chat] On error', error);
       },
@@ -423,9 +438,7 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
       tools,
     });
 
-    return createUIMessageStreamResponse({
-      stream: toUIMessageStream({ stream: result.stream, tools }),
-    });
+    return createUIMessageStreamResponse({ stream });
   } catch (err: any) {
     console.error('[Chat] Error during streaming:', err);
 

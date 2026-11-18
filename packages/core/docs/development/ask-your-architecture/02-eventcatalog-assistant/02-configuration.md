@@ -70,4 +70,6 @@ export const configuration = {
 }
 ```
 
+Every setting is optional. The ones you leave out use your model provider's defaults, so a reasoning model (for example GPT-5 or Claude Opus) that doesn't take a `temperature` gets none. `maxTokens` limits how long each answer can be: a small value can cut answers short, and a reasoning model can use it all before writing its answer.
+
 Once you have enabled the feature and configured your model, restart EventCatalog and you can start asking questions about your architecture.

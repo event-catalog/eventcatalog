@@ -28,6 +28,8 @@ import * as Dialog from '@radix-ui/react-dialog';
 import * as Popover from '@radix-ui/react-popover';
 import { buildUrl } from '@utils/url-builder';
 import OfflineReply, { ConfigurationErrorReply, getChatError, offlineReplyText } from './OfflineReply';
+import { AnswerStreamingContext, ChatMermaid } from './ChatMermaid';
+import { useRevealedText } from './revealed-text';
 import { clampPanelWidth, MAX_PANEL_WIDTH, MIN_PANEL_WIDTH, PANEL_WIDTH, readPanelWidth, savePanelWidth } from './panel-width';
 import {
   ASSISTANT_DRAWING_EVENT,
@@ -126,6 +128,38 @@ const CHAT_PANEL_STYLES = `
   /* What's typed grows the box (up to a point, then scrolls), with what it's based on and Send in a row under it */
   .ec-chat-composer textarea { display: block; resize: none; min-height: 58px; max-height: 200px; overflow-y: auto; padding: 14px 16px 4px; border-radius: 20px 20px 0 0; }
   .ec-chat-composer-footer { display: flex; align-items: center; gap: 8px; padding: 2px 8px 8px 16px; }
+  /* An answer: one typography for the panel and the expanded view, from the theme's colours */
+  .ec-chat-answer { font-size: 14px; line-height: 1.65; color: rgb(var(--ec-content-text)); overflow-wrap: break-word; }
+  .ec-chat-answer > :first-child { margin-top: 0; }
+  .ec-chat-answer > :last-child { margin-bottom: 0; }
+  .ec-chat-answer p { margin: .75em 0; }
+  .ec-chat-answer h1, .ec-chat-answer h2 { font-size: 15px; line-height: 1.4; letter-spacing: -.01em; }
+  .ec-chat-answer h3, .ec-chat-answer h4, .ec-chat-answer h5, .ec-chat-answer h6 { font-size: 14px; line-height: 1.45; }
+  .ec-chat-answer :is(h1, h2, h3, h4, h5, h6) { font-weight: 600; color: rgb(var(--ec-page-text)); margin: 1.6em 0 .5em; }
+  .ec-chat-answer strong { font-weight: 600; color: rgb(var(--ec-page-text)); }
+  .ec-chat-answer :is(ul, ol) { margin: .75em 0; padding-left: 1.3em; }
+  .ec-chat-answer ul { list-style: disc; }
+  .ec-chat-answer ol { list-style: decimal; }
+  .ec-chat-answer li { margin: .35em 0; padding-left: .2em; }
+  .ec-chat-answer li::marker { color: rgb(var(--ec-page-text-muted)); font-variant-numeric: tabular-nums; }
+  .ec-chat-answer li > :is(ul, ol, p) { margin: .35em 0; }
+  .ec-chat-answer a { color: rgb(var(--ec-accent)); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: rgb(var(--ec-accent) / .35); transition: text-decoration-color 150ms; }
+  .ec-chat-answer a:hover { text-decoration-color: rgb(var(--ec-accent)); }
+  .ec-chat-answer :not(pre) > code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; padding: .15em .4em; border-radius: 5px; background: rgb(var(--ec-page-text) / .06); color: rgb(var(--ec-page-text)); }
+  .ec-chat-answer a code { color: inherit; }
+  .ec-chat-answer blockquote { margin: 1em 0; padding-left: .9em; border-left: 2px solid rgb(var(--ec-page-border)); color: rgb(var(--ec-page-text-muted)); }
+  .ec-chat-answer hr { margin: 1.5em 0; border: 0; border-top: 1px solid rgb(var(--ec-page-border)); }
+  .ec-chat-answer .ec-chat-code, .ec-chat-answer .ec-chat-diagram { margin: 1em 0; }
+  .ec-chat-answer .ec-chat-table { margin: 1em 0; overflow-x: auto; }
+  .ec-chat-table table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.5; }
+  .ec-chat-table th { text-align: left; font-size: 12px; font-weight: 500; color: rgb(var(--ec-page-text-muted)); padding: 0 12px 8px 0; border-bottom: 1px solid rgb(var(--ec-page-border)); }
+  .ec-chat-table td { padding: 8px 12px 8px 0; vertical-align: top; border-bottom: 1px solid rgb(var(--ec-page-border) / .6); }
+  .ec-chat-table tr:last-child td { border-bottom: 0; }
+  .ec-chat-table :is(th, td):last-child { padding-right: 0; }
+  .ec-chat-answer-lg { font-size: 15px; line-height: 1.7; }
+  .ec-chat-answer-lg :is(h1, h2) { font-size: 17px; }
+  .ec-chat-answer-lg :is(h3, h4, h5, h6) { font-size: 15px; }
+  .ec-chat-answer-lg .ec-chat-table table { font-size: 14px; }
   @media (prefers-reduced-motion: reduce) {
     .ec-chat-surface, .ec-chat-surface *, #eventcatalog-header, #eventcatalog-application {
       animation: none !important;
@@ -167,9 +201,10 @@ const CHAT_PANEL_STYLES = `
 // Stable style object for syntax highlighter
 const CODE_BLOCK_STYLE = {
   margin: 0,
-  borderRadius: '0.375rem',
-  fontSize: '12px',
-  padding: '1rem',
+  borderRadius: '0.5rem',
+  fontSize: '12.5px',
+  lineHeight: 1.6,
+  padding: '0.875rem 1rem',
 };
 
 // Code block component with copy functionality - memoized
@@ -193,7 +228,7 @@ const CodeBlock = memo(({ language, children }: { language: string; children: st
   }, [copied]);
 
   return (
-    <div className="relative group my-2">
+    <div className="ec-chat-code relative group">
       <button
         onClick={handleCopy}
         className="absolute right-2 top-2 p-1.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity z-10"
@@ -539,30 +574,22 @@ export const preprocessMarkdown = (text: string): string => {
   );
 };
 
-// Helper to extract text content from message parts
-const getMessageContent = (message: { parts?: Array<{ type: string; text?: string }> }): string => {
-  if (!message.parts) return '';
-  const rawContent = message.parts
+/** A message's text, as written (markdown) */
+const getMessageText = (message: { parts?: Array<{ type: string; text?: string }> }): string =>
+  (message.parts ?? [])
     .filter((part): part is { type: 'text'; text: string } => part.type === 'text' && typeof part.text === 'string')
     .map((part) => part.text)
-    .join('');
-  return preprocessMarkdown(rawContent);
-};
+    // Each step writes its own text part (e.g. "Let me check the catalog." before looking up, then the answer)
+    .join('\n\n');
 
-// Helper to extract follow-up suggestions from message parts
+// Helper to extract text content from message parts
+const getMessageContent = (message: { parts?: Array<{ type: string; text?: string }> }): string =>
+  preprocessMarkdown(getMessageText(message));
+
+/** The questions to ask next, sent once it has answered (see FOLLOW_UPS_PART in features/ai/chat-loop.ts) */
 const getFollowUpSuggestions = (message: { parts?: Array<any> }): string[] => {
-  if (!message.parts) return [];
-
-  for (const part of message.parts) {
-    // AI SDK format: type is "tool-{toolName}" and result is in "output"
-    if (part.type === 'tool-suggestFollowUpQuestions' && part.state === 'output-available') {
-      const suggestions = part.output?.suggestions;
-      if (suggestions && Array.isArray(suggestions)) {
-        return suggestions;
-      }
-    }
-  }
-  return [];
+  const questions = message.parts?.find((part) => part.type === 'data-follow-ups')?.data?.questions;
+  return Array.isArray(questions) ? questions : [];
 };
 
 /** What the assistant's doing, in words, while a tool runs (or is being written, for the canvas's) */
@@ -590,24 +617,6 @@ export const isBetweenText = (message: { parts?: Array<any> } | undefined) => {
   return !last || last.type !== 'text' || last.state === 'done';
 };
 
-// Helper to extract completed tools from message parts (for showing after completion)
-const getCompletedTools = (message: { parts?: Array<any> }): string[] => {
-  if (!message.parts) return [];
-
-  const completedTools: string[] = [];
-  for (const part of message.parts) {
-    // Tool parts have type like "tool-{toolName}" and state 'output-available' when done
-    if (part.type?.startsWith('tool-') && part.state === 'output-available') {
-      const toolName = part.type.replace('tool-', '');
-      // Skip internal tools
-      if (toolName !== 'suggestFollowUpQuestions') {
-        completedTools.push(toolName);
-      }
-    }
-  }
-  return completedTools;
-};
-
 // Skeleton loading component - memoized since it never changes
 export type ActivityStep = { label: string; done: boolean; count: number };
 
@@ -620,7 +629,6 @@ export const getActivitySteps = (message: { role?: string; parts?: Array<any> } 
   for (const part of message?.role === 'assistant' ? (message.parts ?? []) : []) {
     if (!part.type?.startsWith('tool-')) continue;
     const name = part.type.replace('tool-', '');
-    if (name === 'suggestFollowUpQuestions') continue;
     const done = part.state === 'output-available' || part.state === 'output-error';
     const label = activityOf(name, part.state).replace(/…$/, '');
     const last = steps.at(-1);
@@ -658,8 +666,7 @@ ActivityCard.displayName = 'ActivityCard';
 
 /** It's writing follow-up questions (what it does once it's answered) */
 export const isSuggestingFollowUps = (message: { role?: string; parts?: Array<any> } | undefined) =>
-  message?.role === 'assistant' &&
-  !!message.parts?.some((part) => part.type === 'tool-suggestFollowUpQuestions' && part.state !== 'output-available');
+  message?.role === 'assistant' && !!message.parts?.some((part) => part.type === 'data-follow-ups' && !part.data?.questions);
 
 /** Where the follow-up questions will be, while it writes them: pills like theirs, coming in */
 const FollowUpsLoading = memo(() => (
@@ -884,56 +891,86 @@ const PanelResizeHandle = memo(
 );
 PanelResizeHandle.displayName = 'PanelResizeHandle';
 
+type MarkdownNode = {
+  type?: string;
+  tagName?: string;
+  value?: string;
+  properties?: { className?: unknown };
+  children?: MarkdownNode[];
+};
+
+const textOf = (node?: MarkdownNode): string =>
+  node?.type === 'text' ? (node.value ?? '') : (node?.children ?? []).map(textOf).join('');
+
+/** A fenced code block's language (`text` when it has none) and code, from the markdown's <pre> */
+export const fencedCode = (pre?: MarkdownNode) => {
+  const code = pre?.children?.find((child) => child.tagName === 'code');
+  const classes = Array.isArray(code?.properties?.className) ? code.properties.className.map(String) : [];
+  const language = classes.find((name) => name.startsWith('language-'))?.slice('language-'.length) || 'text';
+  return { language, code: textOf(code).replace(/\n$/, '') };
+};
+
 const markdownComponents = {
+  // A code block (or diagram) draws its own box, from the markdown's <pre>: `code` below is only inline code
+  pre: ({ node }: any) => {
+    const { language, code } = fencedCode(node);
+    return language === 'mermaid' ? (
+      <ChatMermaid code={code} fallback={<CodeBlock language={language}>{code}</CodeBlock>} />
+    ) : (
+      <CodeBlock language={language}>{code}</CodeBlock>
+    );
+  },
   a: ({ node: _node, ...props }: any) => {
     const nodeIds = nodesInFocusLink(props.href);
     if (nodeIds) return <FocusLink nodeIds={nodeIds}>{props.children}</FocusLink>;
     const ref = canvasRefIn(props.href);
     if (ref) return <CanvasRef {...ref}>{props.children}</CanvasRef>;
-    return (
-      <a
-        {...props}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent-hover))] underline"
-      />
-    );
+    return <a {...props} target="_blank" rel="noopener noreferrer" />;
   },
-  code: ({ children, className, ...props }: any) => {
-    const isInline = !className;
-    const match = /language-(\w+)/.exec(className || '');
-    const language = match ? match[1] : 'text';
-    const codeString = String(children).replace(/\n$/, '');
-
-    return isInline ? (
-      <code
-        className="px-1 py-0.5 rounded text-xs font-mono bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text))]"
-        {...props}
-      >
-        {children}
-      </code>
-    ) : (
-      <CodeBlock language={language}>{codeString}</CodeBlock>
-    );
-  },
-  table: ({ ...props }: any) => (
-    <div className="overflow-x-auto my-3">
-      <table className="min-w-full text-xs border-collapse border border-[rgb(var(--ec-page-border))]" {...props} />
+  code: ({ node: _node, ...props }: any) => <code {...props} />,
+  table: ({ node: _node, ...props }: any) => (
+    <div className="ec-chat-table">
+      <table {...props} />
     </div>
-  ),
-  thead: ({ ...props }: any) => <thead className="bg-[rgb(var(--ec-content-hover))]" {...props} />,
-  th: ({ ...props }: any) => (
-    <th
-      className="px-3 py-2 text-left font-medium text-[rgb(var(--ec-page-text))] border border-[rgb(var(--ec-page-border))]"
-      {...props}
-    />
-  ),
-  td: ({ ...props }: any) => (
-    <td className="px-3 py-2 text-[rgb(var(--ec-page-text-muted))] border border-[rgb(var(--ec-page-border))]" {...props} />
   ),
 };
 
-// Modal version with slightly different code styling
+/**
+ * An assistant's answer. The one being written is shown word by word (see revealed-text.ts), and until it's all shown
+ * its diagrams wait (they'd be drawn from unfinished code).
+ */
+const AnswerText = memo(
+  ({
+    id,
+    text,
+    live,
+    onReveal,
+    onRevealing,
+  }: {
+    id: string;
+    text: string;
+    live: boolean;
+    onReveal: () => void;
+    onRevealing: (revealing: boolean) => void;
+  }) => {
+    const shown = useRevealedText(id, text, live, onReveal);
+    const active = live || shown.revealing;
+    useEffect(() => {
+      if (!active) return;
+      onRevealing(true);
+      return () => onRevealing(false);
+    }, [active, onRevealing]);
+    return (
+      <AnswerStreamingContext.Provider value={active}>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+          {preprocessMarkdown(shown.text)}
+        </ReactMarkdown>
+      </AnswerStreamingContext.Provider>
+    );
+  }
+);
+AnswerText.displayName = 'AnswerText';
+
 export type WalkthroughStep = { title: string; description: string; nodeIds: string[] };
 export type Walkthrough = { id: string; title: string; steps: WalkthroughStep[] };
 
@@ -1031,32 +1068,6 @@ const WalkthroughSteps = memo(({ walkthrough }: { walkthrough: Walkthrough }) =>
   );
 });
 WalkthroughSteps.displayName = 'WalkthroughSteps';
-
-const modalMarkdownComponents = {
-  ...markdownComponents,
-  code: ({ children, className, ...props }: any) => {
-    const isInline = !className;
-    const match = /language-(\w+)/.exec(className || '');
-    const language = match ? match[1] : 'text';
-    const codeString = String(children).replace(/\n$/, '');
-
-    return isInline ? (
-      <code
-        className="px-1.5 py-0.5 rounded text-sm font-mono bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text))]"
-        {...props}
-      >
-        {children}
-      </code>
-    ) : (
-      <CodeBlock language={language}>{codeString}</CodeBlock>
-    );
-  },
-  table: ({ ...props }: any) => (
-    <div className="overflow-x-auto my-3">
-      <table className="min-w-full text-sm border-collapse border border-[rgb(var(--ec-page-border))]" {...props} />
-    </div>
-  ),
-};
 
 const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelProps) => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -1245,14 +1256,21 @@ const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelP
     }
   }, []);
 
+  // The answer being shown word by word: followed as it grows, like a streamed one, with its follow-ups after it
+  const [answerRevealing, setAnswerRevealing] = useState(false);
+  const followAnswer = useCallback(() => {
+    if (followLatest.current) scrollToLatest();
+  }, [scrollToLatest]);
+
   const scrollToBottom = useCallback(() => {
     followLatest.current = true;
     scrollToLatest();
   }, [scrollToLatest]);
 
+  // Kept at the latest as messages come in, and when the follow-up questions show (once the answer's all shown)
   useEffect(() => {
     if (followLatest.current) scrollToLatest();
-  }, [messages, scrollToLatest]);
+  }, [messages, answerRevealing, scrollToLatest]);
 
   // Focus modal input when fullscreen opens
   useEffect(() => {
@@ -1598,7 +1616,6 @@ const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelP
                   {messages.map((message, messageIndex) => {
                     const content = getMessageContent(message);
                     const followUpSuggestions = message.role === 'assistant' ? getFollowUpSuggestions(message) : [];
-                    const completedTools = message.role === 'assistant' ? getCompletedTools(message) : [];
                     const flaggedHotspots = message.role === 'assistant' ? getFlaggedHotspots(message) : [];
                     const walkthroughs = message.role === 'assistant' ? getWalkthroughs(message) : [];
                     const isLastMessage = messageIndex === messages.length - 1;
@@ -1615,27 +1632,15 @@ const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelP
                           <OfflineReply />
                         ) : (
                           <>
-                            {/* Tools used indicator */}
-                            {completedTools.length > 0 && (
-                              <div className="flex items-center gap-1.5 mb-2">
-                                <Wrench size={10} className="text-[rgb(var(--ec-icon-color))]" />
-                                <span className="text-[10px] text-[rgb(var(--ec-icon-color))]">
-                                  Used{' '}
-                                  {completedTools.slice(0, 2).map((tool, i) => (
-                                    <span key={tool}>
-                                      <span className="font-medium text-[rgb(var(--ec-accent))]">{tool}</span>
-                                      {i < Math.min(completedTools.length, 2) - 1 && ', '}
-                                    </span>
-                                  ))}
-                                  {completedTools.length > 2 && <span> +{completedTools.length - 2} more</span>}
-                                </span>
-                              </div>
-                            )}
                             <div className="w-full text-[rgb(var(--ec-content-text))]">
-                              <div className="prose prose-sm max-w-none prose-p:my-2 prose-p:font-normal prose-p:text-[13px] prose-p:text-[rgb(var(--ec-content-text))] prose-headings:my-2 prose-headings:font-semibold prose-headings:text-[rgb(var(--ec-page-text))] prose-h1:text-base prose-h2:text-sm prose-h3:text-[13px] prose-h4:text-[13px] prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-li:text-[13px] prose-li:font-normal prose-li:text-[rgb(var(--ec-content-text))] text-[13px] font-light">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                                  {content}
-                                </ReactMarkdown>
+                              <div className="ec-chat-answer">
+                                <AnswerText
+                                  id={message.id}
+                                  text={getMessageText(message)}
+                                  live={!!isLoading && isLastMessage}
+                                  onReveal={followAnswer}
+                                  onRevealing={setAnswerRevealing}
+                                />
                               </div>
                             </div>
                             {/* Follow-up suggestions - only show for last assistant message when not loading */}
@@ -1643,7 +1648,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelP
                               <WalkthroughSteps key={walkthrough.id} walkthrough={walkthrough} />
                             ))}
                             {flaggedHotspots.length > 0 && <FlaggedHotspots hotspots={flaggedHotspots} />}
-                            {isLastMessage && followUpSuggestions.length > 0 && !isLoading && (
+                            {isLastMessage && followUpSuggestions.length > 0 && !isLoading && !answerRevealing && (
                               <div className="flex flex-wrap gap-2 mt-3 w-full">
                                 {followUpSuggestions.map((suggestion, index) => (
                                   <button
@@ -1783,6 +1788,10 @@ const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelP
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[300]" />
           <Dialog.Content
+            // Escape with a diagram open full size closes the diagram, not the chat
+            onEscapeKeyDown={(event) => {
+              if (document.querySelector('.ec-diagram-modal')) event.preventDefault();
+            }}
             className="ec-chat-surface fixed inset-y-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl md:inset-y-8 rounded-xl shadow-2xl z-[301] flex flex-col overflow-hidden focus:outline-hidden border border-[rgb(var(--ec-page-border))]"
             style={{
               background: `
@@ -1915,7 +1924,6 @@ const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelP
                   {messages.map((message, messageIndex) => {
                     const content = getMessageContent(message);
                     const followUpSuggestions = message.role === 'assistant' ? getFollowUpSuggestions(message) : [];
-                    const completedTools = message.role === 'assistant' ? getCompletedTools(message) : [];
                     const flaggedHotspots = message.role === 'assistant' ? getFlaggedHotspots(message) : [];
                     const walkthroughs = message.role === 'assistant' ? getWalkthroughs(message) : [];
                     const isLastMessage = messageIndex === messages.length - 1;
@@ -1932,27 +1940,15 @@ const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelP
                           <OfflineReply />
                         ) : (
                           <>
-                            {/* Tools used indicator */}
-                            {completedTools.length > 0 && (
-                              <div className="flex items-center gap-1.5 mb-2">
-                                <Wrench size={12} className="text-[rgb(var(--ec-icon-color))]" />
-                                <span className="text-[11px] text-[rgb(var(--ec-icon-color))]">
-                                  Used{' '}
-                                  {completedTools.slice(0, 3).map((tool, i) => (
-                                    <span key={tool}>
-                                      <span className="font-medium text-[rgb(var(--ec-accent))]">{tool}</span>
-                                      {i < Math.min(completedTools.length, 3) - 1 && ', '}
-                                    </span>
-                                  ))}
-                                  {completedTools.length > 3 && <span> +{completedTools.length - 3} more</span>}
-                                </span>
-                              </div>
-                            )}
                             <div className="w-full text-[rgb(var(--ec-content-text))]">
-                              <div className="prose prose-sm max-w-none prose-p:text-[rgb(var(--ec-content-text))] prose-headings:my-2 prose-headings:font-semibold prose-headings:text-[rgb(var(--ec-page-text))] prose-h1:text-lg prose-h2:text-base prose-h3:text-sm prose-h4:text-sm prose-li:text-[rgb(var(--ec-content-text))]">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]} components={modalMarkdownComponents}>
-                                  {content}
-                                </ReactMarkdown>
+                              <div className="ec-chat-answer ec-chat-answer-lg">
+                                <AnswerText
+                                  id={message.id}
+                                  text={getMessageText(message)}
+                                  live={!!isLoading && isLastMessage}
+                                  onReveal={followAnswer}
+                                  onRevealing={setAnswerRevealing}
+                                />
                               </div>
                             </div>
                             {/* Follow-up suggestions - only show for last assistant message when not loading */}
@@ -1960,7 +1956,7 @@ const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelP
                               <WalkthroughSteps key={walkthrough.id} walkthrough={walkthrough} />
                             ))}
                             {flaggedHotspots.length > 0 && <FlaggedHotspots hotspots={flaggedHotspots} />}
-                            {isLastMessage && followUpSuggestions.length > 0 && !isLoading && (
+                            {isLastMessage && followUpSuggestions.length > 0 && !isLoading && !answerRevealing && (
                               <div className="flex flex-wrap gap-2 mt-3 w-full">
                                 {followUpSuggestions.map((suggestion, index) => (
                                   <button

@@ -585,8 +585,10 @@ interface DiagramSource {
 /**
  * Opens the diagram in a fullscreen modal viewer with its own zoom toolbar.
  * Supports drag/wheel/pinch, arrow keys to pan, +/- to zoom, 0 to reset and Escape to close.
+ * Opened from inside another modal (e.g. the expanded Ask AI chat), pass it as `container`: a modal keeps clicks and
+ * focus inside itself, so a viewer opened outside it can't be used.
  */
-export function openDiagramModal(source: DiagramSource): void {
+export function openDiagramModal(source: DiagramSource, container: HTMLElement = document.body): void {
   ensureDiagramStyles();
   closeOpenModal?.();
 
@@ -701,8 +703,8 @@ export function openDiagramModal(source: DiagramSource): void {
   });
   document.addEventListener('keydown', onKeyDown);
 
-  document.body.appendChild(backdrop);
-  document.body.appendChild(root);
+  container.appendChild(backdrop);
+  container.appendChild(root);
   document.body.style.overflow = 'hidden';
 
   panZoom.fit(false);
