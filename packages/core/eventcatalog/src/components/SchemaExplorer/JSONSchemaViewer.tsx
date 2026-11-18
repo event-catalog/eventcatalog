@@ -57,8 +57,11 @@ function describeType(schema: any, showVariants = true): string {
   const mapValue = getMapValueSchema(schema);
   const hasProperties = schema.properties && Object.keys(schema.properties).length > 0;
   if (mapValue && !hasProperties && !schema.variants?.length && (!schema.type || hasType(schema.type, 'object'))) {
-    const valueType = mapValue._refName || describeType(mapValue) || 'any';
-    return `map<string, ${valueType}>${hasType(schema.type, 'null') ? ' | null' : ''}`;
+    const mapLabel = `map<string, ${mapValue._refName || describeType(mapValue) || 'any'}>`;
+    // Keep the other members of a type union, e.g. ['object', 'null'] -> `map<string, X> | null`
+    return Array.isArray(schema.type)
+      ? schema.type.map((type: string) => (type === 'object' ? mapLabel : type)).join(' | ')
+      : mapLabel;
   }
 
   const itemType = hasType(schema.type, 'array') && schema.items ? describeType(schema.items, false) : '';

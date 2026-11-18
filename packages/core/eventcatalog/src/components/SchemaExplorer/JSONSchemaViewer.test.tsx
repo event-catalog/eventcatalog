@@ -256,6 +256,15 @@ describe('JSONSchemaViewer additionalProperties', () => {
     expect(container.textContent).toContain('map<string, string> | null');
   });
 
+  it('keeps the other types of a map that also accepts a primitive', () => {
+    render({
+      type: 'object',
+      properties: { value: { type: ['object', 'string'], additionalProperties: { type: 'number' } } },
+    });
+
+    expect(container.textContent).toContain('map<string, number> | string');
+  });
+
   it('renders the value schema of maps inside an array', () => {
     render({
       type: 'object',
