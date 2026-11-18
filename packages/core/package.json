@@ -67,6 +67,7 @@
     "format": "prettier --config .prettierrc --write \"**/*.{js,jsx,ts,tsx,json,astro}\"",
     "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\"",
     "lint:catalog": "pnpm dlx @eventcatalog/linter examples/default",
+    "eval:chat": "node evals/chat/run.ts",
     "check": "node scripts/check-types.js",
     "turbo:test": "turbo run test",
     "turbo:build": "turbo run build:bin"

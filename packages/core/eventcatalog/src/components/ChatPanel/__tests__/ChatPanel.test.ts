@@ -3,6 +3,7 @@ import { createElement, act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import ChatPanel, {
   activityOf,
+  fencedCode,
   getActivitySteps,
   getCanvasId,
   getFlaggedHotspots,
@@ -371,12 +372,15 @@ describe('isSuggestingFollowUps', () => {
       role: 'assistant',
       parts: [
         { type: 'text', text: 'Done', state: 'done' },
-        { type: 'tool-suggestFollowUpQuestions', state: 'input-streaming' },
+        { type: 'data-follow-ups', id: 'follow-ups', data: {} },
       ],
     };
     expect(isSuggestingFollowUps(writing)).toBe(true);
     expect(
-      isSuggestingFollowUps({ role: 'assistant', parts: [{ type: 'tool-suggestFollowUpQuestions', state: 'output-available' }] })
+      isSuggestingFollowUps({
+        role: 'assistant',
+        parts: [{ type: 'data-follow-ups', id: 'follow-ups', data: { questions: ['Who consumes it?'] } }],
+      })
     ).toBe(false);
     expect(isSuggestingFollowUps({ role: 'assistant', parts: [{ type: 'tool-addToCanvas', state: 'input-streaming' }] })).toBe(
       false
@@ -426,5 +430,33 @@ describe('getWalkthroughs', () => {
         ],
       })
     ).toEqual([{ id: 't1', title: 'How checkout works', steps }]);
+  });
+});
+
+describe('fencedCode', () => {
+  // A fenced block as the markdown hands it over: <pre><code class="language-…">…</code></pre>
+  const pre = (code: string, language?: string) => ({
+    type: 'element',
+    tagName: 'pre',
+    children: [
+      {
+        type: 'element',
+        tagName: 'code',
+        properties: language ? { className: [`language-${language}`] } : {},
+        children: [{ type: 'text', value: code }],
+      },
+    ],
+  });
+
+  it('reads the language and code of a block', () => {
+    expect(fencedCode(pre('{ "orderId": "uuid" }\n', 'json'))).toEqual({ language: 'json', code: '{ "orderId": "uuid" }' });
+    expect(fencedCode(pre('flowchart TD\n  A --> B\n', 'mermaid'))).toEqual({
+      language: 'mermaid',
+      code: 'flowchart TD\n  A --> B',
+    });
+  });
+
+  it('keeps a block with no language a block (as text), with its lines', () => {
+    expect(fencedCode(pre('line one\nline two\n'))).toEqual({ language: 'text', code: 'line one\nline two' });
   });
 });

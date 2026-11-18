@@ -126,6 +126,7 @@ import {
   analyzeChangeImpact,
   explainBusinessFlow,
   getArchitectureDiagramAsMermaid,
+  getDiagramLinks,
   getTeams,
   getTeam,
   getUsers,
@@ -370,6 +371,31 @@ describe('getResource', () => {
     expect('error' in result).toBe(true);
   });
 
+  it('suggests the versions there are when the version is not found', async () => {
+    const result = await getResource({ collection: 'events', id: 'OrderCreated', version: '99.0.0' });
+    expect(result).toMatchObject({
+      didYouMean: [
+        { id: 'OrderCreated', version: '1.0.0' },
+        { id: 'OrderCreated', version: '2.0.0' },
+      ],
+    });
+  });
+
+  it.each([
+    ['a differently written id', 'order-created', 'events', 'OrderCreated'],
+    ['part of an id', 'Inventory', 'events', 'InventoryUpdated'],
+    ['an acronym of the name', 'PS', 'services', 'PaymentService'],
+  ])('suggests resources the model may have meant when given %s', async (_, id, collection, expected) => {
+    const result = await getResource({ collection, id });
+    expect('error' in result).toBe(true);
+    expect((result as { didYouMean?: { id: string }[] }).didYouMean?.map((resource) => resource.id)).toEqual([expected]);
+  });
+
+  it('suggests nothing when no resource is like the id', async () => {
+    const result = await getResource({ collection: 'events', id: 'NonExistent' });
+    expect(result).not.toHaveProperty('didYouMean');
+  });
+
   it.each([undefined, 'latest'])('returns the latest version when the version is %s', async (version) => {
     const result = await getResource({ collection: 'events', id: 'OrderCreated', version });
     expect('error' in result).toBe(false);
@@ -461,6 +487,30 @@ describe('getArchitectureDiagramAsMermaid', () => {
       expect(result.mermaidCode).toContain('flowchart LR');
       expect(result.mermaidCode).toContain('Order Service');
     }
+  });
+
+  it('links two resources with one name apart, and leaves out hidden nodes', () => {
+    const links = getDiagramLinks([
+      { type: 'domains', data: { domain: { data: { id: 'orders', version: '1.0.0', name: 'Orders' } } } },
+      { type: 'services', data: { service: { data: { id: 'orders-service', version: '2.0.0', name: 'Orders' } } } },
+      { type: 'channels', data: { channel: { data: { id: 'payments.outcomes', version: '1.0.0', name: 'Payments Outcomes' } } } },
+      {
+        type: 'events',
+        hidden: true,
+        data: { message: { data: { id: 'order-created', version: '1.0.0', name: 'Order Created' } } },
+      },
+    ]);
+    expect(links).toEqual({
+      Orders: '/docs/domains/orders/1.0.0',
+      'Orders (services)': '/docs/services/orders-service/2.0.0',
+      'Payments Outcomes': '/docs/channels/payments.outcomes/1.0.0',
+    });
+  });
+
+  it('gives the docs link for each resource in the diagram, as Mermaid ids are not resource ids', async () => {
+    const result = await getArchitectureDiagramAsMermaid({ resourceId: 'CoreSystem', resourceCollection: 'systems' });
+
+    expect(result).toMatchObject({ links: { 'Order Service': '/docs/services/OrderService/1.0.0' } });
   });
 });
 

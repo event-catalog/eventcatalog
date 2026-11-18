@@ -232,6 +232,58 @@ async function findEntry(collection: string, id: string, version?: string): Prom
 
 const describeVersion = (version?: string) => version ?? 'latest';
 
+const MAX_SUGGESTIONS = 5;
+
+const normaliseId = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+/** First letter of each word: "Asset Performance Management", "asset-performance-management" and "AssetPerformance..." give "apm" */
+const acronym = (value: string) =>
+  value
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join('')
+    .toLowerCase();
+
+/**
+ * What the model may have meant by an id that isn't in a collection: the versions there are of that id, or resources whose
+ * id or name contains it, or is shortened to it (e.g. "APM" for "apm-system" or "Asset Performance Management").
+ */
+async function findSimilarResources(collection: string, id: string) {
+  const entries = (await getCollection(collection as any)) as any[];
+  const query = normaliseId(id);
+  if (query.length < 2) return [];
+
+  const sameId = entries.filter((entry) => entry.data.id === id);
+  const seen = new Set<string>();
+  const similar = entries.filter((entry) => {
+    if (!isLatestVersion(entry) || seen.has(entry.data.id)) return false;
+    const entryId = normaliseId(entry.data.id);
+    const name = entry.data.name ?? '';
+    const isSimilar =
+      entryId.includes(query) ||
+      normaliseId(name).includes(query) ||
+      (entryId.length >= 3 && query.includes(entryId)) ||
+      acronym(entry.data.id) === query ||
+      acronym(name) === query;
+    if (isSimilar) seen.add(entry.data.id);
+    return isSimilar;
+  });
+
+  return (sameId.length > 0 ? sameId : similar).slice(0, MAX_SUGGESTIONS).map((entry) => ({
+    id: entry.data.id,
+    version: entry.data.version,
+    name: entry.data.name || entry.data.id,
+  }));
+}
+
+/** A not-found error with the resources the model may have meant, so it retries with the right id rather than guessing */
+async function notFound(error: string, collection: string, id: string) {
+  const didYouMean = await findSimilarResources(collection, id);
+  return didYouMean.length > 0 ? { error, didYouMean } : { error };
+}
+
 /**
  * Get resources from a collection with optional pagination and search
  */
@@ -276,7 +328,11 @@ export async function getResource(params: { collection: string; id: string; vers
   const resource = await findEntry(params.collection, params.id, params.version);
 
   if (!resource) {
-    return { error: `Resource not found: ${params.id} (${describeVersion(params.version)}) in ${params.collection}` };
+    return notFound(
+      `Resource not found: ${params.id} (${describeVersion(params.version)}) in ${params.collection}`,
+      params.collection,
+      params.id
+    );
   }
 
   return {
@@ -388,9 +444,11 @@ export async function getMessagesProducedOrConsumedByResource(params: {
   const resource = await findEntry(params.resourceCollection, params.resourceId, params.resourceVersion);
 
   if (!resource) {
-    return {
-      error: `Resource not found with id ${params.resourceId} and version ${describeVersion(params.resourceVersion)} and collection ${params.resourceCollection}`,
-    };
+    return notFound(
+      `Resource not found with id ${params.resourceId} and version ${describeVersion(params.resourceVersion)} and collection ${params.resourceCollection}`,
+      params.resourceCollection,
+      params.resourceId
+    );
   }
 
   const [events, commands, queries] = await Promise.all([
@@ -441,9 +499,11 @@ export async function getSchemaForResource(params: { resourceId: string; resourc
   const resource = await findEntry(params.resourceCollection, params.resourceId, params.resourceVersion);
 
   if (!resource) {
-    return {
-      error: `Resource not found with id ${params.resourceId} and version ${describeVersion(params.resourceVersion)} and collection ${params.resourceCollection}`,
-    };
+    return notFound(
+      `Resource not found with id ${params.resourceId} and version ${describeVersion(params.resourceVersion)} and collection ${params.resourceCollection}`,
+      params.resourceCollection,
+      params.resourceId
+    );
   }
 
   if (MESSAGE_COLLECTIONS.has(params.resourceCollection)) {
@@ -546,9 +606,11 @@ export async function getProducersOfMessage(params: { messageId: string; message
   const message = await findEntry(params.messageCollection, params.messageId, params.messageVersion);
 
   if (!message) {
-    return {
-      error: `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
-    };
+    return notFound(
+      `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
+      params.messageCollection,
+      params.messageId
+    );
   }
 
   const producers = await getResourcesThat('sends', message);
@@ -616,9 +678,11 @@ export async function getConsumersOfMessage(params: { messageId: string; message
   const message = await findEntry(params.messageCollection, params.messageId, params.messageVersion);
 
   if (!message) {
-    return {
-      error: `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
-    };
+    return notFound(
+      `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
+      params.messageCollection,
+      params.messageId
+    );
   }
 
   const consumers = await getResourcesThat('receives', message);
@@ -647,9 +711,11 @@ export async function analyzeChangeImpact(params: { messageId: string; messageVe
   const message = await findEntry(params.messageCollection, params.messageId, params.messageVersion);
 
   if (!message) {
-    return {
-      error: `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
-    };
+    return notFound(
+      `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
+      params.messageCollection,
+      params.messageId
+    );
   }
   const messageVersion = message.data.version;
 
@@ -716,7 +782,7 @@ export async function explainBusinessFlow(params: { flowId: string; flowVersion?
   const flow = await findEntry('flows', params.flowId, params.flowVersion);
 
   if (!flow) {
-    return { error: `Flow not found: ${params.flowId} (${describeVersion(params.flowVersion)})` };
+    return notFound(`Flow not found: ${params.flowId} (${describeVersion(params.flowVersion)})`, 'flows', params.flowId);
   }
 
   // Get related services and agents that use this flow
@@ -1061,9 +1127,11 @@ export async function getDataProductInputs(params: { dataProductId: string; data
   const dataProduct = await findEntry('data-products', params.dataProductId, params.dataProductVersion);
 
   if (!dataProduct) {
-    return {
-      error: `Data product not found: ${params.dataProductId} (${describeVersion(params.dataProductVersion)})`,
-    };
+    return notFound(
+      `Data product not found: ${params.dataProductId} (${describeVersion(params.dataProductVersion)})`,
+      'data-products',
+      params.dataProductId
+    );
   }
 
   const inputPointers = (dataProduct.data as any).inputs || [];
@@ -1123,9 +1191,11 @@ export async function getDataProductOutputs(params: { dataProductId: string; dat
   const dataProduct = await findEntry('data-products', params.dataProductId, params.dataProductVersion);
 
   if (!dataProduct) {
-    return {
-      error: `Data product not found: ${params.dataProductId} (${describeVersion(params.dataProductVersion)})`,
-    };
+    return notFound(
+      `Data product not found: ${params.dataProductId} (${describeVersion(params.dataProductVersion)})`,
+      'data-products',
+      params.dataProductId
+    );
   }
 
   const outputPointers = (dataProduct.data as any).outputs || [];
@@ -1203,6 +1273,58 @@ export async function getDataProductOutputs(params: { dataProductId: string; dat
 // Architecture Diagram (Mermaid) tools
 // ============================================
 
+/** The field a diagram node keeps its resource in, and that resource's collection, by node type */
+const DIAGRAM_NODE_RESOURCES: Record<string, [field: string, collection: string]> = {
+  services: ['service', 'services'],
+  service: ['service', 'services'],
+  agents: ['agent', 'agents'],
+  agent: ['agent', 'agents'],
+  events: ['message', 'events'],
+  event: ['message', 'events'],
+  commands: ['message', 'commands'],
+  command: ['message', 'commands'],
+  queries: ['message', 'queries'],
+  query: ['message', 'queries'],
+  channels: ['channel', 'channels'],
+  channel: ['channel', 'channels'],
+  domains: ['domain', 'domains'],
+  domain: ['domain', 'domains'],
+  'context-domain': ['domain', 'domains'],
+  'domain-group': ['domain', 'domains'],
+  group: ['domain', 'domains'],
+  systems: ['system', 'systems'],
+  system: ['system', 'systems'],
+  'system-group': ['system', 'systems'],
+  flows: ['flow', 'flows'],
+  flow: ['flow', 'flows'],
+  data: ['data', 'containers'],
+  container: ['data', 'containers'],
+  'data-products': ['dataProduct', 'data-products'],
+  'data-product': ['dataProduct', 'data-products'],
+  entities: ['entity', 'entities'],
+  entity: ['entity', 'entities'],
+};
+
+/**
+ * The docs link for each resource in a diagram, by its name. Mermaid ids and labels aren't resource ids (e.g. the channel
+ * `payments.outcomes` is `payments_outcomes_1_0_0`, labelled "Payments Outcomes"), so links built from them are broken.
+ */
+export const getDiagramLinks = (nodes: { type?: string; hidden?: boolean; data?: any }[]) => {
+  const links: Record<string, string> = {};
+  for (const node of nodes) {
+    const [field, collection] = (!node.hidden && DIAGRAM_NODE_RESOURCES[node.type ?? '']) || [];
+    const resource = field ? node.data?.[field] : undefined;
+    const id = resource?.data?.id ?? resource?.id;
+    const version = resource?.data?.version ?? resource?.version;
+    if (!id || !version) continue;
+    const name = resource?.data?.name ?? resource?.name ?? id;
+    const link = `/docs/${collection}/${id}/${version}`;
+    // Two resources with one name (e.g. a domain and a service) are told apart by their collection
+    links[links[name] && links[name] !== link ? `${name} (${collection})` : name] = link;
+  }
+  return links;
+};
+
 /**
  * Get the architecture diagram for a resource as Mermaid code
  * Returns flowchart syntax that can be rendered or used for understanding architecture
@@ -1224,7 +1346,11 @@ export async function getArchitectureDiagramAsMermaid(params: {
 
   const resource = await findEntry(resourceCollection, resourceId, params.resourceVersion);
   if (!resource) {
-    return { error: `Resource not found: ${resourceId} (${describeVersion(params.resourceVersion)}) in ${resourceCollection}` };
+    return notFound(
+      `Resource not found: ${resourceId} (${describeVersion(params.resourceVersion)}) in ${resourceCollection}`,
+      resourceCollection,
+      resourceId
+    );
   }
   const resourceVersion: string = resource.data.version;
 
@@ -1254,6 +1380,7 @@ export async function getArchitectureDiagramAsMermaid(params: {
       resourceCollection,
       detail,
       mermaidCode,
+      links: getDiagramLinks(nodes),
       nodeCount: nodes.length,
       edgeCount: edges.length,
       visualiserUrl: `/visualiser/${resourceCollection}/${resourceId}/${resourceVersion}`,
@@ -1432,7 +1559,7 @@ export const toolDescriptions = {
   getDataProductOutputs:
     'Use this tool to get the outputs (resources produced) for a data product. Returns fully hydrated output resources with their id, version, name, summary, collection type, and data contracts (if defined). Data contracts include the contract name, path, format, type, and content.',
   getArchitectureDiagramAsMermaid:
-    'Use this tool first when you need an overview of how part of the architecture fits together. Returns the architecture diagram for a resource as Mermaid flowchart code, built the same way as its Diagram page in EventCatalog: the resources it connects to (services, agents, systems, domains, events, commands, queries, channels, data stores), with labelled edges (e.g. publishes, subscribes to, invokes). Systems and domains appear as subgraphs, so you can see what is inside a boundary and what is outside it. For domains and systems, pass detail "overview" for just the domains, systems and their relationships (smaller), or "full" (default) to include services, messages and channels. One call replaces walking producers and consumers one at a time, and the Mermaid can be shown to the user or added to docs and pull requests. Supported collections: events, commands, queries, agents, services, domains, systems, flows, containers, data-products.',
+    'Use this tool first when you need an overview of how part of the architecture fits together. Returns the architecture diagram for a resource as Mermaid flowchart code, built the same way as its Diagram page in EventCatalog: the resources it connects to (services, agents, systems, domains, events, commands, queries, channels, data stores), with labelled edges (e.g. publishes, subscribes to, invokes), and `links`: the docs link for each resource in it, by name. Mermaid node ids are not resource ids: link resources with `links`, never by building a URL from a node id or label. Systems and domains appear as subgraphs, so you can see what is inside a boundary and what is outside it. For domains and systems, pass detail "overview" for just the domains, systems and their relationships (smaller), or "full" (default) to include services, messages and channels. One call replaces walking producers and consumers one at a time, and the Mermaid can be shown to the user or added to docs and pull requests. Supported collections: events, commands, queries, agents, services, domains, systems, flows, containers, data-products.',
   getCustomDocs:
     'Use this tool to list the custom documentation pages in EventCatalog (guides, runbooks, architecture notes, onboarding docs, etc.). Returns page ids, titles, and summaries without page content. Supports pagination via cursor and filtering by search term (searches title, id, and summary).',
   searchCustomDocs:
