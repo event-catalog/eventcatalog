@@ -37,18 +37,30 @@ const shownByMessage = new Map<string, number>();
 export function useRevealedText(id: string, text: string, live: boolean, onReveal?: () => void) {
   const revealing = useRef(live);
   const [shown, setShown] = useState(() => (live ? (shownByMessage.get(id) ?? 0) : text.length));
+  // Read by the clock, so text arriving faster than it ticks doesn't restart it (a fast stream would never show)
+  const latestText = useRef(text);
+  latestText.current = text;
+  const caughtUp = shown >= text.length;
 
+  // A steady clock while there's text to show: stopped once it has caught up, started again when more arrives
   useEffect(() => {
-    if (!revealing.current) return;
-    if (shown >= text.length) return;
-    const timer = setTimeout(() => {
-      const next = nextRevealLength(text, shown);
-      shownByMessage.set(id, next);
-      setShown(next);
-      onReveal?.();
+    if (!revealing.current || caughtUp) return;
+    const clock = setInterval(() => {
+      setShown((current) => {
+        const next = nextRevealLength(latestText.current, current);
+        shownByMessage.set(id, next);
+        return next;
+      });
     }, REVEAL_TICK_MS);
-    return () => clearTimeout(timer);
-  }, [id, text, shown, onReveal]);
+    return () => clearInterval(clock);
+  }, [id, caughtUp]);
+
+  // Once what's shown has grown on the page (e.g. to keep it scrolled into view)
+  const latestOnReveal = useRef(onReveal);
+  latestOnReveal.current = onReveal;
+  useEffect(() => {
+    if (revealing.current && shown > 0) latestOnReveal.current?.();
+  }, [shown]);
 
   const visible = revealing.current ? Math.min(shown, text.length) : text.length;
   return { text: text.slice(0, visible), revealing: visible < text.length };

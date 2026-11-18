@@ -1,5 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { nextRevealLength, REVEAL_TICK_MS } from '../revealed-text';
+// @vitest-environment jsdom
+import { act, createElement } from 'react';
+import { createRoot } from 'react-dom/client';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { nextRevealLength, REVEAL_TICK_MS, useRevealedText } from '../revealed-text';
 
 /** How long it takes to show all of `text`, starting from nothing */
 const timeToReveal = (text: string) => {
@@ -40,5 +43,31 @@ describe('nextRevealLength', () => {
     expect(nextRevealLength(text, text.length)).toBe(text.length);
     expect(nextRevealLength(text, text.length + 10)).toBe(text.length);
     expect(nextRevealLength(text, 10)).toBeGreaterThan(10);
+  });
+});
+
+describe('useRevealedText', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('shows a fast stream as it arrives, not once it pauses', () => {
+    vi.useFakeTimers();
+    (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+    let visible = '';
+    const Answer = ({ text }: { text: string }) => {
+      visible = useRevealedText('fast-stream', text, true).text;
+      return null;
+    };
+    const root = createRoot(document.createElement('div'));
+
+    // A new word every 10ms (faster than the reveal ticks) for 300ms
+    let text = '';
+    for (let word = 0; word < 30; word++) {
+      text += `word${word} `;
+      act(() => root.render(createElement(Answer, { text })));
+      act(() => vi.advanceTimersByTime(10));
+    }
+
+    expect(visible.length).toBeGreaterThan(0);
+    act(() => root.unmount());
   });
 });
