@@ -1788,6 +1788,10 @@ const ChatPanel = ({ isOpen, onClose, configured = false, question }: ChatPanelP
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[300]" />
           <Dialog.Content
+            // Escape with a diagram open full size closes the diagram, not the chat
+            onEscapeKeyDown={(event) => {
+              if (document.querySelector('.ec-diagram-modal')) event.preventDefault();
+            }}
             className="ec-chat-surface fixed inset-y-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl md:inset-y-8 rounded-xl shadow-2xl z-[301] flex flex-col overflow-hidden focus:outline-hidden border border-[rgb(var(--ec-page-border))]"
             style={{
               background: `

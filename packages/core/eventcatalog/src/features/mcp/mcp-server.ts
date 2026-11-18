@@ -428,7 +428,7 @@ function createMcpServer(
       id: params.resourceId,
       version: params.resourceVersion,
     });
-    if (resource.error !== undefined) return { error: resource.error };
+    if ('error' in resource) return { error: resource.error };
 
     const schemas = await tools.getSchemaForResource({ ...params, resourceVersion: resource.version });
     if ('error' in schemas && schemas.error !== undefined) return { error: schemas.error };
@@ -470,7 +470,7 @@ function createMcpServer(
 
   const loadArchitectureView = async ({ view, ...params }: ResourceViewParams) => {
     const result = await tools.getArchitectureDiagramAsMermaid(params);
-    if (result.error !== undefined) return { error: result.error };
+    if ('error' in result) return { error: result.error };
     return {
       forModel: {
         note: mcpAppNote('diagram', 'redraw it as Mermaid or ASCII', 'show the user the mermaidCode'),

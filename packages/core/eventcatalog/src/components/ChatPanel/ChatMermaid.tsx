@@ -87,7 +87,9 @@ const openFullSize = async (diagram: HTMLElement | null, code: string) => {
   if (!svg) return;
   const { openDiagramModal } = await import('@utils/mermaid-zoom');
   const { width, height } = svg.viewBox.baseVal;
-  openDiagramModal({ svg: svg.cloneNode(true) as SVGElement, width, height, diagramContent: code });
+  // In the expanded chat (a modal), the viewer opens inside it: outside, the modal would block its clicks and focus
+  const modal = diagram?.closest<HTMLElement>('[role="dialog"]') ?? undefined;
+  openDiagramModal({ svg: svg.cloneNode(true) as SVGElement, width, height, diagramContent: code }, modal);
 };
 
 /**
