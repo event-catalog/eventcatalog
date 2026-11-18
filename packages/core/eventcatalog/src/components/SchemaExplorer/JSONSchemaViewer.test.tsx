@@ -414,6 +414,12 @@ describe('JSONSchemaViewer additionalProperties', () => {
     expect(container.textContent).toContain('Additional properties: not allowed');
   });
 
+  it('tells the reader the items of a root array are closed when they have no properties', () => {
+    render({ type: 'array', items: { type: 'object', additionalProperties: false } });
+
+    expect(container.textContent).toContain('Additional properties: not allowed');
+  });
+
   it('renders both the root map value and the selected root variant map value', () => {
     render({
       type: 'object',

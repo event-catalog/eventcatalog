@@ -668,7 +668,7 @@ export default function JSONSchemaViewer({
           _isRootArrayItem: true,
           _rootArraySchema: processedSchema,
         };
-      } else if (getMapValueSchema(processedSchema.items)) {
+      } else if (getMapValueSchema(processedSchema.items) || processedSchema.items.additionalProperties === false) {
         display = {
           ...processedSchema.items,
           description: processedSchema.description || processedSchema.items.description,
