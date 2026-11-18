@@ -400,7 +400,8 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
       details.items.anyOf ||
       details.items.variants ||
       details.items.$ref ||
-      getMapValueSchema(details.items));
+      getMapValueSchema(details.items) ||
+      details.items.additionalProperties === false);
   const hasVariants = details.variants && details.variants.length > 0;
   const mapValue = getMapValueSchema(details);
   // A map of plain values is fully described by its `map<string, X>` label, so it only gets a row
@@ -689,7 +690,8 @@ export default function JSONSchemaViewer({
 
   const { description, properties, required = [], variants, variantType } = displaySchema;
   const selectedVariant = variants?.length > 0 ? variants[selectedVariantIndex] : undefined;
-  const rootMapValue = getMapValueSchema(selectedVariant) ?? getMapValueSchema(displaySchema);
+  // The root's map value applies to every option, so it shows alongside the selected option's own
+  const rootMapValues = [getMapValueSchema(displaySchema), getMapValueSchema(selectedVariant)].filter(Boolean);
   const isRootClosed = displaySchema.additionalProperties === false || selectedVariant?.additionalProperties === false;
   const totalProperties = useMemo(() => countProperties(displaySchema), [displaySchema]);
 
@@ -971,7 +973,7 @@ export default function JSONSchemaViewer({
 
           const hasPropsToDisplay = propsToDisplay && Object.keys(propsToDisplay).length > 0;
 
-          if (hasPropsToDisplay || rootMapValue) {
+          if (hasPropsToDisplay || rootMapValues.length > 0) {
             return (
               <div ref={propertiesContainerRef}>
                 {hasPropsToDisplay &&
@@ -985,16 +987,16 @@ export default function JSONSchemaViewer({
                       expand={expandAll}
                     />
                   ))}
-                {rootMapValue && (
+                {rootMapValues.map((mapValue: any, index: number) => (
                   <SchemaProperty
-                    key={`${selectedVariantIndex}-${MAP_KEY_NAME}`}
+                    key={`${selectedVariantIndex}-${MAP_KEY_NAME}-${index}`}
                     name={MAP_KEY_NAME}
-                    details={rootMapValue}
+                    details={mapValue}
                     isRequired={false}
                     level={0}
                     expand={expandAll}
                   />
-                )}
+                ))}
               </div>
             );
           } else if (!isRootArray) {
@@ -1002,7 +1004,7 @@ export default function JSONSchemaViewer({
           }
           return null;
         })()}
-        {!properties && !variants && !rootMapValue && isRootArray && (
+        {!properties && !variants && rootMapValues.length === 0 && isRootArray && (
           <div className="text-center py-8">
             <div className="text-[rgb(var(--ec-page-text-muted))] text-sm">
               <p>

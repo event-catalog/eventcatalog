@@ -404,6 +404,27 @@ describe('JSONSchemaViewer additionalProperties', () => {
     expect(container.textContent).toContain('Additional properties: not allowed');
   });
 
+  it('tells the reader array items with no properties of their own are closed', () => {
+    render({
+      type: 'object',
+      properties: { empties: { type: 'array', items: { type: 'object', additionalProperties: false } } },
+    });
+
+    expect(container.querySelector('[aria-label="Toggle empties"]')).not.toBeNull();
+    expect(container.textContent).toContain('Additional properties: not allowed');
+  });
+
+  it('renders both the root map value and the selected root variant map value', () => {
+    render({
+      type: 'object',
+      additionalProperties: { type: 'object', properties: { shared: { type: 'string' } } },
+      oneOf: [{ title: 'Local', additionalProperties: { type: 'object', properties: { local: { type: 'string' } } } }],
+    });
+
+    expect(container.textContent).toContain('shared');
+    expect(container.textContent).toContain('local');
+  });
+
   it('keeps additionalProperties from an allOf schema', () => {
     render({
       type: 'object',
