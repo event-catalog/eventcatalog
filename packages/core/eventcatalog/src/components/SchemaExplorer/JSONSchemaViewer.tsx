@@ -32,6 +32,63 @@ function formatType(type: any): string {
   return type ?? '';
 }
 
+function isSchemaObject(value: any): boolean {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+// `additionalProperties: { ... }` makes an object a map whose values match that schema.
+// `{}` allows any value, the same as `true`, so it is not treated as a typed map.
+function getMapValueSchema(schema: any): any | null {
+  const value = schema?.additionalProperties;
+  return isSchemaObject(value) && Object.keys(value).length > 0 ? value : null;
+}
+
+function hasSchemaDetails(schema: any): boolean {
+  return Object.keys(schema).some((key) => key !== 'type');
+}
+
+const MAP_KEY_NAME = '[key: string]';
+
+// An object that is only a map (no named properties or options) is labelled `map<string, X>`.
+// Otherwise the map's value schema is shown as a `[key: string]` row next to the properties.
+function isLabelledAsMap(schema: any): boolean {
+  const hasProperties = schema.properties && Object.keys(schema.properties).length > 0;
+  return !hasProperties && !schema.variants?.length && (!schema.type || hasType(schema.type, 'object'));
+}
+
+// The type label shown next to a property, e.g. `string`, `array[string]`, `map<string, Address>`.
+// Array items keep their declared type rather than oneOf/anyOf, as they always have.
+function describeType(schema: any, showVariants = true): string {
+  if (showVariants && schema.variants?.length > 0) return schema.variantType === 'anyOf' ? 'anyOf' : 'oneOf';
+
+  const itemType = hasType(schema.type, 'array') && schema.items ? describeType(schema.items, false) : '';
+
+  const mapValue = getMapValueSchema(schema);
+  if (mapValue && isLabelledAsMap(schema)) {
+    const mapLabel = `map<string, ${mapValue._refName || describeType(mapValue) || 'any'}>`;
+    const arrayLabel = itemType ? `array[${itemType}]` : 'array';
+    // Keep the other members of a type union, e.g. ['object', 'null'] -> `map<string, X> | null`
+    return Array.isArray(schema.type)
+      ? schema.type.map((type: string) => (type === 'object' ? mapLabel : type === 'array' ? arrayLabel : type)).join(' | ')
+      : mapLabel;
+  }
+
+  return `${formatType(schema.type)}${itemType ? `[${itemType}]` : ''}`;
+}
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const ClosedObjectNote = ({ className = '' }: { className?: string }) => (
+  <div className={`text-xs text-[rgb(var(--ec-page-text-muted))] ${className}`}>
+    Additional properties:{' '}
+    <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+      not allowed
+    </code>
+  </div>
+);
+
 function getForbiddenVariantProperties(variant: any): string[] {
   const forbiddenRequired = variant?.not?.required;
 
@@ -54,6 +111,9 @@ function countProperties(obj: any): number {
   }
   if (obj.items) {
     count += countProperties(obj.items);
+  }
+  if (isSchemaObject(obj.additionalProperties)) {
+    count += countProperties(obj.additionalProperties);
   }
   if (obj._isRootArrayItem && obj._rootArraySchema?.items) {
     // Don't double count
@@ -82,7 +142,8 @@ function mergeAllOfSchemas(schemaWithProcessor: any): any {
   // Copy base schema properties first (excluding allOf)
   Object.keys(schema).forEach((key) => {
     if (key !== 'allOf' && key !== 'properties' && key !== 'required' && key !== 'description') {
-      mergedSchema[key] = schema[key];
+      mergedSchema[key] =
+        key === 'additionalProperties' && isSchemaObject(schema[key]) && processor ? processor(schema[key]) : schema[key];
     }
   });
 
@@ -122,10 +183,13 @@ function mergeAllOfSchemas(schemaWithProcessor: any): any {
   return mergedSchema;
 }
 
-function processSchema(schema: any, rootSchema?: any): any {
+// `refStack` holds the refs being resolved on the current path, so a schema that refers
+// back to itself (e.g. a tree of nodes) stops instead of recursing forever.
+function processSchema(schema: any, rootSchema?: any, refStack: string[] = []): any {
   if (!schema) return schema;
 
   const root = rootSchema || schema;
+  const recurse = (subSchema: any) => processSchema(subSchema, root, refStack);
 
   // Handle $ref
   if (schema.$ref) {
@@ -155,8 +219,18 @@ function processSchema(schema: any, rootSchema?: any): any {
       }
     }
 
+    if (resolvedSchema && refStack.includes(refPath)) {
+      return {
+        type: resolvedSchema.type || 'object',
+        description: resolvedSchema.description,
+        _refPath: refPath,
+        _refName: defName,
+        _circularRef: true,
+      };
+    }
+
     if (resolvedSchema) {
-      const processedSchema = processSchema(resolvedSchema, root);
+      const processedSchema = processSchema(resolvedSchema, root, [...refStack, refPath]);
       return {
         ...processedSchema,
         _refPath: refPath,
@@ -176,7 +250,7 @@ function processSchema(schema: any, rootSchema?: any): any {
   }
 
   if (schema.allOf) {
-    return mergeAllOfSchemas({ ...schema, processSchema: (s: any) => processSchema(s, root) });
+    return mergeAllOfSchemas({ ...schema, processSchema: recurse });
   }
 
   if (schema.oneOf || schema.anyOf) {
@@ -184,13 +258,11 @@ function processSchema(schema: any, rootSchema?: any): any {
     const variantType = schema.oneOf ? 'oneOf' : 'anyOf';
 
     const processedProperties = schema.properties
-      ? Object.fromEntries(
-          Object.entries(schema.properties).map(([key, prop]: [string, any]) => [key, processSchema(prop, root)])
-        )
+      ? Object.fromEntries(Object.entries(schema.properties).map(([key, prop]: [string, any]) => [key, recurse(prop)]))
       : {};
 
     const processedVariants = variantsArray.map((variant: any, index: number) => {
-      const processedVariant = processSchema(variant, root);
+      const processedVariant = recurse(variant);
       const forbiddenProperties = new Set(getForbiddenVariantProperties(processedVariant));
       const properties = Object.fromEntries(
         Object.entries({ ...processedProperties, ...(processedVariant.properties || {}) }).filter(
@@ -212,6 +284,7 @@ function processSchema(schema: any, rootSchema?: any): any {
       ...schema,
       type: schema.type || 'object',
       properties: processedProperties,
+      ...(isSchemaObject(schema.additionalProperties) && { additionalProperties: recurse(schema.additionalProperties) }),
       variants: processedVariants,
       variantType,
     };
@@ -221,14 +294,19 @@ function processSchema(schema: any, rootSchema?: any): any {
   if (schema.properties) {
     const processedProperties: Record<string, any> = {};
     Object.entries(schema.properties).forEach(([key, prop]: [string, any]) => {
-      processedProperties[key] = processSchema(prop, root);
+      processedProperties[key] = recurse(prop);
     });
     schema = { ...schema, properties: processedProperties };
   }
 
   // Process array items
   if (hasType(schema.type, 'array') && schema.items) {
-    schema = { ...schema, items: processSchema(schema.items, root) };
+    schema = { ...schema, items: recurse(schema.items) };
+  }
+
+  // Process the value schema of a map (`additionalProperties: { ... }`)
+  if (isSchemaObject(schema.additionalProperties)) {
+    schema = { ...schema, additionalProperties: recurse(schema.additionalProperties) };
   }
 
   return schema;
@@ -286,7 +364,20 @@ const NestedVariantSelector = ({
           ))}
         </div>
       )}
+      {selectedVariant && <ObjectSchemaExtras key={selectedIndex} schema={selectedVariant} level={level} expand={expand} />}
     </div>
+  );
+};
+
+// What `additionalProperties` adds to an object that has no row of its own (a variant, an
+// array item): a note when the object is closed, and a row for the value schema of a map.
+const ObjectSchemaExtras = ({ schema, level, expand }: { schema: any; level: number; expand: boolean }) => {
+  const mapValue = getMapValueSchema(schema);
+  return (
+    <>
+      {schema.additionalProperties === false && <ClosedObjectNote className="mt-1 mb-1.5" />}
+      {mapValue && <SchemaProperty name={MAP_KEY_NAME} details={mapValue} isRequired={false} level={level} expand={expand} />}
+    </>
   );
 };
 
@@ -295,7 +386,7 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
   const [isExpanded, setIsExpanded] = useState(expand);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   // useId keeps the server and client IDs identical during hydration.
-  const contentId = `prop-${name}-${level}-${useId()}`;
+  const contentId = `prop-${name.replace(/[^\w-]/g, '_')}-${level}-${useId()}`;
 
   useEffect(() => {
     setIsExpanded(expand);
@@ -310,9 +401,15 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
       details.items.oneOf ||
       details.items.anyOf ||
       details.items.variants ||
-      details.items.$ref);
+      details.items.$ref ||
+      getMapValueSchema(details.items) ||
+      details.items.additionalProperties === false);
   const hasVariants = details.variants && details.variants.length > 0;
-  const isCollapsible = hasNestedProperties || hasArrayItemProperties || hasVariants;
+  const mapValue = getMapValueSchema(details);
+  // A map of plain values is fully described by its `map<string, X>` label, so it only gets a row
+  // when the value schema has more to show or the label does not mention the map.
+  const hasMapValueDetails = Boolean(mapValue) && (hasSchemaDetails(mapValue) || !isLabelledAsMap(details));
+  const isCollapsible = hasNestedProperties || hasArrayItemProperties || hasVariants || hasMapValueDetails;
 
   const indentationClass = `pl-${level * 3}`;
 
@@ -340,13 +437,13 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
               <div className="text-sm">
                 <span className="font-semibold text-[rgb(var(--ec-page-text))] text-sm">{name}</span>
                 <span className="ml-1.5 text-[rgb(var(--ec-accent))] font-mono text-xs">
-                  {hasVariants ? (details.variantType === 'anyOf' ? 'anyOf' : 'oneOf') : formatType(details.type)}
-                  {hasType(details.type, 'array') && details.items?.type ? `[${formatType(details.items.type)}]` : ''}
+                  {describeType(details)}
                   {details.format ? `<${details.format}>` : ''}
                   {details._refPath && (
                     <span className="text-blue-600 dark:text-blue-400 ml-1">→ {details._refName || details._refPath}</span>
                   )}
                   {details._refNotFound && <span className="text-red-600 dark:text-red-400 ml-1">❌ ref not found</span>}
+                  {details._circularRef && <span className="text-[rgb(var(--ec-page-text-muted))] ml-1">(circular)</span>}
                   {details.const !== undefined && (
                     <span>
                       constant: <code>{details.const}</code>
@@ -403,6 +500,7 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                   </code>
                 </div>
               )}
+              {details.additionalProperties === false && <ClosedObjectNote />}
               {details.enum && (
                 <div>
                   <span className="text-xs inline-block">Allowed values:</span>
@@ -419,7 +517,7 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
             </div>
           </div>
 
-          {(hasNestedProperties || hasArrayItems || hasVariants) && (
+          {(hasNestedProperties || hasArrayItems || hasVariants || hasMapValueDetails) && (
             <div id={contentId} className={`nested-content mt-1 ${isCollapsible && !isExpanded ? 'hidden' : ''}`}>
               {hasVariants && (
                 <div className="mt-2 mb-2 p-2 bg-[rgb(var(--ec-accent-subtle,var(--ec-content-hover)))] border border-[rgb(var(--ec-page-border))] rounded-md">
@@ -464,6 +562,15 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                 </div>
               )}
 
+              {hasVariants && details.variants[selectedVariantIndex] && (
+                <ObjectSchemaExtras
+                  key={selectedVariantIndex}
+                  schema={details.variants[selectedVariantIndex]}
+                  level={level + 1}
+                  expand={expand}
+                />
+              )}
+
               {hasNestedProperties &&
                 !hasVariants &&
                 details.properties &&
@@ -477,6 +584,10 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                     expand={expand}
                   />
                 ))}
+
+              {hasMapValueDetails && (
+                <SchemaProperty name={MAP_KEY_NAME} details={mapValue} isRequired={false} level={level + 1} expand={expand} />
+              )}
 
               {hasArrayItemProperties && (
                 <div className="mt-1 border-l border-dashed border-[rgb(var(--ec-page-border))] pl-3 ml-1.5">
@@ -502,6 +613,8 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                       expand={expand}
                     />
                   )}
+                  {/* The item schema's own additionalProperties apply to every option, so show them as well */}
+                  <ObjectSchemaExtras schema={details.items} level={level + 1} expand={expand} />
                   {(details.items.allOf || details.items.oneOf || details.items.anyOf || details.items.$ref) &&
                     !details.items.properties &&
                     !details.items.variants && (
@@ -557,6 +670,13 @@ export default function JSONSchemaViewer({
           _isRootArrayItem: true,
           _rootArraySchema: processedSchema,
         };
+      } else if (getMapValueSchema(processedSchema.items) || processedSchema.items.additionalProperties === false) {
+        display = {
+          ...processedSchema.items,
+          description: processedSchema.description || processedSchema.items.description,
+          _isRootArrayItem: true,
+          _rootArraySchema: processedSchema,
+        };
       } else if (processedSchema.items.allOf || processedSchema.items.oneOf || processedSchema.items.$ref) {
         display = {
           ...processSchema(processedSchema.items),
@@ -571,6 +691,10 @@ export default function JSONSchemaViewer({
   }, [processedSchema]);
 
   const { description, properties, required = [], variants, variantType } = displaySchema;
+  const selectedVariant = variants?.length > 0 ? variants[selectedVariantIndex] : undefined;
+  // The root's map value applies to every option, so it shows alongside the selected option's own
+  const rootMapValues = [getMapValueSchema(displaySchema), getMapValueSchema(selectedVariant)].filter(Boolean);
+  const isRootClosed = displaySchema.additionalProperties === false || selectedVariant?.additionalProperties === false;
   const totalProperties = useMemo(() => countProperties(displaySchema), [displaySchema]);
 
   // Search functionality
@@ -608,7 +732,7 @@ export default function JSONSchemaViewer({
         matches.push(container as HTMLElement);
 
         // Highlight the search term
-        const regex = new RegExp(`(${query})`, 'gi');
+        const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
         nameEl.innerHTML = (nameEl.textContent || '').replace(regex, '<mark class="bg-yellow-200 rounded px-0.5">$1</mark>');
 
         // Expand parent containers and remove dimming from them
@@ -839,6 +963,7 @@ export default function JSONSchemaViewer({
             )}
           </div>
         )}
+        {isRootClosed && <ClosedObjectNote className="mb-4" />}
 
         {(() => {
           // Determine which properties to display
@@ -848,15 +973,28 @@ export default function JSONSchemaViewer({
               : properties;
           const requiredProps = variants && variants.length > 0 ? variants[selectedVariantIndex]?.required || [] : required;
 
-          if (propsToDisplay && Object.keys(propsToDisplay).length > 0) {
+          const hasPropsToDisplay = propsToDisplay && Object.keys(propsToDisplay).length > 0;
+
+          if (hasPropsToDisplay || rootMapValues.length > 0) {
             return (
               <div ref={propertiesContainerRef}>
-                {Object.entries(propsToDisplay).map(([name, details]: [string, any]) => (
+                {hasPropsToDisplay &&
+                  Object.entries(propsToDisplay).map(([name, details]: [string, any]) => (
+                    <SchemaProperty
+                      key={`${selectedVariantIndex}-${name}`}
+                      name={name}
+                      details={details}
+                      isRequired={requiredProps.includes(name)}
+                      level={0}
+                      expand={expandAll}
+                    />
+                  ))}
+                {rootMapValues.map((mapValue: any, index: number) => (
                   <SchemaProperty
-                    key={`${selectedVariantIndex}-${name}`}
-                    name={name}
-                    details={details}
-                    isRequired={requiredProps.includes(name)}
+                    key={`${selectedVariantIndex}-${MAP_KEY_NAME}-${index}`}
+                    name={MAP_KEY_NAME}
+                    details={mapValue}
+                    isRequired={false}
                     level={0}
                     expand={expandAll}
                   />
@@ -868,7 +1006,7 @@ export default function JSONSchemaViewer({
           }
           return null;
         })()}
-        {!properties && !variants && isRootArray && (
+        {!properties && !variants && rootMapValues.length === 0 && isRootArray && (
           <div className="text-center py-8">
             <div className="text-[rgb(var(--ec-page-text-muted))] text-sm">
               <p>
