@@ -61,16 +61,18 @@ function isLabelledAsMap(schema: any): boolean {
 function describeType(schema: any, showVariants = true): string {
   if (showVariants && schema.variants?.length > 0) return schema.variantType === 'anyOf' ? 'anyOf' : 'oneOf';
 
+  const itemType = hasType(schema.type, 'array') && schema.items ? describeType(schema.items, false) : '';
+
   const mapValue = getMapValueSchema(schema);
   if (mapValue && isLabelledAsMap(schema)) {
     const mapLabel = `map<string, ${mapValue._refName || describeType(mapValue) || 'any'}>`;
+    const arrayLabel = itemType ? `array[${itemType}]` : 'array';
     // Keep the other members of a type union, e.g. ['object', 'null'] -> `map<string, X> | null`
     return Array.isArray(schema.type)
-      ? schema.type.map((type: string) => (type === 'object' ? mapLabel : type)).join(' | ')
+      ? schema.type.map((type: string) => (type === 'object' ? mapLabel : type === 'array' ? arrayLabel : type)).join(' | ')
       : mapLabel;
   }
 
-  const itemType = hasType(schema.type, 'array') && schema.items ? describeType(schema.items, false) : '';
   return `${formatType(schema.type)}${itemType ? `[${itemType}]` : ''}`;
 }
 

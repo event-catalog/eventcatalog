@@ -256,6 +256,17 @@ describe('JSONSchemaViewer additionalProperties', () => {
     expect(container.textContent).toContain('map<string, string> | null');
   });
 
+  it('keeps the item type of an array in a map type union', () => {
+    render({
+      type: 'object',
+      properties: {
+        value: { type: ['object', 'array'], additionalProperties: { type: 'number' }, items: { type: 'string' } },
+      },
+    });
+
+    expect(container.textContent).toContain('map<string, number> | array[string]');
+  });
+
   it('shows a map of plain values next to the named properties of an object', () => {
     render({
       type: 'object',
