@@ -24,7 +24,8 @@ export const test = base.extend<{ contentSecurityPolicy: void }>({
 export { expect };
 
 export type CanvasNode = { id: string; type?: string; parentId?: string; measured: boolean; x: number; y: number; width: number; height: number };
-type Hook = { level?: () => number; nodes?: () => CanvasNode[] };
+type Hook = { level?: () => number; nodes?: () => CanvasNode[]; edges?: () => CanvasEdge[] };
+export type CanvasEdge = { id: string; source: string; target: string; sourceHandle: string | null; targetHandle: string | null };
 
 const fixture = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/${name}`, import.meta.url), 'utf8'));
 
@@ -54,6 +55,9 @@ export async function openDiagram(page: Page, name = 'orders-model.json', { leve
 
 /** What's on the level shown, placed on the canvas */
 export const canvasNodes = (page: Page) => page.evaluate(() => (window as { __studioTest?: Hook }).__studioTest?.nodes?.() ?? []);
+
+/** The canvas's connections, and the handles they're joined at */
+export const canvasEdges = (page: Page) => page.evaluate(() => (window as { __studioTest?: Hook }).__studioTest?.edges?.() ?? []);
 
 export const nodeById = async (page: Page, id: string) => {
   const node = (await canvasNodes(page)).find((candidate) => candidate.id === id);

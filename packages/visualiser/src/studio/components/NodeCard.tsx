@@ -266,6 +266,7 @@ export function EditableText({
   label,
   required = false,
   startEmpty = false,
+  accept,
   onSaved,
 }: {
   value: string;
@@ -280,6 +281,11 @@ export function EditableText({
    * it's left empty
    */
   startEmpty?: boolean;
+  /**
+   * Whether a value can be saved (e.g. a property's name, that no other property has): one it can't stays while it's
+   * typed, isn't saved, and goes back to what was there when the field is left
+   */
+  accept?: (value: string) => boolean;
   /** Something was saved (to say so) */
   onSaved?: () => void;
 }) {
@@ -289,8 +295,8 @@ export function EditableText({
   const before = useRef(value);
   const pending = useRef<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const latest = useRef({ value, onSave, onSaved, required });
-  latest.current = { value, onSave, onSaved, required };
+  const latest = useRef({ value, onSave, onSaved, required, accept });
+  latest.current = { value, onSave, onSaved, required, accept };
   // Changed from elsewhere (undo, the agent): shown, unless it's being typed in
   useEffect(() => {
     if (value === shown.current) return;
@@ -308,8 +314,14 @@ export function EditableText({
       onSave: save,
       onSaved: said,
       required: needed,
+      accept: acceptable,
     } = latest.current;
-    if ((needed && !next.trim()) || next === saved) return;
+    if (
+      (needed && !next.trim()) ||
+      next === saved ||
+      (acceptable && !acceptable(next))
+    )
+      return;
     save(next);
     said?.();
   };
@@ -331,8 +343,8 @@ export function EditableText({
       return;
     }
     const trimmed = draft.trim();
-    // A field that can't be empty goes back to what it was
-    if (required && !trimmed) {
+    // A field that can't be empty (or be what was typed) goes back to what it was
+    if ((required && !trimmed) || (accept && !accept(trimmed))) {
       setDraft(before.current);
       pending.current = before.current;
     } else {

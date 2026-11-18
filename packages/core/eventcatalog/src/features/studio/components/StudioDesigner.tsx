@@ -2186,6 +2186,7 @@ function Canvas({
                       nameEmpty={inspected.id === justMadeId}
                       locked={locked}
                       onChange={flow.updateNodeData}
+                      onPropertiesChange={flow.setEntityProperties}
                       onClose={closePanel}
                     />
                   )}

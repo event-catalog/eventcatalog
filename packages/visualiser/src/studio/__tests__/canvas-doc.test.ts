@@ -23,10 +23,15 @@ import {
   resizeNode,
   setLevelPlaces,
   setNodeParent,
+  setEntityProperties,
   setNodeParents,
   setThreadResolved,
   type Author,
 } from "../canvas-doc";
+import {
+  ENTITY_SOURCE_HANDLE,
+  ENTITY_TARGET_HANDLE_ID,
+} from "../entity-handles";
 
 const ada: Author = { name: "Ada", color: "#f00" };
 const claude: Author = { name: "Claude", color: "#00f", agent: true };
@@ -729,6 +734,131 @@ describe("reconnectEdge", () => {
       source: "a",
       target: "b",
     });
+  });
+});
+
+describe("setEntityProperties", () => {
+  const order = (properties: { name: string; type: string }[]) =>
+    node("order", "entity", 0, 0, {
+      data: { entity: { name: "Order", version: "0.0.1", properties } },
+    });
+  const setup = () => {
+    const doc = new Y.Doc();
+    addNodes(doc, [
+      order([
+        { name: "id", type: "string" },
+        { name: "customerId", type: "string" },
+      ]),
+      node("customer", "entity", 400, 0, {
+        data: { entity: { name: "Customer", properties: [] } },
+      }),
+    ]);
+    const outgoing = connectNodes(doc, {
+      source: "order",
+      target: "customer",
+      sourceHandle: "customerId-source",
+      targetHandle: null,
+    }) as Edge;
+    const incoming = connectNodes(doc, {
+      source: "customer",
+      target: "order",
+      sourceHandle: null,
+      targetHandle: "customerId-target",
+    }) as Edge;
+    return { doc, outgoing, incoming };
+  };
+  const edgeOf = (doc: Y.Doc, id: string) => getCanvasMaps(doc).edges.get(id);
+
+  it("saves the entity's properties, keeping the rest of what it is", () => {
+    const { doc } = setup();
+    setEntityProperties(doc, "order", [
+      { name: "id", type: "string" },
+      { name: "customerId", type: "string" },
+      { name: "total", type: "number" },
+    ]);
+    expect(nodeOf(doc, "order")?.data.entity).toEqual({
+      name: "Order",
+      version: "0.0.1",
+      properties: [
+        { name: "id", type: "string" },
+        { name: "customerId", type: "string" },
+        { name: "total", type: "number" },
+      ],
+    });
+  });
+
+  it("keeps connections joined at a property's row when the property is renamed", () => {
+    const { doc, outgoing, incoming } = setup();
+    setEntityProperties(doc, "order", [
+      { name: "id", type: "string" },
+      { name: "buyerId", type: "string" },
+    ]);
+    expect(edgeOf(doc, outgoing.id)?.sourceHandle).toBe("buyerId-source");
+    expect(edgeOf(doc, incoming.id)?.targetHandle).toBe("buyerId-target");
+  });
+
+  it("joins connections to the entity as a whole when the property they were joined at is removed", () => {
+    const { doc, outgoing, incoming } = setup();
+    setEntityProperties(doc, "order", [{ name: "id", type: "string" }]);
+    expect(edgeOf(doc, outgoing.id)?.sourceHandle).toBe(ENTITY_SOURCE_HANDLE);
+    expect(edgeOf(doc, incoming.id)?.targetHandle).toBe(
+      ENTITY_TARGET_HANDLE_ID,
+    );
+  });
+
+  it("is one change, undone in one step", () => {
+    const { doc, outgoing } = setup();
+    const undo = new Y.UndoManager(
+      [getCanvasMaps(doc).nodes, getCanvasMaps(doc).edges],
+      { trackedOrigins: new Set([null]) },
+    );
+    setEntityProperties(doc, "order", [{ name: "id", type: "string" }]);
+    undo.undo();
+    expect(
+      (nodeOf(doc, "order")?.data.entity as { properties: unknown[] })
+        .properties,
+    ).toHaveLength(2);
+    expect(edgeOf(doc, outgoing.id)?.sourceHandle).toBe("customerId-source");
+  });
+
+  it("won't give two properties the same name (their connections couldn't be told apart)", () => {
+    const { doc, outgoing } = setup();
+    expect(
+      setEntityProperties(doc, "order", [
+        { name: "id", type: "string" },
+        { name: "id", type: "string" },
+      ]),
+    ).toBe(false);
+    expect(
+      (nodeOf(doc, "order")?.data.entity as { properties: unknown[] })
+        .properties,
+    ).toEqual([
+      { name: "id", type: "string" },
+      { name: "customerId", type: "string" },
+    ]);
+    expect(edgeOf(doc, outgoing.id)?.sourceHandle).toBe("customerId-source");
+  });
+
+  it("writes nothing when the properties are what's already there", () => {
+    const { doc } = setup();
+    const updates = vi.fn();
+    doc.on("update", updates);
+    expect(
+      setEntityProperties(doc, "order", [
+        { name: "id", type: "string" },
+        { name: "customerId", type: "string" },
+      ]),
+    ).toBe(false);
+    expect(updates).not.toHaveBeenCalled();
+  });
+
+  it("leaves nodes that aren't entities alone", () => {
+    const { doc } = setup();
+    addNodes(doc, [node("orders", "service", 800, 0)]);
+    expect(
+      setEntityProperties(doc, "orders", [{ name: "id", type: "string" }]),
+    ).toBe(false);
+    expect(nodeOf(doc, "orders")?.data).toEqual({});
   });
 });
 

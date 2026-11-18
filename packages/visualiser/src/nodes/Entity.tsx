@@ -12,7 +12,9 @@ import {
 } from "./shared-styles";
 import { TruncatedResourceName } from "./TruncatedResourceName";
 
-export const ENTITY_TARGET_HANDLE_ID = "__eventcatalog-entity-target";
+import { ENTITY_TARGET_HANDLE_ID } from "./entity-handles";
+
+export { ENTITY_TARGET_HANDLE_ID };
 
 export interface EntityProperty {
   name: string;

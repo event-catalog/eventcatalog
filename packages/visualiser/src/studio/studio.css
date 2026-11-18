@@ -483,3 +483,16 @@ html .studio-drag-preview.eventcatalog-visualizer .react-flow {
 }
 .ec-edit-status.is-saved { color: #16a34a; opacity: 1; }
 .ec-edit-status svg { width: 12px; height: 12px; }
+/* An entity's properties (EntityProperties.tsx): each a name and a type, with a button to remove it */
+.ec-entity-props { display: flex; flex-direction: column; gap: 6px; }
+.ec-entity-prop-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px 24px; gap: 6px; align-items: center; }
+.ec-entity-prop-row .ec-editable { padding: 5px 8px; font-size: 12px; }
+.ec-entity-prop-type-input { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px !important; }
+.ec-entity-prop-remove { width: 24px; height: 24px; }
+.ec-entity-prop-remove svg { width: 13px; height: 13px; }
+.ec-entity-prop-add {
+  display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; padding: 2px 0; border: 0; background: transparent;
+  color: rgb(var(--ec-accent)); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer;
+}
+.ec-entity-prop-add:hover { text-decoration: underline; }
+.ec-entity-prop-add svg { width: 13px; height: 13px; }

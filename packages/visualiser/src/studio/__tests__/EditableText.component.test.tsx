@@ -80,3 +80,51 @@ describe("EditableText with startEmpty", () => {
     expect(input().value).toBe("NewEvent");
   });
 });
+
+describe("EditableText with accept", () => {
+  const taken = new Set(["id", "createdAt"]);
+  const renderAccepting = () =>
+    act(() =>
+      root.render(
+        <EditableText
+          label="Property name"
+          value="customerId"
+          onSave={onSave}
+          accept={(name) => !taken.has(name)}
+          required
+        />,
+      ),
+    );
+
+  it("doesn't save a value it won't accept, while it's typed or when it's left, and puts back what was there", () => {
+    vi.useFakeTimers();
+    try {
+      renderAccepting();
+      act(() => input().focus());
+      type("id");
+      act(() => vi.advanceTimersByTime(1000));
+      expect(onSave).not.toHaveBeenCalled();
+      act(() => input().blur());
+      expect(onSave).not.toHaveBeenCalled();
+      expect(input().value).toBe("customerId");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("saves what it accepts, even after passing through a value it won't", () => {
+    vi.useFakeTimers();
+    try {
+      renderAccepting();
+      act(() => input().focus());
+      type("id");
+      act(() => vi.advanceTimersByTime(1000));
+      type("idempotencyKey");
+      act(() => vi.advanceTimersByTime(1000));
+      expect(onSave).toHaveBeenCalledTimes(1);
+      expect(onSave).toHaveBeenCalledWith("idempotencyKey");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

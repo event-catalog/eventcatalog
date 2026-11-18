@@ -4,8 +4,8 @@
  * the catalog's Sends / Receives lists show them. Styled after the catalog's docs pages (see diagram-styles.ts).
  */
 import { useMemo, useState, type RefObject } from 'react';
-import { Code2, MessageCircleQuestion, Plus, Users, X } from 'lucide-react';
-import { EditableText, EditStatus, Field, NodeCard, useSavedFlash } from '@eventcatalog/visualiser/studio';
+import { Code2, MessageCircleQuestion, Users } from 'lucide-react';
+import { EditableText, EditStatus, EntityProperties, Field, NodeCard, useSavedFlash } from '@eventcatalog/visualiser/studio';
 import { type EntityProperty, type Model, type Note, type Resource, type ResourceType } from '@eventcatalog/visualiser/model';
 import { TypeIcon, TypePill } from './resource-types';
 import { SchemaCode } from './ported/schema-code';
@@ -88,56 +88,6 @@ const incomingLabel = (relation: { kind: string; label?: string }) =>
 
 /** What can be changed from the page: the resource's name, version and summary (and an entity's properties) */
 export type ResourceEdit = { name?: string; version?: string; summary?: string; properties?: EntityProperty[] };
-
-/**
- * An entity's properties: each a name and a type, edited where they are (saved as they're typed), added and removed.
- * Read only where it can't be changed.
- */
-function EntityProperties({ properties, onChange, onSaved }: { properties: EntityProperty[]; onChange?: (next: EntityProperty[]) => void; onSaved: () => void }) {
-  if (!onChange)
-    return properties.length ? (
-      <ul className="ec-entity-props">
-        {properties.map((property) => (
-          <li key={property.name}>
-            <span className="ec-entity-prop-name">{property.name}</span>
-            <span className="ec-entity-prop-type">{property.type}</span>
-          </li>
-        ))}
-      </ul>
-    ) : null;
-  const change = (index: number, field: Partial<EntityProperty>) => onChange(properties.map((property, at) => (at === index ? { ...property, ...field } : property)));
-  return (
-    <div className="ec-entity-props is-editing">
-      {properties.map((property, index) => (
-        <div key={index} className="ec-entity-prop-row">
-          <EditableText label="Property name" value={property.name} onSave={(name) => change(index, { name })} onSaved={onSaved} placeholder="name" required />
-          <EditableText label="Property type" value={property.type} onSave={(type) => change(index, { type })} onSaved={onSaved} placeholder="type" className="ec-entity-prop-type-input" required />
-          <button
-            type="button"
-            className="ec-icon-button ec-entity-prop-remove"
-            aria-label={`Remove ${property.name}`}
-            onClick={() => {
-              onChange(properties.filter((_, at) => at !== index));
-              onSaved();
-            }}
-          >
-            <X aria-hidden />
-          </button>
-        </div>
-      ))}
-      <button
-        type="button"
-        className="ec-entity-prop-add"
-        onClick={() => {
-          onChange([...properties, { name: `property${properties.length + 1}`, type: 'string' }]);
-          onSaved();
-        }}
-      >
-        <Plus aria-hidden /> Add property
-      </button>
-    </div>
-  );
-}
 
 type Related = { id: string; name: string; type: ResourceType; inferred: boolean };
 
