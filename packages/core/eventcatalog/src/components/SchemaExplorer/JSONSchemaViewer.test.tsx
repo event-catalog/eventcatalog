@@ -256,6 +256,17 @@ describe('JSONSchemaViewer additionalProperties', () => {
     expect(container.textContent).toContain('map<string, string> | null');
   });
 
+  it('shows a map of plain values next to the named properties of an object', () => {
+    render({
+      type: 'object',
+      properties: {
+        totals: { type: 'object', properties: { id: { type: 'string' } }, additionalProperties: { type: 'number' } },
+      },
+    });
+
+    expect(container.textContent).toContain('[key: string]number');
+  });
+
   it('keeps the other types of a map that also accepts a primitive', () => {
     render({
       type: 'object',

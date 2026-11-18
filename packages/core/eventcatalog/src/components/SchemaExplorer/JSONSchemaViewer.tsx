@@ -49,14 +49,20 @@ function hasSchemaDetails(schema: any): boolean {
 
 const MAP_KEY_NAME = '[key: string]';
 
+// An object that is only a map (no named properties or options) is labelled `map<string, X>`.
+// Otherwise the map's value schema is shown as a `[key: string]` row next to the properties.
+function isLabelledAsMap(schema: any): boolean {
+  const hasProperties = schema.properties && Object.keys(schema.properties).length > 0;
+  return !hasProperties && !schema.variants?.length && (!schema.type || hasType(schema.type, 'object'));
+}
+
 // The type label shown next to a property, e.g. `string`, `array[string]`, `map<string, Address>`.
 // Array items keep their declared type rather than oneOf/anyOf, as they always have.
 function describeType(schema: any, showVariants = true): string {
   if (showVariants && schema.variants?.length > 0) return schema.variantType === 'anyOf' ? 'anyOf' : 'oneOf';
 
   const mapValue = getMapValueSchema(schema);
-  const hasProperties = schema.properties && Object.keys(schema.properties).length > 0;
-  if (mapValue && !hasProperties && !schema.variants?.length && (!schema.type || hasType(schema.type, 'object'))) {
+  if (mapValue && isLabelledAsMap(schema)) {
     const mapLabel = `map<string, ${mapValue._refName || describeType(mapValue) || 'any'}>`;
     // Keep the other members of a type union, e.g. ['object', 'null'] -> `map<string, X> | null`
     return Array.isArray(schema.type)
@@ -397,7 +403,9 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
       getMapValueSchema(details.items));
   const hasVariants = details.variants && details.variants.length > 0;
   const mapValue = getMapValueSchema(details);
-  const hasMapValueDetails = Boolean(mapValue) && hasSchemaDetails(mapValue);
+  // A map of plain values is fully described by its `map<string, X>` label, so it only gets a row
+  // when the value schema has more to show or the label does not mention the map.
+  const hasMapValueDetails = Boolean(mapValue) && (hasSchemaDetails(mapValue) || !isLabelledAsMap(details));
   const isCollapsible = hasNestedProperties || hasArrayItemProperties || hasVariants || hasMapValueDetails;
 
   const indentationClass = `pl-${level * 3}`;
