@@ -55,3 +55,7 @@ export const filterMarkdownForAudience = (file: string, audience: VisibilityAudi
 };
 
 export const filterMarkdownForAgents = (file: string) => filterMarkdownForAudience(file, 'agents');
+
+/** A 200 response for a Markdown route (.md/.mdx) */
+export const markdownResponse = (file: string) =>
+  new Response(file, { status: 200, headers: { 'Content-Type': 'text/markdown; charset=utf-8' } });

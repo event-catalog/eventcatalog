@@ -3,6 +3,7 @@ import { authMiddleware } from './middleware-auth.ts';
 import { sequence } from 'astro:middleware';
 import { importCatalogModule } from '@utils/catalog-modules';
 import { isSSR } from '@utils/feature';
+import { markdownNegotiationMiddleware } from '../../markdown-negotiation/middleware.ts';
 
 // Try to load customer's custom RBAC middleware
 let customerRbacMiddleware: MiddlewareHandler | null = null;
@@ -39,7 +40,7 @@ const errorHandlingMiddleware: MiddlewareHandler = async (context, next) => {
 };
 
 const middlewareChain = customerRbacMiddleware
-  ? [errorHandlingMiddleware, authMiddleware, customerRbacMiddleware]
-  : [errorHandlingMiddleware, authMiddleware];
+  ? [errorHandlingMiddleware, authMiddleware, customerRbacMiddleware, markdownNegotiationMiddleware]
+  : [errorHandlingMiddleware, authMiddleware, markdownNegotiationMiddleware];
 
 export const onRequest = isSSR() ? sequence(...middlewareChain) : undefined;

@@ -6,21 +6,8 @@ import type { APIRoute } from 'astro';
 import fs from 'fs';
 import { isLLMSTxtEnabled, isSSR } from '@utils/feature';
 import { getResourceDocs, getResourceDocsForResource, type ResourceCollection } from '@utils/collections/resource-docs';
-import { filterMarkdownForAgents } from '@utils/llms';
-
-const supportedResourceCollections = new Set<ResourceCollection>([
-  'agents',
-  'domains',
-  'services',
-  'events',
-  'commands',
-  'queries',
-  'flows',
-  'containers',
-  'channels',
-  'entities',
-  'data-products',
-]);
+import { filterMarkdownForAgents, markdownResponse } from '@utils/llms';
+import { resourceDocMarkdownCollections } from '@utils/markdown-pages';
 
 export async function getStaticPaths() {
   if (isSSR() || !isLLMSTxtEnabled()) {
@@ -51,7 +38,7 @@ export const GET: APIRoute = async ({ params, props }) => {
 
   if (!filePath && isSSR()) {
     const type = params.type as ResourceCollection | undefined;
-    if (!type || !supportedResourceCollections.has(type)) {
+    if (!type || !resourceDocMarkdownCollections.has(type)) {
       return new Response('Not found', { status: 404 });
     }
     const docsForResource = await getResourceDocsForResource(type, params.id ?? '', params.version ?? '');
@@ -69,5 +56,5 @@ export const GET: APIRoute = async ({ params, props }) => {
   }
 
   const file = filterMarkdownForAgents(fs.readFileSync(filePath, 'utf8'));
-  return new Response(file, { status: 200, headers: { 'Content-Type': 'text/markdown; charset=utf-8' } });
+  return markdownResponse(file);
 };

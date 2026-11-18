@@ -4,7 +4,7 @@ import type { APIRoute } from 'astro';
 import config from '@config';
 import fs from 'fs';
 import { isLLMSTxtEnabled } from '@utils/feature';
-import { filterMarkdownForAgents } from '@utils/llms';
+import { filterMarkdownForAgents, markdownResponse } from '@utils/llms';
 
 export async function getStaticPaths() {
   const domains = await getDomains({ getAllVersions: false });
@@ -54,7 +54,7 @@ export const GET: APIRoute = async ({ params, props }) => {
   if (ubiquitousLanguage?.filePath && hasUbiquitousLanguageTerms(ubiquitousLanguage)) {
     let file = filterMarkdownForAgents(fs.readFileSync(ubiquitousLanguage.filePath, 'utf8'));
 
-    return new Response(file, { status: 200 });
+    return markdownResponse(file);
   }
 
   return new Response('Not found', { status: 404 });

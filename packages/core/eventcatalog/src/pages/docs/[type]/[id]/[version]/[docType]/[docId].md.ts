@@ -6,7 +6,7 @@ import type { APIRoute } from 'astro';
 import fs from 'fs';
 import { isLLMSTxtEnabled, isSSR } from '@utils/feature';
 import { getResourceDocs, getResourceDocsForResource, type ResourceCollection } from '@utils/collections/resource-docs';
-import { filterMarkdownForAgents } from '@utils/llms';
+import { filterMarkdownForAgents, markdownResponse } from '@utils/llms';
 
 const supportedResourceCollections = new Set<ResourceCollection>([
   'domains',
@@ -68,5 +68,5 @@ export const GET: APIRoute = async ({ params, props }) => {
   }
 
   const file = filterMarkdownForAgents(fs.readFileSync(filePath, 'utf8'));
-  return new Response(file, { status: 200, headers: { 'Content-Type': 'text/markdown; charset=utf-8' } });
+  return markdownResponse(file);
 };

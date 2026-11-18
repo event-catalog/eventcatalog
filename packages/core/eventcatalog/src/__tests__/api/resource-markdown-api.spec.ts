@@ -61,6 +61,7 @@ describe('resource markdown API', () => {
     } as any);
 
     expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Type')).toBe('text/markdown; charset=utf-8');
     expect(await response.text()).toBe(markdown);
   });
 

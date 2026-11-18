@@ -7,7 +7,7 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import fs from 'fs';
 import { isLLMSTxtEnabled, isSSR } from '@utils/feature';
-import { filterMarkdownForAgents } from '@utils/llms';
+import { filterMarkdownForAgents, markdownResponse } from '@utils/llms';
 
 const diagrams = await getCollection('diagrams');
 
@@ -36,11 +36,11 @@ export const GET: APIRoute = async ({ params, props }) => {
       return new Response('Not found', { status: 404 });
     }
     const file = filterMarkdownForAgents(fs.readFileSync(diagram.filePath, 'utf8'));
-    return new Response(file, { status: 200 });
+    return markdownResponse(file);
   } else {
     if (props?.content?.filePath) {
       const file = filterMarkdownForAgents(fs.readFileSync(props.content.filePath, 'utf8'));
-      return new Response(file, { status: 200 });
+      return markdownResponse(file);
     }
   }
 
