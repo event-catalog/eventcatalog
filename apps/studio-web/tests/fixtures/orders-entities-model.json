@@ -1,0 +1,41 @@
+{
+  "title": "Orders domain model",
+  "resources": [
+    {
+      "id": "order",
+      "type": "entity",
+      "name": "Order",
+      "properties": [
+        {
+          "name": "id",
+          "type": "string"
+        },
+        {
+          "name": "customerId",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "customer",
+      "type": "entity",
+      "name": "Customer",
+      "properties": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "order",
+      "to": "customer",
+      "kind": "connects",
+      "label": "placed by",
+      "fromField": "customerId",
+      "toField": "id"
+    }
+  ]
+}

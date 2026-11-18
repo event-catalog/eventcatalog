@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Y from 'yjs';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import { Awareness } from 'y-protocols/awareness';
+import type { EntityProperty } from '@eventcatalog/visualiser/model';
 import {
   applyEdgeChanges,
   applyNodeChanges,
@@ -42,6 +43,7 @@ import {
   setNodeParents,
   type RenderedSizes,
   updateNodeData as updateNodeDataInDoc,
+  setEntityProperties as setEntityPropertiesInDoc,
   keepDragged,
   LOCAL_EDGE_KEYS,
   LOCAL_NODE_KEYS,
@@ -645,6 +647,12 @@ export function useStudioFlow({
     []
   );
 
+  /** Changes an entity's properties, keeping its connections joined to them (renamed) or to it (removed) */
+  const setEntityProperties = useCallback(
+    (id: string, properties: EntityProperty[]) => withDoc((doc) => setEntityPropertiesInDoc(doc, id, properties)),
+    []
+  );
+
   const deleteNodes = useCallback((ids: string[]) => withDoc((doc) => deleteNodesInDoc(doc, ids)), []);
 
   /** Moves nodes (and resizes containers) from a layout in one change, so it undoes in one go */
@@ -755,6 +763,7 @@ export function useStudioFlow({
     addNode,
     insertNode,
     updateNodeData,
+    setEntityProperties,
     deleteNodes,
     applyPositions,
     levelLayouts,

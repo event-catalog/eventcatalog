@@ -473,6 +473,19 @@ const EntityCard = memo(function EntityCard(props: NodeProps) {
     () => ({ ...props.data, entity: { data: props.data.entity ?? {} } }),
     [props.data],
   );
+  // Its rows' handles are named after its properties: measured again when they're renamed, added or removed (here,
+  // by someone else in a live session, or on the web by the agent), or React Flow doesn't know the new ones and
+  // their connections aren't drawn
+  const properties = (props.data.entity as { properties?: { name: string }[] })
+    ?.properties;
+  const rows = properties?.map((property) => property.name).join("\n") ?? "";
+  const measuredRows = useRef(rows);
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    if (measuredRows.current === rows) return;
+    measuredRows.current = rows;
+    updateNodeInternals(props.id);
+  }, [rows, props.id, updateNodeInternals]);
   return (
     <>
       <EntityNode {...props} data={data} />

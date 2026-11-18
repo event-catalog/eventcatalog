@@ -37,6 +37,7 @@ import { LiveCursors } from './components/LiveCursors';
 import { anchorAt, CommentLayer, CommentList, getAnchorPosition, type Author, type CommentAnchor, type Hotspot, type HotspotSeverity, type Thread as CommentThread, HotspotLayer, HotspotList, topSeverity, type HotspotDraft, type HotspotFields, type HotspotPlace, type HotspotSpot, createSmoother, type LevelPlace, type Thread, CLIPBOARD_TYPE, copyNodes, pasteNodes, readClipboard, type ClipboardContent, keepUnchanged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, containerFor, findDropTargets, placeDropped, toRelativePosition, findGroupAtPoint, getAbsolutePosition, getAbsoluteRect, previewContainerGrowth, sortByHierarchy, withParent, placeNodes, getLayoutPositions, layoutGraph, getLevelGraph, LEVELS, type Level, arrangeLevel, getLevelNodeSize, levelPlaces, canGoInContainer, GROUP_TYPES, getNodeDefinition, getNodeName, getNoteLevel, isGroupType, isOnLevel, isShownOnLevel, isWrittenOnCanvas, updateResource, CanvasControls, FIT_VIEW_OPTIONS, ViewControls, DropTargetContext, nodeTypes, LockedContext, StartWritingContext, EditingContext, UpdateNodeDataContext, ContainerChooser, type ContainerChoice, type LiveMoves } from '@eventcatalog/visualiser/studio';
 import type { CursorSource, Editing, Moving, Peer } from '../collab/room';
 import type * as Y from 'yjs';
+import type { EntityProperty } from '@eventcatalog/visualiser/model';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { X } from 'lucide-react';
 import { ContextMenu, type ContextMenuState, type MenuQuestion, TEXT_FONT_SIZE } from '@eventcatalog/visualiser/studio';
@@ -1498,7 +1499,8 @@ function Canvas({
   // ---- For browser tests ----
 
   // Browser tests (tests/e2e) read the canvas through this when they've set `window.__studioTest` up before the page
-  // loads (nothing's exposed otherwise): the level shown, and what's on it, placed on the canvas
+  // loads (nothing's exposed otherwise): the level shown, what's on it, placed on the canvas, and the canvas's
+  // connections (where they're joined)
   useEffect(() => {
     const hook = (window as { __studioTest?: Record<string, unknown> }).__studioTest;
     if (!hook) return;
@@ -1508,6 +1510,8 @@ function Canvas({
       const lookup = new Map(shown.map((node) => [node.id, node]));
       return shown.map((node) => ({ id: node.id, type: node.type, parentId: node.parentId, measured: !!node.measured?.width, ...getAbsoluteRect(node, lookup) }));
     };
+    hook.edges = () =>
+      edgesRef.current.map(({ id, source, target, sourceHandle, targetHandle }) => ({ id, source, target, sourceHandle: sourceHandle ?? null, targetHandle: targetHandle ?? null }));
   }, []);
 
   // ---- For the diagram around it ----
@@ -1566,7 +1570,11 @@ function Canvas({
     },
     updateNode: (nodeId, fields) => {
       const node = nodesRef.current.find((candidate) => candidate.id === nodeId);
-      if (node) flow.updateNodeData(nodeId, (data) => updateResource(node.type, data, fields));
+      if (!node) return;
+      // An entity's properties: its connections stay joined to them (renamed) or to it (removed)
+      const { properties, ...rest } = fields;
+      if (Array.isArray(properties)) flow.setEntityProperties(nodeId, properties as EntityProperty[]);
+      if (Object.keys(rest).length) flow.updateNodeData(nodeId, (data) => updateResource(node.type, data, rest));
     },
   }));
 

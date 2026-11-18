@@ -22,7 +22,10 @@ import {
   type Thread,
 } from "./canvas-doc";
 import { createEdge } from "./edges";
-import { ENTITY_SOURCE_HANDLE } from "./entity-handles";
+import {
+  ENTITY_SOURCE_HANDLE,
+  ENTITY_TARGET_HANDLE_ID,
+} from "./entity-handles";
 import { getAbsolutePosition, sortByHierarchy } from "./grouping";
 import { getLayoutPositions } from "./layout";
 import {
@@ -33,7 +36,6 @@ import {
   isWrittenOnCanvas,
 } from "./node-types";
 import { placeNodes, type Link } from "./placement";
-import { ENTITY_TARGET_HANDLE_ID } from "../index";
 
 /** Canvas node types for each type of resource (Studio's, which are the visualiser's) */
 const NODE_TYPE: Record<ResourceType, string> = {

@@ -4,3 +4,6 @@
  * source the canvas adds beside it).
  */
 export const ENTITY_SOURCE_HANDLE = "__entity-source";
+
+/** The entity's header, where connections to it as a whole join (the visualiser's) */
+export { ENTITY_TARGET_HANDLE_ID } from "../nodes/entity-handles";

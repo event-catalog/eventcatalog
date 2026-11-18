@@ -8,8 +8,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Y from 'yjs';
 import { applyAgentCanvasToDoc, canvasIds, type AgentCanvas, type CanvasIds } from './apply-agent-canvas';
 import { applyEdgeChanges, applyNodeChanges, type Connection, type Edge, type EdgeChange, type Node, type NodeChange, type XYPosition } from '@xyflow/react';
-import { addNodes, addHotspots, setEdgeLabel as setEdgeLabelInDoc, getLock, setLock, addThreads, createHotspot as createHotspotInDoc, deleteHotspot as deleteHotspotInDoc, readHotspots, updateHotspot as updateHotspotInDoc, type Hotspot, createThread as createThreadInDoc, deleteThread as deleteThreadInDoc, moveThread as moveThreadInDoc, readThreads, replyToThread as replyToThreadInDoc, setThreadResolved as setThreadResolvedInDoc, type Author, type CommentAnchor, type Thread, buildNode, changesNodesOrEdges, connectNodes, deleteEdges, deleteNodes as deleteNodesInDoc, fitContainersAround, getCanvasMaps, getStructureKey, moveNode, placeNode, readLevelLayout, reconnectEdge, resizeNode, setEdgeRoutes, setLevelPlaces, setMeta, setNodeParents, updateNodeData as updateNodeDataInDoc, type LevelPlace, type RenderedSizes, keepDragged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, patchShared, containerFor, toRelativePosition, type NodePreview, type LayoutResult, canGoInContainer, getNodeDefinition, isGroupType, linkConnection, type NewLink } from '@eventcatalog/visualiser/studio';
+import { addNodes, addHotspots, setEdgeLabel as setEdgeLabelInDoc, getLock, setLock, addThreads, createHotspot as createHotspotInDoc, deleteHotspot as deleteHotspotInDoc, readHotspots, updateHotspot as updateHotspotInDoc, type Hotspot, createThread as createThreadInDoc, deleteThread as deleteThreadInDoc, moveThread as moveThreadInDoc, readThreads, replyToThread as replyToThreadInDoc, setThreadResolved as setThreadResolvedInDoc, type Author, type CommentAnchor, type Thread, buildNode, changesNodesOrEdges, connectNodes, deleteEdges, deleteNodes as deleteNodesInDoc, fitContainersAround, getCanvasMaps, getStructureKey, moveNode, placeNode, readLevelLayout, reconnectEdge, resizeNode, setEdgeRoutes, setLevelPlaces, setMeta, setNodeParents, updateNodeData as updateNodeDataInDoc, setEntityProperties as setEntityPropertiesInDoc, type LevelPlace, type RenderedSizes, keepDragged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, patchShared, containerFor, toRelativePosition, type NodePreview, type LayoutResult, canGoInContainer, getNodeDefinition, isGroupType, linkConnection, type NewLink } from '@eventcatalog/visualiser/studio';
 import type { Editing } from '../collab/room';
+import type { EntityProperty } from '@eventcatalog/visualiser/model';
 import { type ModelCanvasContent as CanvasContent } from '@eventcatalog/visualiser/studio';
 
 /** The canvas as its document has it at one moment (readDocument), for an agent's edit */
@@ -351,6 +352,12 @@ export function useCanvasFlow({
     []
   );
 
+  /** Changes an entity's properties, keeping its connections joined to them (renamed) or to it (removed) */
+  const setEntityProperties = useCallback(
+    (id: string, properties: EntityProperty[]) => withDoc((doc) => setEntityPropertiesInDoc(doc, id, properties)),
+    []
+  );
+
   const deleteNodes = useCallback((ids: string[]) => withDoc((doc) => deleteNodesInDoc(doc, ids)), []);
   const removeEdges = useCallback((ids: string[]) => withDoc((doc) => deleteEdges(doc, ids)), []);
   const setLocked = useCallback((by: string | null) => withDoc((doc) => setLock(doc, by)), []);
@@ -474,6 +481,7 @@ export function useCanvasFlow({
     addNode,
     insertNode,
     updateNodeData,
+    setEntityProperties,
     deleteNodes,
     removeEdges,
     applyPositions,

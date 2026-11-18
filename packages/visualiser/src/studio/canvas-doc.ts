@@ -12,8 +12,15 @@ import {
   getNodeDefinition,
   getNodeName,
   getNodeSize,
+  getResource,
   isGroupType,
+  updateResource,
 } from "./node-types";
+import {
+  ENTITY_SOURCE_HANDLE,
+  ENTITY_TARGET_HANDLE_ID,
+} from "./entity-handles";
+import type { EntityProperty } from "../model/schema";
 
 /**
  * Everything a canvas holds, as operations on its Yjs document: nodes and edges, where things are on each level,
@@ -521,6 +528,74 @@ export const updateNodeData = (
   if (node) nodes.set(id, { ...node, data: updater(node.data) });
   return !!node;
 };
+
+/**
+ * Changes an entity's properties (one change, one undo step), keeping what's connected to it joined: a connection at
+ * a property's row follows it when it's renamed, and joins the entity as a whole (its header) when it's removed.
+ * They're matched by where they are in the list, as they're edited one at a time. Without this, a connection was
+ * left at a row that's gone, and wasn't drawn. Names must be different (connections are joined to them by name):
+ * properties with a name twice aren't saved, nor are ones that are already there.
+ */
+export const setEntityProperties = (
+  doc: Y.Doc,
+  id: string,
+  properties: EntityProperty[],
+) =>
+  doc.transact(() => {
+    const { nodes, edges } = getCanvasMaps(doc);
+    const node = nodes.get(id);
+    if (node?.type !== "entity") return false;
+    const current = (getResource(node.type, node.data).properties ??
+      []) as EntityProperty[];
+    const after = new Set(properties.map((property) => property.name));
+    if (
+      after.size !== properties.length ||
+      JSON.stringify(current) === JSON.stringify(properties)
+    )
+      return false;
+    const before = current.map((property) => property.name);
+    // Renamed: the same place in the list with a new name (when nothing's been added or removed)
+    const renamed = new Map<string, string>();
+    if (before.length === properties.length)
+      before.forEach((name, at) => {
+        if (!after.has(name)) renamed.set(name, properties[at].name);
+      });
+    // Where a connection at one of its rows joins it now: the row, renamed, or its header if the row's gone
+    const rejoin = (
+      handle: string | null | undefined,
+      suffix: string,
+      header: string,
+    ) => {
+      const name = handle?.endsWith(suffix)
+        ? handle.slice(0, -suffix.length)
+        : undefined;
+      if (name === undefined || !before.includes(name) || after.has(name))
+        return handle;
+      const to = renamed.get(name);
+      return to ? `${to}${suffix}` : header;
+    };
+
+    nodes.set(id, {
+      ...node,
+      data: updateResource(node.type, node.data, { properties }),
+    });
+    Array.from(edges.values()).forEach((edge) => {
+      const sourceHandle =
+        edge.source === id
+          ? rejoin(edge.sourceHandle, "-source", ENTITY_SOURCE_HANDLE)
+          : edge.sourceHandle;
+      const targetHandle =
+        edge.target === id
+          ? rejoin(edge.targetHandle, "-target", ENTITY_TARGET_HANDLE_ID)
+          : edge.targetHandle;
+      if (
+        sourceHandle !== edge.sourceHandle ||
+        targetHandle !== edge.targetHandle
+      )
+        edges.set(edge.id, { ...edge, sourceHandle, targetHandle });
+    });
+    return true;
+  });
 
 /**
  * How a connection is drawn, as the visualiser's layout routes it (in data.route, which the visualiser's edges
