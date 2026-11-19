@@ -14,8 +14,8 @@ type ConnectAgentDialogProps = {
   open: boolean;
   /** This server's MCP endpoint, e.g. https://mcp.eventcatalog.dev/mcp */
   mcpUrl: string;
-  /** Agents in this browser (WebMCP), on the page: whether this tab offers them its tools, and turning that on */
-  webMcp?: { status: WebMcpStatus; onTurnOn: () => void };
+  /** Agents in this browser (WebMCP), on the page: whether this tab offers them its tools */
+  webMcp?: WebMcpStatus;
   onClose: () => void;
 };
 
@@ -142,23 +142,15 @@ export function ConnectAgentDialog({ open, mcpUrl, webMcp, onClose }: ConnectAge
             body: (
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm leading-relaxed text-[rgb(var(--ec-page-text))]">
-                  {webMcp.status.state === 'on'
-                    ? `This tab offers ${webMcp.status.tools} tools to AI agents in your browser (like the MCP-B extension) through WebMCP: they draw on this canvas with you.`
-                    : 'Let AI agents in your browser (like the MCP-B extension) draw on this canvas with you, through WebMCP.'}
+                  {webMcp.state === 'on'
+                    ? `This tab offers ${webMcp.tools} tools to AI agents in your browser (like the MCP-B extension) through WebMCP: they draw on this canvas with you.`
+                    : 'AI agents in your browser (like the MCP-B extension) can draw on this canvas with you through WebMCP, on HTTPS or localhost.'}
                 </p>
-                {webMcp.status.state === 'on' ? (
+                {webMcp.state === 'on' && (
                   <p className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-medium ${STATUS.success.text}`}>
                     <span className={`h-2 w-2 rounded-full ${STATUS.success.dot}`} />
                     On for this tab
                   </p>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={webMcp.onTurnOn}
-                    className="h-8 shrink-0 rounded-md border border-[rgb(var(--ec-page-border))] px-3 text-xs font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))]!"
-                  >
-                    Turn on
-                  </button>
                 )}
               </div>
             ),

@@ -7,7 +7,6 @@ type CanvasLink = { canvasId: string; title?: string; canvasUrl: string; mcpUrl:
 
 export const RELAY_COMMAND = 'npx -y @mcp-b/webmcp-local-relay@6.0.3';
 const RELAY_KEY = 'eventcatalog-webmcp-relay';
-const WEBMCP_KEY = 'eventcatalog-webmcp';
 
 const isOn = (key: string) => {
   try {
@@ -21,13 +20,6 @@ const turnOn = (key: string) => {
     localStorage.setItem(key, 'true');
   } catch {}
 };
-
-/**
- * WebMCP through the polyfill (for browsers without WebMCP of their own) is opt in, remembered in this browser:
- * the polyfill watches every change to the page, which on a canvas is every drag and pan. The relay needs it.
- */
-export const isWebMcpEnabled = () => isOn(WEBMCP_KEY) || isOn(RELAY_KEY);
-export const enableWebMcp = () => turnOn(WEBMCP_KEY);
 
 /**
  * The WebMCP local relay hands this tab's tools to desktop agents. Opt in: its script keeps looking for a
@@ -122,13 +114,17 @@ const Steps = ({ children }: { children: ReactNode }) => (
   </ol>
 );
 
+const OnForThisTab = () => (
+  <p className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-medium ${STATUS.success.text}`}>
+    <span className={`h-2 w-2 rounded-full ${STATUS.success.dot}`} />
+    On for this tab
+  </p>
+);
+
 /** Turns something on for this tab, or says it's on */
 function TabSwitch({ on, onTurnOn, label }: { on: boolean; onTurnOn: () => void; label: string }) {
   return on ? (
-    <p className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-medium ${STATUS.success.text}`}>
-      <span className={`h-2 w-2 rounded-full ${STATUS.success.dot}`} />
-      On for this tab
-    </p>
+    <OnForThisTab />
   ) : (
     <button type="button" onClick={onTurnOn} className={`${secondary} h-8 px-3 text-xs`}>
       {label}
@@ -165,13 +161,10 @@ export default function ConnectAgentDialog({
   link,
   webMcp,
   relayScriptPath,
-  onEnableWebMcp,
   onClose,
 }: {
   link: CanvasLink;
   webMcp: WebMcpStatus;
-  /** Turn WebMCP on for this tab (through the polyfill, when the browser has none) */
-  onEnableWebMcp: () => void;
   /** Where the relay's script is served (only on EventCatalog's own canvas page) */
   relayScriptPath?: string;
   onClose: () => void;
@@ -198,8 +191,6 @@ export default function ConnectAgentDialog({
     if (!relayScriptPath) return;
     enableRelay(relayScriptPath);
     setRelayOn(true);
-    // The relay hands this tab's WebMCP tools to desktop agents
-    onEnableWebMcp();
   };
 
   const joinThisCanvas = (
@@ -237,7 +228,8 @@ export default function ConnectAgentDialog({
             </li>
             <li>{joinThisCanvas}</li>
           </Steps>
-          {relayScriptPath && (
+          {/* The relay hands over this tab's WebMCP tools, and WebMCP only exists on HTTPS or localhost */}
+          {relayScriptPath && window.isSecureContext && (
             <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-[rgb(var(--ec-page-border))] p-3">
               <p className="text-xs text-[rgb(var(--ec-page-text-muted))]">
                 Can't reach this EventCatalog from your computer? Use this tab through the local relay: add{' '}
@@ -303,9 +295,9 @@ export default function ConnectAgentDialog({
           <p className="text-sm leading-relaxed text-[rgb(var(--ec-page-text))]">
             {webMcp.state === 'on'
               ? `This tab offers ${webMcp.tools} canvas tools to agents in your browser (like the MCP-B extension) through WebMCP.`
-              : 'Let agents in your browser (like the MCP-B extension) use this canvas through WebMCP.'}
+              : 'Agents in your browser (like the MCP-B extension) can use this canvas through WebMCP when EventCatalog is served over HTTPS or from localhost.'}
           </p>
-          <TabSwitch on={webMcp.state === 'on'} onTurnOn={onEnableWebMcp} label="Turn on" />
+          {webMcp.state === 'on' && <OnForThisTab />}
         </div>
       ),
     },

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 import type * as Y from 'yjs';
-import { installWebMCP } from '@mcp-b/webmcp-polyfill';
+import { installWebMCP } from '@w3c/webmcp-polyfill';
 import {
   replyToThread,
   setThreadResolved,
@@ -75,6 +75,13 @@ const result = (value: unknown, isError = false): ToolResult => ({
   ...(isError && { isError }),
 });
 
+// A tool that's already registered (e.g. after a hot reload) rejects with InvalidStateError, but is still there. Any
+// other rejection (e.g. NotAllowedError, when a Permissions Policy blocks tools in an iframe) means it isn't offered.
+const offered = (outcomes: PromiseSettledResult<unknown>[]) =>
+  outcomes.filter(
+    (outcome) => outcome.status === 'fulfilled' || (outcome.reason as { name?: string } | undefined)?.name === 'InvalidStateError'
+  ).length;
+
 export type WebMcpStatus = { state: 'off' } | { state: 'on'; source: 'native' | 'polyfill'; tools: number; lastCall?: string };
 
 type CanvasWebMcpOptions = {
@@ -91,11 +98,6 @@ type CanvasWebMcpOptions = {
   fitView: (nodeIds?: string[]) => void;
   /** Lays the canvas out with the visualiser's layout */
   reorder: () => Promise<void>;
-  /**
-   * Whether to install the WebMCP polyfill when the browser has no WebMCP of its own. It's opt in: it watches
-   * every change to the page (for declarative form tools), and a canvas changes on every drag and pan.
-   */
-  allowPolyfill: boolean;
 };
 
 export function useCanvasWebMcp(options: CanvasWebMcpOptions) {
@@ -127,10 +129,15 @@ export function useCanvasWebMcp(options: CanvasWebMcpOptions) {
 
   useEffect(() => {
     if (!options.doc) return;
+    // Browsers without WebMCP of their own get the W3C polyfill (it only exists on HTTPS or localhost)
     if (!getModelContext()) {
-      if (!options.allowPolyfill) return;
-      installWebMCP();
-      usingPolyfill = true;
+      try {
+        installWebMCP();
+      } catch {
+        // A page that can't take it (e.g. a Document prototype that isn't extensible) just doesn't offer the tools
+      }
+      // It installs nothing outside a secure context
+      usingPolyfill = !!getModelContext();
     }
     const modelContext = getModelContext();
     if (!modelContext) return;
@@ -167,16 +174,16 @@ export function useCanvasWebMcp(options: CanvasWebMcpOptions) {
         )
       )
     ).then((outcomes) => {
-      if (controller.signal.aborted) return;
-      // A tool that's already registered (e.g. after a hot reload) rejects, but is still there
-      setStatus({ state: 'on', source: usingPolyfill ? 'polyfill' : 'native', tools: outcomes.length });
+      const tools = offered(outcomes);
+      if (controller.signal.aborted || !tools) return;
+      setStatus({ state: 'on', source: usingPolyfill ? 'polyfill' : 'native', tools });
     });
 
     return () => {
       controller.abort();
       setStatus({ state: 'off' });
     };
-  }, [options.doc, options.allowPolyfill]);
+  }, [options.doc]);
 
   useEffect(() => () => clearTimeout(presenceTimer.current), []);
 

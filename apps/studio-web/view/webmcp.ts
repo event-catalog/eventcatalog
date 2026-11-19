@@ -6,7 +6,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
-import { installWebMCP } from '@mcp-b/webmcp-polyfill';
+import { installWebMCP } from '@w3c/webmcp-polyfill';
 import { LEVELS, Model, type ArchitecturePayload } from '@eventcatalog/visualiser/model';
 import { checkPayload } from '../src/model/check';
 import { Changes, Reorder, type ChangeResult } from '../src/model/changes';
@@ -34,24 +34,6 @@ const getModelContext = () =>
 
 // Survives remounts, so a native WebMCP runtime is never shadowed by the polyfill
 let usingPolyfill = false;
-
-/**
- * WebMCP through the polyfill (for browsers without WebMCP of their own) is opt in, remembered in this browser: the
- * polyfill watches every change to the page (for declarative form tools), and a canvas changes on every drag and pan.
- */
-const POLYFILL_KEY = 'eventcatalog-webmcp';
-export const isWebMcpPolyfillOn = () => {
-  try {
-    return localStorage.getItem(POLYFILL_KEY) === 'true';
-  } catch {
-    return false;
-  }
-};
-export const turnOnWebMcpPolyfill = () => {
-  try {
-    localStorage.setItem(POLYFILL_KEY, 'true');
-  } catch {}
-};
 
 export type WebMcpStatus = { state: 'off' } | { state: 'on'; source: 'native' | 'polyfill'; tools: number };
 
@@ -183,7 +165,14 @@ export function createWebMcpTools(get: () => WebMcpCanvas): WebMcpTool[] {
   ];
 }
 
-/** Offers the tools to the page's WebMCP runtime until the signal aborts; resolves with how many there are */
+// A tool that's already registered (e.g. after a hot reload) rejects with InvalidStateError, but is still there. Any
+// other rejection (e.g. NotAllowedError, when a Permissions Policy blocks tools in an iframe) means it isn't offered.
+const offered = (outcomes: PromiseSettledResult<unknown>[]) =>
+  outcomes.filter(
+    (outcome) => outcome.status === 'fulfilled' || (outcome.reason as { name?: string } | undefined)?.name === 'InvalidStateError'
+  ).length;
+
+/** Offers the tools to the page's WebMCP runtime until the signal aborts; resolves with how many it took */
 export async function registerWebMcpTools(modelContext: ModelContext, tools: WebMcpTool[], signal: AbortSignal) {
   const outcomes = await Promise.allSettled(
     tools.map((tool) =>
@@ -215,15 +204,14 @@ export async function registerWebMcpTools(modelContext: ModelContext, tools: Web
       )
     )
   );
-  // A tool that's already registered (e.g. after a hot reload) rejects, but is still there
-  return outcomes.length;
+  return offered(outcomes);
 }
 
 /**
  * The page's tools for agents in this browser, while `enabled` (the page, not a chat's view: there the agent has the
- * MCP server). Browsers without WebMCP of their own get it through the polyfill, once it's turned on (Connect agent).
+ * MCP server). Browsers without WebMCP of their own get the W3C polyfill (it only exists on HTTPS or localhost).
  */
-export function useWebMcp({ enabled, allowPolyfill, canvas }: { enabled: boolean; allowPolyfill: boolean; canvas: WebMcpCanvas }) {
+export function useWebMcp({ enabled, canvas }: { enabled: boolean; canvas: WebMcpCanvas }) {
   const [status, setStatus] = useState<WebMcpStatus>({ state: 'off' });
   // Tools are registered once and read the canvas as it is when they run
   const latest = useRef(canvas);
@@ -232,9 +220,13 @@ export function useWebMcp({ enabled, allowPolyfill, canvas }: { enabled: boolean
   useEffect(() => {
     if (!enabled) return;
     if (!getModelContext()) {
-      if (!allowPolyfill) return;
-      installWebMCP();
-      usingPolyfill = true;
+      try {
+        installWebMCP();
+      } catch {
+        // A page that can't take it (e.g. a Document prototype that isn't extensible) just doesn't offer the tools
+      }
+      // It installs nothing outside a secure context
+      usingPolyfill = !!getModelContext();
     }
     const modelContext = getModelContext();
     if (!modelContext) return;
@@ -246,7 +238,7 @@ export function useWebMcp({ enabled, allowPolyfill, canvas }: { enabled: boolean
       createWebMcpTools(() => latest.current),
       controller.signal
     ).then((tools) => {
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted || !tools) return;
       setStatus({ state: 'on', source, tools });
       track('webmcp_on', { source });
     });
@@ -254,7 +246,7 @@ export function useWebMcp({ enabled, allowPolyfill, canvas }: { enabled: boolean
       controller.abort();
       setStatus({ state: 'off' });
     };
-  }, [enabled, allowPolyfill]);
+  }, [enabled]);
 
   return status;
 }
