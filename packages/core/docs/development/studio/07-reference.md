@@ -242,7 +242,7 @@ Every tool takes an optional `agentName`, the name people on the canvas see. It 
 
 ### Browser tools (WebMCP)
 
-When WebMCP is turned on in the **Connect your AI agent** dialog, the open canvas offers agents in the browser these tools: `get_canvas`, `search_catalog`, `add_to_canvas`, `update_node`, `connect_nodes`, `remove_from_canvas`, `layout_canvas`, `set_canvas_status`, `add_comment`, `reply_to_comment`, `resolve_comment` and `show_nodes`.
+The open canvas offers agents in the browser these tools through WebMCP: `get_canvas`, `search_catalog`, `add_to_canvas`, `update_node`, `connect_nodes`, `remove_from_canvas`, `layout_canvas`, `set_canvas_status`, `add_comment`, `reply_to_comment`, `resolve_comment` and `show_nodes`.
 
 ## Keyboard shortcuts {#keyboard-shortcuts}
 

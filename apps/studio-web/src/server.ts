@@ -87,7 +87,7 @@ app.get('/llms.txt', (c) => {
 ## For AI agents
 
 - [MCP server](${base}/mcp): Streamable HTTP, no auth. Tools: get_architecture_schema (learn the model), render_architecture (draw a diagram), edit_diagram (change the diagram the user has open, in place), read_diagram (read the open diagram, or a diagram link).
-- WebMCP: the page at ${base}/ offers the same tools to agents in the browser (document.modelContext), working on the canvas the user has open. In browsers without WebMCP, turn it on in Connect agent.
+- WebMCP: the page at ${base}/ offers the same tools to agents in the browser (document.modelContext), working on the canvas the user has open.
 
 ## Links
 

@@ -77,7 +77,7 @@ Use Copilot's agent mode.
 
 ### Agents in your browser
 
-In the **Connect your AI agent** dialog, choose **This browser**, then **Turn on**. Agents in your browser, such as the MCP-B extension, can then use the open canvas through WebMCP.
+Agents in your browser, such as the MCP-B extension, can use the open canvas through WebMCP. There's nothing to turn on: when EventCatalog is served over HTTPS or from localhost, the canvas offers them its tools. **This browser** in the **Connect your AI agent** dialog shows whether this tab is offering them.
 
 ## The canvas inside your chat
 

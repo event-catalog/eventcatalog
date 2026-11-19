@@ -61,7 +61,7 @@ import { Toast, type Notice } from './Toast';
 import { copyToClipboard } from './ported/clipboard';
 import { EmptyCanvas } from '@eventcatalog/visualiser/studio';
 import { ConnectAgentDialog } from './ConnectAgentDialog';
-import { isWebMcpPolyfillOn, turnOnWebMcpPolyfill, useWebMcp, type WebMcpCanvas } from './webmcp';
+import { useWebMcp, type WebMcpCanvas } from './webmcp';
 import { StudioCanvas, type CanvasSnapshot, type StudioCanvasHandle } from './studio/StudioCanvas';
 import type { CanvasDocument } from './studio/use-canvas-flow';
 import type { MenuQuestion } from '@eventcatalog/visualiser/studio';
@@ -814,12 +814,6 @@ export function Diagram({
     answerAgent.current = undefined;
     setAgentAsking(undefined);
   }, []);
-  const [webMcpPolyfill, setWebMcpPolyfill] = useState(isWebMcpPolyfillOn);
-  const turnOnWebMcp = useCallback(() => {
-    track('webmcp_turned_on');
-    turnOnWebMcpPolyfill();
-    setWebMcpPolyfill(true);
-  }, []);
   // An agent in the browser changing the canvas, as one in a chat does (edit_diagram)
   const editForAgent = useCallback(
     (changes: Changes, options?: { reorder?: boolean }) => bridge.current!.edit(changes, options) as ReturnType<WebMcpCanvas['edit']>,
@@ -827,7 +821,6 @@ export function Diagram({
   );
   const webMcp = useWebMcp({
     enabled: !app,
-    allowPolyfill: webMcpPolyfill,
     canvas: { model: rootModel, focus, selected: selected?.resourceId, live: !!room, render: drawForAgent, edit: editForAgent },
   });
 
@@ -1223,7 +1216,7 @@ export function Diagram({
         <ConnectAgentDialog
           open={connecting}
           mcpUrl={`${baseUrl}/mcp`}
-          webMcp={app ? undefined : { status: webMcp, onTurnOn: turnOnWebMcp }}
+          webMcp={app ? undefined : webMcp}
           onClose={() => setConnecting(false)}
         />
       )}

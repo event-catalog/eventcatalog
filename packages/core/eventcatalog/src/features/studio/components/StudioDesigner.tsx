@@ -123,7 +123,7 @@ import { useStudioFlow } from '../hooks/use-studio-flow';
 import { useComments, type CommentAnchor, type Thread } from '../hooks/use-comments';
 import type { ToolSync } from '../tool-sync';
 import CanvasHeader from './CanvasHeader';
-import ConnectAgentDialog, { enableWebMcp, isRelayEnabled, isWebMcpEnabled, loadRelay } from './ConnectAgentDialog';
+import ConnectAgentDialog, { isRelayEnabled, loadRelay } from './ConnectAgentDialog';
 import ConnectionsChooser, { type ConnectionsChoice } from './ConnectionsChooser';
 import JoinForm from './JoinForm';
 import { colorForName, getStoredColor, getStoredName, onStoredNameChange, storeColor, storeName } from '../identity';
@@ -453,15 +453,8 @@ function Canvas({
     if (changes.length) flow.onNodesChange(changes);
   };
 
-  // Agents in the browser (WebMCP) work on this canvas through the page, as the user's agent. Browsers without
-  // WebMCP of their own get it through the polyfill once someone turns it on (Connect agent).
-  const [webMcpEnabled, setWebMcpEnabled] = useState(isWebMcpEnabled);
-  const turnOnWebMcp = useCallback(() => {
-    enableWebMcp();
-    setWebMcpEnabled(true);
-  }, []);
+  // Agents in the browser (WebMCP) work on this canvas through the page, as the user's agent
   const webMcp = useCanvasWebMcp({
-    allowPolyfill: webMcpEnabled,
     doc: flow.doc,
     presence: flow.presence,
     getPeers: () => flow.presence?.getPeers() ?? [],
@@ -2245,13 +2238,7 @@ function Canvas({
                   />
                 )}
                 {connectOpen && (
-                  <ConnectAgentDialog
-                    link={agentLink}
-                    webMcp={webMcp}
-                    relayScriptPath={relayScriptPath}
-                    onEnableWebMcp={turnOnWebMcp}
-                    onClose={closeConnect}
-                  />
+                  <ConnectAgentDialog link={agentLink} webMcp={webMcp} relayScriptPath={relayScriptPath} onClose={closeConnect} />
                 )}
               </div>
             </LockedContext.Provider>

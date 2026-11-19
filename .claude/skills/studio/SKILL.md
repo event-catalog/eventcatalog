@@ -316,9 +316,10 @@ canvas's pieces (`presence.ts`, `live-moves.ts`, `smooth.ts`). Rules 4, 6 and 10
    100 pulsing handles kept the canvas busy while nothing happened, and 10 pulsing hotspot glows cost ~200 ms of
    every 3 seconds at idle (they're still now). Keep all of that when adding edge types,
    node types or levels, and check `document.getAnimations()` is empty on an idle canvas with nothing selected.
-6. **WebMCP's polyfill is opt-in.** `@mcp-b/webmcp-polyfill` watches the whole DOM with a MutationObserver, which
-   costs on every drag and pan. It's only installed after "Turn on for this tab" in Connect agent (browsers with
-   native WebMCP get the tools straight away). Don't install it by default.
+6. **WebMCP's polyfill is the W3C one, `@w3c/webmcp-polyfill`.** It's installed on every canvas when the browser
+   has no WebMCP of its own. It adds no DOM observers (only a `message` listener for frames), so it costs nothing on
+   drag and pan. Don't go back to `@mcp-b/webmcp-polyfill`: it watches the whole DOM with a MutationObserver (for
+   declarative `<form>` tools), which costs on every drag and pan.
 7. **Stable `<ReactFlow>` props.** Constants (keys, pan buttons, fit options) live outside components; callbacks go
    through `useStableCallback` or `useCallback`. React Flow's `NodeWrapper` isn't memoised: a node re-renders
    whenever its object changes, so keep node objects identical unless they really changed.

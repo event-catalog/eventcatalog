@@ -60,9 +60,6 @@ importers:
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.3.0)
-      '@mcp-b/webmcp-polyfill':
-        specifier: 6.0.3
-        version: 6.0.3
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -90,6 +87,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^6.1.1
         version: 6.1.2(vite@8.3.5(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@w3c/webmcp-polyfill':
+        specifier: 0.1.0
+        version: 0.1.0
       '@xyflow/react':
         specifier: ^12.12.0
         version: 12.12.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@9.0.21)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -290,9 +290,6 @@ importers:
       '@iconify-json/logos':
         specifier: ^1.2.4
         version: 1.2.9
-      '@mcp-b/webmcp-polyfill':
-        specifier: 6.0.3
-        version: 6.0.3
       '@mermaid-js/layout-elk':
         specifier: ^0.2.0
         version: 0.2.0(mermaid@11.16.1)
@@ -338,6 +335,9 @@ importers:
       '@tanstack/react-table':
         specifier: ^8.17.3
         version: 8.21.3(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@w3c/webmcp-polyfill':
+        specifier: 0.1.0
+        version: 0.1.0
       '@xyflow/react':
         specifier: ^12.12.0
         version: 12.12.0(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(immer@9.0.21)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -2282,10 +2282,6 @@ packages:
 
   '@marijn/find-cluster-break@1.0.2':
     resolution: {integrity: sha512-l0h88YhZFyKdXIFNfSWpyjStDjGHwZ/U7iobcK1cQQD8sejsONdQtTVU+1wVN1PBw40PiiHB1vA5S7VTfQiP9g==}
-
-  '@mcp-b/webmcp-polyfill@6.0.3':
-    resolution: {integrity: sha512-pD8iKBXpDKLeYyqDcWPiNFI0JuK7/f+/RxspA6qW81kcDdabWUTt7A0fH+cJx6EIjpoHkk4o3QPci7yQPuHofA==}
-    engines: {node: '>=20'}
 
   '@mdx-js/mdx@3.1.1':
     resolution: {integrity: sha512-f6ZO2ifpwAQIpzGWaBQT2TXxPv6z3RBzQKpVftEWN78Vl/YweF1uwussDx8ECAXVtr3Rs89fKyG9YlzUs9DyGQ==}
@@ -4691,6 +4687,9 @@ packages:
     resolution: {integrity: sha512-e89uuTLMh0U5cZ9iDpEI2senqPGfbPRTHM/0AaQkcxnpqjkZqDYP8rpfm7edOz8s+pOCOROEy1PIveSW8+fL5g==}
     peerDependencies:
       vue: ^3.5.0
+
+  '@w3c/webmcp-polyfill@0.1.0':
+    resolution: {integrity: sha512-FNzmob4B72T9cHDVODskyFjNi0JaZgcD1U0eFmuc2J4o3Lr5k1xabZ5rjw1AuvzgvdxRfvNr9FHUP9yG1s/StA==}
 
   '@workflow/serde@4.1.0':
     resolution: {integrity: sha512-pav4F2BoirECWR7Nf1TKt+2eETcBj7jj4cBefQ8VXQCA6NPkaKeLfj/zMgi+3zYV5ZIBT4GuUiphsj0/b9hPQQ==}
@@ -10958,10 +10957,6 @@ snapshots:
 
   '@marijn/find-cluster-break@1.0.2': {}
 
-  '@mcp-b/webmcp-polyfill@6.0.3':
-    dependencies:
-      webmcp-types: 0.1.9
-
   '@mdx-js/mdx@3.1.1':
     dependencies:
       '@types/estree': 1.0.8
@@ -13500,6 +13495,10 @@ snapshots:
   '@vueuse/shared@13.9.0(vue@3.5.44(typescript@5.9.3))':
     dependencies:
       vue: 3.5.44(typescript@5.9.3)
+
+  '@w3c/webmcp-polyfill@0.1.0':
+    dependencies:
+      webmcp-types: 0.1.9
 
   '@workflow/serde@4.1.0': {}
 
