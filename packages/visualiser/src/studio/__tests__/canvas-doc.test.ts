@@ -404,6 +404,43 @@ describe("connectNodes", () => {
     });
   });
 
+  it("makes a connection dragged from a channel's bottom handle to another channel its dead letter edge, and marks the target a dead letter channel", () => {
+    const doc = new Y.Doc();
+    addNodes(doc, [
+      node("queue", "channel", 0, 0),
+      node("dlq", "channel", 400, 200),
+      node("svc", "service", 400, 0),
+    ]);
+
+    expect(
+      connectNodes(doc, {
+        source: "queue",
+        target: "dlq",
+        sourceHandle: "dead-letter",
+      }),
+    ).toMatchObject({
+      label: "dead-letters to",
+      className: "ec-dead-letter-edge",
+    });
+    expect(
+      (
+        getCanvasMaps(doc).nodes.get("dlq")!.data.channel as Record<
+          string,
+          unknown
+        >
+      ).isDeadLetterChannel,
+    ).toBe(true);
+
+    // Not to a service: only a channel can be a dead letter channel
+    expect(
+      connectNodes(doc, {
+        source: "queue",
+        target: "svc",
+        sourceHandle: "dead-letter",
+      }),
+    ).not.toHaveProperty("className");
+  });
+
   it("only draws an edge as a dead letter edge when it comes from a channel", () => {
     expect(
       connectNodes(setup(), { source: "svc", target: "db" }, "dead-letters to"),
@@ -423,6 +460,15 @@ describe("connectNodes", () => {
       sourceHandle: "dead-letter",
       className: "ec-dead-letter-edge",
     });
+
+    expect(
+      (
+        getCanvasMaps(doc).nodes.get("dlq")!.data.channel as Record<
+          string,
+          unknown
+        >
+      ).isDeadLetterChannel,
+    ).toBe(true);
 
     setEdgeLabel(doc, edge.id, "retries to");
     const relabelled = getCanvasMaps(doc).edges.get(edge.id)!;

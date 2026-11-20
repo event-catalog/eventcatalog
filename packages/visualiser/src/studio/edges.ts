@@ -1,4 +1,11 @@
 import type { Connection, Edge, EdgeMarker } from "@xyflow/react";
+import {
+  DEAD_LETTER_EDGE_CLASS,
+  DEAD_LETTER_EDGE_LABEL,
+  DEAD_LETTER_EDGE_MARKER,
+  DEAD_LETTER_EDGE_STYLE,
+  DEAD_LETTER_HANDLE,
+} from "../utils/dead-letter";
 
 /** Connections on a canvas, labelled with EventCatalog's wording (e.g. "publishes event", "subscribed by") */
 
@@ -86,5 +93,31 @@ export const createEdge = (
     label: getEdgeLabel(sourceType, targetType),
     markerEnd: EDGE_MARKER,
     data: collection ? { message: { collection } } : {},
+  };
+};
+
+export const isDeadLetterEdge = (label: unknown, sourceType?: string) =>
+  label === DEAD_LETTER_EDGE_LABEL && sourceType === "channel";
+
+/**
+ * A channel's edge to its dead letter channel (labelled "dead-letters to") looks as it does in the visualiser: red,
+ * dashed, leaving from the channel's bottom. Any other edge, e.g. one relabelled from it, looks like an edge again.
+ */
+export const withDeadLetterLook = (edge: Edge, sourceType?: string): Edge => {
+  if (isDeadLetterEdge(edge.label, sourceType))
+    return {
+      ...edge,
+      sourceHandle: DEAD_LETTER_HANDLE,
+      className: DEAD_LETTER_EDGE_CLASS,
+      style: DEAD_LETTER_EDGE_STYLE,
+      markerEnd: DEAD_LETTER_EDGE_MARKER,
+    };
+  if (edge.className !== DEAD_LETTER_EDGE_CLASS) return edge;
+  const { className: _className, style: _style, ...plain } = edge;
+  return {
+    ...plain,
+    markerEnd: EDGE_MARKER,
+    sourceHandle:
+      edge.sourceHandle === DEAD_LETTER_HANDLE ? null : edge.sourceHandle,
   };
 };

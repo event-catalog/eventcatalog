@@ -57,6 +57,23 @@ describe('orders fixture', () => {
     expect(parentOf.get('payments-queue')).toBe(nodeIdFor({ id: 'payments', type: 'system' }));
   });
 
+  it("draws a channel's type and a dead letter channel on their cards, as the catalog does", () => {
+    const withChannels = Model.parse({
+      ...fixture,
+      resources: [
+        ...fixture.resources,
+        { id: 'payments-queue', type: 'channel', name: 'payments-queue', channelType: 'queue' },
+        { id: 'payments-dlq', type: 'channel', name: 'payments-dlq', channelType: 'queue', deadLetter: true },
+      ],
+    });
+    const channelOf = (id: string) =>
+      buildDetailedGraph(withChannels).nodes.find((n) => n.id === nodeIdFor({ id, type: 'channel' }))!.data.channel as Record<string, unknown>;
+
+    expect(channelOf('payments-queue')).toMatchObject({ type: 'queue' });
+    expect(channelOf('payments-queue').isDeadLetterChannel).toBeUndefined();
+    expect(channelOf('payments-dlq')).toMatchObject({ type: 'queue', isDeadLetterChannel: true });
+  });
+
   it('places a command with the agent receiving it', () => {
     // The Orders service (Ordering) asks the Refund agent (Payments) to review a refund
     const withAgent = Model.parse({

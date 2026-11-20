@@ -5,7 +5,7 @@
  */
 import { useMemo, useState, type RefObject } from 'react';
 import { Code2, MessageCircleQuestion, Users } from 'lucide-react';
-import { EditableText, EditStatus, EntityProperties, Field, NodeCard, useSavedFlash } from '@eventcatalog/visualiser/studio';
+import { ChannelFields, EditableText, EditStatus, EntityProperties, Field, NodeCard, useSavedFlash, type ChannelFieldsChange } from '@eventcatalog/visualiser/studio';
 import { type EntityProperty, type Model, type Note, type Resource, type ResourceType } from '@eventcatalog/visualiser/model';
 import { TypeIcon, TypePill } from './resource-types';
 import { SchemaCode } from './ported/schema-code';
@@ -87,7 +87,9 @@ const incomingLabel = (relation: { kind: string; label?: string }) =>
   (relation.kind === 'connects' && relation.label && INCOMING_LABELS[relation.label.toLowerCase()]) || INCOMING[relation.kind];
 
 /** What can be changed from the page: the resource's name, version and summary (and an entity's properties) */
-export type ResourceEdit = { name?: string; version?: string; summary?: string; properties?: EntityProperty[] };
+// A channel's type and whether it's a dead letter channel are as its node's data has them (the model calls them
+// channelType and deadLetter)
+export type ResourceEdit = { name?: string; version?: string; summary?: string; properties?: EntityProperty[] } & ChannelFieldsChange;
 
 type Related = { id: string; name: string; type: ResourceType; inferred: boolean };
 
@@ -188,6 +190,9 @@ export function NodeInfo({
                   multiline
                 />
               </Field>
+              {resource.type === 'channel' && (
+                <ChannelFields type={resource.channelType} deadLetter={resource.deadLetter} onChange={(change) => onEdit(change)} onSaved={showSaved} />
+              )}
               {resource.type === 'entity' && (
                 <Field label="Properties">
                   <EntityProperties properties={resource.properties ?? []} onChange={(properties) => onEdit({ properties })} onSaved={showSaved} />

@@ -1,6 +1,7 @@
 import type { Edge, Node, XYPosition } from '@xyflow/react';
 import type * as Y from 'yjs';
 import { z } from 'zod';
+import { CHANNEL_TYPE_IDS, type ChannelKind } from '@eventcatalog/visualiser/layout';
 import {
   buildNode,
   getCanvasMaps,
@@ -56,6 +57,17 @@ export const AGENT_COMPONENT_TYPES = [...COMPONENT_TYPES, 'note', 'text'] as con
 /** What a catalog service or message can bring with it: a service's messages and data stores, a message's services */
 export const CONNECTION_GROUP_IDS = ['receives', 'sends', 'dataStores', 'senders', 'receivers'] as const;
 
+/** A channel's type, and whether it's a dead letter channel, for agents: as the catalog's channels have them */
+export const CHANNEL_TYPE_SCHEMA = z.enum(CHANNEL_TYPE_IDS);
+export const CHANNEL_TYPE_HINT =
+  'how it delivers messages: queue (each message goes to one consumer, e.g. SQS), topic (every subscription gets a copy, e.g. SNS) or stream (an ordered log consumers read at their own offset, e.g. a Kafka topic)';
+export const DEAD_LETTER_HINT = "true for a dead letter channel (DLQ), where other channels send the messages they can't deliver";
+// What's written to a channel's data (`data.channel.type`, `isDeadLetterChannel`)
+const channelFields = ({ channelType, deadLetter }: { channelType?: ChannelKind; deadLetter?: boolean }) => ({
+  ...(channelType !== undefined && { type: channelType }),
+  ...(deadLetter !== undefined && { isDeadLetterChannel: deadLetter }),
+});
+
 export const nodeSpecsSchema = z
   .array(
     z.object({
@@ -74,6 +86,8 @@ export const nodeSpecsSchema = z
         .optional()
         .describe('For a new component: what it does. For a note or text: its text (keep notes to a few words)'),
       version: z.string().optional().describe('For a new component: its version, e.g. 1.0.0 (defaults to 0.0.1)'),
+      channelType: CHANNEL_TYPE_SCHEMA.optional().describe(`For a new channel: ${CHANNEL_TYPE_HINT}`),
+      deadLetter: z.boolean().optional().describe(`For a new channel: ${DEAD_LETTER_HINT}`),
       fontSize: z
         .number()
         .min(8)
@@ -217,6 +231,7 @@ export const ADD_TO_CANVAS_DESCRIPTION = [
   'To add a domain or system that is in the catalog with what it holds, give it contents: true: its systems, services, messages and data stores come with it, connected and laid out, in one go (as people add one from the catalog), so don\'t add them one by one. To bring what a catalog service or message connects to, give it connections (e.g. ["sends", "receives"] for a service, ["senders", "receivers"] for a message).',
   'Leave out x/y and each node is placed like an architect would: next to what it connects to (in edges, or as a related catalog resource), following the flow left to right (producers on the left of their messages, consumers on the right), lined up with it, and stacked when several connect to the same node. Nothing already on the canvas moves, and nodes connected to nothing go below what is there.',
   "Give x/y (a node's centre, like the positions from reading the canvas) only to put a node somewhere specific. Nodes are about 240 wide and 110 tall: leave about 200 between connected nodes for the labels on their connections.",
+  'A new channel can have a channelType (queue, topic or stream) and deadLetter: true for a dead letter queue; connect a channel to its dead letter channel with the label "dead-letters to".',
 ].join(' ');
 
 // ---- Catalog ----
@@ -408,6 +423,7 @@ export const planNodes = (
             ...(spec.name && { name: spec.name }),
             ...(spec.summary && { summary: spec.summary }),
             ...(spec.version && isVersioned(definition.type) && { version: spec.version }),
+            ...(definition.type === 'channel' && channelFields(spec)),
           });
       const node = sized(buildNode(definition.type, data, centerOf(spec)), spec);
       built = { node, name: String(getResource(node.type, node.data).name ?? definition.label) };
@@ -744,10 +760,18 @@ export const withNotesPlaced = (nodes: Node[], layout: LayoutResult): LayoutResu
   return { ...layout, nodes: placed };
 };
 
-export type NodeUpdate = { nodeId: string; name?: string; summary?: string; version?: string; fontSize?: number };
+export type NodeUpdate = {
+  nodeId: string;
+  name?: string;
+  summary?: string;
+  version?: string;
+  fontSize?: number;
+  channelType?: ChannelKind;
+  deadLetter?: boolean;
+};
 
 /** Renames, re-describes or re-versions a node. Catalog resources keep their catalog name, summary and version. */
-export const updateCanvasNode = (doc: Y.Doc, { nodeId, name, summary, version, fontSize }: NodeUpdate) =>
+export const updateCanvasNode = (doc: Y.Doc, { nodeId, name, summary, version, fontSize, channelType, deadLetter }: NodeUpdate) =>
   doc.transact(() => {
     const node = getCanvasMaps(doc).nodes.get(nodeId);
     if (!node) return { error: `No node "${nodeId}" on the canvas` };
@@ -763,6 +787,7 @@ export const updateCanvasNode = (doc: Y.Doc, { nodeId, name, summary, version, f
               ...(name !== undefined && { name }),
               ...(summary !== undefined && { summary }),
               ...(version !== undefined && isVersioned(node.type) && { version }),
+              ...(node.type === 'channel' && channelFields({ channelType, deadLetter })),
             })
       );
     }

@@ -1,12 +1,14 @@
 import * as Y from "yjs";
 import type { Connection, Edge, Node, XYPosition } from "@xyflow/react";
 import type { CopiedEdgeRoute, EdgeRoute } from "../layout";
-import { createEdge, EDGE_MARKER, getEdgeLabel } from "./edges";
 import {
-  DEAD_LETTER_EDGE_CLASS,
+  createEdge,
+  getEdgeLabel,
+  isDeadLetterEdge,
+  withDeadLetterLook,
+} from "./edges";
+import {
   DEAD_LETTER_EDGE_LABEL,
-  DEAD_LETTER_EDGE_MARKER,
-  DEAD_LETTER_EDGE_STYLE,
   DEAD_LETTER_HANDLE,
 } from "../utils/dead-letter";
 import {
@@ -758,6 +760,15 @@ export const connectNodes = (
     return { error: `Node "${connection.target}" is not on the canvas` };
   if (source.id === target.id)
     return { error: "A node cannot be connected to itself" };
+  // Dragged from a channel's bottom handle (its dead letter handle) to another channel: an edge to its dead letter
+  // channel, unless it's given another label
+  if (
+    label === undefined &&
+    connection.sourceHandle === DEAD_LETTER_HANDLE &&
+    source.type === "channel" &&
+    target.type === "channel"
+  )
+    label = DEAD_LETTER_EDGE_LABEL;
   // A channel's edge to its dead letter channel leaves from its bottom (see withDeadLetterLook)
   if (isDeadLetterEdge(label, source.type))
     connection = { ...connection, sourceHandle: DEAD_LETTER_HANDLE };
@@ -783,34 +794,22 @@ export const connectNodes = (
     label === undefined
       ? edge
       : withDeadLetterLook({ ...edge, label }, source.type);
-  edges.set(created.id, created);
+  doc.transact(() => {
+    edges.set(created.id, created);
+    // What a channel sends its dead letters to is a dead letter channel
+    if (isDeadLetterEdge(label, source.type))
+      markDeadLetterChannel(doc, target);
+  });
   return created;
 };
 
-const isDeadLetterEdge = (label: unknown, sourceType?: string) =>
-  label === DEAD_LETTER_EDGE_LABEL && sourceType === "channel";
-
-/**
- * A channel's edge to its dead letter channel (labelled "dead-letters to") looks as it does in the visualiser: red,
- * dashed, leaving from the channel's bottom. Any other edge, e.g. one relabelled from it, looks like an edge again.
- */
-const withDeadLetterLook = (edge: Edge, sourceType?: string): Edge => {
-  if (isDeadLetterEdge(edge.label, sourceType))
-    return {
-      ...edge,
-      sourceHandle: DEAD_LETTER_HANDLE,
-      className: DEAD_LETTER_EDGE_CLASS,
-      style: DEAD_LETTER_EDGE_STYLE,
-      markerEnd: DEAD_LETTER_EDGE_MARKER,
-    };
-  if (edge.className !== DEAD_LETTER_EDGE_CLASS) return edge;
-  const { className: _className, style: _style, ...plain } = edge;
-  return {
-    ...plain,
-    markerEnd: EDGE_MARKER,
-    sourceHandle:
-      edge.sourceHandle === DEAD_LETTER_HANDLE ? null : edge.sourceHandle,
-  };
+/** Marks a channel as a dead letter channel (its card shows it), when it isn't already */
+const markDeadLetterChannel = (doc: Y.Doc, node: Node) => {
+  if (node.type !== "channel") return;
+  if (getResource(node.type, node.data).isDeadLetterChannel === true) return;
+  updateNodeData(doc, node.id, (data) =>
+    updateResource(node.type, data, { isDeadLetterChannel: true }),
+  );
 };
 
 /**
@@ -878,6 +877,9 @@ export const setEdgeLabel = (
       unknown
     >;
     const sourceType = nodes.get(edge.source)?.type;
+    const target = nodes.get(edge.target);
+    if (target && isDeadLetterEdge(label, sourceType))
+      markDeadLetterChannel(doc, target);
     edges.set(
       edgeId,
       withDeadLetterLook(
