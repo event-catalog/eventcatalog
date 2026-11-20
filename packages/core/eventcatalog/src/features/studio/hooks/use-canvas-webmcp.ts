@@ -11,6 +11,9 @@ import {
   CATALOG_COLLECTIONS,
 } from '@eventcatalog/visualiser/studio';
 import {
+  CHANNEL_TYPE_HINT,
+  CHANNEL_TYPE_SCHEMA,
+  DEAD_LETTER_HINT,
   ADD_TO_CANVAS_DESCRIPTION,
   describeCanvas,
   edgeSpecsSchema,
@@ -257,12 +260,14 @@ const createCanvasTools = (get: () => CanvasWebMcpOptions, getStage: () => Agent
       name: 'update_node',
       title: 'Update a node',
       description:
-        'Renames, re-describes, re-versions or moves a node (x/y: its new centre). Catalog resources keep their catalog name, summary and version. For notes, summary is the note text.',
+        'Renames, re-describes, re-versions or moves a node, or sets the type of a channel and whether it is a dead letter channel (x/y: its new centre). Catalog resources keep their catalog name, summary and version. For notes, summary is the note text.',
       input: z.object({
         nodeId: z.string(),
         name: z.string().optional(),
         summary: z.string().optional(),
         version: z.string().optional().describe('e.g. 1.0.0'),
+        channelType: CHANNEL_TYPE_SCHEMA.optional().describe(`For a channel: ${CHANNEL_TYPE_HINT}`),
+        deadLetter: z.boolean().optional().describe(`For a channel: ${DEAD_LETTER_HINT}`),
         x: z.number().optional(),
         y: z.number().optional(),
       }),

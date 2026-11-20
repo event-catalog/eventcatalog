@@ -22,7 +22,16 @@ import {
   type Author,
   getLayoutPositions,
 } from '@eventcatalog/visualiser/studio';
-import { ADD_TO_CANVAS_DESCRIPTION, describeCanvas, edgeSpecsSchema, indexCatalog, nodeSpecsSchema } from '../canvas-actions';
+import {
+  ADD_TO_CANVAS_DESCRIPTION,
+  CHANNEL_TYPE_HINT,
+  CHANNEL_TYPE_SCHEMA,
+  DEAD_LETTER_HINT,
+  describeCanvas,
+  edgeSpecsSchema,
+  indexCatalog,
+  nodeSpecsSchema,
+} from '../canvas-actions';
 import { getCatalogResources } from '../catalog-resources';
 import {
   playAddToCanvas,
@@ -331,13 +340,15 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
     {
       title: 'Update a node on a canvas',
       description:
-        'Renames, re-describes, re-versions or moves a node on a canvas (x/y: its new centre). Catalog resources keep their catalog name, summary and version; change those in the catalog. For notes, summary is the note text.',
+        'Renames, re-describes, re-versions or moves a node, or sets the type of a channel and whether it is a dead letter channel on a canvas (x/y: its new centre). Catalog resources keep their catalog name, summary and version; change those in the catalog. For notes, summary is the note text.',
       inputSchema: z.object({
         canvasId,
         nodeId: z.string(),
         name: z.string().optional(),
         summary: z.string().optional(),
         version: z.string().optional().describe('e.g. 1.0.0'),
+        channelType: CHANNEL_TYPE_SCHEMA.optional().describe(`For a channel: ${CHANNEL_TYPE_HINT}`),
+        deadLetter: z.boolean().optional().describe(`For a channel: ${DEAD_LETTER_HINT}`),
         x: z.number().optional(),
         y: z.number().optional(),
         agentName,

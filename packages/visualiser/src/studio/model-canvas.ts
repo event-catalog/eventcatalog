@@ -5,6 +5,7 @@
  * notes are sticky note and text nodes, on their level; where things are goes in the model's layout.
  */
 import type { Edge, Node, XYPosition } from "@xyflow/react";
+import { getChannelType } from "../utils/channel-types";
 import type {
   Hotspot as ModelHotspot,
   Layout,
@@ -163,6 +164,8 @@ export function resourceNodeData(resource: Resource): Record<string, unknown> {
         channel: {
           ...fields,
           protocols: resource.technology ? [resource.technology] : [],
+          ...(resource.channelType && { type: resource.channelType }),
+          ...(resource.deadLetter && { isDeadLetterChannel: true }),
         },
       };
     case "container":
@@ -628,6 +631,13 @@ export function canvasToModel(
         Array.isArray(fields.properties) && {
           properties: fields.properties as Resource["properties"],
         }),
+      // A channel's type, and whether it's a dead letter channel, as they are on the canvas
+      ...(type === "channel" && {
+        channelType: getChannelType(fields.type)
+          ? (fields.type as Resource["channelType"])
+          : undefined,
+        deadLetter: fields.isDeadLetterChannel === true ? true : undefined,
+      }),
       // Its kind of data store, as it is on the canvas (a database is the default, so it isn't written)
       ...(type === "container" && {
         containerType:
