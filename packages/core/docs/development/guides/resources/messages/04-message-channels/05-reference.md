@@ -150,7 +150,7 @@ type: queue
 
 - Type: `object` (`id`, optional `version`)
 
-The channel that messages go to when they can't be delivered or processed, for example the target of an SQS redrive policy or a RabbitMQ dead letter exchange. Without a version it points to the latest version. The channel it points to is shown as a dead letter channel: a red border and a "Dead Letter" badge on its card, a dashed red "dead-letters to" edge from the bottom of this channel, a stop sign icon in the sidebar, and links between the two in the sidebar ("Dead Letter Channel" and "Dead Letters From") and in `<ChannelInformation />`.
+The channel that messages go to when they can't be delivered or processed, for example the target of an SQS redrive policy or a RabbitMQ dead letter exchange. Without a version it points to the latest version. The channel it points to is shown as a dead letter channel: a red border and a dark badge with a stop sign on its card ("Dead Letter Queue", "Dead Letter Topic", "Dead Letter Stream" or "Dead Letter Channel", depending on its type), a dashed red "dead-letters to" edge from the bottom of this channel, a stop sign icon in the sidebar, and links between the two in the sidebar ("Dead Letter Channel" and "Dead Letters From") and in `<ChannelInformation />`.
 
 ```md title="Example"
 ---

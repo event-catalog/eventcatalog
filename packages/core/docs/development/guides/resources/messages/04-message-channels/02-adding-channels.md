@@ -239,4 +239,4 @@ deadLetterChannel:
 ---
 ```
 
-The dead letter channel gets a red border and a "Dead Letter" badge in the visualiser, and a dashed red "dead-letters to" edge joins the two, leaving from the bottom of the channel. Each channel's page links to the other. See the [channel reference](/docs/development/guides/resources/messages/message-channels/reference#deadLetterChannel).
+The dead letter channel gets a red border and a dark "Dead Letter Queue" badge with a stop sign in the visualiser ("Dead Letter Topic", "Dead Letter Stream" or "Dead Letter Channel" for other types), and a dashed red "dead-letters to" edge joins the two, leaving from the bottom of the channel. Each channel's page links to the other. See the [channel reference](/docs/development/guides/resources/messages/message-channels/reference#deadLetterChannel).
