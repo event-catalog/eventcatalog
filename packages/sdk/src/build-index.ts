@@ -82,6 +82,7 @@ type IndexableResource = {
   protocols?: Channel['protocols'];
   deliveryGuarantee?: Channel['deliveryGuarantee'];
   routes?: Channel['routes'];
+  deadLetterChannel?: Channel['deadLetterChannel'];
   parameters?: Channel['parameters'];
   services?: ResourcePointer[];
   agents?: ResourcePointer[];
@@ -393,6 +394,7 @@ const toIndexResource = async (
     ...(resource.protocols === undefined ? {} : { protocols: resource.protocols }),
     ...(resource.deliveryGuarantee === undefined ? {} : { deliveryGuarantee: resource.deliveryGuarantee }),
     ...(resource.routes === undefined ? {} : { routes: resource.routes }),
+    ...(resource.deadLetterChannel === undefined ? {} : { deadLetterChannel: resource.deadLetterChannel }),
     ...(resource.parameters === undefined ? {} : { parameters: resource.parameters }),
     ...(resource.services === undefined ? {} : { services: resource.services }),
     ...(resource.agents === undefined ? {} : { agents: resource.agents }),

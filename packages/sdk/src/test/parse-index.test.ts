@@ -56,6 +56,7 @@ describe('parseIndex', () => {
           protocols: ['kafka'],
           deliveryGuarantee: 'at-least-once',
           routes: [{ id: 'payments.dead-letter' }],
+          deadLetterChannel: { id: 'payments.dead-letter', version: '1.0.0' },
           parameters: {
             region: { enum: ['eu', 'us'], default: 'eu', examples: ['eu'] },
           },

@@ -214,6 +214,7 @@ describe('buildIndex', () => {
       protocols: ['kafka'],
       deliveryGuarantee: 'at-least-once',
       routes: [{ id: 'payments.dead-letter', version: '1.0.0' }],
+      deadLetterChannel: { id: 'payments.dead-letter', version: '1.0.0' },
       parameters: {
         region: {
           enum: ['eu', 'us'],
@@ -249,6 +250,7 @@ describe('buildIndex', () => {
           protocols: ['kafka'],
           deliveryGuarantee: 'at-least-once',
           routes: [{ id: 'payments.dead-letter', version: '1.0.0' }],
+          deadLetterChannel: { id: 'payments.dead-letter', version: '1.0.0' },
           parameters: {
             region: {
               enum: ['eu', 'us'],

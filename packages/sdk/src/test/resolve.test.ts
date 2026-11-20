@@ -2827,6 +2827,71 @@ describe('resolve', () => {
       ]);
     });
 
+    it("resolves a channel's dead letter channel across catalogs, and reports one that's missing or has no such version", () => {
+      const ordersIndex = anIndex({
+        source: 'acme/orders',
+        commit: '1a2b3c4',
+        resources: [
+          {
+            type: 'channel',
+            id: 'orders.queue',
+            version: '1.0.0',
+            name: 'Orders Queue',
+            deadLetterChannel: { id: 'platform.dlq' },
+            contentPath: 'channels/orders.queue/index.mdx',
+          },
+          {
+            type: 'channel',
+            id: 'orders.retry',
+            version: '1.0.0',
+            name: 'Orders Retry',
+            deadLetterChannel: { id: 'orders.retry.dlq' },
+            contentPath: 'channels/orders.retry/index.mdx',
+          },
+          {
+            type: 'channel',
+            id: 'orders.audit',
+            version: '1.0.0',
+            name: 'Orders Audit',
+            deadLetterChannel: { id: 'platform.dlq', version: '9.0.0' },
+            contentPath: 'channels/orders.audit/index.mdx',
+          },
+        ],
+      });
+      const platformIndex = anIndex({
+        source: 'acme/platform',
+        commit: '5d6e7f8',
+        resources: [
+          {
+            type: 'channel',
+            id: 'platform.dlq',
+            version: '1.0.0',
+            name: 'Platform DLQ',
+            contentPath: 'channels/platform.dlq/index.mdx',
+          },
+        ],
+      });
+
+      const graph = resolve([ordersIndex, platformIndex]);
+      const edgeFrom = (from: string) => graph.edges.find((edge) => edge.from === from);
+
+      expect(edgeFrom('orders.queue')).toMatchObject({
+        to: 'platform.dlq',
+        direction: 'references',
+        via: 'deadLetterChannel',
+        resolved: '1.0.0',
+        resolvedFrom: { source: 'acme/platform', commit: '5d6e7f8' },
+        status: 'resolved',
+      });
+      expect(edgeFrom('orders.retry')).toMatchObject({ to: 'orders.retry.dlq', via: 'deadLetterChannel', status: 'external' });
+      expect(edgeFrom('orders.audit')).toMatchObject({
+        to: 'platform.dlq',
+        via: 'deadLetterChannel',
+        pointer: '9.0.0',
+        status: 'unresolved',
+      });
+    });
+
     it('resolves channels nested in service sends and receives pointers', () => {
       const paymentsIndex = anIndex({
         source: 'acme/payments',

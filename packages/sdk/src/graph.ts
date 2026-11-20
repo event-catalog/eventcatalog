@@ -344,7 +344,10 @@ export const getGraph = (directory: string): GetCatalogGraph => {
       } else if (type === 'event' || type === 'command' || type === 'query') {
         await addPointers([...(resource.channels || []), ...(resource.messageChannels || [])], ['channel']);
       } else if (type === 'channel') {
-        await addPointers(resource.routes || [], ['channel']);
+        await addPointers(
+          [...(resource.routes || []), ...(resource.deadLetterChannel ? [resource.deadLetterChannel] : [])],
+          ['channel']
+        );
       } else if (type === 'data-product') {
         await addPointers(
           [...(resource.inputs || []), ...(resource.outputs || [])],
