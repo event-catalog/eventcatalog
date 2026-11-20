@@ -488,7 +488,8 @@ export const buildDomainGraph = ({
   systems.forEach(({ system, groupId: domainGroup }, index) => {
     const graph = systemGraphs[index];
     const groupId = systemGroupId(system);
-    // A system with nothing in it still shows as an (empty) system
+    // A system's graph carries its group, even when the system is empty. If the graph
+    // couldn't be built, still show the system as an empty group
     if (!graph.nodes.some((node: any) => node.id === groupId)) {
       nodes.set(groupId, {
         id: groupId,
