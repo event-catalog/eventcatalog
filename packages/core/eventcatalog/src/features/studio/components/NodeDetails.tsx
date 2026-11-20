@@ -4,6 +4,7 @@ import { Box, ExternalLink, Library } from 'lucide-react';
 import { getCatalogLink } from '../catalog';
 import type { EntityProperty } from '@eventcatalog/visualiser/model';
 import {
+  ChannelFields,
   EditableText,
   EditStatus,
   EntityProperties,
@@ -23,7 +24,7 @@ export type NodeConnection = { id: string; name: string; type?: string; label?: 
 
 /**
  * A node's details, in a card next to it (as Studio on the web's): its type and where it is, and its name, version
- * and summary (and an entity's properties), saved as they're typed, and what it's connected to (click one to go to it). Catalog resources are read only (they're changed in the catalog), as is
+ * and summary (and an entity's properties, a channel's type and whether it's a dead letter channel), saved as they're typed, and what it's connected to (click one to go to it). Catalog resources are read only (they're changed in the catalog), as is
  * everything on a locked canvas. Notes and text are edited on the canvas.
  */
 export default memo(function NodeDetails({
@@ -147,6 +148,14 @@ export default memo(function NodeDetails({
                 multiline
               />
             </Field>
+            {node.type === 'channel' && (
+              <ChannelFields
+                type={typeof resource.type === 'string' ? resource.type : undefined}
+                deadLetter={resource.isDeadLetterChannel === true}
+                onChange={(change) => onChange(node.id, (data) => updateResource(node.type, data, change))}
+                onSaved={showSaved}
+              />
+            )}
             {node.type === 'entity' && (
               <Field label="Properties">
                 <EntityProperties

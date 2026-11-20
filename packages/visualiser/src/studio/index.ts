@@ -44,6 +44,7 @@ export * from "./components/ClientLogos";
 export * from "./components/EmptyCanvas";
 export * from "./components/NodeCard";
 export * from "./components/EntityProperties";
+export * from "./components/ChannelFields";
 export * from "./components/RemeasureHandles";
 export { default as Picture } from "./components/Picture";
 export { default as TeamNode } from "./components/TeamNode";

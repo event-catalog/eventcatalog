@@ -97,7 +97,15 @@ function createNode(r: Resource, parentId: string | undefined, focus?: string): 
       return {
         ...base,
         type: 'channels',
-        data: { ...shared, channel: { ...resourceData(r), ...(r.technology && { protocols: [r.technology] }) } },
+        data: {
+          ...shared,
+          channel: {
+            ...resourceData(r),
+            ...(r.technology && { protocols: [r.technology] }),
+            ...(r.channelType && { type: r.channelType }),
+            ...(r.deadLetter && { isDeadLetterChannel: true }),
+          },
+        },
       };
     case 'container':
       return {

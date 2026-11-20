@@ -758,6 +758,15 @@ export const connectNodes = (
     return { error: `Node "${connection.target}" is not on the canvas` };
   if (source.id === target.id)
     return { error: "A node cannot be connected to itself" };
+  // Dragged from a channel's bottom handle (its dead letter handle) to another channel: an edge to its dead letter
+  // channel, unless it's given another label
+  if (
+    label === undefined &&
+    connection.sourceHandle === DEAD_LETTER_HANDLE &&
+    source.type === "channel" &&
+    target.type === "channel"
+  )
+    label = DEAD_LETTER_EDGE_LABEL;
   // A channel's edge to its dead letter channel leaves from its bottom (see withDeadLetterLook)
   if (isDeadLetterEdge(label, source.type))
     connection = { ...connection, sourceHandle: DEAD_LETTER_HANDLE };
@@ -783,8 +792,22 @@ export const connectNodes = (
     label === undefined
       ? edge
       : withDeadLetterLook({ ...edge, label }, source.type);
-  edges.set(created.id, created);
+  doc.transact(() => {
+    edges.set(created.id, created);
+    // What a channel sends its dead letters to is a dead letter channel
+    if (isDeadLetterEdge(label, source.type))
+      markDeadLetterChannel(doc, target);
+  });
   return created;
+};
+
+/** Marks a channel as a dead letter channel (its card shows it), when it isn't already */
+const markDeadLetterChannel = (doc: Y.Doc, node: Node) => {
+  if (node.type !== "channel") return;
+  if (getResource(node.type, node.data).isDeadLetterChannel === true) return;
+  updateNodeData(doc, node.id, (data) =>
+    updateResource(node.type, data, { isDeadLetterChannel: true }),
+  );
 };
 
 const isDeadLetterEdge = (label: unknown, sourceType?: string) =>
@@ -878,6 +901,9 @@ export const setEdgeLabel = (
       unknown
     >;
     const sourceType = nodes.get(edge.source)?.type;
+    const target = nodes.get(edge.target);
+    if (target && isDeadLetterEdge(label, sourceType))
+      markDeadLetterChannel(doc, target);
     edges.set(
       edgeId,
       withDeadLetterLook(

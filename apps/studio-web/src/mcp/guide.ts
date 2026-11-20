@@ -24,7 +24,7 @@ const EXAMPLE: z.input<typeof Model> = {
     { id: 'PlaceOrder', type: 'command', name: 'Place Order', summary: 'Sent by the storefront when a customer checks out.' },
     { id: 'OrderPlaced', type: 'event', name: 'Order Placed', summary: 'An order was placed and saved.', evidence: 'specs/orders.asyncapi.yaml' },
     { id: 'PaymentProcessed', type: 'event', name: 'Payment Processed', summary: 'An order was paid for.' },
-    { id: 'orders-topic', type: 'channel', name: 'orders', technology: 'Kafka', summary: 'Order events, keyed by order id.' },
+    { id: 'orders-topic', type: 'channel', name: 'orders', technology: 'Kafka', channelType: 'stream', summary: 'Order events, keyed by order id.' },
     { id: 'orders-db', type: 'container', name: 'Orders DB', technology: 'PostgreSQL', summary: 'Orders and their line items.' },
   ],
   relations: [
@@ -48,7 +48,7 @@ export const SCHEMA_GUIDE = `# EventCatalog architecture model
 - event: something that happened (OrderPlaced). Published by one service, consumed by many.
 - command: a request to do something (PlaceOrder). Usually one receiver.
 - query: a request for data (GetStock).
-- channel: what messages travel through: a topic, queue, stream, exchange or event bus (set technology, e.g. "Kafka").
+- channel: what messages travel through: a topic, queue, stream, exchange or event bus (set technology, e.g. "Kafka"). Set channelType to how it delivers messages: queue (each message to one consumer, e.g. SQS), topic (a copy for every subscription, e.g. SNS) or stream (an ordered log read at each consumer's own offset, e.g. a Kafka topic). Set deadLetter: true on a dead letter queue (DLQ), where other channels send the messages they can't deliver.
 - container: a data store. Set containerType to its kind: database (the default), cache, objectStore (e.g. S3), searchIndex (e.g. Elasticsearch), dataWarehouse, dataLake, externalSaaS or other; and technology, e.g. "PostgreSQL", "Redis".
 - entity: part of the domain model (Order, Customer), with properties: [{ name, type, required?, description? }]. Parent: a domain (or system). Shown at the messages level.
 - team: who owns things (e.g. Payments Team). Connect it to what it owns with a "connects" relation labelled "owns" (from the team); it's also each owned resource's owner.
