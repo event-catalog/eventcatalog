@@ -22,7 +22,7 @@ import {
   type LevelPlace,
   type Thread,
 } from "./canvas-doc";
-import { createEdge } from "./edges";
+import { createEdge, withDeadLetterLook } from "./edges";
 import {
   ENTITY_SOURCE_HANDLE,
   ENTITY_TARGET_HANDLE_ID,
@@ -235,8 +235,12 @@ function edgesFor(model: Model, byId: Map<string, Resource>): Edge[] {
       NODE_TYPE[from.type],
       NODE_TYPE[to.type],
     );
+    // A channel's edge to its dead letter channel looks as it does when it's drawn (red, dashed, from the bottom)
     drawn.set(key + fields, {
-      ...edge,
+      ...withDeadLetterLook(
+        relation.label ? { ...edge, label: relation.label } : edge,
+        NODE_TYPE[from.type],
+      ),
       id: key + fields,
       // What someone wrote on it (any connection), else EventCatalog's wording
       ...(relation.label && { label: relation.label }),

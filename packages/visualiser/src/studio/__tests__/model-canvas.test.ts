@@ -180,4 +180,34 @@ describe("channels' type and dead letter channels", () => {
     });
     expect(resource("orders.bus").channelType).toBeUndefined();
   });
+
+  it("draws a channel's dead letter connection from the model as it is drawn on the canvas: red, dashed, from the bottom", async () => {
+    const model: Model = {
+      title: "Orders",
+      resources: [
+        { id: "orders.queue", type: "channel", name: "Orders Queue" },
+        {
+          id: "orders.dlq",
+          type: "channel",
+          name: "Orders DLQ",
+          deadLetter: true,
+        },
+      ],
+      relations: [
+        {
+          from: "orders.queue",
+          to: "orders.dlq",
+          kind: "connects",
+          label: "dead-letters to",
+        },
+      ],
+    };
+    const { edges } = await modelToCanvas(model);
+
+    expect(edges.find((edge) => edge.source === "orders.queue")).toMatchObject({
+      label: "dead-letters to",
+      sourceHandle: "dead-letter",
+      className: "ec-dead-letter-edge",
+    });
+  });
 });
