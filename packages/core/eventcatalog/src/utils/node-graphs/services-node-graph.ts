@@ -28,6 +28,7 @@ import { findMatchingNodes, findInMap, createVersionedMap } from '@utils/collect
 import { MarkerType, type Node, type Edge } from '@xyflow/react';
 import type { CollectionMessageTypes } from '@types';
 import { getNodesAndEdgesForConsumedMessage, getNodesAndEdgesForProducedMessage } from './message-node-graph';
+import { getChannels } from '@utils/collections/channels';
 
 /**
  * Pre-compute the downstream nodes/edges that should appear when a message group
@@ -183,7 +184,8 @@ export const getNodesAndEdges = async ({
     getCollection('events'),
     getCollection('commands'),
     getCollection('queries'),
-    getCollection('channels'),
+    // With what's worked out about each channel (e.g. whether it's a dead letter channel), for its card
+    getChannels(),
     getCollection('containers'),
   ]);
 

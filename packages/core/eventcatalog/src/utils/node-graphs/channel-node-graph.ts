@@ -14,8 +14,15 @@ import {
   getOperationFields,
 } from './utils/utils';
 import { layoutNodeGraph } from '@utils/node-graphs/layout-node-graph';
+import {
+  DEAD_LETTER_EDGE_CLASS,
+  DEAD_LETTER_EDGE_LABEL,
+  DEAD_LETTER_EDGE_MARKER,
+  DEAD_LETTER_EDGE_STYLE,
+  DEAD_LETTER_HANDLE,
+} from '@eventcatalog/visualiser/layout';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
-import { getChannelChain, getChannels } from '@utils/collections/channels';
+import { getChannelChain, getChannels, getDeadLetterChannel } from '@utils/collections/channels';
 import { type Node, type Edge } from '@xyflow/react';
 import type { CollectionMessageTypes } from '@types';
 
@@ -267,7 +274,10 @@ export const getNodesAndEdges = async ({ id, version, mode = 'simple', layout = 
     );
   };
 
+  // The channels drawn, for their dead letter channels to be drawn too
+  const channelsOnGraph = new Map<string, CollectionEntry<'channels'>>();
   const addChannelNode = (channelToAdd: CollectionEntry<'channels'>, isFocused = false) => {
+    channelsOnGraph.set(generateIdForNode(channelToAdd), channelToAdd);
     addNode(
       createNode({
         id: generateIdForNode(channelToAdd),
@@ -369,7 +379,7 @@ export const getNodesAndEdges = async ({ id, version, mode = 'simple', layout = 
           source: generateIdForNode(producer),
           target: messageNodeId,
           label: getEdgeLabelForServiceAsTarget(message),
-          type: 'multiline',
+          // A message edge, which "Simulate messages" animates (as on a message's diagram)
           data: { customColor: getColorFromString(message.data.id) },
         })
       );
@@ -400,7 +410,6 @@ export const getNodesAndEdges = async ({ id, version, mode = 'simple', layout = 
         target: generateIdForNode(consumer),
         label:
           messages.length === 1 ? getEdgeLabelForMessageAsSource(messages[0], true) : `consumes ${messages.length}\nmessages`,
-        type: 'multiline',
         data: { customColor: getColorFromString(sourceChannel.data.id) },
       })
     );
@@ -438,6 +447,43 @@ export const getNodesAndEdges = async ({ id, version, mode = 'simple', layout = 
         data: { customColor: getColorFromString(upstreamChannel.data.id) },
       })
     );
+  }
+
+  // Dead letters: where this channel sends the messages it can't deliver, and the channels that send theirs here
+  const addDeadLetterEdge = (source: CollectionEntry<'channels'>, deadLetterChannel: CollectionEntry<'channels'>) =>
+    addEdge(
+      createEdge({
+        // Its own id: a channel can route to the channel it dead letters to as well
+        id: `${generatedIdForEdge(source, deadLetterChannel)}-dead-letter`,
+        source: generateIdForNode(source),
+        // From the bottom of the channel: down, then right into its dead letter channel (put below its consumers)
+        sourceHandle: DEAD_LETTER_HANDLE,
+        target: generateIdForNode(deadLetterChannel),
+        label: DEAD_LETTER_EDGE_LABEL,
+        // Red and dashed, an error path (Studio draws it the same from its label)
+        className: DEAD_LETTER_EDGE_CLASS,
+        style: DEAD_LETTER_EDGE_STYLE,
+        markerEnd: DEAD_LETTER_EDGE_MARKER,
+        // Not animated by "Simulate messages": a steady flow into a dead letter channel would look like constant failure
+        data: { animated: false },
+      })
+    );
+
+  // The channels that send their dead letters here (worked out by getChannels)
+  for (const { id: sourceId, version: sourceVersion } of channel.data.deadLetterFor ?? []) {
+    const source = findInMap(channelMap, sourceId, sourceVersion) as CollectionEntry<'channels'> | undefined;
+    if (!source) continue;
+    addChannelNode(source);
+    addDeadLetterEdge(source, channel);
+  }
+
+  // Where every channel on the graph sends its dead letters: this channel's, and those of the channels it routes
+  // to or from (e.g. each queue a topic fans out to). Not the dead letter channels' own.
+  for (const channelOnGraph of [...channelsOnGraph.values()]) {
+    const deadLetterChannel = getDeadLetterChannel(channelOnGraph, channels);
+    if (!deadLetterChannel) continue;
+    addChannelNode(deadLetterChannel);
+    addDeadLetterEdge(channelOnGraph, deadLetterChannel);
   }
 
   if (!layout) return { nodes, edges };

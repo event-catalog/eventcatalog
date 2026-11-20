@@ -60,6 +60,31 @@ describe("layoutWithElk", () => {
     expect(start(edges[2])).toEqual(start(edges[3]));
   });
 
+  it("puts a channel's dead letter channel below its other consumers, with the edge going down from the channel and right into it", async () => {
+    const { nodes, edges } = await layoutWithElk({
+      nodes: [
+        node("queue", { type: "channels" }),
+        node("consumer"),
+        node("dlq", { type: "channels" }),
+      ],
+      edges: [
+        edge("consumes", "queue", "consumer"),
+        edge("dead-letters", "queue", "dlq", { sourceHandle: "dead-letter" }),
+      ],
+    });
+    const at = (id: string) => nodes.find((n) => n.id === id)!.position;
+    const [start, bend, end] = routeOf(edges[1]).points;
+
+    expect(at("dlq").x).toBeGreaterThan(at("queue").x);
+    expect(at("dlq").y).toBeGreaterThan(at("consumer").y);
+    // Down from the middle of the channel's bottom...
+    expect(start).toEqual({ x: at("queue").x + 120, y: at("queue").y + 112 });
+    expect(bend.x).toBe(start.x);
+    // ...and right, into the dead letter channel's left side
+    expect(end.x).toBe(at("dlq").x);
+    expect(end.y).toBe(bend.y);
+  });
+
   it("records where each edge's nodes were laid out in the flow, and how tall", async () => {
     const { nodes, edges } = await layoutWithElk({
       nodes: [

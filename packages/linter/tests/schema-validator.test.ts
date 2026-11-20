@@ -542,6 +542,20 @@ describe('validateSchema', () => {
       expect(validateSchema(parsedFile).map((error) => error.message)).toEqual(['date: Invalid date']);
     });
 
+    it('accepts a channel type of queue, topic or stream, and nothing else', () => {
+      for (const type of ['queue', 'topic', 'stream']) {
+        expect(
+          validateSchema(createParsedFile('channel', { id: 'orders', name: 'Orders', version: '1.0.0', type }))
+        ).toHaveLength(0);
+      }
+
+      const errors = validateSchema(
+        createParsedFile('channel', { id: 'orders', name: 'Orders', version: '1.0.0', type: 'pipe' })
+      );
+      expect(errors).toHaveLength(1);
+      expect(errors[0].field).toBe('type');
+    });
+
     it('describes a key/value field given the wrong type as expecting an object', () => {
       const parsedFile = createParsedFile('channel', {
         id: 'orders',

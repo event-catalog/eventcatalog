@@ -29,6 +29,8 @@ const RESOURCE_DATA_KEYS = [
   'protocols',
   'address',
   'deliveryGuarantee',
+  // A channel other channels send their dead letters to
+  'isDeadLetterChannel',
   'type',
   'container_type',
   'schemas',

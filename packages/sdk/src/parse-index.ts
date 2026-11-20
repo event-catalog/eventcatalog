@@ -245,6 +245,7 @@ const IndexResourceSchema = z
     protocols: z.array(z.string()).optional(),
     deliveryGuarantee: z.enum(['at-most-once', 'at-least-once', 'exactly-once']).optional(),
     routes: z.array(ChannelPointerSchema).optional(),
+    deadLetterChannel: ChannelPointerSchema.optional(),
     parameters: ChannelParametersSchema.optional(),
     services: z.array(ResourcePointerSchema).optional(),
     agents: z.array(ResourcePointerSchema).optional(),

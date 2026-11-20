@@ -34,6 +34,7 @@ import { buildEntityNode } from './builders/entity';
 import config from '@config';
 import { getDesigns } from '@utils/collections/designs';
 import { getChannelConnections, getChannels } from '@utils/collections/channels';
+import { getChannelIcon } from '@eventcatalog/visualiser/layout';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { iconFieldsForResource } from '@utils/icon';
 import {
@@ -817,6 +818,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     entries.flatMap((entry) =>
       NODE_TYPE[entry.collection] ? [`${NODE_TYPE[entry.collection]}:${entry.data.id}:${entry.data.version}`] : []
     );
+  const channelKeysOf = (summaries: Array<{ id: string; version: string }>) =>
+    summaries.map(({ id, version }) => `channel:${id}:${version}`);
   const channelSection = (title: string, icon: string, pages: string[]): NavNode | false =>
     pages.length > 0 && { type: 'group', title, icon, pages };
 
@@ -828,6 +831,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
         channels,
         messages: channelMessages,
       });
+      const { deadLetterChannelResolved, deadLetterFor } = channel.data;
       const docsSection = buildResourceDocsSection(
         'channels',
         channel.data.id,
@@ -839,9 +843,10 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
         {
           type: 'item',
           title: channel.data.name,
+          // "Channel" whatever its type: search filters and colours by the badge. The icon shows its type.
           badge: 'Channel',
           summary: channel.data.summary,
-          ...iconFieldsForResource(channel.data, 'ArrowRightLeft'),
+          ...iconFieldsForResource(channel.data, getChannelIcon(channel.data)),
           pages: [
             buildQuickReferenceSection(
               [
@@ -872,6 +877,12 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
             channelSection('Messages', 'Mail', keysOf(connections.messages)),
             channelSection('Producers', 'Server', keysOf(connections.producers)),
             channelSection('Consumers', 'Server', keysOf(connections.consumers)),
+            channelSection(
+              'Dead Letter Channel',
+              'OctagonX',
+              channelKeysOf(deadLetterChannelResolved ? [deadLetterChannelResolved] : [])
+            ),
+            channelSection('Dead Letters From', 'ArrowRightLeft', channelKeysOf(deadLetterFor)),
             docsSection,
           ].filter(Boolean) as ChildRef[],
         },

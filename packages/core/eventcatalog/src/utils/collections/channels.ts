@@ -18,10 +18,23 @@ interface Props {
   getAllVersions?: boolean;
 }
 
-// cache for build time
-let memoryCache: Record<string, Channel[]> = {};
+type ChannelSummary = { id: string; version: string; name: string };
 
-export const getChannels = async ({ getAllVersions = true }: Props = {}): Promise<Channel[]> => {
+/** What getChannels works out about each channel's dead letters */
+type DeadLetterDetails = {
+  /** The channels that send their dead letters to this one (their latest versions) */
+  deadLetterFor: ChannelSummary[];
+  /** Other channels send their dead letters here */
+  isDeadLetterChannel: boolean;
+  /** The channel its `deadLetterChannel` points to, when it's in the catalog */
+  deadLetterChannelResolved?: ChannelSummary;
+};
+export type ChannelWithDetails = Channel & { data: DeadLetterDetails };
+
+// cache for build time
+let memoryCache: Record<string, ChannelWithDetails[]> = {};
+
+export const getChannels = async ({ getAllVersions = true }: Props = {}): Promise<ChannelWithDetails[]> => {
   // console.time('✅ New getChannels');
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
@@ -64,13 +77,24 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
     }
   }
 
-  // 4. Filter channels
+  // 4. Which channels are dead letter channels, and for which channels. Only a channel's latest version says where
+  // its dead letters go: a pointer an older version had doesn't keep another channel a dead letter channel.
+  const deadLetterSources = new Map<string, Channel[]>();
+  for (const source of allChannels) {
+    if (channelMap.get(source.data.id)?.[0] !== source) continue;
+    const deadLetterChannel = getDeadLetterChannel(source, allChannels);
+    if (!deadLetterChannel) continue;
+    const key = channelKey(deadLetterChannel);
+    deadLetterSources.set(key, [...(deadLetterSources.get(key) ?? []), source]);
+  }
+
+  // 5. Filter channels
   const targetChannels = allChannels.filter((channel) => {
     if (!getAllVersions && channel.filePath?.includes('versioned')) return false;
     return true;
   });
 
-  // 5. Enrich channels
+  // 6. Enrich channels
   const processedChannels = await Promise.all(
     targetChannels.map(async (channel) => {
       // Version info
@@ -99,6 +123,9 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
         };
       });
 
+      const deadLetterFor = (deadLetterSources.get(channelKey(channel)) ?? []).map(summarise);
+      const deadLetterChannel = getDeadLetterChannel(channel, allChannels);
+
       return {
         ...channel,
         data: {
@@ -106,6 +133,9 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
           versions,
           latestVersion,
           messages,
+          deadLetterFor,
+          isDeadLetterChannel: deadLetterFor.length > 0,
+          ...(deadLetterChannel && { deadLetterChannelResolved: summarise(deadLetterChannel) }),
         },
       };
     })
@@ -120,6 +150,25 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
   // console.timeEnd('✅ New getChannels');
 
   return processedChannels;
+};
+
+const channelKey = (channel: Channel) => `${channel.data.id}:${channel.data.version}`;
+const summarise = (channel: Channel): ChannelSummary => ({
+  id: channel.data.id,
+  version: channel.data.version,
+  name: channel.data.name,
+});
+
+/**
+ * The channel a channel sends the messages it can't deliver to (its `deadLetterChannel`, e.g. an SQS redrive
+ * policy or a RabbitMQ dead letter exchange), when it's in the catalog. No version means its latest version.
+ */
+export const getDeadLetterChannel = (channel: Channel, channels: Channel[]): Channel | undefined => {
+  const pointer = channel.data.deadLetterChannel;
+  if (!pointer) return undefined;
+  const deadLetterChannel = findInMap(getVersionedMap(channels), pointer.id, pointer.version);
+  // A channel can't be its own dead letter channel
+  return deadLetterChannel && channelKey(deadLetterChannel) !== channelKey(channel) ? deadLetterChannel : undefined;
 };
 
 // Could be recursive, we need to keep going until we find a loop or until we reach the target channel

@@ -1,7 +1,7 @@
 import type { CollectionEntry, CollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { mockCommands, mockEvents, mockQueries, mockServices, mockChannels } from './mocks';
-import { getChannels, getChannelChain, isChannelsConnected } from '@utils/collections/channels';
+import { getChannels, getChannelChain, getDeadLetterChannel, isChannelsConnected } from '@utils/collections/channels';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -278,6 +278,61 @@ describe('channels', () => {
       const isConnected = isChannelsConnected(sourceChannel, targetChannel, [sourceChannel, firstRouteChannel, targetChannel]);
 
       expect(isConnected).toBe(false);
+    });
+  });
+
+  describe('dead letter channels', () => {
+    const channel = (id: string, version: string, data: Record<string, unknown> = {}) =>
+      ({
+        id: `${id}-${version}`,
+        collection: 'channels',
+        data: { id, name: id, version, ...data },
+      }) as unknown as CollectionEntry<'channels'>;
+
+    const dlqV1 = channel('orders.dlq', '1.0.0');
+    const dlqV2 = channel('orders.dlq', '2.0.0');
+    const ordersQueue = channel('orders.queue', '1.0.0', { deadLetterChannel: { id: 'orders.dlq' } });
+    const paymentsQueue = channel('payments.queue', '1.0.0', { deadLetterChannel: { id: 'orders.dlq', version: '1.0.0' } });
+    const selfReferencing = channel('loop.queue', '1.0.0', { deadLetterChannel: { id: 'loop.queue' } });
+    const missing = channel('missing.queue', '1.0.0', { deadLetterChannel: { id: 'does-not-exist' } });
+    const channels = [dlqV1, dlqV2, ordersQueue, paymentsQueue, selfReferencing, missing];
+
+    it('getDeadLetterChannel returns the latest version of the dead letter channel when no version is given', () => {
+      expect(getDeadLetterChannel(ordersQueue, channels)).toBe(dlqV2);
+    });
+
+    it('getDeadLetterChannel returns the version of the dead letter channel it points to', () => {
+      expect(getDeadLetterChannel(paymentsQueue, channels)).toBe(dlqV1);
+    });
+
+    it('getDeadLetterChannel returns undefined when there is no dead letter channel, it is missing, or it is the channel itself', () => {
+      expect(getDeadLetterChannel(dlqV1, channels)).toBeUndefined();
+      expect(getDeadLetterChannel(missing, channels)).toBeUndefined();
+      expect(getDeadLetterChannel(selfReferencing, channels)).toBeUndefined();
+    });
+
+    it("getChannels marks a dead letter channel with the channels that send it their dead letters, and resolves each channel's", async () => {
+      const all = await getChannels();
+      const find = (id: string, version = '1.0.0') => all.find((c) => c.data.id === id && c.data.version === version)!;
+
+      expect(find('orders.dlq').data).toMatchObject({
+        isDeadLetterChannel: true,
+        deadLetterFor: [{ id: 'orders.queue', version: '1.0.0', name: 'Orders Queue' }],
+      });
+      expect(find('orders.queue').data.deadLetterChannelResolved).toEqual({
+        id: 'orders.dlq',
+        version: '1.0.0',
+        name: 'Orders DLQ',
+      });
+      expect(find('orders.queue').data.isDeadLetterChannel).toBe(false);
+    });
+
+    it("getChannels only counts a channel's latest version: an older version's dead letter channel isn't one now", async () => {
+      const all = await getChannels();
+      const legacy = all.find((c) => c.data.id === 'legacy.dlq')!;
+
+      expect(legacy.data.isDeadLetterChannel).toBe(false);
+      expect(legacy.data.deadLetterFor).toEqual([]);
     });
   });
 });

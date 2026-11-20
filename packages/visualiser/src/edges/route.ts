@@ -17,6 +17,7 @@ type Route = EdgeRoute;
 const ROUTE_TOLERANCE = { x: 60, y: 400 };
 
 const isStraight = (a: Point, b: Point) => a.x === b.x || a.y === b.y;
+const isVertical = (a: Point, b: Point) => a.x === b.x && a.y !== b.y;
 const add = (a: Point, b: Point) => ({ x: a.x + b.x, y: a.y + b.y });
 const NOT_MOVED = { x: 0, y: 0 };
 
@@ -77,8 +78,11 @@ export const getRoutePath = (
   const { points } = route;
   if (points.length < 2) return undefined;
   const last = points.length - 1;
+  // An edge that leaves from the bottom of its source (e.g. to a dead letter
+  // channel) starts going down, from its handle, rather than along a side
+  const startsDown = isVertical(points[0], points[1]);
   const start = add(
-    alongSide(points[0], route.source, sourceHeight),
+    startsDown ? points[0] : alongSide(points[0], route.source, sourceHeight),
     sourceMoved,
   );
   const end = add(
@@ -97,10 +101,14 @@ export const getRoutePath = (
     movedTogether ? add(point, sourceMoved) : { ...point },
   );
   // Keep where the layout spread the ends along each side, just on the sides
-  moved[0] = { x: source.x, y: toSourceHandle ? source.y : start.y };
+  moved[0] = {
+    x: source.x,
+    y: toSourceHandle || startsDown ? source.y : start.y,
+  };
   moved[last] = { x: target.x, y: toTargetHandle ? target.y : end.y };
-  // Keep the first and last segments flat as their ends move
-  if (last > 1 && points[1].y === points[0].y) moved[1].y = moved[0].y;
+  // Keep the first and last segments flat (or, going down, upright) as their ends move
+  if (last > 1 && startsDown) moved[1].x = moved[0].x;
+  else if (last > 1 && points[1].y === points[0].y) moved[1].y = moved[0].y;
   if (last > 1 && points[last - 1].y === points[last].y)
     moved[last - 1].y = moved[last].y;
 

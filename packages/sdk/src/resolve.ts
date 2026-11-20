@@ -77,6 +77,12 @@ const getPointerFields = (entity: ResolvedEntity): PointerField[] => [
   { direction: 'relatesTo', via: 'diagrams', pointers: entity.diagrams },
   { direction: 'references', via: 'channels', pointers: entity.channels },
   { direction: 'references', via: 'routes', pointers: entity.routes },
+  // Where a channel sends the messages it can't deliver: a missing one is reported like a missing route
+  {
+    direction: 'references',
+    via: 'deadLetterChannel',
+    pointers: entity.deadLetterChannel ? [entity.deadLetterChannel] : undefined,
+  },
   { direction: 'sends', via: 'sends.to', pointers: entity.sends?.flatMap((pointer) => pointer.to ?? []) },
   { direction: 'receives', via: 'receives.from', pointers: entity.receives?.flatMap((pointer) => pointer.from ?? []) },
   { direction: 'sends', via: 'receives.triggers', pointers: entity.receives?.flatMap((pointer) => pointer.triggers ?? []) },

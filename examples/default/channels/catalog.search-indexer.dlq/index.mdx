@@ -1,0 +1,32 @@
+---
+id: catalog.search-indexer.dlq
+name: Search Indexer DLQ
+version: 1.0.0
+summary: |
+  Dead letter queue for product events the Search Indexer could not apply to the search index.
+owners:
+  - search-platform
+address: catalog-search-indexer-dlq
+protocols:
+  - sqs
+type: queue
+deliveryGuarantee: at-least-once
+---
+
+## Overview
+
+When the [[service|search-indexer]] fails to process a message from [[channel|catalog.search-indexer.queue]] five times (the queue's `maxReceiveCount`), SQS moves it here instead of retrying it forever.
+
+<ChannelInformation />
+
+## Handling dead letters
+
+1. Check the `search-indexer` logs for the failing message ID to find out why it failed.
+2. Fix the cause (a bad document mapping, an outage in the search cluster).
+3. Redrive the messages back to the source queue with an SQS redrive task.
+
+Messages are kept for 14 days.
+
+## Architecture diagram
+
+<NodeGraph />

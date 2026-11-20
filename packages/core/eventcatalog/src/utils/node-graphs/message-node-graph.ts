@@ -595,9 +595,18 @@ const getNodesAndEdges = async ({
     appendEdge(relation.receiver, relation.message, getEdgeLabelForServiceAsTarget(relation.message), relation.message);
   }
 
-  if (!layout) return { nodes, edges };
+  // Each producer and consumer pair adds the channels between them, so a channel several of them use is added
+  // more than once: keep the first of each node and edge
+  const graph = { nodes: uniqueById(nodes), edges: uniqueById(edges) };
 
-  return layoutNodeGraph({ nodes, edges });
+  if (!layout) return graph;
+
+  return layoutNodeGraph(graph);
+};
+
+const uniqueById = <T extends { id: string }>(items: T[]): T[] => {
+  const seen = new Set<string>();
+  return items.filter((item) => !seen.has(item.id) && !!seen.add(item.id));
 };
 
 export const getNodesAndEdgesForQueries = async ({

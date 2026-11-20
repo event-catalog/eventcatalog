@@ -113,7 +113,17 @@ export const getCatalogResources = async (): Promise<{ resources: CatalogResourc
     ...channels.map((channel) =>
       toResource('channels', channel, {
         type: 'channel',
-        data: { mode: 'full', channel: { ...basics(channel), protocols: channel.data.protocols ?? [] } },
+        data: {
+          mode: 'full',
+          channel: {
+            ...basics(channel),
+            protocols: channel.data.protocols ?? [],
+            // Labelled, coloured and given an icon for its type, like the visualiser's card
+            ...(channel.data.type && { type: channel.data.type }),
+            // Labelled as one, like the visualiser's card
+            ...(channel.data.isDeadLetterChannel && { isDeadLetterChannel: true }),
+          },
+        },
       })
     ),
     ...containers.map((container) =>

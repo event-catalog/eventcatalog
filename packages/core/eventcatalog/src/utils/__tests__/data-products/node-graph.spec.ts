@@ -214,7 +214,10 @@ describe('Data Products NodeGraph', () => {
           type: 'channels',
           sourcePosition: 'right',
           targetPosition: 'left',
-          data: expect.objectContaining({ mode: 'simple', channel: { ...mockChannels[0].data } }),
+          data: expect.objectContaining({
+            mode: 'simple',
+            channel: expect.objectContaining({ id: mockChannels[0].data.id, version: mockChannels[0].data.version }),
+          }),
           position: { x: expect.any(Number), y: expect.any(Number) },
         };
 
@@ -401,7 +404,10 @@ describe('Data Products NodeGraph', () => {
           type: 'channels',
           sourcePosition: 'right',
           targetPosition: 'left',
-          data: expect.objectContaining({ mode: 'simple', channel: { ...mockChannels[1].data } }),
+          data: expect.objectContaining({
+            mode: 'simple',
+            channel: expect.objectContaining({ id: mockChannels[1].data.id, version: mockChannels[1].data.version }),
+          }),
           position: { x: expect.any(Number), y: expect.any(Number) },
         };
 

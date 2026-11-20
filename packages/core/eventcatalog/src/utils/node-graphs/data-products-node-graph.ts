@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { getChannels } from '@utils/collections/channels';
 import {
   generateIdForNode,
   generatedIdForEdge,
@@ -39,7 +40,8 @@ export const getNodesAndEdges = async ({ id, version, mode = 'simple', layout = 
     getCollection('events'),
     getCollection('queries'),
     getCollection('commands'),
-    getCollection('channels'),
+    // With what's worked out about each channel (e.g. whether it's a dead letter channel), for its card
+    getChannels(),
   ]);
 
   const dataProduct = dataProducts.find((dp) => dp.data.id === id && dp.data.version === version);

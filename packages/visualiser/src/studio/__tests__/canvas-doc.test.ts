@@ -23,6 +23,7 @@ import {
   resizeNode,
   setLevelPlaces,
   setNodeParent,
+  setEdgeLabel,
   setEntityProperties,
   setNodeParents,
   setThreadResolved,
@@ -383,6 +384,51 @@ describe("connectNodes", () => {
       label: "stores orders in",
       type: "smoothstep",
     });
+  });
+
+  it("draws a channel's edge to its dead letter channel dashed, in crimson, as the visualiser does", () => {
+    const doc = new Y.Doc();
+    addNodes(doc, [
+      node("queue", "channel", 0, 0),
+      node("dlq", "channel", 400, 0),
+    ]);
+    expect(
+      connectNodes(doc, { source: "queue", target: "dlq" }, "dead-letters to"),
+    ).toMatchObject({
+      label: "dead-letters to",
+      // From the channel's bottom handle, in red (styles.css)
+      sourceHandle: "dead-letter",
+      className: "ec-dead-letter-edge",
+      style: { stroke: "#ef4444", strokeDasharray: "6 4" },
+      markerEnd: { color: "#ef4444" },
+    });
+  });
+
+  it("only draws an edge as a dead letter edge when it comes from a channel", () => {
+    expect(
+      connectNodes(setup(), { source: "svc", target: "db" }, "dead-letters to"),
+    ).not.toHaveProperty("className");
+  });
+
+  it("draws an edge relabelled to or from the dead letter wording to match", () => {
+    const doc = new Y.Doc();
+    addNodes(doc, [
+      node("queue", "channel", 0, 0),
+      node("dlq", "channel", 400, 0),
+    ]);
+    const edge = connectNodes(doc, { source: "queue", target: "dlq" }) as Edge;
+
+    setEdgeLabel(doc, edge.id, "dead-letters to");
+    expect(getCanvasMaps(doc).edges.get(edge.id)).toMatchObject({
+      sourceHandle: "dead-letter",
+      className: "ec-dead-letter-edge",
+    });
+
+    setEdgeLabel(doc, edge.id, "retries to");
+    const relabelled = getCanvasMaps(doc).edges.get(edge.id)!;
+    expect(relabelled).not.toHaveProperty("className");
+    expect(relabelled).not.toHaveProperty("style");
+    expect(relabelled.sourceHandle).toBeNull();
   });
 
   it("returns the existing edge rather than adding the same connection twice", () => {

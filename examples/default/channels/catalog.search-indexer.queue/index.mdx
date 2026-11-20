@@ -9,12 +9,18 @@ owners:
 address: catalog-search-indexer
 protocols:
   - sqs
+type: queue
 deliveryGuarantee: at-least-once
+deadLetterChannel:
+  id: catalog.search-indexer.dlq
+  version: 1.0.0
 ---
 
 ## Overview
 
 The [[service|search-indexer]] consumes product events from this queue and applies them to the search index. The queue is the final channel in the product-event routing chain.
+
+Messages the indexer fails to process five times are moved to the [[channel|catalog.search-indexer.dlq]] dead letter queue.
 
 <ChannelInformation />
 

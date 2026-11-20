@@ -7,6 +7,7 @@ import type {
   LayoutOptions,
 } from "elkjs/lib/elk-api";
 import { getEdgeLabelSize } from "./utils/utils";
+import { DEAD_LETTER_HANDLE } from "./dead-letter";
 
 export type LayoutGraph = { nodes: Node[]; edges: Edge[] };
 export type LayoutSize = { width: number; height: number };
@@ -49,6 +50,16 @@ const NODE_SIZES: Record<string, LayoutSize> = {
   // Groups with nothing in them (groups with children are sized to fit them)
   "domain-group": { width: 320, height: 160 },
   "system-group": { width: 320, height: 160 },
+};
+
+type PortSide = "EAST" | "WEST" | "SOUTH";
+
+// Handles that aren't on the right of their node: edges from them leave from
+// that side. A channel's edge to its dead letter channel leaves from its
+// bottom, so the dead letter channel is put below the channel's other
+// consumers, with the edge going down and then right into it.
+const HANDLE_SIDES: Record<string, PortSide> = {
+  [DEAD_LETTER_HANDLE]: "SOUTH",
 };
 
 // Nodes sized by their style, like groups: an empty one needs a size too
@@ -134,16 +145,13 @@ export const layoutWithElk = async (
   // Each edge gets its own port, leaving from the right of its source and
   // arriving at the left of its target, so ELK spreads edges out along a
   // node's side rather than routing them all through one point. Edges to a
-  // specific handle (e.g. a service listed in a domain) share that handle's port.
+  // specific handle (e.g. a service listed in a domain) share that handle's
+  // port, on that handle's side (e.g. the bottom, for a dead letter channel).
   const layoutEdges = edges.filter(
     (edge) => nodesById.has(edge.source) && nodesById.has(edge.target),
   );
   const ports = new Map<string, ElkPort[]>();
-  const addPort = (
-    nodeId: string,
-    id: string,
-    side: "EAST" | "WEST",
-  ): string => {
+  const addPort = (nodeId: string, id: string, side: PortSide): string => {
     const nodePorts = ports.get(nodeId) || [];
     if (!nodePorts.some((port) => port.id === id)) {
       ports.set(nodeId, [
@@ -159,7 +167,7 @@ export const layoutWithElk = async (
       edge.sourceHandle
         ? `${edge.source}__${edge.sourceHandle}`
         : `e${index}__out`,
-      "EAST",
+      (edge.sourceHandle && HANDLE_SIDES[edge.sourceHandle]) || "EAST",
     ),
     target: addPort(
       edge.target,

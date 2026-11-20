@@ -82,6 +82,7 @@ export type IndexResource = {
   protocols?: Channel['protocols'];
   deliveryGuarantee?: Channel['deliveryGuarantee'];
   routes?: Channel['routes'];
+  deadLetterChannel?: Channel['deadLetterChannel'];
   parameters?: Channel['parameters'];
   services?: ResourcePointer[];
   agents?: ResourcePointer[];

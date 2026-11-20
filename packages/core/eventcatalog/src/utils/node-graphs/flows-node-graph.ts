@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { getChannels } from '@utils/collections/channels';
 import {
   buildContextMenuForResource,
   buildContextMenuForService,
@@ -398,7 +399,8 @@ export const getNodesAndEdges = async ({ id, version, mode = 'simple', layout = 
       getCollection('data-products'),
       getCollection('domains'),
       getCollection('systems'),
-      getCollection('channels'),
+      // With what's worked out about each channel (e.g. whether it's a dead letter channel), for its card
+      getChannels(),
       getCollection('teams'),
       getCollection('users'),
     ]);
