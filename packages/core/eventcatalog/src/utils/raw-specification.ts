@@ -7,7 +7,7 @@ import {
   processSpecifications,
   type SpecificationType,
 } from '@utils/collections/util';
-import { readResourceFile, resourceFileExists } from '@utils/resource-files';
+import { getResourceFilePath, readResourceFile, resourceFileExists } from '@utils/resource-files';
 import { resolveHeaders } from '@utils/remote-spec';
 import { buildUrl } from '@utils/url-builder';
 import Config from '@utils/eventcatalog-config/catalog';
@@ -32,6 +32,17 @@ export type SpecificationPage = {
  * or fragment (orders.yaml?token=abc is orders.yaml), which would otherwise end the URL's path
  */
 export const getRawSpecificationFileName = (filename: string) => filename.split(/[?#]/, 1)[0];
+
+type LocalSpecification = Pick<SpecificationPageData, 'filePath' | 'path'>;
+
+/**
+ * The absolute path to a local specification's file, from its path as written, which can include folders
+ * (e.g. specifications/openapi.yaml). The pages and the raw file route all resolve it this way.
+ */
+export const getLocalSpecificationPath = (pageData: LocalSpecification) => getResourceFilePath(pageData, pageData.path);
+
+/** A local specification's file contents (see getLocalSpecificationPath), or null when the file doesn't exist */
+export const readLocalSpecification = (pageData: LocalSpecification) => readResourceFile(pageData, pageData.path);
 
 /** Whether a raw specification URL's `file` names this specification's file */
 export const isRawSpecificationFile = (pageData: SpecificationPageData, file: string | undefined) =>
@@ -89,7 +100,7 @@ export const getRawSpecificationResponse = async (
     return new Response(await response.text(), { headers });
   }
 
-  const content = readResourceFile(pageData, specification.path);
+  const content = readLocalSpecification(pageData);
   if (content === null) return notFound('Specification file could not be read');
 
   return new Response(content, { headers });
