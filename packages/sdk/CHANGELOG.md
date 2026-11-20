@@ -1,5 +1,12 @@
 # @eventcatalog/sdk
 
+## 2.33.0
+
+### Minor Changes
+
+- e6aa9f4: feat(core): channels can have a `type` of `queue`, `topic` or `stream`, for how they deliver messages. Each type has its own label and icon on its card in diagrams and Studio, and its own icon in the sidebar, and is shown in `<ChannelInformation />`. A dead letter channel with a type is labelled as one, e.g. "Dead Letter Queue".
+- e6aa9f4: feat(core): document dead letter channels. A channel can point to the channel it sends undeliverable messages to with `deadLetterChannel`, which is then drawn with a red border and a dark "Dead Letter Channel" badge with a stop sign icon (in diagrams and Studio), given a stop sign icon and "Dead Letter Channel" and "Dead Letters From" sections in the sidebar, and joined to its source channels by a dashed red "dead-letters to" edge that leaves the bottom of the channel and turns right into the dead letter channel, laid out below the channel's consumers, and linked from `<ChannelInformation />`. Federation carries `deadLetterChannel` through the catalog index and resolves it like `routes`, so a missing dead letter channel is reported.
+
 ## 2.32.2
 
 ### Patch Changes
@@ -262,6 +269,7 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
+
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"
