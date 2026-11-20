@@ -32,6 +32,20 @@ const mockChannels = [
       id: 'FinalQueue',
       name: 'Final Queue',
       version: '1.0.0',
+      deadLetterChannel: { id: 'FinalQueueDLQ' },
+    },
+  },
+  {
+    id: 'FinalQueueDLQ-1.0.0',
+    slug: 'FinalQueueDLQ',
+    collection: 'channels',
+    data: {
+      id: 'FinalQueueDLQ',
+      name: 'Final Queue DLQ',
+      version: '1.0.0',
+      // What getChannels (mocked below) works out
+      isDeadLetterChannel: true,
+      deadLetterFor: [{ id: 'FinalQueue', version: '1.0.0', name: 'Final Queue' }],
     },
   },
   {
@@ -328,6 +342,47 @@ describe('Channels NodeGraph', () => {
 
       expect(idsFor(nodes)).toContain('EventBus-1.0.0');
       expect(edgesFor(edges)).toEqual(expect.arrayContaining(['EventBus-1.0.0 -> DownstreamQueue-1.0.0 (routes to)']));
+    });
+
+    it('lets "Simulate messages" animate the edges from producers and to consumers, but not into a dead letter channel', async () => {
+      const { edges } = await getNodesAndEdges({ id: 'FinalQueue', version: '1.0.0', layout: false });
+      const edge = (id: string) => edges.find((e: any) => e.id === id);
+
+      // Edges of type "multiline" never animate
+      for (const e of edges.filter((e: any) => e.label !== 'dead-letters to')) {
+        expect(e.type).not.toBe('multiline');
+      }
+      expect(edge('FinalQueue-1.0.0-SearchIndexer-1.0.0')).toBeDefined();
+      expect(edges.find((e: any) => e.label === 'dead-letters to').data.animated).toBe(false);
+    });
+
+    it('when the channel has a dead letter channel, the dead letter channel is rendered downstream of it', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'FinalQueue', version: '1.0.0' });
+
+      expect(idsFor(nodes)).toContain('FinalQueueDLQ-1.0.0');
+      expect(edgesFor(edges)).toEqual(expect.arrayContaining(['FinalQueue-1.0.0 -> FinalQueueDLQ-1.0.0 (dead-letters to)']));
+      // From the bottom of the channel, dashed, in crimson
+      expect(edges.find((edge: any) => edge.label === 'dead-letters to')).toMatchObject({
+        sourceHandle: 'dead-letter',
+        // Red: edges are coloured by a stylesheet rule, so the colour comes from a class
+        className: 'ec-dead-letter-edge',
+        style: { stroke: '#ef4444', strokeDasharray: '6 4' },
+        markerEnd: { color: '#ef4444' },
+      });
+    });
+
+    it('renders the dead letter channels of the other channels on the graph, e.g. the end of the route', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'EventBus', version: '1.0.0' });
+
+      expect(idsFor(nodes)).toContain('FinalQueueDLQ-1.0.0');
+      expect(edgesFor(edges)).toEqual(expect.arrayContaining(['FinalQueue-1.0.0 -> FinalQueueDLQ-1.0.0 (dead-letters to)']));
+    });
+
+    it('when the channel is a dead letter channel, the channels that send their dead letters to it are rendered upstream', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'FinalQueueDLQ', version: '1.0.0' });
+
+      expect(idsFor(nodes)).toContain('FinalQueue-1.0.0');
+      expect(edgesFor(edges)).toEqual(['FinalQueue-1.0.0 -> FinalQueueDLQ-1.0.0 (dead-letters to)']);
     });
 
     it('renders the complete channel route around a focused channel without connecting messages directly to it', async () => {

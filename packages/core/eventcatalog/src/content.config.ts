@@ -835,6 +835,12 @@ const channels = defineCollection({
         protocols: z.array(z.string()).optional(),
         deliveryGuarantee: z.enum(['at-most-once', 'at-least-once', 'exactly-once']).optional(),
         routes: z.array(channelPointer).optional(),
+        // Where messages go when they can't be delivered or processed (e.g. an SQS redrive policy, a RabbitMQ
+        // dead letter exchange). The channel it points to is shown as a dead letter channel.
+        deadLetterChannel: channelPointer.optional(),
+        // How it delivers messages: a queue gives each message to one consumer, a topic gives every subscription
+        // its own copy, and a stream is an ordered log consumers read at their own offset (e.g. a Kafka topic)
+        type: z.enum(['queue', 'topic', 'stream']).optional(),
         parameters: z
           .record(
             z.string(),

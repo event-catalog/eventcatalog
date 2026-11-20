@@ -137,6 +137,10 @@ export type Channel = {
   notes?: Note[];
   /** Delivery guarantee (e.g. at-most-once, at-least-once, exactly-once) */
   deliveryGuarantee?: string;
+  /** Other channels send the messages they can't deliver here (their `deadLetterChannel`) */
+  isDeadLetterChannel?: boolean;
+  /** How it delivers messages: `queue`, `topic` or `stream` */
+  type?: string;
   styles?: {
     icon?: string;
     node?: {

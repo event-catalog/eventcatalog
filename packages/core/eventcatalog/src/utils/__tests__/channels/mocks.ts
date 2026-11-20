@@ -162,4 +162,31 @@ export const mockChannels = [
       version: '1.0.0',
     },
   },
+  // Dead letters: the latest orders queue sends its dead letters to orders.dlq; an older version sent them to
+  // legacy.dlq, which doesn't make legacy.dlq a dead letter channel now
+  {
+    id: 'orders.queue-1.0.0',
+    slug: 'orders.queue',
+    collection: 'channels',
+    data: { id: 'orders.queue', name: 'Orders Queue', version: '1.0.0', deadLetterChannel: { id: 'orders.dlq' } },
+  },
+  {
+    id: 'orders.queue-0.0.1',
+    slug: 'orders.queue',
+    collection: 'channels',
+    filePath: 'channels/orders.queue/versioned/0.0.1/index.mdx',
+    data: { id: 'orders.queue', name: 'Orders Queue', version: '0.0.1', deadLetterChannel: { id: 'legacy.dlq' } },
+  },
+  {
+    id: 'orders.dlq-1.0.0',
+    slug: 'orders.dlq',
+    collection: 'channels',
+    data: { id: 'orders.dlq', name: 'Orders DLQ', version: '1.0.0' },
+  },
+  {
+    id: 'legacy.dlq-1.0.0',
+    slug: 'legacy.dlq',
+    collection: 'channels',
+    data: { id: 'legacy.dlq', name: 'Legacy DLQ', version: '1.0.0' },
+  },
 ];

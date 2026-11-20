@@ -662,6 +662,28 @@ describe('validateReferences', () => {
       expect(errors).toHaveLength(0);
     });
 
+    it('should validate a channel dead letter channel', () => {
+      const valid = validateReferences([
+        createParsedFile('channel', 'orders-queue', {
+          id: 'orders-queue',
+          version: '1.0.0',
+          deadLetterChannel: { id: 'orders-dlq' },
+        }),
+        createParsedFile('channel', 'orders-dlq', { id: 'orders-dlq', version: '1.0.0' }),
+      ]);
+      expect(valid).toHaveLength(0);
+
+      const missing = validateReferences([
+        createParsedFile('channel', 'orders-queue', {
+          id: 'orders-queue',
+          version: '1.0.0',
+          deadLetterChannel: { id: 'orders-dlq' },
+        }),
+      ]);
+      expect(missing).toHaveLength(1);
+      expect(missing[0].field).toBe('deadLetterChannel');
+    });
+
     it('should validate ADR typed resource references and relationships', () => {
       const parsedFiles: ParsedFile[] = [
         createParsedFile('adr', 'adr-002', {

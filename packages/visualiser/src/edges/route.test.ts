@@ -37,6 +37,26 @@ describe("getRoutePath", () => {
     ).toBeUndefined();
   });
 
+  it("starts an edge laid out down from the bottom of its source at the source's handle, keeping it upright", () => {
+    // Down from the bottom of a channel, then right into its dead letter channel
+    const down = {
+      points: [
+        { x: 120, y: 112 },
+        { x: 120, y: 200 },
+        { x: 300, y: 200 },
+      ],
+    };
+    // The channel rendered a little narrower and shorter than it was laid out
+    expect(
+      getRoutePath(
+        down,
+        { x: 110, y: 104 },
+        { x: 300, y: 205 },
+        { toSourceHandle: true },
+      )?.path,
+    ).toBe("M 110 104 L 110 200 L 300 200");
+  });
+
   it("goes exactly to handles an edge is attached to, keeping the ends flat", () => {
     expect(
       getRoutePath(

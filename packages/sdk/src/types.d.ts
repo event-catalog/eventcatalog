@@ -241,6 +241,10 @@ export interface Channel extends BaseSchema {
   protocols?: string[];
   deliveryGuarantee?: 'at-most-once' | 'at-least-once' | 'exactly-once';
   routes?: ChannelPointer[];
+  /** Where messages go when they can't be delivered or processed (its dead letter channel) */
+  deadLetterChannel?: ChannelPointer;
+  /** How it delivers messages: to one consumer (queue), a copy to every subscription (topic), or as a log consumers read at their own offset (stream) */
+  type?: 'queue' | 'topic' | 'stream';
   detailsPanel?: {
     producers?: DetailPanelProperty;
     consumers?: DetailPanelProperty;

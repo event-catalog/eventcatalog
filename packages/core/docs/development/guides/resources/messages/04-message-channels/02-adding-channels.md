@@ -211,3 +211,32 @@ deliveryGuarantee: at-least-once
 ```
 
 When set, the visualiser shows a colored badge on the channel node. You can read more about the accepted values in the [channel reference](/docs/development/guides/resources/messages/message-channels/reference#deliveryGuarantee).
+
+### Setting the type of channel
+
+Use `type` to say how the channel delivers messages: `queue` (each message goes to one consumer), `topic` (every subscription gets a copy) or `stream` (an ordered log consumers read at their own offset, like a Kafka topic).
+
+```md
+---
+id: orders.queue
+type: queue
+---
+```
+
+The visualiser shows the channel with its type's icon and label, and the sidebar with its type's icon. See the [channel reference](/docs/development/guides/resources/messages/message-channels/reference#type).
+
+### Documenting a dead letter channel
+
+If messages that can't be delivered or processed go to another channel, a dead letter queue (DLQ), point to it with `deadLetterChannel` on the channel they come from. Document the dead letter channel as a channel of its own, for example with a runbook for redriving its messages.
+
+```md
+---
+id: orders.queue
+type: queue
+deadLetterChannel:
+  id: orders.queue.dlq
+  version: 1.0.0
+---
+```
+
+The dead letter channel gets a red border and a "Dead Letter" badge in the visualiser, and a dashed red "dead-letters to" edge joins the two, leaving from the bottom of the channel. Each channel's page links to the other. See the [channel reference](/docs/development/guides/resources/messages/message-channels/reference#deadLetterChannel).

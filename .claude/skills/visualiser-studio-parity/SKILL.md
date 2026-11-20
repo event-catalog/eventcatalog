@@ -72,6 +72,11 @@ one draws or derives something, change the other to match (or record the differe
   message or channel.
 - **Counts on cards** (services, messages, data stores) are counted the same way.
 - **Edge layers:** an edge sits at the layer of the deepest node it joins; routes keep it off other cards.
+- **Dead letter edges:** a channel's edge to its dead letter channel ("dead-letters to", `utils/dead-letter.ts`) is
+  drawn on channel diagrams only (`channel-node-graph.ts`): red and dashed (the `ec-dead-letter-edge` class, as edges'
+  colour comes from a stylesheet rule), from the channel's bottom handle (`dead-letter`, a SOUTH port in
+  `layoutWithElk`), so the dead letter channel sits below its consumers. A copy in Studio keeps only its label, so
+  Studio gives any edge from a channel with that label the same look (`withDeadLetterLook` in `canvas-doc.ts`).
 
 ## Known differences (keep this list short, and say why)
 

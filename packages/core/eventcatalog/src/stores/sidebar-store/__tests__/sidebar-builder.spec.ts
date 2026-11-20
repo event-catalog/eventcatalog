@@ -4668,6 +4668,69 @@ describe('getNestedSideBarData', () => {
       });
     });
 
+    it('links a channel to its dead letter channel, and the dead letter channel back to it', async () => {
+      const { writeChannel } = utils(CATALOG_FOLDER);
+      await writeChannel({
+        id: 'PaymentChannel',
+        name: 'Payment Channel',
+        version: '0.0.1',
+        markdown: 'Payment Channel',
+        deadLetterChannel: { id: 'PaymentDLQ' },
+      } as any);
+      await writeChannel({ id: 'PaymentDLQ', name: 'Payment DLQ', version: '0.0.1', markdown: 'Payment DLQ' });
+
+      const navigationData = await getNestedSideBarData();
+      const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel:0.0.1', navigationData);
+      const deadLetterNode = getNavigationConfigurationByKey('channel:PaymentDLQ:0.0.1', navigationData);
+
+      expect(getChildNodeByTitle('Dead Letter Channel', channelNode.pages ?? [])?.pages).toEqual(['channel:PaymentDLQ:0.0.1']);
+      expect(deadLetterNode.icon).toEqual('OctagonX');
+      expect(getChildNodeByTitle('Dead Letters From', deadLetterNode.pages ?? [])?.pages).toEqual([
+        'channel:PaymentChannel:0.0.1',
+      ]);
+    });
+
+    it("gives a channel its type's icon (and a dead letter channel the stop sign), keeping the Channel badge search filters by", async () => {
+      const { writeChannel } = utils(CATALOG_FOLDER);
+      await writeChannel({
+        id: 'OrderEvents',
+        name: 'Order Events',
+        version: '0.0.1',
+        markdown: 'Order Events',
+        type: 'stream',
+      } as any);
+      await writeChannel({
+        id: 'PaymentQueue',
+        name: 'Payment Queue',
+        version: '0.0.1',
+        markdown: 'Payment Queue',
+        type: 'queue',
+        deadLetterChannel: { id: 'PaymentDLQ' },
+      } as any);
+      await writeChannel({
+        id: 'PaymentDLQ',
+        name: 'Payment DLQ',
+        version: '0.0.1',
+        markdown: 'Payment DLQ',
+        type: 'queue',
+      } as any);
+
+      const navigationData = await getNestedSideBarData();
+
+      expect(getNavigationConfigurationByKey('channel:OrderEvents:0.0.1', navigationData)).toMatchObject({
+        badge: 'Channel',
+        icon: 'Waves',
+      });
+      expect(getNavigationConfigurationByKey('channel:PaymentQueue:0.0.1', navigationData)).toMatchObject({
+        badge: 'Channel',
+        icon: 'ListEnd',
+      });
+      expect(getNavigationConfigurationByKey('channel:PaymentDLQ:0.0.1', navigationData)).toMatchObject({
+        badge: 'Channel',
+        icon: 'OctagonX',
+      });
+    });
+
     it('does not link to the Resources page when nothing uses the channel', async () => {
       const { writeChannel } = utils(CATALOG_FOLDER);
       await writeChannel({ id: 'PaymentChannel', name: 'Payment Channel', version: '0.0.1', markdown: 'Payment Channel' });

@@ -390,6 +390,29 @@
   transition: stroke-width 0.15s ease;
 }
 
+/* A channel's edge to its dead letter channel: red (DEAD_LETTER_COLOR), dashed, an error path. Red only while it
+   isn't hovered, highlighted by a hovered node or selected, so those highlight it like any other edge (this rule
+   is more specific than theirs). */
+.react-flow__edge.ec-dead-letter-edge .react-flow__edge-path {
+  stroke-dasharray: 6 4;
+}
+.react-flow__edge.ec-dead-letter-edge:not(:hover):not(.ec-node-hover-edge):not(.selected) .react-flow__edge-path {
+  stroke: #ef4444 !important;
+}
+[data-theme="dark"]
+  .react-flow__edge.ec-dead-letter-edge:not(:hover):not(.ec-node-hover-edge):not(.selected)
+  .react-flow__edge-path {
+  stroke: #f87171 !important;
+}
+.react-flow__edges marker[id*="ef4444"] path {
+  fill: #ef4444;
+  stroke: #ef4444;
+}
+[data-theme="dark"] .react-flow__edges marker[id*="ef4444"] path {
+  fill: #f87171;
+  stroke: #f87171;
+}
+
 /* Widen the invisible interaction area for edges */
 .react-flow__edge-interaction {
   stroke-width: 40 !important;

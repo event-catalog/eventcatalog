@@ -396,6 +396,7 @@ const extractReferences = (parsedFile: ParsedFile): ReferenceInfo[] => {
   if (file.resourceType === 'channel') {
     addReferences(references, frontmatter.channels, ['channel'], 'channels');
     addReferences(references, frontmatter.routes, ['channel'], 'routes');
+    addReference(references, frontmatter.deadLetterChannel, ['channel'], 'deadLetterChannel');
     if (frontmatter.messages && Array.isArray(frontmatter.messages)) {
       frontmatter.messages.forEach((message: unknown, index: number) => {
         if (!message || typeof message !== 'object') return;

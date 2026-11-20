@@ -1,7 +1,14 @@
 import * as Y from "yjs";
 import type { Connection, Edge, Node, XYPosition } from "@xyflow/react";
 import type { CopiedEdgeRoute, EdgeRoute } from "../layout";
-import { createEdge, getEdgeLabel } from "./edges";
+import { createEdge, EDGE_MARKER, getEdgeLabel } from "./edges";
+import {
+  DEAD_LETTER_EDGE_CLASS,
+  DEAD_LETTER_EDGE_LABEL,
+  DEAD_LETTER_EDGE_MARKER,
+  DEAD_LETTER_EDGE_STYLE,
+  DEAD_LETTER_HANDLE,
+} from "../utils/dead-letter";
 import {
   fitGroup,
   getAbsolutePosition,
@@ -751,6 +758,9 @@ export const connectNodes = (
     return { error: `Node "${connection.target}" is not on the canvas` };
   if (source.id === target.id)
     return { error: "A node cannot be connected to itself" };
+  // A channel's edge to its dead letter channel leaves from its bottom (see withDeadLetterLook)
+  if (isDeadLetterEdge(label, source.type))
+    connection = { ...connection, sourceHandle: DEAD_LETTER_HANDLE };
   // (two things are joined once, except at different places: e.g. two of an entity's properties)
   const existing = Array.from(edges.values()).find(
     (edge) =>
@@ -769,9 +779,38 @@ export const connectNodes = (
     source.type,
     target.type,
   );
-  const created = label === undefined ? edge : { ...edge, label };
+  const created =
+    label === undefined
+      ? edge
+      : withDeadLetterLook({ ...edge, label }, source.type);
   edges.set(created.id, created);
   return created;
+};
+
+const isDeadLetterEdge = (label: unknown, sourceType?: string) =>
+  label === DEAD_LETTER_EDGE_LABEL && sourceType === "channel";
+
+/**
+ * A channel's edge to its dead letter channel (labelled "dead-letters to") looks as it does in the visualiser: red,
+ * dashed, leaving from the channel's bottom. Any other edge, e.g. one relabelled from it, looks like an edge again.
+ */
+const withDeadLetterLook = (edge: Edge, sourceType?: string): Edge => {
+  if (isDeadLetterEdge(edge.label, sourceType))
+    return {
+      ...edge,
+      sourceHandle: DEAD_LETTER_HANDLE,
+      className: DEAD_LETTER_EDGE_CLASS,
+      style: DEAD_LETTER_EDGE_STYLE,
+      markerEnd: DEAD_LETTER_EDGE_MARKER,
+    };
+  if (edge.className !== DEAD_LETTER_EDGE_CLASS) return edge;
+  const { className: _className, style: _style, ...plain } = edge;
+  return {
+    ...plain,
+    markerEnd: EDGE_MARKER,
+    sourceHandle:
+      edge.sourceHandle === DEAD_LETTER_HANDLE ? null : edge.sourceHandle,
+  };
 };
 
 /**
@@ -816,8 +855,9 @@ export const reconnectEdge = (
         edge.label !== defaultLabel && { label: edge.label }),
       ...(written && { data: { ...moved.data, customLabel: written } }),
     };
-    edges.set(edgeId, reconnected);
-    return reconnected;
+    const looked = withDeadLetterLook(reconnected, source.type);
+    edges.set(edgeId, looked);
+    return looked;
   });
 
 /**
@@ -837,16 +877,19 @@ export const setEdgeLabel = (
       string,
       unknown
     >;
-    edges.set(edgeId, {
-      ...edge,
-      label:
-        label ??
-        getEdgeLabel(
-          nodes.get(edge.source)?.type,
-          nodes.get(edge.target)?.type,
-        ),
-      data: label ? { ...data, customLabel: label } : data,
-    });
+    const sourceType = nodes.get(edge.source)?.type;
+    edges.set(
+      edgeId,
+      withDeadLetterLook(
+        {
+          ...edge,
+          label:
+            label ?? getEdgeLabel(sourceType, nodes.get(edge.target)?.type),
+          data: label ? { ...data, customLabel: label } : data,
+        },
+        sourceType,
+      ),
+    );
     return true;
   });
 

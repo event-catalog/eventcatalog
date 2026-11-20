@@ -1,4 +1,12 @@
-import { ArrowRightLeft, Link } from "lucide-react";
+import {
+  ArrowRightLeft,
+  Link,
+  ListEnd,
+  OctagonX,
+  RadioTower,
+  Waves,
+  type LucideIcon,
+} from "lucide-react";
 import {
   OwnerIndicator,
   normalizeOwners,
@@ -16,7 +24,14 @@ import {
   HANDLE_GLOW,
 } from "../shared-styles";
 import { CustomIcon, isIconPath } from "../../utils/custom-icon";
-import { getNodeCardStyle, useNodeColorStyles } from "../../utils/node-color";
+import { DEAD_LETTER_COLOR, DEAD_LETTER_HANDLE } from "../../utils/dead-letter";
+import { getChannelIcon, getChannelLabel } from "../../utils/channel-types";
+import {
+  getNodeCardStyle,
+  getNodeColorStyles,
+  resolveNodeColor,
+  useNodeColorStyles,
+} from "../../utils/node-color";
 import { TruncatedResourceName } from "../TruncatedResourceName";
 import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
 
@@ -35,6 +50,41 @@ const GUARANTEE_COLORS: Record<string, { hex: string; rgb: string }> = {
 };
 
 const DEFAULT_GUARANTEE = { hex: "#6b7280", rgb: "107,114,128" };
+
+const TYPE_ICONS: Record<string, LucideIcon> = {
+  ListEnd,
+  RadioTower,
+  Waves,
+  OctagonX,
+  ArrowRightLeft,
+};
+
+/**
+ * A dead letter channel's badge: near black with a red outline and a red stop sign (Enterprise Integration
+ * Patterns draws a dead letter channel with one), so it doesn't look like anything else on a diagram, e.g. a
+ * service's pink. Its card has a border in the same red.
+ */
+const DEAD_LETTER_BADGE_STYLE: CSSProperties = {
+  background: "#111827",
+  boxShadow: `0 0 0 1px ${DEAD_LETTER_COLOR}`,
+};
+const DEAD_LETTER_ICON_STYLE: CSSProperties = { color: DEAD_LETTER_COLOR };
+
+/**
+ * What the card shows for the kind of channel it is: its type's label and icon (a queue, topic or stream; channels
+ * stay grey), and a dead letter channel's red. Its own label and colour win.
+ */
+function getChannelAppearance(channel: ChannelType) {
+  const isDeadLetter = !!channel.isDeadLetterChannel;
+  return {
+    label: channel.styles?.node?.label || getChannelLabel(channel),
+    Icon: TYPE_ICONS[getChannelIcon(channel)] ?? ArrowRightLeft,
+    color:
+      channel.styles?.node?.color ??
+      (isDeadLetter ? DEAD_LETTER_COLOR : undefined),
+    isDeadLetter,
+  };
+}
 
 function getGuarantee(guarantee?: string) {
   return (guarantee && GUARANTEE_COLORS[guarantee]) || DEFAULT_GUARANTEE;
@@ -93,21 +143,25 @@ function GuaranteeDot({
   );
 }
 
+const CARD_BACKGROUND = "var(--ec-channel-node-bg, rgb(var(--ec-card-bg)))";
+
 function GlowHandle({
   side,
   colorStyle,
 }: {
-  side: "left" | "right";
+  side: "left" | "right" | "bottom";
   colorStyle?: CSSProperties;
 }) {
+  const placement: CSSProperties =
+    side === "bottom"
+      ? { left: "50%", bottom: -6, transform: "translateX(-50%)" }
+      : { top: "50%", [side]: -6, transform: "translateY(-50%)" };
   return (
     <div
       className="ec-handle-glow"
       style={{
         position: "absolute",
-        top: "50%",
-        [side]: -6,
-        transform: "translateY(-50%)",
+        ...placement,
         width: 12,
         height: 12,
         borderRadius: "50%",
@@ -121,6 +175,21 @@ function GlowHandle({
     />
   );
 }
+
+// The bottom handle leads to the dead letter channel, so it glows in its colour
+const DEAD_LETTER_GLOW = getNodeColorStyles(
+  resolveNodeColor(DEAD_LETTER_COLOR)!,
+).glow;
+
+/** The handle its edge to its dead letter channel leaves from, at the bottom (after the right one, the default) */
+const DeadLetterHandle = () => (
+  <Handle
+    type="source"
+    position={Position.Bottom}
+    id={DEAD_LETTER_HANDLE}
+    style={HIDDEN_HANDLE_STYLE}
+  />
+);
 
 type ChannelNodeData = EventCatalogResource & {
   channel: ChannelType;
@@ -148,8 +217,12 @@ function PostItChannel(props: ChannelNode) {
   const mode = props.data.mode || "simple";
   const guarantee = getGuarantee(deliveryGuarantee);
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
-  const nodeColor = useNodeColorStyles(styles?.node?.color);
-  const typeLabel = styles?.node?.label || "Channel";
+  const {
+    label: typeLabel,
+    Icon: TypeIcon,
+    color,
+  } = getChannelAppearance(data.channel);
+  const nodeColor = useNodeColorStyles(color);
 
   return (
     <div
@@ -170,6 +243,7 @@ function PostItChannel(props: ChannelNode) {
         position={Position.Right}
         style={HIDDEN_HANDLE_STYLE}
       />
+      <DeadLetterHandle />
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
@@ -210,7 +284,7 @@ function PostItChannel(props: ChannelNode) {
         {/* Type badge row */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
-            <ArrowRightLeft
+            <TypeIcon
               className="w-3 h-3 text-gray-900/50"
               strokeWidth={2.5}
               style={nodeColor?.muted}
@@ -335,13 +409,18 @@ function DefaultChannel(props: ChannelNode) {
   } = data.channel;
   const mode = props.data.mode || "simple";
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
-  const nodeColor = useNodeColorStyles(styles?.node?.color);
-  const typeLabel = styles?.node?.label || "Channel";
+  const {
+    label: typeLabel,
+    Icon: TypeIcon,
+    color,
+    isDeadLetter,
+  } = getChannelAppearance(data.channel);
+  const nodeColor = useNodeColorStyles(color);
   const owners = useMemo(
     () => normalizeOwners(data.channel?.owners),
     [data.channel?.owners],
   );
-  const connected = useNodeHasConnections();
+  const connected = useNodeHasConnections(DEAD_LETTER_HANDLE);
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
@@ -366,10 +445,10 @@ function DefaultChannel(props: ChannelNode) {
       )}
       style={{
         background: deprecated
-          ? `repeating-linear-gradient(135deg, transparent, transparent 6px, ${deprecatedStripe} 6px, ${deprecatedStripe} 7px), var(--ec-channel-node-bg, rgb(var(--ec-card-bg)))`
+          ? `repeating-linear-gradient(135deg, transparent, transparent 6px, ${deprecatedStripe} 6px, ${deprecatedStripe} 7px), ${CARD_BACKGROUND}`
           : draft
-            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), var(--ec-channel-node-bg, rgb(var(--ec-card-bg)))`
-            : "var(--ec-channel-node-bg, rgb(var(--ec-card-bg)))",
+            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), ${CARD_BACKGROUND}`
+            : CARD_BACKGROUND,
         boxShadow: "0 2px 12px rgba(107, 114, 128, 0.15)",
         ...(nodeColor && getNodeCardStyle(nodeColor, { deprecated, draft })),
       }}
@@ -385,6 +464,7 @@ function DefaultChannel(props: ChannelNode) {
         position={Position.Right}
         style={HIDDEN_HANDLE_STYLE}
       />
+      <DeadLetterHandle />
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
@@ -394,6 +474,9 @@ function DefaultChannel(props: ChannelNode) {
       {connected.source && (
         <GlowHandle side="right" colorStyle={nodeColor?.glow} />
       )}
+      {connected.handle && (
+        <GlowHandle side="bottom" colorStyle={DEAD_LETTER_GLOW} />
+      )}
 
       {/* Type badge top-left */}
       <div className="absolute -top-2.5 left-2.5 z-10">
@@ -402,9 +485,21 @@ function DefaultChannel(props: ChannelNode) {
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
             deprecated ? "bg-red-500" : "bg-gray-500",
           )}
-          style={deprecated ? undefined : nodeColor?.badge}
+          style={
+            deprecated
+              ? undefined
+              : isDeadLetter
+                ? DEAD_LETTER_BADGE_STYLE
+                : nodeColor?.badge
+          }
         >
-          <ArrowRightLeft className="w-2.5 h-2.5" strokeWidth={2.5} />
+          <TypeIcon
+            className="w-2.5 h-2.5"
+            strokeWidth={2.5}
+            style={
+              isDeadLetter && !deprecated ? DEAD_LETTER_ICON_STYLE : undefined
+            }
+          />
           {typeLabel}
           {draft && " (Draft)"}
           {deprecated && " (Deprecated)"}
@@ -460,7 +555,8 @@ function DefaultChannel(props: ChannelNode) {
         )}
 
         {/* Address */}
-        {mode === "full" && address && (
+        {/* A dead letter channel's address adds little: it's named after the channel it's for */}
+        {mode === "full" && address && !isDeadLetter && (
           <div className="flex items-center gap-1 mt-1">
             <Link className="w-2.5 h-2.5 text-[rgb(var(--ec-page-text-muted))]" />
             <span className="text-[8px] text-[rgb(var(--ec-page-text-muted))] font-mono">

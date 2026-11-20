@@ -300,6 +300,17 @@ describe('Events NodeGraph', () => {
       expect(edges).toEqual(expectedEdges);
     });
 
+    it('draws each node and edge once, even when several producers and consumers share a channel', async () => {
+      for (const event of mockEvents) {
+        const { nodes, edges } = await getNodesAndEdges({ id: event.data.id, version: event.data.version, layout: false });
+        const nodeIds = nodes.map((node: any) => node.id);
+        const edgeIds = edges.map((edge: any) => edge.id);
+
+        expect(new Set(nodeIds).size).toBe(nodeIds.length);
+        expect(new Set(edgeIds).size).toBe(edgeIds.length);
+      }
+    });
+
     it('lays the graph out, giving every edge a route to be drawn along', async () => {
       const { edges } = await getNodesAndEdges({ id: 'OrderCreatedEvent', version: '0.0.1' });
 

@@ -1,7 +1,15 @@
-import type { CollectionEntry } from 'astro:content';
+import type { ChannelWithDetails } from '@utils/collections/channels';
 import { getIconForProtocol } from '@utils/protocols';
+import { buildUrl } from '@utils/url-builder';
+import { getChannelLabel } from '@eventcatalog/visualiser/layout';
 
-const ChannelParameters = (data: CollectionEntry<'channels'>['data']) => {
+// No version (or `latest`) is the channel's latest version, which its page without a version shows
+const channelUrl = ({ id, version }: { id: string; version?: string }) =>
+  buildUrl(version && version !== 'latest' ? `/docs/channels/${id}/${version}` : `/docs/channels/${id}`);
+
+const linkClassName = 'text-[rgb(var(--ec-accent))] hover:underline';
+
+const ChannelParameters = (data: ChannelWithDetails['data']) => {
   return (
     <div className="container mx-auto py-4 not-prose space-y-4">
       <div>
@@ -35,6 +43,37 @@ const ChannelParameters = (data: CollectionEntry<'channels'>['data']) => {
                   );
                 })}
               </ul>
+            </div>
+          )}
+          {data.type && (
+            <div className="mt-2">
+              <span className="font-semibold">Type:</span> {getChannelLabel({ type: data.type })}
+            </div>
+          )}
+          {data.deadLetterChannel && (
+            <div className="mt-2">
+              <span className="font-semibold">Dead letter channel:</span>{' '}
+              {/* Linked by name when it's in the catalog, otherwise just what it points to */}
+              {data.deadLetterChannelResolved ? (
+                <a href={channelUrl(data.deadLetterChannelResolved)} className={linkClassName}>
+                  {data.deadLetterChannelResolved.name} (v{data.deadLetterChannelResolved.version})
+                </a>
+              ) : (
+                <code>{data.deadLetterChannel.id}</code>
+              )}
+            </div>
+          )}
+          {(data.deadLetterFor ?? []).length > 0 && (
+            <div className="mt-2">
+              <span className="font-semibold">Dead letters from:</span>{' '}
+              {data.deadLetterFor.map((source, index) => (
+                <span key={`${source.id}-${source.version}`}>
+                  {index > 0 && ', '}
+                  <a href={channelUrl(source)} className={linkClassName}>
+                    {source.name} (v{source.version})
+                  </a>
+                </span>
+              ))}
             </div>
           )}
         </p>
