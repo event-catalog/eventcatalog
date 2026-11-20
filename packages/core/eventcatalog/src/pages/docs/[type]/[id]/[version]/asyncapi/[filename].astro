@@ -3,7 +3,6 @@ import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { Parser } from '@asyncapi/parser';
 import { AvroSchemaParser } from '@asyncapi/avro-schema-parser';
-import fs from 'fs';
 
 import { isSameOrigin, resolveHeaders } from '@utils/remote-spec';
 
@@ -13,13 +12,12 @@ import { AsyncApiComponentWP, type ConfigInterface } from '@asyncapi/react-compo
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
 import SpecificationDownloadButton from '@components/SpecificationDownloadButton.astro';
-import { getRawSpecificationUrl } from '@utils/raw-specification';
+import { getLocalSpecificationPath, getRawSpecificationUrl, readLocalSpecification } from '@utils/raw-specification';
 import { isEventCatalogChatVisible, isLastUpdatedEnabled } from '@utils/feature';
 import LastUpdated from '@components/LastUpdated.astro';
 import { getResourceFileLastUpdated } from '@utils/last-updated';
 import Config from '@utils/eventcatalog-config/catalog';
 import { Page } from './_[filename].data';
-import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
@@ -27,22 +25,20 @@ export const getStaticPaths = Page.getStaticPaths;
 // Get data
 const pageData = await Page.getData(Astro);
 if (!pageData) return Astro.rewrite('/404');
-const { collection, data, filePath, filename, filenameWithoutExtension, path: relativeSpecPath, headers = {} } = pageData;
+const { collection, data, filename, filenameWithoutExtension, path: relativeSpecPath, headers = {} } = pageData;
 
 const fileName = filename || 'asyncapi.yaml';
-const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, fileName);
-const fileExists = fs.existsSync(pathToSpec);
 const isRemote = relativeSpecPath.includes('https://');
+// Read from the specification's whole path, which can include folders (e.g. specifications/asyncapi.yaml)
+const pathToSpec = getLocalSpecificationPath(pageData);
+const localContent = isRemote ? null : readLocalSpecification(pageData);
+const fileExists = localContent !== null;
 // When this specification file was last committed (with lastUpdated on)
 const lastUpdated = isLastUpdatedEnabled() ? getResourceFileLastUpdated(pageData, relativeSpecPath) : undefined;
-let content = '';
+let content = localContent ?? '';
 
 const allowAnyEnvInSpecHeaders = Config?.asyncAPI?.allowAnyEnvInSpecHeaders ?? false;
 const resolvedHeaders = resolveHeaders(headers, { allowAnyEnvInHeaders: allowAnyEnvInSpecHeaders });
-
-if (fileExists && !isRemote) {
-  content = fs.readFileSync(pathToSpec, 'utf8');
-}
 
 if (isRemote) {
   const response = await fetch(relativeSpecPath, { headers: resolvedHeaders });

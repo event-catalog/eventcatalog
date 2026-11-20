@@ -6,9 +6,13 @@ import { afterEach, beforeAll, afterAll, describe, expect, it, vi } from 'vitest
 const config: Record<string, any> = {};
 vi.mock('@config', () => ({ default: config }));
 
-const { getRawSpecificationUrl, getRawSpecificationResponse, createRawSpecificationRoute } = await import(
-  '@utils/raw-specification'
-);
+const {
+  getRawSpecificationUrl,
+  getRawSpecificationResponse,
+  createRawSpecificationRoute,
+  readLocalSpecification,
+  getLocalSpecificationPath,
+} = await import('@utils/raw-specification');
 
 const serviceDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'raw-specification-'));
 
@@ -17,6 +21,8 @@ beforeAll(() => {
   fs.writeFileSync(path.join(serviceDirectory, 'orders-asyncapi.yaml'), 'asyncapi: 3.0.0\n');
   fs.writeFileSync(path.join(serviceDirectory, 'orders-openapi.json'), '{"openapi":"3.1.0"}');
   fs.writeFileSync(path.join(serviceDirectory, 'orders.graphql'), 'type Query { order: String }');
+  fs.mkdirSync(path.join(serviceDirectory, 'specifications'));
+  fs.writeFileSync(path.join(serviceDirectory, 'specifications', 'openapi.yaml'), 'openapi: 3.1.0\n');
 });
 
 afterAll(() => {
@@ -152,10 +158,45 @@ describe('getRawSpecificationResponse', () => {
     expect(response.status).toBe(404);
   });
 
+  it('serves a specification in a folder inside the resource folder', async () => {
+    const pageData = pageDataFor('specifications/openapi.yaml');
+    pageData.data = { ...pageData.data, specifications: [{ type: 'openapi', path: 'specifications/openapi.yaml' }] };
+
+    const response = await getRawSpecificationResponse('openapi', pageData as any);
+
+    expect(await response.text()).toBe('openapi: 3.1.0\n');
+  });
+
   it('is a 404 when the resource has no specification of that type at that path', async () => {
     const response = await getRawSpecificationResponse('openapi', pageDataFor('orders-asyncapi.yaml') as any);
 
     expect(response.status).toBe(404);
+  });
+});
+
+describe('readLocalSpecification', () => {
+  it('reads a specification next to the resource', () => {
+    expect(readLocalSpecification(pageDataFor('orders-asyncapi.yaml'))).toBe('asyncapi: 3.0.0\n');
+  });
+
+  it("reads a specification in a folder inside the resource's folder, from its whole path", () => {
+    expect(readLocalSpecification(pageDataFor('specifications/openapi.yaml'))).toBe('openapi: 3.1.0\n');
+  });
+
+  it("doesn't read a file with the same name next to the resource when the path points into a folder", () => {
+    expect(readLocalSpecification(pageDataFor('specifications/orders.graphql'))).toBeNull();
+  });
+
+  it("is null when the specification's file doesn't exist", () => {
+    expect(readLocalSpecification(pageDataFor('missing.yaml'))).toBeNull();
+  });
+});
+
+describe('getLocalSpecificationPath', () => {
+  it("keeps the folders in the specification's path, so relative references resolve from the file's own folder", () => {
+    expect(getLocalSpecificationPath(pageDataFor('specifications/openapi.yaml'))).toBe(
+      path.join(serviceDirectory, 'specifications', 'openapi.yaml')
+    );
   });
 });
 

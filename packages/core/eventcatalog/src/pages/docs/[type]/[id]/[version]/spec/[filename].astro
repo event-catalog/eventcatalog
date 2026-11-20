@@ -1,5 +1,4 @@
 ---
-import fs from 'node:fs';
 import OpenAPISpec from './_OpenAPI.tsx';
 
 import { DocumentMinusIcon } from '@heroicons/react/24/outline';
@@ -10,7 +9,7 @@ import LastUpdated from '@components/LastUpdated.astro';
 import { getResourceFileLastUpdated } from '@utils/last-updated';
 import './_styles.css';
 import { Page } from './_[filename].data.ts';
-import { getAbsoluteFilePathForAstroFile } from '@utils/files';
+import { readLocalSpecification } from '@utils/raw-specification';
 import config from '@config';
 
 export const prerender = Page.prerender;
@@ -21,16 +20,16 @@ const props = await Page.getData(Astro);
 if (!props) return Astro.rewrite('/404');
 
 // @ts-ignore
-const { collection, data, filePath, filename, path: relativeSpecPath } = props;
-const fileName = filename || 'openapi.yml';
+const { collection, data, path: relativeSpecPath } = props;
 
-const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, fileName);
-const fileExists = fs.existsSync(pathToSpec);
 const isRemote = relativeSpecPath.includes('https://');
+// Read from the specification's whole path, which can include folders (e.g. specifications/openapi.yaml)
+const localContent = isRemote ? null : readLocalSpecification(props);
+const fileExists = localContent !== null;
 // When this specification file was last committed (with lastUpdated on)
 const lastUpdated = isLastUpdatedEnabled() ? getResourceFileLastUpdated(props, relativeSpecPath) : undefined;
 
-let content = '';
+let content = localContent ?? '';
 
 // Capitalize the first letter of a string
 const pageTitle = `${collection} | ${data.name} | OpenAPI Spec`.replace(/^\w/, (c) => c.toUpperCase());
@@ -47,10 +46,6 @@ const pagefindAttributes =
         'data-pagefind-meta': `title:${pageTitle}`,
       }
     : {};
-
-if (fileExists && !isRemote) {
-  content = fs.readFileSync(pathToSpec, 'utf8');
-}
 
 if (isRemote) {
   // Fetch the content from the remote path
