@@ -30,6 +30,7 @@ export {
   DEAD_LETTER_HANDLE,
 } from "./utils/dead-letter";
 export {
+  CHANNEL_TYPE_IDS,
   CHANNEL_TYPES,
   getChannelIcon,
   getChannelLabel,

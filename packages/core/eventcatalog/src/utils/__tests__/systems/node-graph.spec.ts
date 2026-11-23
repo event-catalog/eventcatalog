@@ -49,6 +49,15 @@ describe('Systems NodeGraph', () => {
       expect(edges).toEqual([]);
     });
 
+    it('draws a system with nothing in it as an empty system group', async () => {
+      // @ts-ignore
+      const { nodes, edges } = await getNodesAndEdges({ id: 'EmptySystem', version: '1.0.0', wrapInSystemGroup: true });
+
+      expect(nodes).toHaveLength(1);
+      expect(nodes[0]).toMatchObject({ id: 'system-group-EmptySystem-1.0.0', type: 'system-group' });
+      expect(edges).toEqual([]);
+    });
+
     it('should return the merged nodes and edges for the services in a given system', async () => {
       // @ts-ignore
       const { nodes, edges } = await getNodesAndEdges({ id: 'CoreMonolith', version: '1.0.0' });

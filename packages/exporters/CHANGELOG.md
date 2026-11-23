@@ -1,5 +1,13 @@
 # @eventcatalog/exporters
 
+## 0.1.7
+
+### Patch Changes
+
+- Updated dependencies [e6aa9f4]
+- Updated dependencies [e6aa9f4]
+  - @eventcatalog/sdk@2.33.0
+
 ## 0.1.6
 
 ### Patch Changes

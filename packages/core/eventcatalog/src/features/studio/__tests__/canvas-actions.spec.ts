@@ -193,6 +193,22 @@ describe('planNodes', () => {
     expect(planned[1].node.data).toMatchObject({ text: 'Remember this' });
   });
 
+  it("gives a new channel its type and makes it a dead letter channel, as the catalog's channels have them", () => {
+    const { planned } = planNodes(
+      [],
+      [
+        { type: 'channel', name: 'Orders Queue', channelType: 'queue', x: 0, y: 0 },
+        { type: 'channel', name: 'Orders DLQ', channelType: 'queue', deadLetter: true, x: 0, y: 0 },
+        { type: 'service', name: 'Fraud Service', channelType: 'queue', x: 0, y: 0 },
+      ],
+      catalog
+    );
+    expect(planned[0].node.data.channel).toMatchObject({ name: 'Orders Queue', type: 'queue' });
+    expect(planned[1].node.data.channel).toMatchObject({ type: 'queue', isDeadLetterChannel: true });
+    // Only channels have a type
+    expect(planned[2].node.data.service).not.toHaveProperty('type');
+  });
+
   it('places nodes without a position below what is already on the canvas', () => {
     const existing = { ...buildNode('service', {}, { x: 120, y: 56 }), id: 'old' };
     const { planned } = planNodes(
@@ -387,6 +403,16 @@ describe('updateCanvasNode', () => {
     updateCanvasNode(doc, { nodeId: 'linked', version: '9.9.9' });
     expect(dataOf(doc, 'new').service.version).toBe('2.1.0');
     expect(dataOf(doc, 'linked').service.version).toBe('1.0.0');
+  });
+
+  it("sets a channel's type and whether it's a dead letter channel", () => {
+    const doc = new Y.Doc();
+    addNodes(doc, [{ ...buildNode('channel', getNodeDefinition('channel')!.createData(), { x: 0, y: 0 }), id: 'queue' }]);
+    updateCanvasNode(doc, { nodeId: 'queue', channelType: 'stream', deadLetter: true });
+    expect(dataOf(doc, 'queue').channel).toMatchObject({ type: 'stream', isDeadLetterChannel: true });
+
+    updateCanvasNode(doc, { nodeId: 'queue', deadLetter: false });
+    expect(dataOf(doc, 'queue').channel).toMatchObject({ type: 'stream', isDeadLetterChannel: false });
   });
 
   it('only changes what it is given', () => {

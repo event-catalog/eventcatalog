@@ -483,6 +483,28 @@ html .studio-drag-preview.eventcatalog-visualizer .react-flow {
 }
 .ec-edit-status.is-saved { color: #16a34a; opacity: 1; }
 .ec-edit-status svg { width: 12px; height: 12px; }
+/* A channel's type and whether it's a dead letter channel (ChannelFields.tsx) */
+.ec-segmented {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 2px;
+  border: 1px solid rgb(var(--ec-page-border)); border-radius: 8px; background: rgb(var(--ec-page-bg));
+}
+.ec-segmented-option {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 0; padding: 5px 4px; border: 0;
+  border-radius: 6px; background: transparent; color: rgb(var(--ec-page-text-muted)); font: inherit; font-size: 12px;
+  font-weight: 500; cursor: pointer; transition: background 120ms, color 120ms;
+}
+.ec-segmented-option svg { flex: none; width: 13px; height: 13px; }
+.ec-segmented-option:hover { color: rgb(var(--ec-page-text)); }
+.ec-segmented-option[aria-checked="true"] {
+  background: rgb(var(--ec-card-bg)); color: rgb(var(--ec-page-text));
+  box-shadow: 0 1px 2px color-mix(in srgb, rgb(var(--ec-page-text)) 14%, transparent);
+}
+.ec-segmented-option:focus-visible { outline: 2px solid rgb(var(--ec-accent)); outline-offset: 1px; }
+.ec-check-field { flex-direction: row; align-items: flex-start; gap: 8px; cursor: pointer; }
+.ec-check-field input { flex: none; margin: 2px 0 0; accent-color: #ef4444; cursor: pointer; }
+.ec-check-field-icon { flex: none; width: 15px; height: 15px; margin-top: 1px; color: #ef4444; }
+.ec-check-field-title { display: block; font-size: 13px; font-weight: 500; color: rgb(var(--ec-page-text)); }
+.ec-check-field-hint { display: block; font-size: 11px; color: rgb(var(--ec-page-text-muted)); }
 /* An entity's properties (EntityProperties.tsx): each a name and a type, with a button to remove it */
 .ec-entity-props { display: flex; flex-direction: column; gap: 6px; }
 .ec-entity-prop-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px 24px; gap: 6px; align-items: center; }

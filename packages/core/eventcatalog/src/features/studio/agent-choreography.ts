@@ -428,15 +428,11 @@ export async function playOnNode<T>(stage: AgentStage, nodeId: string, activity:
 }
 
 /** Updating a node, played out: point at it to rename or re-describe it, then drag it to its new centre (x/y) */
-export async function playUpdateNode(
-  stage: AgentStage,
-  { nodeId, name, summary, version, fontSize, x, y }: NodeUpdate & { x?: number; y?: number }
-) {
+export async function playUpdateNode(stage: AgentStage, { x, y, ...update }: NodeUpdate & { x?: number; y?: number }) {
+  const { nodeId, ...fields } = update;
   const missing = { error: `No node "${nodeId}" on the canvas` };
-  if (name !== undefined || summary !== undefined || version !== undefined || fontSize !== undefined) {
-    const outcome = await playOnNode(stage, nodeId, 'Editing', (doc) =>
-      updateCanvasNode(doc, { nodeId, name, summary, version, fontSize })
-    );
+  if (Object.values(fields).some((value) => value !== undefined)) {
+    const outcome = await playOnNode(stage, nodeId, 'Editing', (doc) => updateCanvasNode(doc, update));
     if ('error' in outcome) return outcome;
   }
   if (x !== undefined || y !== undefined) {

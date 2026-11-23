@@ -1,5 +1,13 @@
 # @eventcatalog/visualiser
 
+## 5.5.0
+
+### Minor Changes
+
+- e6aa9f4: feat(core): channels can have a `type` of `queue`, `topic` or `stream`, for how they deliver messages. Each type has its own label and icon on its card in diagrams and Studio, and its own icon in the sidebar, and is shown in `<ChannelInformation />`. A dead letter channel with a type is labelled as one, e.g. "Dead Letter Queue".
+- e6aa9f4: feat(core): document dead letter channels. A channel can point to the channel it sends undeliverable messages to with `deadLetterChannel`, which is then drawn with a red border and a dark "Dead Letter Channel" badge with a stop sign icon (in diagrams and Studio), given a stop sign icon and "Dead Letter Channel" and "Dead Letters From" sections in the sidebar, and joined to its source channels by a dashed red "dead-letters to" edge that leaves the bottom of the channel and turns right into the dead letter channel, laid out below the channel's consumers, and linked from `<ChannelInformation />`. Federation carries `deadLetterChannel` through the catalog index and resolves it like `routes`, so a missing dead letter channel is reported.
+- a0931bf: feat(core): Studio can set a channel's type (queue, topic or stream) and make it a dead letter channel, from the channel's card, and agents can too (`add_to_canvas` and `update_node`, and Studio on the web's model with `channelType` and `deadLetter`). Dragging a connection from a channel's bottom handle to another channel makes it the channel's dead letter channel.
+
 ## 5.4.3
 
 ### Patch Changes

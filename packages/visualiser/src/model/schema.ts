@@ -3,6 +3,7 @@
  * channels, containers) and how they relate. Shared by the MCP server and the view, so no server-only imports.
  */
 import { z } from "zod";
+import { CHANNEL_TYPE_IDS } from "../utils/channel-types";
 
 export const RESOURCE_TYPES = [
   "domain",
@@ -108,6 +109,18 @@ export const Resource = z.object({
     .optional()
     .describe(
       "For containers: what kind of data store it is (EventCatalog's container_type). Defaults to database",
+    ),
+  channelType: z
+    .enum(CHANNEL_TYPE_IDS)
+    .optional()
+    .describe(
+      "For channels: how it delivers messages. queue: each message goes to one consumer (e.g. SQS). topic: every subscription gets a copy (e.g. SNS). stream: an ordered log consumers read at their own offset (e.g. a Kafka topic)",
+    ),
+  deadLetter: z
+    .boolean()
+    .optional()
+    .describe(
+      "For channels: true when it's a dead letter channel (DLQ), where other channels send the messages they can't deliver",
     ),
   evidence: z
     .string()

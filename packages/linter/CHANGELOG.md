@@ -1,5 +1,18 @@
 # @eventcatalog/linter
 
+## 1.4.0
+
+### Minor Changes
+
+- e6aa9f4: feat(core): channels can have a `type` of `queue`, `topic` or `stream`, for how they deliver messages. Each type has its own label and icon on its card in diagrams and Studio, and its own icon in the sidebar, and is shown in `<ChannelInformation />`. A dead letter channel with a type is labelled as one, e.g. "Dead Letter Queue".
+- e6aa9f4: feat(core): document dead letter channels. A channel can point to the channel it sends undeliverable messages to with `deadLetterChannel`, which is then drawn with a red border and a dark "Dead Letter Channel" badge with a stop sign icon (in diagrams and Studio), given a stop sign icon and "Dead Letter Channel" and "Dead Letters From" sections in the sidebar, and joined to its source channels by a dashed red "dead-letters to" edge that leaves the bottom of the channel and turns right into the dead letter channel, laid out below the channel's consumers, and linked from `<ChannelInformation />`. Federation carries `deadLetterChannel` through the catalog index and resolves it like `routes`, so a missing dead letter channel is reported.
+
+### Patch Changes
+
+- Updated dependencies [e6aa9f4]
+- Updated dependencies [e6aa9f4]
+  - @eventcatalog/sdk@2.33.0
+
 ## 1.3.3
 
 ### Patch Changes

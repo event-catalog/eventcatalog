@@ -12,6 +12,12 @@ export const CHANNEL_TYPES = {
 
 export type ChannelKind = keyof typeof CHANNEL_TYPES;
 
+/** The types a channel can have (a channel's `type`), for schemas and pickers */
+export const CHANNEL_TYPE_IDS = Object.keys(CHANNEL_TYPES) as [
+  ChannelKind,
+  ...ChannelKind[],
+];
+
 /** The icon (a lucide icon's name) for a channel without a type */
 export const CHANNEL_ICON = "ArrowRightLeft";
 /** The icon for a dead letter channel, whatever its type */
