@@ -24,8 +24,6 @@ repository:
   url: 'https://github.com/acme/rating-aggregator'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Rating Aggregator** consumes [[event|review-published]] and recomputes the affected product's aggregate rating (average score and review count). It writes the result to the [[container|rating-cache]] for fast reads and publishes [[event|rating-updated]] so other domains can stay in sync.
@@ -43,5 +41,3 @@ The **Rating Aggregator** consumes [[event|review-published]] and recomputes the
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

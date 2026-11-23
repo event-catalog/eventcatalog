@@ -11,8 +11,6 @@ x-latency-slo-ms: 200
 schemaPath: schema.json
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `GetProductReviews` is served by the [[service|review-api]]. It returns the published reviews for a product along with its aggregate rating, read from the [[container|review-database]] and the [[container|rating-cache]].
@@ -24,5 +22,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Architecture diagram
 
 <NodeGraph />
-
-<Footer />

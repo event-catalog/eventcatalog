@@ -29,8 +29,6 @@ repository:
   url: 'https://github.com/acme/promotion-service'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Promotion Service** is the heart of the Promotion System. It receives [[command|calculate-discount]] requests from the [[system|cart-system]], evaluates the applicable rules from the [[container|promotion-database]], and publishes a [[event|discount-calculated]] event with the result. It also consumes [[event|loyalty-points-earned]] from the Customer domain to unlock loyalty-tier promotions.
@@ -54,5 +52,3 @@ The **Promotion Service** is the heart of the Promotion System. It receives [[co
 <NodeGraph />
 
 <MessageTable format="all" limit={4} />
-
-<Footer />

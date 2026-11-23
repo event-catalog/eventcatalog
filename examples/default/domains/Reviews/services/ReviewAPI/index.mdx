@@ -50,8 +50,6 @@ x-scrum-masters:
   - Andrew
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Review API** is the front door to the Reviews & Ratings domain. It validates incoming [[command|submit-review]] commands, persists reviews to the [[container|review-database]], and publishes [[event|review-submitted]]. It also serves [[query|get-product-reviews]], reading published reviews from the [[container|review-database]] and aggregate ratings from the [[container|rating-cache]].
@@ -72,5 +70,3 @@ The **Review API** is the front door to the Reviews & Ratings domain. It validat
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

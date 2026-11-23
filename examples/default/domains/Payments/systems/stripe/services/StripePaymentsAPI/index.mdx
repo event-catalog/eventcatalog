@@ -18,14 +18,13 @@ repository:
   url: 'https://github.com/stripe/stripe-node'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Payments API** is Stripe's external interface for charging cards and issuing refunds. The [[system|payment-processing-system]] sends [[event|payment-requested]] and [[event|refund-requested]], and Stripe processes them and reports the outcome back through its [[service|stripe-webhook-endpoint]].
 
 <Tiles>
   <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} messages`} description="Payment and refund requests" />
+  <Tile icon="RectangleGroupIcon" href="/docs/systems/stripe/1.0.0" title="Part of Stripe" description="The external payment processor that charges cards" />
 </Tiles>
 
 ## Architecture diagram
@@ -33,5 +32,3 @@ The **Payments API** is Stripe's external interface for charging cards and issui
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

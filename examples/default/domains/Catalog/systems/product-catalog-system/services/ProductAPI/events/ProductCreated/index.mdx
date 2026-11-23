@@ -14,8 +14,6 @@ badges:
 schemaPath: schema.json
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `ProductCreated` is published by the [[service|product-search-publisher]] whenever a new product is successfully added to the catalog by the [[service|product-api]]. The [[system|search-system]] consumes this event to index the new product so it becomes discoverable.
@@ -25,5 +23,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Architecture diagram
 
 <NodeGraph />
-
-<Footer />

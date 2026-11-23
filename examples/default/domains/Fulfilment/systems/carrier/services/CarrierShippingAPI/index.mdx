@@ -16,14 +16,13 @@ repository:
   url: 'https://github.com/acme/carrier-integration'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Shipping API** is the carrier's external interface for creating shipments. The [[system|shipping-system]] sends [[command|create-shipment]], and the carrier dispatches the parcel and begins reporting progress through its [[service|carrier-tracking-api]].
 
 <Tiles>
   <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} message`} description="Shipment creation requests" />
+  <Tile icon="RectangleGroupIcon" href="/docs/systems/carrier/1.0.0" title="Part of the Carrier system" description="The external carrier that delivers shipments" />
 </Tiles>
 
 ## Architecture diagram
@@ -31,5 +30,3 @@ The **Shipping API** is the carrier's external interface for creating shipments.
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

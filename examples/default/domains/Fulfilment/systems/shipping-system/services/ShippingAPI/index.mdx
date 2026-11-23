@@ -16,14 +16,13 @@ repository:
   url: 'https://github.com/acme/shipping-api'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Shipping API** is the entry point to the Shipping System. It consumes [[event|order-ready-for-shipping]] from the [[system|warehouse-system]], selects an appropriate carrier, and hands off to the [[service|carrier-adapter]] to create the shipment.
 
 <Tiles>
   <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} message`} description="Ready-for-shipping orders" />
+  <Tile icon="RectangleGroupIcon" href="/docs/systems/shipping-system/1.0.0" title="Part of the Shipping System" description="Hands packed orders to carriers" />
 </Tiles>
 
 ## Architecture diagram
@@ -31,5 +30,3 @@ The **Shipping API** is the entry point to the Shipping System. It consumes [[ev
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

@@ -58,8 +58,6 @@ repository:
   url: 'https://github.com/acme/review-moderation-worker'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Review Moderation Worker** consumes [[event|review-submitted]] (and [[event|review-flagged]] for already-published reviews), screens each review (automated checks plus thresholds for manual review), and records the outcome on the [[container|review-database]]. It then publishes either [[event|review-published]] or [[event|review-rejected]].
@@ -77,5 +75,3 @@ The **Review Moderation Worker** consumes [[event|review-submitted]] (and [[even
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

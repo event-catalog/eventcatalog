@@ -21,8 +21,6 @@ repository:
   url: 'https://github.com/acme/fraud-api'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Fraud API** screens payments for fraud. It consumes [[event|payment-requested]] from the [[system|payment-processing-system]] and returns a verdict — [[event|fraud-check-passed]] or [[event|fraud-check-failed]] — which the Payments domain uses to allow or block the charge.
@@ -37,5 +35,3 @@ The **Fraud API** screens payments for fraud. It consumes [[event|payment-reques
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

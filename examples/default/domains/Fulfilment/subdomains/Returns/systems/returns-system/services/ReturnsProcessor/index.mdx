@@ -38,8 +38,6 @@ repository:
   url: 'https://github.com/acme/returns-processor'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Returns Processor** consumes [[event|return-requested]], checks the returns window and item eligibility, and publishes [[event|return-approved]]. When the warehouse scans the returned parcel it publishes [[event|return-received]], which Payments uses to refund the customer and Inventory uses to restock.
@@ -57,5 +55,3 @@ The **Returns Processor** consumes [[event|return-requested]], checks the return
 <NodeGraph />
 
 <MessageTable format="all" limit={4} />
-
-<Footer />

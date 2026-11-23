@@ -15,8 +15,6 @@ sidebar:
   badge: 'POST'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `ReserveInventory` is sent by the [[service|checkout-orchestrator]] to hold stock for the items in a checked-out cart. A successful reservation guarantees the inventory is available while payment is authorized. If a later checkout step fails, the reservation is released.
@@ -28,5 +26,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Schema
 
 <SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
-
-<Footer />

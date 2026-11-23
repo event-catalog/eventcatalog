@@ -15,8 +15,6 @@ sidebar:
   badge: 'POST'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `AuthorizePayment` is sent by the [[service|checkout-orchestrator]] to authorize payment for the order total. Authorization places a hold on the customer's payment method; the funds are captured once the order is created. If a later step fails, the authorization is voided.
@@ -28,5 +26,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Schema
 
 <SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
-
-<Footer />

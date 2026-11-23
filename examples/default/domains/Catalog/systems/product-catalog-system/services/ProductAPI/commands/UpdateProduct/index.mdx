@@ -15,8 +15,6 @@ sidebar:
   badge: 'PATCH'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `UpdateProduct` is handled by the [[service|product-api]]. It applies a partial update to an existing product in the [[container|product-database]] and, on success, publishes a [[event|product-updated]] event describing what changed.
@@ -28,5 +26,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Schema
 
 <SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
-
-<Footer />

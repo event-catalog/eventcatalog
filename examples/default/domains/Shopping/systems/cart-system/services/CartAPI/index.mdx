@@ -36,8 +36,6 @@ specifications:
     name: Cart API
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Cart API** is the front door to the Cart System. It validates incoming commands, persists cart contents to the [[container|cart-database]], asks the [[system|promotion-system]] to calculate discounts via [[command|calculate-discount]], and publishes a [[event|cart-checked-out]] event when the customer checks out.
@@ -61,5 +59,3 @@ The **Cart API** is the front door to the Cart System. It validates incoming com
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

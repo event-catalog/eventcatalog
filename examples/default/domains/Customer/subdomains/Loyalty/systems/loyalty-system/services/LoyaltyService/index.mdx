@@ -50,8 +50,6 @@ entities:
     version: 1.0.0
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Loyalty Service** consumes [[event|order-completed]] and [[event|order-cancelled]] from the Ordering domain. It records points in the [[container|loyalty-database]] and publishes [[event|loyalty-points-earned]] or [[event|loyalty-points-reversed]] so that promotions and customer notifications can react.
@@ -69,5 +67,3 @@ The **Loyalty Service** consumes [[event|order-completed]] and [[event|order-can
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

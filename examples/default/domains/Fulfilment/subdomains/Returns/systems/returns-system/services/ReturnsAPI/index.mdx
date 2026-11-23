@@ -28,8 +28,6 @@ repository:
   url: 'https://github.com/acme/returns-api'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Returns API** receives [[command|request-return]] from customers, stores the request in the [[container|returns-database]] and publishes [[event|return-requested]] for the [[service|returns-processor]].
@@ -47,5 +45,3 @@ The **Returns API** receives [[command|request-return]] from customers, stores t
 <NodeGraph />
 
 <MessageTable format="all" limit={4} />
-
-<Footer />

@@ -24,8 +24,6 @@ repository:
   url: 'https://github.com/acme/carrier-adapter'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Carrier Adapter** is the anti-corruption layer between Acme Inc and its carriers. It takes a shipment request from the [[service|shipping-api]], maps it to the external [[system|carrier]]'s API, and sends a [[command|create-shipment]] to dispatch the parcel.
@@ -34,6 +32,7 @@ The carrier exposes a SOAP API, so the adapter keeps the carrier's WSDL and the 
 
 <Tiles>
   <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} message`} description="The create-shipment command" />
+  <Tile icon="RectangleGroupIcon" href="/docs/systems/shipping-system/1.0.0" title="Part of the Shipping System" description="Hands packed orders to carriers" />
 </Tiles>
 
 ## Architecture diagram
@@ -41,5 +40,3 @@ The carrier exposes a SOAP API, so the adapter keeps the carrier's WSDL and the 
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

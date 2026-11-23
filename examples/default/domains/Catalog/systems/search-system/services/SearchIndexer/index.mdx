@@ -31,14 +31,13 @@ repository:
   url: 'https://github.com/acme/search-indexer'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Search Indexer** is how the Search System stays in sync with the catalog. It subscribes to [[event|product-created]], [[event|product-updated]] and [[event|product-deleted]] events published by the [[system|product-catalog-system]] and applies each change to the [[container|search-index]].
 
 <Tiles>
   <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} messages`} description="Product change events consumed from the catalog" />
+  <Tile icon="RectangleGroupIcon" href="/docs/systems/search-system/1.0.0" title="Part of the Search System" description="Keeps product data searchable across the business" />
 </Tiles>
 
 ### Responsibilities
@@ -54,5 +53,3 @@ The **Search Indexer** is how the Search System stays in sync with the catalog. 
 <NodeGraph />
 
 <MessageTable format="all" limit={4} />
-
-<Footer />

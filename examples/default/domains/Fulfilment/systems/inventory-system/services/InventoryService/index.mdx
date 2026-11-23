@@ -44,8 +44,6 @@ repository:
   url: 'https://github.com/acme/inventory-service'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Inventory Service** is the heart of the Inventory System. It receives [[command|reserve-inventory]] during checkout and replies with [[event|inventory-reserved]] or [[event|inventory-unavailable]]. It also handles [[command|release-inventory]] and serves [[query|get-stock-level]] reads, all backed by the [[container|inventory-database]]. When returned items arrive it consumes [[event|return-received]] to restock them.
@@ -69,5 +67,3 @@ The **Inventory Service** is the heart of the Inventory System. It receives [[co
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

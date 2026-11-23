@@ -22,8 +22,6 @@ specifications:
     name: Search API
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Search API** is the front door to the Search System. It answers [[query|search-products]] queries by reading from the [[container|search-index]], which is kept current by the [[service|search-indexer]]. Other teams use this API so they never have to query the catalog database directly.
@@ -40,5 +38,3 @@ The **Search API** is the front door to the Search System. It answers [[query|se
 <NodeGraph />
 
 <MessageTable format="all" limit={4} />
-
-<Footer />

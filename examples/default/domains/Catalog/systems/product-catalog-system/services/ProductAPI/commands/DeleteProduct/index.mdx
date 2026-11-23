@@ -15,8 +15,6 @@ sidebar:
   badge: 'DELETE'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `DeleteProduct` is handled by the [[service|product-api]]. It removes a product from the [[container|product-database]] and, on success, publishes a [[event|product-deleted]] event so downstream systems can clean up.
@@ -28,5 +26,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Schema
 
 <SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
-
-<Footer />
