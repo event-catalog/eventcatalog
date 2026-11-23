@@ -127,15 +127,15 @@ export const getNodesAndEdges = async ({
   // Wrap the graph in one parent "system group" boundary node. Messages,
   // channels and data stores stay in it. With confineToMembers, only this
   // system's own services are children; other services are left outside.
+  // A system with nothing in it is still drawn, as an empty group.
   const graph = {
-    nodes:
-      wrapInSystemGroup && nodes.size > 0
-        ? wrapNodesInSystemGroup(
-            [...nodes.values()],
-            system,
-            confineToMembers ? memberServiceNodeIds(system, serviceMap) : undefined
-          )
-        : [...nodes.values()],
+    nodes: wrapInSystemGroup
+      ? wrapNodesInSystemGroup(
+          [...nodes.values()],
+          system,
+          confineToMembers ? memberServiceNodeIds(system, serviceMap) : undefined
+        )
+      : [...nodes.values()],
     edges: [...edges.values()],
   };
 

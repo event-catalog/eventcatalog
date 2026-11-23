@@ -21,6 +21,7 @@ const systems = [
     relationships: [{ id: 'Carrier', label: 'delivers shipments with' }],
   }),
   makeSystem('Carrier'),
+  makeSystem('Lonely'),
 ];
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -35,31 +36,46 @@ vi.mock('astro:content', async (importOriginal) => {
 });
 
 // The Shipping system's resource diagram: a system group with one service inside.
+// Carrier has no services, so its resource diagram is an empty system group.
 // Membership helpers stay real; only the built graph is stubbed.
 vi.mock('@utils/node-graphs/systems-node-graph', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@utils/node-graphs/systems-node-graph')>();
   return {
     ...actual,
-    getNodesAndEdges: () =>
-      Promise.resolve({
-        nodes: [
-          {
-            id: 'system-group-Shipping-1.0.0',
-            type: 'system-group',
-            position: { x: 0, y: 0 },
-            style: { width: 600, height: 400 },
-            data: {},
-          },
-          {
-            id: 'ShippingService-1.0.0',
-            type: 'services',
-            parentId: 'system-group-Shipping-1.0.0',
-            position: { x: 100, y: 164 },
-            data: {},
-          },
-        ],
-        edges: [],
-      }),
+    getNodesAndEdges: ({ id }: { id: string }) =>
+      Promise.resolve(
+        id === 'Carrier' || id === 'Lonely'
+          ? {
+              nodes: [
+                {
+                  id: `system-group-${id}-1.0.0`,
+                  type: 'system-group',
+                  position: { x: 0, y: 0 },
+                  data: { isFocused: true },
+                },
+              ],
+              edges: [],
+            }
+          : {
+              nodes: [
+                {
+                  id: 'system-group-Shipping-1.0.0',
+                  type: 'system-group',
+                  position: { x: 0, y: 0 },
+                  style: { width: 600, height: 400 },
+                  data: {},
+                },
+                {
+                  id: 'ShippingService-1.0.0',
+                  type: 'services',
+                  parentId: 'system-group-Shipping-1.0.0',
+                  position: { x: 100, y: 164 },
+                  data: {},
+                },
+              ],
+              edges: [],
+            }
+      ),
   };
 });
 
@@ -106,5 +122,27 @@ describe('System Levels NodeGraph', () => {
       'Carrier-1.0.0',
       'ShippingService-1.0.0',
     ]);
+  });
+
+  it('opens a system with nothing in it as an empty system group, joined to its relationships', async () => {
+    const { nodes, edges, hiddenMessages } = await getNodesAndEdges({ id: 'Carrier', version: '1.0.0' });
+
+    expect(nodes.map((node: any) => node.id)).toEqual(['system-group-Carrier-1.0.0', 'Shipping-1.0.0']);
+    expect(edges).toHaveLength(1);
+    expect(edges[0]).toMatchObject({
+      source: 'Shipping-1.0.0',
+      target: 'system-group-Carrier-1.0.0',
+      label: 'delivers shipments with',
+    });
+    expect(hiddenMessages.nodes.map((node: any) => node.id)).toEqual(['system-group-Carrier-1.0.0', 'Shipping-1.0.0']);
+    expect(hiddenMessages.edges).toHaveLength(1);
+  });
+
+  it('opens a system with nothing in it and no relationships as just its empty system group', async () => {
+    const { nodes, edges, hiddenMessages } = await getNodesAndEdges({ id: 'Lonely', version: '1.0.0' });
+
+    expect(nodes.map((node: any) => node.id)).toEqual(['system-group-Lonely-1.0.0']);
+    expect(edges).toEqual([]);
+    expect(hiddenMessages.nodes.map((node: any) => node.id)).toEqual(['system-group-Lonely-1.0.0']);
   });
 });
