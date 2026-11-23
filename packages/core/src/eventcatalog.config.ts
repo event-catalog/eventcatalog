@@ -347,6 +347,26 @@ export interface Config {
    * @default 'default'
    */
   theme?: CatalogTheme;
+  /**
+   * Light or dark mode for visitors.
+   * @example { default: 'light', allowToggle: false } // always light, no toggle in the header
+   */
+  colorMode?: {
+    /**
+     * The mode a visitor sees until they choose one with the toggle in the header. Once they do, their choice wins.
+     * - 'dark': dark mode
+     * - 'light': light mode
+     * - 'system': follow the visitor's operating system (`prefers-color-scheme`)
+     * @default 'dark'
+     */
+    default?: 'light' | 'dark' | 'system';
+    /**
+     * Show the light/dark toggle in the header. When false, the catalog always uses `default` and ignores any
+     * choice a visitor saved before.
+     * @default true
+     */
+    allowToggle?: boolean;
+  };
   auth?: AuthConfig;
   mcp?: McpConfig;
   /** EventCatalog Studio: collaborative canvases (experimental) */
