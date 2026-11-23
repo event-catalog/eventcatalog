@@ -39,12 +39,14 @@ export const RESOURCE_LOOK: Record<ResourceType, { label: string; Icon: Icon; co
   team: { label: 'Team', Icon: UserGroupIcon, color: 'emerald' },
 };
 
-/** The type's pill, as on the visualiser's nodes */
+/** The type's pill on a node's card: outlined, with its icon, in the muted text colour (as the visualiser's and
+ * Studio's node cards, ec-doc-card-type in the visualiser's node-card.css) */
 export function TypePill({ type }: { type: ResourceType }) {
-  const look = RESOURCE_LOOK[type];
+  const { label, Icon } = RESOURCE_LOOK[type];
   return (
-    <span className="ec-type-pill" data-color={look.color}>
-      {look.label}
+    <span className="ec-doc-card-type">
+      <Icon aria-hidden />
+      {label}
     </span>
   );
 }

@@ -75,15 +75,8 @@ export const LlmAccessSettingsForm = ({
   return (
     <>
       <Toaster richColors closeButton position="bottom-right" theme="system" />
-      <form
-        onSubmit={(e) => e.preventDefault()}
-        className="divide-y divide-[rgb(var(--ec-page-border))] border-t border-[rgb(var(--ec-page-border))]"
-      >
-        {!canEdit && (
-          <div className="pb-6">
-            <ReadOnlyBanner />
-          </div>
-        )}
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+        {!canEdit && <ReadOnlyBanner />}
 
         <Row
           title="llms.txt"
@@ -136,7 +129,7 @@ const LlmsTxtPreview = ({
     { label: 'Ubiquitous Language', path: ubiquitousLanguageUrl },
   ];
   return (
-    <div className="rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg)/0.4)] px-4 py-3">
+    <div className="rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg)/0.4)] px-4 py-3">
       <p className="text-[12px] font-medium text-[rgb(var(--ec-page-text))]">Point your LLM here</p>
       <p className="mt-0.5 text-[12px] leading-snug text-[rgb(var(--ec-page-text-muted))]">
         Drop this URL into Claude, ChatGPT, Cursor, or any AI tool to give it the full context of your catalog.
@@ -174,7 +167,7 @@ const SchemasTxtAvailable = ({ url }: { url: string }) => (
       disabled={true}
       onChange={() => {}}
     />
-    <div className="rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg)/0.4)] px-4 py-3">
+    <div className="rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg)/0.4)] px-4 py-3">
       <p className="text-[12px] font-medium text-[rgb(var(--ec-page-text))]">Point your LLM here</p>
       <p className="mt-0.5 text-[12px] leading-snug text-[rgb(var(--ec-page-text-muted))]">
         Share this URL with Claude, ChatGPT, Cursor, or any AI tool to give it every schema in your catalog.

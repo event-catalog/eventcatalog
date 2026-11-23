@@ -84,10 +84,6 @@ const styles = `
   [data-color='sky'] { --ec-type: 2 132 199; }
   [data-color='violet'] { --ec-type: 124 58 237; }
   [data-color='emerald'] { --ec-type: 5 150 105; }
-  .ec-type-pill {
-    flex-shrink: 0; padding: 1px 6px; border-radius: 4px; background: rgb(var(--ec-type)); color: white;
-    font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; line-height: 16px;
-  }
   .ec-type-icon { width: 16px; height: 16px; flex-shrink: 0; color: rgb(var(--ec-type)); }
 
   /* Nothing under the header: no line under it, nor an empty body */
@@ -109,7 +105,7 @@ const styles = `
   .ec-doc-card-body { padding: 4px 16px 14px; }
   .ec-doc-section { padding-top: 12px; }
   .ec-doc-section + .ec-doc-section { margin-top: 2px; }
-  .ec-doc-section h3 { margin: 0 0 8px; font-size: 13px; font-weight: 600; }
+  .ec-doc-section h3 { margin: 0 0 6px; font-size: 12px; font-weight: 500; color: rgb(var(--ec-page-text-muted)); }
   .ec-doc-list { margin: 0 -8px; padding: 0; list-style: none; display: grid; gap: 1px; }
   .ec-doc-list li { display: flex; min-width: 0; }
   .ec-doc-list-link {
@@ -118,6 +114,8 @@ const styles = `
   }
   .ec-doc-list-link:hover { background: rgb(var(--ec-content-hover)); color: rgb(var(--ec-page-text)); }
   .ec-doc-list-link:hover .ec-doc-list-name { text-decoration: underline; text-underline-offset: 2px; }
+  /* A connection's icon has no colour, as on the visualiser's and Studio's node cards */
+  .ec-doc-list-link .ec-type-icon { color: inherit; }
   .ec-doc-list-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 300; }
   .ec-inferred-tag { margin-left: auto; padding: 0 5px; border: 1px dotted #d97706; border-radius: 4px; color: #b45309; font-size: 10px; }
   .ec-doc-note { margin: 0 0 6px; padding: 8px 10px; border-radius: 8px; background: rgb(254 249 195); color: rgb(113 63 18); font-size: 12px; line-height: 1.5; }

@@ -26,8 +26,8 @@ interface Props {
 
 export const McpSettingsForm = ({ inSSR, mcpUrl, domainServers }: Props) => {
   return (
-    // A top border, as on the other settings pages
-    <div className="divide-y divide-[rgb(var(--ec-page-border))] border-t border-[rgb(var(--ec-page-border))]">
+    // A stack of cards, as on the other settings pages
+    <div className="space-y-6">
       <Row
         title="Catalog MCP Server"
         description="Connect AI agents (Claude, Cursor, VS Code and any MCP client) to every resource in your catalog: domains, services, messages, flows, schemas and the teams that own them."
@@ -62,9 +62,9 @@ const LivePill = () => (
 );
 
 const CatalogServer = ({ url }: { url: string }) => (
-  <div className="overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
+  <div className="overflow-hidden rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
     <div className="flex items-start gap-3 px-4 py-3.5">
-      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] text-[rgb(var(--ec-page-text))]">
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] text-[rgb(var(--ec-page-text))]">
         <Library className="h-4 w-4" aria-hidden />
       </span>
       <div className="min-w-0 flex-1">
@@ -94,7 +94,7 @@ const CatalogServer = ({ url }: { url: string }) => (
 );
 
 const DomainServers = ({ servers }: { servers: DomainMcpServer[] }) => (
-  <ul className="divide-y divide-[rgb(var(--ec-page-border))] overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
+  <ul className="divide-y divide-[rgb(var(--ec-page-border))] overflow-hidden rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
     {servers.map((server) => (
       <li key={server.id} className="px-4 py-3">
         <div className="flex items-baseline justify-between gap-3">
@@ -115,7 +115,7 @@ const DomainServers = ({ servers }: { servers: DomainMcpServer[] }) => (
 );
 
 const McpNeedsSSR = () => (
-  <div className="overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)]">
+  <div className="overflow-hidden rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)]">
     <div className="flex items-start gap-3 px-4 py-3.5">
       <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] text-[rgb(var(--ec-page-text))]">
         <ServerCog className="h-4 w-4" aria-hidden />

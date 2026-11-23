@@ -1,6 +1,7 @@
 ---
 import type { ComponentType } from 'react';
-import * as Icons from '@heroicons/react/24/solid';
+// Outline icons (as Vercel's), drawn in the theme's accent in a framed square
+import * as Icons from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 
 interface Props {
@@ -28,46 +29,62 @@ function startsWithProtocol(str: string) {
   <a
     href={startsWithProtocol(href) ? href : buildUrl(href)}
     target={openWindow ? '_blank' : '_self'}
-    class="tile-card block relative bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl h-48 transition-all duration-300 ease-out hover:border-[rgb(var(--ec-accent)/0.5)] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 overflow-hidden"
+    class="tile-card relative block h-44 overflow-hidden rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] transition-colors duration-200 hover:border-[rgb(var(--ec-accent)/0.45)] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[rgb(var(--ec-accent)/0.4)]"
   >
-    <!-- Squared paper grid spans the full card -->
+    <!-- A faint grid across the card, fading out to its edges -->
     <div class="tile-grid absolute inset-0"></div>
 
-    <!-- Icon centered in card -->
-    <div class="relative h-full flex items-center justify-center p-8">
-      {IconComponent && <IconComponent className="tile-icon relative w-16 h-16 stroke-1" />}
+    <!-- The icon in a small framed square, centred -->
+    <div class="relative flex h-full items-center justify-center p-8">
+      {
+        IconComponent && (
+          <span class="tile-icon-frame flex h-14 w-14 items-center justify-center rounded-md border border-[rgb(var(--ec-accent)/0.25)] bg-[rgb(var(--ec-page-bg))]">
+            <IconComponent className="h-6 w-6 text-[rgb(var(--ec-accent))]" />
+          </span>
+        )
+      }
     </div>
+
+    <!-- Where it goes, on hover -->
+    <span
+      class="absolute right-3 top-3 text-[13px] text-[rgb(var(--ec-page-text-muted))] opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+      aria-hidden="true"
+    >
+      {openWindow ? '↗' : '→'}
+    </span>
   </a>
 
   <!-- Title and description outside card -->
   <div class="mt-3 space-y-1">
-    <h2 class="text-[15px] font-semibold leading-6 text-[rgb(var(--ec-page-text))]">
+    <h2 class="text-[15px] font-semibold leading-6 tracking-[-0.01em] text-[rgb(var(--ec-page-text))]">
       {title}
     </h2>
-    <p class="text-[rgb(var(--ec-page-text-muted))] text-sm leading-relaxed">
+    <p class="text-sm leading-relaxed text-[rgb(var(--ec-page-text-muted))]">
       {description}
     </p>
   </div>
 </div>
 
 <style>
-  .tile-card:hover {
-    box-shadow:
-      0 10px 15px -3px rgb(var(--ec-accent) / 0.1),
-      0 4px 6px -4px rgb(var(--ec-accent) / 0.1);
-  }
-
   .tile-grid {
     background-image:
-      linear-gradient(rgb(var(--ec-accent) / 0.1) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(var(--ec-accent) / 0.1) 1px, transparent 1px);
-    background-size: 28px 28px;
-    /* Soft edge fade — full-width grid that softens just at the borders */
-    -webkit-mask-image: radial-gradient(ellipse at center, black 60%, transparent 100%);
-    mask-image: radial-gradient(ellipse at center, black 60%, transparent 100%);
+      linear-gradient(rgb(var(--ec-page-border) / 0.7) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--ec-page-border) / 0.7) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: center center;
+    /* Strongest around the icon, gone by the edges */
+    -webkit-mask-image: radial-gradient(ellipse 60% 70% at center, black 20%, transparent 100%);
+    mask-image: radial-gradient(ellipse 60% 70% at center, black 20%, transparent 100%);
   }
 
-  .tile-icon {
-    color: rgb(var(--ec-accent));
+  /* The icon's frame lifts a little on hover */
+  .tile-icon-frame {
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.06),
+      0 8px 24px -12px rgb(0 0 0 / 0.25);
+    transition: transform 200ms ease-out;
+  }
+  .group:hover .tile-icon-frame {
+    transform: translateY(-2px);
   }
 </style>

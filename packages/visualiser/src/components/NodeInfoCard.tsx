@@ -20,14 +20,10 @@ import {
 import { NodeCard } from "../studio/components/NodeCard";
 import { NODE_ICONS, type NodeIcon } from "../studio/components/icons";
 import { GROUP_TYPES } from "../studio/node-types";
-import {
-  getNodeInfo,
-  NODE_COLOR_CLASSES,
-  NODE_TYPE_LABELS,
-} from "../utils/node-labels";
+import { getNodeInfo, NODE_TYPE_LABELS } from "../utils/node-labels";
 import type { NeighbourGroup } from "../utils/node-neighbours";
 
-// The node types' colours and names, singular or plural (as the node graphs build them)
+// The node types' names, singular or plural (as the node graphs build them)
 const PLURAL: Record<string, string> = {
   service: "services",
   agent: "agents",
@@ -46,8 +42,6 @@ const PLURAL: Record<string, string> = {
 };
 const typeKey = (type?: string) => PLURAL[type ?? ""] ?? type ?? "";
 const typeLabel = (type?: string) => NODE_TYPE_LABELS[typeKey(type)] ?? "Node";
-const typeColour = (type?: string) =>
-  NODE_COLOR_CLASSES[typeKey(type)] ?? "bg-gray-500";
 
 // Each kind of node's icon, as Studio shows it (and the kinds only diagrams have)
 const ICON_KEYS: Record<string, string> = {
@@ -67,21 +61,31 @@ const ICON_KEYS: Record<string, string> = {
   user: "actor",
   entities: "entity",
 };
-const DIAGRAM_ICONS: Record<string, NodeIcon> = {
-  flows: { icon: Workflow, className: "text-teal-600" },
-  "data-products": { icon: Package, className: "text-indigo-600" },
-  agentTool: { icon: Wrench, className: "text-violet-600" },
+const DIAGRAM_ICONS: Record<string, NodeIcon["icon"]> = {
+  flows: Workflow,
+  "data-products": Package,
+  agentTool: Wrench,
 };
-const typeIcon = (type?: string): NodeIcon => {
+// Only the icon: the card draws them all in the muted text colour, as search does (node-card.css)
+const typeIcon = (type?: string): NodeIcon["icon"] => {
   const key = typeKey(type);
   return (
     DIAGRAM_ICONS[key] ??
-    NODE_ICONS[ICON_KEYS[key] ?? ICON_KEYS[type ?? ""] ?? type ?? ""] ?? {
-      icon: Box,
-      className: "text-[rgb(var(--ec-icon-color))]",
-    }
+    NODE_ICONS[ICON_KEYS[key] ?? ICON_KEYS[type ?? ""] ?? type ?? ""]?.icon ??
+    Box
   );
 };
+
+/** Its type: an outlined pill with its icon (as Studio's node card) */
+function NodeTypePill({ type }: { type?: string }) {
+  const Icon = typeIcon(type);
+  return (
+    <span className="ec-doc-card-type">
+      <Icon aria-hidden />
+      {typeLabel(type)}
+    </span>
+  );
+}
 
 export type NodeInfoCardProps = {
   node: Pick<Node, "id" | "type" | "data">;
@@ -114,12 +118,12 @@ function NeighbourGroupList({
   const items = hidden ? group.items.slice(0, GROUP_LIMIT) : group.items;
   return (
     <section className="mt-3">
-      <h3 className="mb-1.5 text-xs font-semibold text-[rgb(var(--ec-page-text-muted))]">
+      <h3 className="mb-1 px-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">
         {group.heading}
       </h3>
       <ul className="m-0 list-none space-y-px p-0">
         {items.map((item) => {
-          const { icon: Icon, className } = typeIcon(item.type);
+          const Icon = typeIcon(item.type);
           return (
             <li key={item.id}>
               <button
@@ -128,10 +132,7 @@ function NeighbourGroupList({
                 onClick={() => onOpenNode(item.id)}
                 className="ec-doc-card-item"
               >
-                <span
-                  aria-hidden
-                  className={`ec-doc-card-item-icon ${className}`}
-                >
+                <span aria-hidden className="ec-doc-card-item-icon">
                   <Icon />
                 </span>
                 <span className="min-w-[35%] flex-1 truncate">{item.name}</span>
@@ -189,11 +190,7 @@ export default memo(function NodeInfoCard({
       bottomInset={64}
       kicker={
         <>
-          <span
-            className={`inline-flex flex-none items-center rounded px-1.5 text-[9px] font-bold uppercase leading-4 tracking-wider text-white ${typeColour(node.type)}`}
-          >
-            {typeLabel(node.type)}
-          </span>
+          <NodeTypePill type={node.type} />
           {parentName && (
             <span className="ec-doc-card-breadcrumb">in {parentName}</span>
           )}

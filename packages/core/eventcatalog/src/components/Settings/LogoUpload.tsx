@@ -73,13 +73,13 @@ export const LogoUpload = ({ canEdit, initialSrc, apiUrl, onSrcChange }: LogoUpl
       }}
       onDragLeave={() => setDragOver(false)}
       onDrop={onDrop}
-      className={`relative flex items-center gap-5 rounded-lg border border-dashed px-4 py-4 transition-colors ${
+      className={`relative flex items-center gap-5 rounded-md border border-dashed px-4 py-4 transition-colors ${
         dragOver
           ? 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.04)]'
           : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg)/0.4)]'
       }`}
     >
-      <div className="relative flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[rgb(var(--ec-page-bg))] ring-1 ring-[rgb(var(--ec-page-border))]">
+      <div className="relative flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-md bg-[rgb(var(--ec-page-bg))] ring-1 ring-[rgb(var(--ec-page-border))]">
         {src ? (
           <img src={src} alt="Catalog logo preview" className="h-16 w-16 object-contain" />
         ) : (

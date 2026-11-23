@@ -45,12 +45,13 @@ const themeOptions = (currentTheme: string): string[] => {
   return known;
 };
 
+// Each theme's accent on the same neutral page, as the themes are (theme.css and styles/themes)
 const THEME_PREVIEWS: Record<string, { accent: string; bg: string; label: string }> = {
-  default: { accent: '#6366f1', bg: '#0b0b0f', label: 'Default' },
-  ocean: { accent: '#06b6d4', bg: '#082431', label: 'Ocean' },
-  sapphire: { accent: '#3b82f6', bg: '#0b1430', label: 'Sapphire' },
-  sunset: { accent: '#f97316', bg: '#2a0f0a', label: 'Sunset' },
-  forest: { accent: '#22c55e', bg: '#0c1f12', label: 'Forest' },
+  default: { accent: '#c472fb', bg: '#0a0a0a', label: 'Default' },
+  ocean: { accent: '#4ccce6', bg: '#0a0a0a', label: 'Ocean' },
+  sapphire: { accent: '#52a8ff', bg: '#0a0a0a', label: 'Sapphire' },
+  sunset: { accent: '#ff801f', bg: '#0a0a0a', label: 'Sunset' },
+  forest: { accent: '#3dd68c', bg: '#0a0a0a', label: 'Forest' },
 };
 
 const ensureUrlScheme = (value: string): string => {
@@ -181,15 +182,8 @@ export const GeneralSettingsForm = ({ canEdit, initial, apiBase }: Props) => {
   return (
     <>
       <Toaster richColors closeButton position="bottom-right" theme="system" />
-      <form
-        onSubmit={(e) => e.preventDefault()}
-        className="divide-y divide-[rgb(var(--ec-page-border))] border-t border-[rgb(var(--ec-page-border))]"
-      >
-        {!canEdit && (
-          <div className="pb-6">
-            <ReadOnlyBanner />
-          </div>
-        )}
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+        {!canEdit && <ReadOnlyBanner />}
 
         <Row
           title="Theme"
@@ -213,7 +207,7 @@ export const GeneralSettingsForm = ({ canEdit, initial, apiBase }: Props) => {
                   disabled={!canEdit}
                   aria-pressed={isActive}
                   className={cn(
-                    'group relative flex flex-col overflow-hidden rounded-lg border text-left transition-all',
+                    'group relative flex flex-col overflow-hidden rounded-md border text-left transition-all',
                     'disabled:cursor-not-allowed disabled:opacity-50',
                     isActive
                       ? 'border-[rgb(var(--ec-page-text))] ring-2 ring-[rgb(var(--ec-page-text)/0.15)]'
