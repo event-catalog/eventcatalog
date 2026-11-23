@@ -132,7 +132,10 @@ const loadPagefindModule = (url: string) => {
   return nativeImport(url);
 };
 
-/** An image as a mask, filled with the text colour */
+/** An icon given as a full URL (resolveIconUrl keeps those as they are), which may be on a server without CORS */
+const isExternalIcon = (value: string) => /^https?:\/\//i.test(value);
+
+/** An image as a mask, filled with the text colour (for the catalog's own icons: masks need CORS on other servers) */
 const iconMask = (url: string): CSSProperties => {
   const mask = `url(${JSON.stringify(url)}) center / contain no-repeat`;
   return { mask, WebkitMask: mask };
@@ -160,7 +163,15 @@ const ResultIcon = ({
         box
       )}
     >
-      {item.rawNode?.leftIcon ? (
+      {item.rawNode?.leftIcon && isExternalIcon(item.rawNode.leftIcon) ? (
+        // An icon on another server: a mask needs that server to allow CORS, so it's an image in greys instead
+        <img
+          src={item.rawNode.leftIcon}
+          alt=""
+          loading="lazy"
+          className={classNames(glyph, 'object-contain ec-mono-icon ec-mono-icon--active')}
+        />
+      ) : item.rawNode?.leftIcon ? (
         <span
           aria-hidden="true"
           className={classNames(glyph, 'bg-current')}
