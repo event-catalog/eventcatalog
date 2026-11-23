@@ -262,13 +262,22 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
   const minHeaderStartWidth = () => (window.matchMedia('(min-width: 1024px)').matches ? 240 : 120);
   const MENU_TOGGLE_WIDTH = 40;
 
-  // Header dropdowns open on hover (CSS), and on a click, tap or key press of their button (data-open)
+  // Header dropdowns open on hover (CSS), and on a click, tap or key press of their button (data-open).
+  // Closing one while the pointer is still over it (Escape, or a click on one of its links) sets data-closing, which hides
+  // it until the pointer leaves; opening it again clears that
   function initializeHeaderMenus(header: HTMLElement) {
     const menus = Array.from(header.querySelectorAll<HTMLElement>('[data-header-menu]'));
     const setOpen = (menu: HTMLElement, open: boolean) => {
       menu.toggleAttribute('data-open', open);
       menu.querySelector('[data-header-menu-button]')?.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) menu.removeAttribute('data-closing');
     };
+    const close = (menu: HTMLElement) => {
+      setOpen(menu, false);
+      if (menu.matches(':hover')) menu.setAttribute('data-closing', '');
+    };
+    const isShowing = (menu: HTMLElement) =>
+      menu.hasAttribute('data-open') || (menu.matches(':hover') && !menu.hasAttribute('data-closing'));
 
     menus.forEach((menu) => {
       const button = menu.querySelector<HTMLButtonElement>('[data-header-menu-button]');
@@ -276,17 +285,10 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
       menu.addEventListener('focusout', (e) => {
         if (!menu.contains(e.relatedTarget as Node | null)) setOpen(menu, false);
       });
-      menu.addEventListener('keydown', (e) => {
-        if (e.key !== 'Escape' || !menu.hasAttribute('data-open')) return;
-        setOpen(menu, false);
-        button?.focus();
-      });
-      // A link navigates without reloading the header, so close the menu behind it, even while the pointer is still over
-      // it (data-closing hides it until the pointer leaves)
+      // A link navigates without reloading the header, so close the menu behind it
       menu.addEventListener('click', (e) => {
         if (!(e.target as HTMLElement).closest('a')) return;
-        setOpen(menu, false);
-        menu.setAttribute('data-closing', '');
+        close(menu);
         (document.activeElement as HTMLElement | null)?.blur();
       });
       menu.addEventListener('pointerleave', () => menu.removeAttribute('data-closing'));
@@ -296,6 +298,15 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
     document.addEventListener('click', (e) => {
       menus.forEach((menu) => {
         if (menu.hasAttribute('data-open') && !menu.contains(e.target as Node)) setOpen(menu, false);
+      });
+    });
+    // Escape closes a dropdown however it was opened, including by hover with focus elsewhere
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      menus.filter(isShowing).forEach((menu) => {
+        const hadFocus = menu.contains(document.activeElement);
+        close(menu);
+        if (hadFocus) menu.querySelector<HTMLButtonElement>('[data-header-menu-button]')?.focus();
       });
     });
   }
