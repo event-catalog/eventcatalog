@@ -6,6 +6,7 @@ describe('getBanner', () => {
 
   afterEach(() => {
     import.meta.env.BASE_URL = baseUrl;
+    delete (globalThis as { __EC_TRAILING_SLASH__?: boolean }).__EC_TRAILING_SLASH__;
   });
 
   it('is null when the catalog has no banner, or no message for it', () => {
@@ -42,6 +43,16 @@ describe('getBanner', () => {
     expect(href('https://example.com/plan')).toBe('https://example.com/plan');
     expect(href('mailto:platform@example.com')).toBe('mailto:platform@example.com');
     expect(href('//example.com/plan')).toBe('//example.com/plan');
+  });
+
+  it('keeps a query string and fragment after the path, with a trailing slash on the path', () => {
+    import.meta.env.BASE_URL = '/catalog/';
+    (globalThis as { __EC_TRAILING_SLASH__?: boolean }).__EC_TRAILING_SLASH__ = true;
+    const href = (link: string) => getBanner({ banner: { message: 'Hello', link: { label: 'Read', href: link } } })?.link?.href;
+
+    expect(href('/docs/custom/kafka#timeline')).toBe('/catalog/docs/custom/kafka/#timeline');
+    expect(href('/discover/events?level=1')).toBe('/catalog/discover/events/?level=1');
+    expect(href('/docs/custom/kafka')).toBe('/catalog/docs/custom/kafka/');
   });
 
   it('has no link for a script URL, or without both a label and an href', () => {

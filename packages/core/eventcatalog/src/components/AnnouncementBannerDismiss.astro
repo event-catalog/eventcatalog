@@ -1,0 +1,42 @@
+---
+// Hides the announcement banner (AnnouncementBanner.astro) for visitors who dismissed it, and saves a dismissal.
+// Its own component so it's only on the page when the banner can be dismissed.
+interface Props {
+  bannerId: string;
+}
+
+const { bannerId } = Astro.props;
+---
+
+<script is:inline define:vars={{ bannerId }}>
+  // Runs straight after the banner, before it's drawn, so a dismissed banner never shows. The ClientRouter doesn't
+  // run it again on navigation (it's the same script), so the listeners below are registered once, for the tab.
+  (() => {
+    const storageKey = 'eventcatalog-banner-dismissed';
+    const isDismissed = () => {
+      try {
+        return localStorage.getItem(storageKey) === bannerId;
+      } catch {
+        return false;
+      }
+    };
+    const hide = (doc) => doc.getElementById('ec-announcement-banner')?.remove();
+
+    if (isDismissed()) hide(document);
+
+    // Each page brings its own copy of the banner: take it out of the incoming page before it's drawn
+    document.addEventListener('astro:before-swap', (event) => {
+      if (isDismissed()) hide(event.newDocument);
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!(event.target instanceof Element) || !event.target.closest('[data-announcement-dismiss]')) return;
+      try {
+        localStorage.setItem(storageKey, bannerId);
+      } catch {
+        // Storage is blocked: the banner closes for this page only
+      }
+      hide(document);
+    });
+  })();
+</script>

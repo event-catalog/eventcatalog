@@ -36,7 +36,10 @@ const nonEmptyString = (value: unknown): string | undefined =>
 const resolveHref = (href: string): string | null => {
   const scheme = href.match(/^([a-z][a-z\d+.-]*):/i)?.[1].toLowerCase();
   if (scheme) return ['http', 'https', 'mailto'].includes(scheme) ? href : null;
-  return href.startsWith('//') || href.startsWith('#') ? href : buildUrl(href);
+  if (href.startsWith('//') || href.startsWith('#')) return href;
+  // The base path and trailing slash go on the path, before any ?query or #fragment
+  const suffixAt = href.search(/[?#]/);
+  return suffixAt === -1 ? buildUrl(href) : buildUrl(href.slice(0, suffixAt)) + href.slice(suffixAt);
 };
 
 /** The banner across the top of every page, or null when the catalog has no message to show */

@@ -1,6 +1,7 @@
 ---
 import config from '@config';
 import { getBanner, type BannerType } from '@utils/banner';
+import AnnouncementBannerDismiss from './AnnouncementBannerDismiss.astro';
 
 // The catalog's announcement (`banner` in eventcatalog.config.js): a thin bar across the top of every page.
 // Its height is --ec-announcement-banner-height, part of --ec-banner-height, which the header, the rail and the sidebars
@@ -17,7 +18,6 @@ const color = banner ? colors[banner.type] : undefined;
 const style = color
   ? `background: linear-gradient(rgb(var(${color.background})), rgb(var(${color.background}))), rgb(var(--ec-page-bg)); color: rgb(var(${color.text})); border-color: rgb(var(${color.text}) / 0.2);`
   : undefined;
-const bannerId = banner?.id;
 ---
 
 <!-- z-45: above the page, sidebars and rail, below every modal's backdrop (z-50), which darkens it like the rest -->{
@@ -55,39 +55,4 @@ const bannerId = banner?.id;
     </div>
   )
 }
-{
-  banner?.dismissible && (
-    <script is:inline define:vars={{ bannerId }}>
-      // Runs straight after the banner, before it's drawn, so a dismissed banner never shows. The ClientRouter doesn't
-      // run it again on navigation (it's the same script), so the listeners below are registered once, for the tab.
-      (() => {
-        const storageKey = 'eventcatalog-banner-dismissed';
-        const isDismissed = () => {
-          try {
-            return localStorage.getItem(storageKey) === bannerId;
-          } catch {
-            return false;
-          }
-        };
-        const hide = (doc) => doc.getElementById('ec-announcement-banner')?.remove();
-
-        if (isDismissed()) hide(document);
-
-        // Each page brings its own copy of the banner: take it out of the incoming page before it's drawn
-        document.addEventListener('astro:before-swap', (event) => {
-          if (isDismissed()) hide(event.newDocument);
-        });
-
-        document.addEventListener('click', (event) => {
-          if (!(event.target instanceof Element) || !event.target.closest('[data-announcement-dismiss]')) return;
-          try {
-            localStorage.setItem(storageKey, bannerId);
-          } catch {
-            // Storage is blocked: the banner closes for this page only
-          }
-          hide(document);
-        });
-      })();
-    </script>
-  )
-}
+{banner?.dismissible && <AnnouncementBannerDismiss bannerId={banner.id} />}
