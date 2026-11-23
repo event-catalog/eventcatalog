@@ -3,11 +3,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
-import { oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import { codeTheme } from './code-theme';
 import { copyToClipboard } from './utils';
 import type { MessageExample } from './types';
-import { useDarkMode } from './useDarkMode';
 import { remarkMarkdownCodeGroup } from '../../remark-plugins/markdown-code-group';
 import { MarkdownCodeGroup } from '../MDX/CodeGroup/MarkdownCodeGroup';
 import { MarkdownColumns, MarkdownColumn } from '../MDX/Columns/MarkdownColumns';
@@ -35,7 +33,6 @@ const CodeGroupPanelContext = createContext(false);
 
 /** Fenced code block rendered as the same themed code panel used across the schema page. */
 function CodeBlock({ language, code }: { language?: string; code: string }) {
-  const isDarkMode = useDarkMode();
   const [isCopied, setIsCopied] = useState(false);
   const inCodeGroup = useContext(CodeGroupPanelContext);
   const content = code.replace(/\s+$/, '');
@@ -43,7 +40,7 @@ function CodeBlock({ language, code }: { language?: string; code: string }) {
     <SyntaxHighlighter
       renderer={renderHighlightedRows}
       language={language || 'text'}
-      style={isDarkMode ? oneDark : oneLight}
+      style={codeTheme}
       customStyle={{
         margin: 0,
         padding: '1rem 1.25rem',

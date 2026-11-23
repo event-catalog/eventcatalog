@@ -15,8 +15,6 @@ sidebar:
   badge: 'POST'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `CalculateDiscount` is handled by the [[service|promotion-service]]. It is sent by the [[service|cart-api]] when pricing a cart. The service evaluates the applicable promotion rules and returns the discount, also publishing a [[event|discount-calculated]] event.
@@ -28,5 +26,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Schema
 
 <SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
-
-<Footer />

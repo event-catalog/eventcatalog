@@ -69,7 +69,7 @@ const DetailsTable = ({
   status: { tone: Tone; label: string };
   details: Detail[];
 }) => (
-  <div className="overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
+  <div className="overflow-hidden rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
     <div className="flex items-center justify-between gap-3 border-b border-[rgb(var(--ec-page-border))] px-4 py-3">
       <p className="text-[13px] font-semibold text-[rgb(var(--ec-page-text))]">{title}</p>
       <StatusPill tone={status.tone}>{status.label}</StatusPill>
@@ -119,7 +119,7 @@ const LicenseNotice = ({ license, now }: { license: LicenseProps; now: number })
     <div
       role="alert"
       className={cn(
-        'flex gap-3 rounded-lg border p-4',
+        'flex gap-3 rounded-md border p-4',
         expired
           ? 'border-[rgb(var(--ec-badge-color-red-text)/0.3)] bg-[rgb(var(--ec-badge-color-red-background))] text-[rgb(var(--ec-badge-color-red-text))]'
           : 'border-[rgb(var(--ec-badge-color-amber-text)/0.3)] bg-[rgb(var(--ec-badge-color-amber-background))] text-[rgb(var(--ec-badge-color-amber-text))]'
@@ -189,7 +189,7 @@ const LegacyKeyNotice = ({ plan }: { plan: 'scale' | 'starter' }) => {
   return (
     <div
       role="note"
-      className="flex gap-3 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] p-4 text-[rgb(var(--ec-page-text))]"
+      className="flex gap-3 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] p-4 text-[rgb(var(--ec-page-text))]"
     >
       <Info className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--ec-page-text))]" aria-hidden />
       <div className="space-y-1">
@@ -333,8 +333,8 @@ export const LicenseSettings = ({ license, trialStartedAt, renderedAt, licenseUr
   const trialEnded = onTrial && getTrialStatus(trialStartedAt, now)?.ended;
 
   return (
-    // A top border, as on the other settings pages
-    <div className="divide-y divide-[rgb(var(--ec-page-border))] border-t border-[rgb(var(--ec-page-border))]">
+    // A stack of cards, as on the other settings pages
+    <div className="space-y-6">
       <Row
         title="License"
         description={

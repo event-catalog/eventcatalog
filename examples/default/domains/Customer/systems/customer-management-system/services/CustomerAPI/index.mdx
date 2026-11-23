@@ -41,8 +41,6 @@ specifications:
     name: Customer API
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Customer API** is the front door to the Customer Management System. It validates incoming commands, persists customer data to the [[container|customer-database]], and publishes domain events (<ResourceLink id="customer-registered" type="event">CustomerRegistered</ResourceLink>, <ResourceLink id="customer-updated" type="event">CustomerUpdated</ResourceLink>) so the rest of the business can react to changes.
@@ -66,5 +64,3 @@ The **Customer API** is the front door to the Customer Management System. It val
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

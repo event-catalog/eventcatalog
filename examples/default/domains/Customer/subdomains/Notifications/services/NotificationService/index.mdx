@@ -42,8 +42,6 @@ repository:
   url: 'https://github.com/acme/notification-service'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Notification Service** is the single place Acme Inc talks to customers outside the storefront. It consumes events from other domains, looks up the customer's channel choices in [[container|notification-preferences]], sends the message and publishes [[event|customer-notified]].
@@ -65,5 +63,3 @@ The **Notification Service** is the single place Acme Inc talks to customers out
 <NodeGraph />
 
 <MessageTable format="all" limit={10} />
-
-<Footer />

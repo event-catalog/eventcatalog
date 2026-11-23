@@ -70,39 +70,17 @@ const typeIcons: any = {
   default: DocumentTextIcon,
 };
 
-const typeColors: any = {
-  Agent: 'text-sky-500 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 ring-sky-200 dark:ring-sky-500/30',
-  Domain: 'text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 ring-orange-200 dark:ring-orange-500/30',
-  Service: 'text-pink-500 dark:text-pink-400 bg-pink-50 dark:bg-pink-500/10 ring-pink-200 dark:ring-pink-500/30',
-  System: 'text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 ring-violet-200 dark:ring-violet-500/30',
-  'Decision record': 'text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-500/10 ring-slate-200 dark:ring-slate-500/30',
-  Event: 'text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 ring-orange-200 dark:ring-orange-500/30',
-  Command: 'text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 ring-blue-200 dark:ring-blue-500/30',
-  Query: 'text-green-500 dark:text-green-400 bg-green-50 dark:bg-green-500/10 ring-green-200 dark:ring-green-500/30',
-  Entity: 'text-purple-500 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10 ring-purple-200 dark:ring-purple-500/30',
-  Channel: 'text-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 ring-indigo-200 dark:ring-indigo-500/30',
-  Team: 'text-teal-500 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10 ring-teal-200 dark:ring-teal-500/30',
-  User: 'text-cyan-500 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-500/10 ring-cyan-200 dark:ring-cyan-500/30',
-  Language: 'text-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 ring-amber-200 dark:ring-amber-500/30',
-  OpenAPI:
-    'text-emerald-500 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 ring-emerald-200 dark:ring-emerald-500/30',
-  AsyncAPI: 'text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 ring-violet-200 dark:ring-violet-500/30',
-  Design: 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
-  Container: 'text-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 ring-indigo-200 dark:ring-indigo-500/30',
-  'Data Product': 'text-sky-500 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 ring-sky-200 dark:ring-sky-500/30',
-  Flow: 'text-fuchsia-500 dark:text-fuchsia-400 bg-fuchsia-50 dark:bg-fuchsia-500/10 ring-fuchsia-200 dark:ring-fuchsia-500/30',
-  'Custom Doc': 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
-  'Resource Doc': 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
-  Changelog: 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
-  default: 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
-};
-
 function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ');
 }
 
+// The keys in the footer, as small keycaps
+const footerKeyClassName =
+  'inline-flex h-5 min-w-5 items-center justify-center rounded border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.04)] px-1 font-mono text-[10px] text-[rgb(var(--ec-page-text-muted))]';
+
+// Monochrome: what matched in the text colour and bold, not in the theme's accent
 const searchResultHighlightClassName =
-  '[&_mark]:bg-transparent [&_mark]:p-0 [&_mark]:font-semibold [&_mark]:text-[rgb(var(--ec-accent))]';
+  '[&_mark]:bg-transparent [&_mark]:p-0 [&_mark]:font-semibold [&_mark]:text-[rgb(var(--ec-page-text))]';
 
 interface SearchNodeCompact {
   k: string;
@@ -154,7 +132,11 @@ const loadPagefindModule = (url: string) => {
   return nativeImport(url);
 };
 
-/** A result's icon on a chip in its type's colour (or the icon it has of its own), in the list and the preview */
+/**
+ * A result's icon on a neutral chip. One with an icon of its own (a technology's logo) is the image in greys, as on the
+ * docs pages (ec-mono-icon): black logos land on the same grey as the other icons, and logos keep their detail (a mask
+ * would flatten ones drawn with white detail, like OpenAPI's, and needs CORS for icons on other servers)
+ */
 const ResultIcon = ({
   item,
   size = 'sm',
@@ -164,13 +146,22 @@ const ResultIcon = ({
   size?: 'sm' | 'lg';
 }) => {
   const Icon = typeIcons[item.type] || typeIcons.default;
-  const colors = typeColors[item.type] || typeColors.default;
   const box = size === 'lg' ? 'h-10 w-10 rounded-lg' : 'h-7 w-7 rounded-md';
   const glyph = size === 'lg' ? 'h-6 w-6' : 'h-4 w-4';
   return (
-    <div className={classNames('flex flex-none items-center justify-center ring-1 ring-inset', box, colors)}>
+    <div
+      className={classNames(
+        'flex flex-none items-center justify-center bg-[rgb(var(--ec-page-text)/0.03)] text-[rgb(var(--ec-page-text-muted))] ring-1 ring-inset ring-[rgb(var(--ec-page-border))]',
+        box
+      )}
+    >
       {item.rawNode?.leftIcon ? (
-        <img src={resolveIconUrl(item.rawNode.leftIcon)} alt="" loading="lazy" className={classNames(glyph, 'object-contain')} />
+        <img
+          src={resolveIconUrl(item.rawNode.leftIcon)}
+          alt=""
+          loading="lazy"
+          className={classNames(glyph, 'object-contain ec-mono-icon')}
+        />
       ) : (
         <Icon className={glyph} aria-hidden="true" />
       )}
@@ -560,7 +551,7 @@ export default function SearchModal() {
                           autoComplete="off"
                         />
                         {query.trim() !== '' && filteredItems.length > 0 && (
-                          <kbd className="pointer-events-none absolute right-4 top-2.5 rounded-lg bg-[rgb(var(--ec-content-hover))] px-2.5 py-1 text-xs font-semibold text-[rgb(var(--ec-page-text-muted))] ring-1 ring-inset ring-[rgb(var(--ec-page-border))]">
+                          <kbd className="pointer-events-none absolute right-4 top-3 rounded border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.04)] px-1.5 py-0.5 font-mono text-[11px] text-[rgb(var(--ec-page-text-muted))]">
                             ESC
                           </kbd>
                         )}
@@ -580,10 +571,10 @@ export default function SearchModal() {
                               key={tab.id}
                               onClick={() => setActiveFilter(tab.id)}
                               className={classNames(
-                                'px-3 py-1 text-xs font-medium rounded-full transition-colors whitespace-nowrap',
+                                'h-7 px-3 text-xs font-medium rounded-full border transition-colors whitespace-nowrap',
                                 activeFilter === tab.id
-                                  ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))]'
-                                  : 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-active))]'
+                                  ? 'border-transparent bg-[rgb(var(--ec-page-text))] text-[rgb(var(--ec-page-bg))]'
+                                  : 'border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-page-text)/0.05)] hover:text-[rgb(var(--ec-page-text))]'
                               )}
                             >
                               {tab.name}
@@ -653,7 +644,7 @@ export default function SearchModal() {
                                       className={({ active }) =>
                                         classNames(
                                           'flex cursor-default select-none items-center rounded-lg px-2.5 py-2 group',
-                                          (active || item === previewed) && 'bg-[rgb(var(--ec-content-active))]'
+                                          (active || item === previewed) && 'bg-[rgb(var(--ec-page-text)/0.06)]'
                                         )
                                       }
                                     >
@@ -794,18 +785,24 @@ export default function SearchModal() {
                       )}
 
                       {/* Footer */}
-                      <div className="flex flex-wrap items-center bg-[rgb(var(--ec-content-hover))] py-2.5 px-4 text-xs text-[rgb(var(--ec-page-text-muted))] border-t border-[rgb(var(--ec-page-border))]">
-                        <div className="flex items-center mr-4">
-                          <ArrowUturnLeftIcon className="h-3 w-3 mr-1" />
+                      <div className="flex flex-wrap items-center gap-4 py-2.5 px-4 text-xs text-[rgb(var(--ec-page-text-muted))] border-t border-[rgb(var(--ec-page-border))]">
+                        <div className="flex items-center gap-1.5">
+                          <kbd className={footerKeyClassName}>
+                            <ArrowUturnLeftIcon className="h-3 w-3" />
+                          </kbd>
                           to select
                         </div>
-                        <div className="flex items-center mr-4">
-                          <ArrowDownIcon className="h-3 w-3 mr-1" />
-                          <ArrowUpIcon className="h-3 w-3 mr-1" />
+                        <div className="flex items-center gap-1.5">
+                          <kbd className={footerKeyClassName}>
+                            <ArrowDownIcon className="h-3 w-3" />
+                          </kbd>
+                          <kbd className={footerKeyClassName}>
+                            <ArrowUpIcon className="h-3 w-3" />
+                          </kbd>
                           to navigate
                         </div>
-                        <div className="flex items-center">
-                          <span className="mr-1">esc</span>
+                        <div className="flex items-center gap-1.5">
+                          <kbd className={footerKeyClassName}>esc</kbd>
                           to close
                         </div>
                       </div>

@@ -17,14 +17,13 @@ repository:
   url: 'https://github.com/acme/product-worker'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Product Worker** keeps the [[service|product-api]] fast by taking slow or asynchronous work off the request path. It reads from and writes back to the [[container|product-database]], handling jobs like data enrichment, image processing and bulk catalog imports.
 
 <Tiles>
   <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title="View in visualiser" description="See how the Product Worker fits into the system" />
+  <Tile icon="RectangleGroupIcon" href="/docs/systems/product-catalog-system/1.0.0" title="Part of the Product Catalog System" description="The source of truth for product data" />
 </Tiles>
 
 ### Responsibilities
@@ -39,5 +38,3 @@ The **Product Worker** keeps the [[service|product-api]] fast by taking slow or 
 ## Architecture diagram
 
 <NodeGraph />
-
-<Footer />

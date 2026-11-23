@@ -76,14 +76,14 @@ const groups: SectionGroup[] = [
 <VerticalSideBarLayout title={`${title} | Settings`} showNestedSideBar={true}>
   <Fragment slot="sidebar-content">
     <div class="settings-rail flex h-full flex-col bg-[rgb(var(--ec-rail-bg))]">
-      <nav class="flex flex-1 flex-col gap-4 overflow-y-auto px-3 pt-6 pb-4">
+      <nav class="flex flex-1 flex-col gap-6 overflow-y-auto px-3 pt-6 pb-4">
         {
           groups.map((group) => (
             <div class="space-y-1">
-              <p class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-sidebar-text)/0.5)]">
+              <p class="rail-section-label px-3 pb-1 text-[12px] font-medium text-[rgb(var(--ec-page-text-muted))]">
                 {group.label}
               </p>
-              <div class="flex flex-col gap-1">
+              <div class="flex flex-col gap-0.5">
                 {group.items.map((item) => {
                   const isActive = item.id === active;
                   return (
@@ -91,10 +91,11 @@ const groups: SectionGroup[] = [
                       href={item.href}
                       aria-current={isActive ? 'page' : undefined}
                       class:list={[
-                        'nav-secondary-item flex items-center gap-3 px-3 py-2.5 text-[13px] font-medium transition-colors duration-150',
+                        // As in Vercel's settings: the page you're on on a neutral grey, the rest muted until hovered
+                        'nav-secondary-item flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] transition-colors duration-150',
                         isActive
-                          ? 'font-semibold text-[rgb(var(--ec-page-text))]'
-                          : 'text-[rgb(var(--ec-sidebar-text))] hover:text-[rgb(var(--ec-page-text))]',
+                          ? 'bg-[rgb(var(--ec-page-text)/0.06)] font-medium text-[rgb(var(--ec-page-text))]'
+                          : 'text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-page-text)/0.04)] hover:text-[rgb(var(--ec-page-text))]',
                       ]}
                     >
                       <item.icon className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
@@ -110,7 +111,8 @@ const groups: SectionGroup[] = [
     </div>
   </Fragment>
 
-  <div class="settings-page w-full px-8 py-8">
+  <div class="settings-page w-full max-w-5xl px-8 py-10">
+    <h1 class="mb-8 text-[28px] font-semibold leading-tight tracking-[-0.035em] text-[rgb(var(--ec-page-text))]">{title}</h1>
     <slot />
   </div>
 </VerticalSideBarLayout>

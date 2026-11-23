@@ -15,8 +15,6 @@ sidebar:
   badge: 'GET'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `SearchProducts` is handled by the [[service|search-api]]. It runs a full-text search over the [[container|search-index]] and returns a paginated list of matching products. Use this whenever you need to find products across the catalog, rather than fetching a single product by id with [[query|get-product]].
@@ -28,5 +26,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Schema
 
 <SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
-
-<Footer />

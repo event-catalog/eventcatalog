@@ -23,8 +23,6 @@ repository:
   url: 'https://github.com/acme/checkout-orchestrator'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Checkout Orchestrator** is the brain of the Checkout System. Once the [[service|checkout-api]] hands it a checkout, it runs the checkout saga step by step:
@@ -37,6 +35,7 @@ If any step fails, the orchestrator compensates the earlier steps (releasing the
 
 <Tiles>
   <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} messages`} description="Reserve inventory, authorize payment, create order" />
+  <Tile icon="RectangleGroupIcon" href="/docs/systems/checkout-system/1.0.0" title="Part of the Checkout System" description="Orchestrates checkout, from cart to order" />
 </Tiles>
 
 ### Responsibilities
@@ -53,5 +52,3 @@ If any step fails, the orchestrator compensates the earlier steps (releasing the
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

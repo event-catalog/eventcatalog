@@ -20,14 +20,13 @@ repository:
   url: 'https://github.com/acme/carrier-integration'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Tracking API** is how the carrier reports delivery progress back to Acme Inc. After a shipment is created via the [[service|carrier-shipping-api]], it emits [[event|shipment-created]], then [[event|shipment-delivered]] on success or [[event|shipment-failed]] if delivery cannot be completed.
 
 <Tiles>
   <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} messages`} description="Shipment lifecycle events" />
+  <Tile icon="RectangleGroupIcon" href="/docs/systems/carrier/1.0.0" title="Part of the Carrier system" description="The external carrier that delivers shipments" />
 </Tiles>
 
 ## Architecture diagram
@@ -35,5 +34,3 @@ The **Tracking API** is how the carrier reports delivery progress back to Acme I
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

@@ -15,8 +15,6 @@ sidebar:
   badge: 'POST'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `CreateOrder` is sent by the [[service|checkout-orchestrator]] and handled by the [[service|order-service]]. It is the final step of the checkout saga — once inventory is reserved and payment is authorized, this command creates the order. On success the Order Service publishes an [[event|order-created]] event.
@@ -28,5 +26,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Schema
 
 <SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
-
-<Footer />

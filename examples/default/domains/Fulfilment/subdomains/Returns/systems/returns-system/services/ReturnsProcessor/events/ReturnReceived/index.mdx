@@ -14,8 +14,6 @@ badges:
 schemaPath: schema.json
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `ReturnReceived` is published by the [[service|returns-processor]] when a returned parcel is scanned in at the warehouse. The [[service|payment-worker]] refunds the customer and the [[service|inventory-service]] restocks resellable items.
@@ -25,5 +23,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Architecture diagram
 
 <NodeGraph />
-
-<Footer />

@@ -14,8 +14,6 @@ badges:
 schemaPath: schema.json
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `OrderPacked` is published by the [[service|picking-worker]] when an order has been fully picked and packed. The [[service|warehouse-service]] consumes it to mark the order ready and publish [[event|order-ready-for-shipping]].
@@ -25,5 +23,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Architecture diagram
 
 <NodeGraph />
-
-<Footer />

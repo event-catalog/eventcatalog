@@ -15,8 +15,6 @@ sidebar:
   badge: 'POST'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `CheckoutCart` is handled by the [[service|cart-api]]. It finalises the cart — pricing it (including discounts from the [[system|promotion-system]]) — and on success publishes a [[event|cart-checked-out]] event.
@@ -28,5 +26,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Schema
 
 <SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
-
-<Footer />

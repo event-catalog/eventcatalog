@@ -15,8 +15,6 @@ sidebar:
   badge: 'POST'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `CancelOrder` is handled by the [[service|order-service]]. It cancels an order that has not yet been completed — releasing any reservations and voiding the payment authorization where needed. On success the Order Service publishes an [[event|order-cancelled]] event.
@@ -28,5 +26,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Schema
 
 <SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
-
-<Footer />

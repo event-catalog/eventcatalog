@@ -11,88 +11,88 @@
  * Supported themes: light, dark (more can be added)
  */
 
-/* Default/Light theme */
+/* Default/Light theme: Vercel's (Geist) neutral greys for every surface, purple only for accents */
 :root,
 :root[data-theme='light'] {
   /* Header */
   --ec-header-bg: 255 255 255; /* #ffffff */
-  --ec-header-text: 15 23 42; /* #0f172a (slate-900) */
-  --ec-header-border: 229 229 229; /* #e5e5e5 (neutral-200) */
+  --ec-header-text: 23 23 23; /* #171717 */
+  --ec-header-border: 235 235 235; /* #ebebeb */
 
   /* Primary brand color */
-  --ec-primary: 126 34 206; /* #7e22ce (purple-700) */
-  --ec-primary-hover: 107 33 168; /* #6b21a8 (purple-800) */
+  --ec-primary: 142 78 198; /* #8e4ec6 */
+  --ec-primary-hover: 125 64 180; /* #7d40b4 */
 
   /* Accent colors - used for selections, highlights, interactive elements */
-  --ec-accent: 126 34 206; /* #7e22ce (purple-700) */
-  --ec-accent-hover: 107 33 168; /* #6b21a8 (purple-800) */
-  --ec-accent-subtle: 233 213 255; /* #e9d5ff (purple-200) */
-  --ec-accent-text: 88 28 135; /* #581c87 (purple-900) */
-  --ec-accent-gradient-from: 126 34 206; /* #7e22ce (purple-700) */
-  --ec-accent-gradient-to: 88 28 135; /* #581c87 (purple-900) */
+  --ec-accent: 142 78 198; /* #8e4ec6 */
+  --ec-accent-hover: 125 64 180; /* #7d40b4 */
+  --ec-accent-subtle: 247 240 254; /* #f7f0fe */
+  --ec-accent-text: 125 0 204; /* #7d00cc */
+  --ec-accent-gradient-from: 142 78 198; /* #8e4ec6 */
+  --ec-accent-gradient-to: 125 64 180; /* #7d40b4 */
   /* Resolved on :root for every theme, so the visualiser (which overrides
      --ec-accent with its own palette) can still use the catalog's accent */
   --ec-catalog-accent: var(--ec-accent);
 
   /* Buttons */
-  --ec-button-bg: 15 23 42; /* #0f172a */
-  --ec-button-bg-hover: 30 41 59; /* #1e293b */
+  --ec-button-bg: 23 23 23; /* #171717 */
+  --ec-button-bg-hover: 56 56 56; /* #383838 */
   --ec-button-text: 255 255 255; /* #ffffff */
 
   /* Dropdowns & menus */
   --ec-dropdown-bg: 255 255 255; /* #ffffff */
-  --ec-dropdown-text: 51 65 85; /* #334155 (slate-700) */
-  --ec-dropdown-hover: 248 250 252; /* #f8fafc (slate-50) */
-  --ec-dropdown-border: 226 232 240; /* #e2e8f0 (slate-200) */
+  --ec-dropdown-text: 23 23 23; /* #171717 */
+  --ec-dropdown-hover: 242 242 242; /* #f2f2f2 */
+  --ec-dropdown-border: 235 235 235; /* #ebebeb */
 
   /* Icons */
-  --ec-icon-color: 100 116 139; /* #64748b (slate-500) */
-  --ec-icon-hover: 51 65 85; /* #334155 (slate-700) */
+  --ec-icon-color: 102 102 102; /* #666666 */
+  --ec-icon-hover: 23 23 23; /* #171717 */
 
   /* Sidebar / Vertical Nav (icon bar) */
   --ec-sidebar-bg: 255 255 255; /* #ffffff */
-  --ec-sidebar-bg-gradient: 248 250 252; /* #f8fafc (slate-50) */
-  --ec-sidebar-border: 229 229 229; /* #e5e5e5 (neutral-200) */
-  --ec-sidebar-text: 71 85 105; /* #475569 (slate-600) */
-  --ec-sidebar-active-bg: 15 23 42; /* #0f172a */
+  --ec-sidebar-bg-gradient: 250 250 250; /* #fafafa */
+  --ec-sidebar-border: 235 235 235; /* #ebebeb */
+  --ec-sidebar-text: 102 102 102; /* #666666 */
+  --ec-sidebar-active-bg: 23 23 23; /* #171717 */
   --ec-sidebar-active-text: 255 255 255; /* #ffffff */
-  --ec-sidebar-hover-bg: 15 23 42; /* #0f172a - black on hover like active */
+  --ec-sidebar-hover-bg: 242 242 242; /* #f2f2f2 */
 
   /* Rail / inset-panel surface (5% off the sidebar bg). Use for navigation rails,
      filter panels, and any inset surface that should sit slightly off the page. */
-  --ec-rail-bg: 250 250 250; /* #fafafa - 2% darker than white */
-  --ec-rail-active-bg: 218 218 218; /* ~10% darker than rail bg */
+  --ec-rail-bg: 250 250 250; /* #fafafa */
+  --ec-rail-active-bg: 235 235 235; /* #ebebeb */
 
   /* Nested sidebar content */
   --ec-content-bg: 255 255 255; /* #ffffff */
-  --ec-content-text: 15 23 42; /* #0f172a (slate-900) */
-  --ec-content-text-muted: 100 116 139; /* #64748b (slate-500) */
-  --ec-content-text-secondary: 71 85 105; /* #475569 (slate-600) */
-  --ec-content-border: 229 229 229; /* #e5e5e5 (neutral-200) */
-  --ec-content-hover: 248 250 252; /* #f8fafc (slate-50) */
-  --ec-content-active: 245 243 255; /* #f5f3ff (violet-50) */
+  --ec-content-text: 23 23 23; /* #171717 */
+  --ec-content-text-muted: 102 102 102; /* #666666 */
+  --ec-content-text-secondary: 143 143 143; /* #8f8f8f */
+  --ec-content-border: 235 235 235; /* #ebebeb */
+  --ec-content-hover: 250 250 250; /* #fafafa */
+  --ec-content-active: 242 242 242; /* #f2f2f2 */
 
   /* Input fields */
-  --ec-input-bg: 248 250 252; /* #f8fafc (slate-50) */
-  --ec-input-border: 226 232 240; /* #e2e8f0 (slate-200) */
-  --ec-input-text: 15 23 42; /* #0f172a */
-  --ec-input-placeholder: 148 163 184; /* #94a3b8 (slate-400) */
+  --ec-input-bg: 255 255 255; /* #ffffff */
+  --ec-input-border: 224 224 224; /* #e0e0e0 */
+  --ec-input-text: 23 23 23; /* #171717 */
+  --ec-input-placeholder: 143 143 143; /* #8f8f8f */
 
   /* Group headers */
-  --ec-group-icon-bg: 233 213 255; /* #e9d5ff (purple-200) */
-  --ec-group-icon-text: 88 28 135; /* #581c87 (purple-900) */
+  --ec-group-icon-bg: 242 242 242; /* #f2f2f2 */
+  --ec-group-icon-text: 23 23 23; /* #171717 */
 
   /* Main content/docs area */
   --ec-page-bg: 255 255 255; /* #ffffff */
-  --ec-page-text: 15 23 42; /* #0f172a */
-  --ec-page-text-muted: 100 116 139; /* #64748b */
-  --ec-page-border: 229 229 229; /* #e5e5e5 (neutral-200) */
+  --ec-page-text: 23 23 23; /* #171717 */
+  --ec-page-text-muted: 102 102 102; /* #666666 */
+  --ec-page-border: 235 235 235; /* #ebebeb */
 
   /* Card/elevated surfaces */
   --ec-card-bg: 255 255 255; /* #ffffff */
 
   /* Code blocks */
-  --ec-code-bg: 250 250 250; /* #fafafa - light for light mode */
+  --ec-code-bg: 250 250 250; /* #fafafa */
 
   /* Badge colors - light mode */
   --ec-badge-domain-bg: 254 249 195; /* yellow-100 */
@@ -169,85 +169,85 @@
 :root[data-theme='dark'] {
   /*
    * Modern dark theme inspired by Mintlify
-   * Uses deep blacks with subtle cool undertones for a refined look
+   * Vercel's (Geist) neutral greys on a #0a0a0a page, purple only for accents
    */
 
-  /* Header - deep black with cool border */
-  --ec-header-bg: 9 13 13; /* #090d0d */
-  --ec-header-text: 240 246 252; /* #f0f6fc - soft white */
-  --ec-header-border: 38 41 47; /* #26292f - lifted ~20% */
+  /* Header - neutral, as the page */
+  --ec-header-bg: 10 10 10; /* #0a0a0a */
+  --ec-header-text: 237 237 237; /* #ededed */
+  --ec-header-border: 38 38 38; /* #262626 */
 
   /* Primary brand color */
-  --ec-primary: 147 51 234; /* #9333ea (purple-600) */
-  --ec-primary-hover: 126 34 206; /* #7e22ce (purple-700) */
+  --ec-primary: 196 114 251; /* #c472fb */
+  --ec-primary-hover: 214 150 252; /* #d696fc */
 
   /* Accent colors - used for selections, highlights, interactive elements.
      A light shade, like the other themes use in dark mode, so accent text is readable on dark surfaces */
-  --ec-accent: 192 132 252; /* #c084fc (purple-400) */
-  --ec-accent-hover: 168 85 247; /* #a855f7 (purple-500) */
-  --ec-accent-subtle: 88 28 135 / 0.3; /* purple-900/30 */
-  --ec-accent-text: 216 180 254; /* #d8b4fe (purple-300) */
-  --ec-accent-gradient-from: 192 132 252; /* #c084fc (purple-400) */
-  --ec-accent-gradient-to: 168 85 247; /* #a855f7 (purple-500) */
+  --ec-accent: 196 114 251; /* #c472fb */
+  --ec-accent-hover: 214 150 252; /* #d696fc */
+  --ec-accent-subtle: 142 78 198 / 0.2; /* #8e4ec6/0.2 */
+  --ec-accent-text: 196 114 251; /* #c472fb */
+  --ec-accent-gradient-from: 196 114 251; /* #c472fb */
+  --ec-accent-gradient-to: 214 150 252; /* #d696fc */
 
-  /* Buttons - accent color for better visibility */
-  --ec-button-bg: 147 51 234; /* #9333ea - purple-600 */
-  --ec-button-bg-hover: 168 85 247; /* #a855f7 - purple-500 */
-  --ec-button-text: 255 255 255; /* #ffffff - white text */
+  /* Buttons - neutral, light on the dark page (as Vercel's) */
+  --ec-button-bg: 237 237 237; /* #ededed */
+  --ec-button-bg-hover: 204 204 204; /* #cccccc */
+  --ec-button-text: 10 10 10; /* #0a0a0a */
 
   /* Dropdowns & menus - elevated surface */
-  --ec-dropdown-bg: 22 27 34; /* #161b22 - slightly elevated */
-  --ec-dropdown-text: 201 209 217; /* #c9d1d9 */
-  --ec-dropdown-hover: 33 38 45; /* #21262d */
-  --ec-dropdown-border: 48 54 61; /* #30363d */
+  --ec-dropdown-bg: 17 17 17; /* #111111 */
+  --ec-dropdown-text: 237 237 237; /* #ededed */
+  --ec-dropdown-hover: 31 31 31; /* #1f1f1f */
+  --ec-dropdown-border: 46 46 46; /* #2e2e2e */
 
   /* Icons - muted gray that pops on hover */
-  --ec-icon-color: 139 148 158; /* #8b949e */
-  --ec-icon-hover: 240 246 252; /* #f0f6fc */
+  --ec-icon-color: 161 161 161; /* #a1a1a1 */
+  --ec-icon-hover: 237 237 237; /* #ededed */
 
   /* Sidebar / Vertical Nav (icon bar) */
-  --ec-sidebar-bg: 9 13 13; /* #090d0d - matches page bg */
-  --ec-sidebar-bg-gradient: 9 13 13; /* #090d0d */
-  --ec-sidebar-border: 51 57 65; /* #333941 - lifted ~20% */
-  --ec-sidebar-text: 139 148 158; /* #8b949e */
-  --ec-sidebar-active-bg: 48 54 61; /* #30363d - subtle highlight */
-  --ec-sidebar-active-text: 240 246 252; /* #f0f6fc */
-  --ec-sidebar-hover-bg: 33 38 45; /* #21262d */
+  --ec-sidebar-bg: 10 10 10; /* #0a0a0a */
+  --ec-sidebar-bg-gradient: 10 10 10; /* #0a0a0a */
+  --ec-sidebar-border: 38 38 38; /* #262626 */
+  --ec-sidebar-text: 161 161 161; /* #a1a1a1 */
+  --ec-sidebar-active-bg: 237 237 237; /* #ededed */
+  --ec-sidebar-active-text: 10 10 10; /* #0a0a0a */
+  --ec-sidebar-hover-bg: 31 31 31; /* #1f1f1f */
 
-  /* Rail / inset-panel surface (~2% lifted from the page bg) */
-  --ec-rail-bg: 15 19 19; /* ~2% lighter than #090d0d */
-  --ec-rail-active-bg: 35 38 38; /* ~10% lifted off rail bg */
+  /* Rail / inset-panel surface (black, a step below the #0a0a0a page, as Vercel's sidebar) */
+  --ec-rail-bg: 0 0 0; /* #000000 */
+  --ec-rail-active-bg: 31 31 31; /* #1f1f1f */
 
   /* Nested sidebar content */
-  --ec-content-bg: 9 13 13; /* #090d0d - matches page bg */
-  --ec-content-text: 201 209 217; /* #c9d1d9 - softer than pure white */
-  --ec-content-text-muted: 139 148 158; /* #8b949e */
-  --ec-content-text-secondary: 170 178 186; /* #aab2ba - sidebar children text */
-  --ec-content-border: 51 57 65; /* #333941 - lifted ~20% */
-  --ec-content-hover: 22 27 34; /* #161b22 */
-  --ec-content-active: 33 38 45; /* #21262d */
+  --ec-content-bg: 10 10 10; /* #0a0a0a */
+  --ec-content-text: 237 237 237; /* #ededed */
+  --ec-content-text-muted: 161 161 161; /* #a1a1a1 */
+  --ec-content-text-secondary: 143 143 143; /* #8f8f8f */
+  --ec-content-border: 38 38 38; /* #262626 */
+  --ec-content-hover: 26 26 26; /* #1a1a1a */
+  --ec-content-active: 31 31 31; /* #1f1f1f */
 
   /* Input fields - subtle inset look */
-  --ec-input-bg: 13 17 23; /* #0d1117 */
-  --ec-input-border: 48 54 61; /* #30363d */
-  --ec-input-text: 240 246 252; /* #f0f6fc */
-  --ec-input-placeholder: 110 118 129; /* #6e7681 */
+  --ec-input-bg: 10 10 10; /* #0a0a0a */
+  --ec-input-border: 46 46 46; /* #2e2e2e */
+  --ec-input-text: 237 237 237; /* #ededed */
+  --ec-input-placeholder: 112 112 112; /* #707070 */
 
   /* Group headers */
-  --ec-group-icon-bg: 33 38 45; /* #21262d */
-  --ec-group-icon-text: 192 132 252; /* #c084fc (purple-400) */
+  --ec-group-icon-bg: 31 31 31; /* #1f1f1f */
+  --ec-group-icon-text: 237 237 237; /* #ededed */
 
   /* Main content/docs area - base dark surface */
-  --ec-page-bg: 9 13 13; /* #090d0d */
-  --ec-page-text: 240 246 252; /* #f0f6fc */
-  --ec-page-text-muted: 163 172 182; /* #a3acb6 */
-  --ec-page-border: 38 41 47; /* #26292f - lifted ~20% */
+  --ec-page-bg: 10 10 10; /* #0a0a0a */
+  --ec-page-text: 237 237 237; /* #ededed */
+  --ec-page-text-muted: 161 161 161; /* #a1a1a1 */
+  --ec-page-border: 38 38 38; /* #262626 */
 
   /* Card/elevated surfaces - for depth */
-  --ec-card-bg: 22 27 34; /* #161b22 */
+  --ec-card-bg: 10 10 10; /* #0a0a0a */
 
   /* Code blocks */
-  --ec-code-bg: 22 27 34; /* #161b22 - elevated dark surface */
+  --ec-code-bg: 17 17 17; /* #111111 */
 
   /* Badge colors - dark mode (subtle with good contrast) */
   --ec-badge-domain-bg: 113 63 18 / 0.3; /* yellow-900/30 */
@@ -322,22 +322,22 @@
 
 /* Dark mode prose overrides for documentation content */
 :root[data-theme='dark'] .prose {
-  --tw-prose-body: rgb(139 148 158); /* #8b949e - muted body text */
-  --tw-prose-headings: rgb(201 209 217); /* #c9d1d9 - soft white headings */
-  --tw-prose-lead: rgb(110 118 129); /* #6e7681 */
-  --tw-prose-links: rgb(168 85 247); /* purple-500 */
-  --tw-prose-bold: rgb(201 209 217); /* #c9d1d9 */
-  --tw-prose-counters: rgb(110 118 129); /* #6e7681 */
-  --tw-prose-bullets: rgb(72 79 88); /* #484f58 */
-  --tw-prose-hr: rgb(33 38 45); /* #21262d */
-  --tw-prose-quotes: rgb(201 209 217); /* #c9d1d9 */
-  --tw-prose-quote-borders: rgb(48 54 61); /* #30363d */
-  --tw-prose-captions: rgb(110 118 129); /* #6e7681 */
-  --tw-prose-code: rgb(201 209 217); /* #c9d1d9 */
-  --tw-prose-pre-code: rgb(139 148 158); /* #8b949e */
-  --tw-prose-pre-bg: rgb(22 27 34); /* #161b22 */
-  --tw-prose-th-borders: rgb(48 54 61); /* #30363d */
-  --tw-prose-td-borders: rgb(33 38 45); /* #21262d */
+  --tw-prose-body: rgb(161 161 161); /* #a1a1a1 */
+  --tw-prose-headings: rgb(237 237 237); /* #ededed */
+  --tw-prose-lead: rgb(143 143 143); /* #8f8f8f */
+  --tw-prose-links: rgb(196 114 251); /* #c472fb */
+  --tw-prose-bold: rgb(237 237 237); /* #ededed */
+  --tw-prose-counters: rgb(143 143 143); /* #8f8f8f */
+  --tw-prose-bullets: rgb(82 82 82); /* #525252 */
+  --tw-prose-hr: rgb(38 38 38); /* #262626 */
+  --tw-prose-quotes: rgb(237 237 237); /* #ededed */
+  --tw-prose-quote-borders: rgb(46 46 46); /* #2e2e2e */
+  --tw-prose-captions: rgb(143 143 143); /* #8f8f8f */
+  --tw-prose-code: rgb(237 237 237); /* #ededed */
+  --tw-prose-pre-code: rgb(161 161 161); /* #a1a1a1 */
+  --tw-prose-pre-bg: rgb(17 17 17); /* #111111 */
+  --tw-prose-th-borders: rgb(46 46 46); /* #2e2e2e */
+  --tw-prose-td-borders: rgb(38 38 38); /* #262626 */
 }
 
 /*
@@ -351,34 +351,34 @@
 }
 
 :root[data-theme='dark'] .prose code {
-  background-color: rgb(33 38 45); /* #21262d */
+  background-color: rgb(31 31 31); /* #1f1f1f */
   border-radius: 0.25rem;
   padding: 0.125rem 0.375rem;
 }
 
 :root[data-theme='dark'] .prose pre {
-  background-color: rgb(22 27 34); /* #161b22 */
-  border: 1px solid rgb(33 38 45); /* #21262d */
+  background-color: rgb(17 17 17); /* #111111 */
+  border: 1px solid rgb(38 38 38); /* #262626 */
 }
 
 :root[data-theme='dark'] .prose a:not(:where(.not-prose *)) {
-  color: rgb(168 85 247); /* purple-500 */
+  color: rgb(196 114 251); /* #c472fb */
 }
 
 :root[data-theme='dark'] .prose a:not(:where(.not-prose *)):hover {
-  color: rgb(192 132 252); /* purple-400 */
+  color: rgb(214 150 252); /* #d696fc */
 }
 
 :root[data-theme='dark'] .prose strong {
-  color: rgb(240 246 252); /* #f0f6fc */
+  color: rgb(237 237 237); /* #ededed */
 }
 
 :root[data-theme='dark'] .prose table th {
-  color: rgb(240 246 252); /* #f0f6fc */
+  color: rgb(237 237 237); /* #ededed */
 }
 
 :root[data-theme='dark'] .prose table td {
-  border-color: rgb(33 38 45); /* #21262d */
+  border-color: rgb(38 38 38); /* #262626 */
 }
 
 /* Invert dark SVG icons in dark mode so they stay visible */

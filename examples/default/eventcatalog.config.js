@@ -33,6 +33,11 @@ export default {
   // Theme: 'default', 'ocean', 'sapphire', 'sunset', 'forest', or custom (defined in eventcatalog.styles.css)
   theme: 'forest',
 
+  // Colour mode a visitor sees until they use the header toggle: 'dark', 'light' or 'system'
+  colorMode: {
+    default: 'dark',
+  },
+
   mermaid: {
     enableSupportForElkLayout: true,
     iconPacks: ["logos"],

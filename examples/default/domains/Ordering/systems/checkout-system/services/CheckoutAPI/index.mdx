@@ -16,8 +16,6 @@ repository:
   url: 'https://github.com/acme/checkout-api'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Checkout API** is the front door to the Checkout System. When the [[domain|shopping]] domain checks out a cart, this service receives the [[command|checkout-cart]] command, validates it, and hands the work to the [[service|checkout-orchestrator]] to run the checkout saga.
@@ -39,5 +37,3 @@ The **Checkout API** is the front door to the Checkout System. When the [[domain
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

@@ -95,7 +95,7 @@ interface ToggleRowProps {
 }
 
 export const ToggleRow = ({ icon, label, hint, checked, disabled, onChange }: ToggleRowProps) => (
-  <div className="flex items-center gap-3 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-input-bg,var(--ec-page-bg)))] px-4 py-3">
+  <div className="flex items-center gap-3 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-input-bg,var(--ec-page-bg)))] px-4 py-3">
     <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text-muted))]">
       {icon}
     </span>

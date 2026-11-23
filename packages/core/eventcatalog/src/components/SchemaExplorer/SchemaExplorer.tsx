@@ -48,9 +48,9 @@ function TypeIcon({ type }: { type: string }) {
 function FormatIcon({ format }: { format: string }) {
   // A generic JSON file gets the plain JSON badge, not the JSON Schema icon
   const iconUrl = format === 'json-document' ? undefined : getSchemaIconUrl({ schemaExtension: format });
-  if (iconUrl) return <img src={iconUrl} alt="" className="schema-icon h-3.5 w-3.5" />;
-  const { label, color } = getFormatBadge(format === 'json-document' ? 'json' : format);
-  return <span className={`font-mono text-[7px] font-bold uppercase ${color}`}>{label}</span>;
+  if (iconUrl) return <img src={iconUrl} alt="" className="schema-icon ec-mono-icon ec-mono-icon--active h-3.5 w-3.5" />;
+  const { label } = getFormatBadge(format === 'json-document' ? 'json' : format);
+  return <span className="font-mono text-[7px] font-bold uppercase text-[rgb(var(--ec-page-text-muted))]">{label}</span>;
 }
 
 function FilterSection({ title, role, children }: { title: string; role?: 'radiogroup'; children: ReactNode }) {
@@ -86,7 +86,7 @@ function FilterOption({
       role={control}
       aria-checked={isActive}
       onClick={onClick}
-      className={`flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1 text-left text-[11px] transition-colors hover:bg-[rgb(var(--ec-content-hover))] ${
+      className={`flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1 text-left text-[11px] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)] ${
         isActive
           ? 'text-[rgb(var(--ec-page-text))]'
           : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
@@ -98,13 +98,13 @@ function FilterOption({
           control === 'radio' ? 'rounded-full' : 'rounded-[3px]'
         } ${
           isActive
-            ? 'border-[rgb(var(--ec-accent))] bg-[rgb(var(--ec-accent))] text-white'
-            : 'border-[rgb(var(--ec-page-text-muted)/0.5)] bg-[rgb(var(--ec-dropdown-bg))]'
+            ? 'border-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-page-text))] text-[rgb(var(--ec-page-bg))]'
+            : 'border-[rgb(var(--ec-page-text-muted)/0.5)] bg-[rgb(var(--ec-page-bg))]'
         }`}
       >
         {isActive &&
           (control === 'radio' ? (
-            <span className="h-1.5 w-1.5 rounded-full bg-white" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[rgb(var(--ec-page-bg))]" />
           ) : (
             <CheckIcon className="h-2.5 w-2.5 stroke-[3]" />
           ))}
@@ -456,15 +456,10 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <style
-        dangerouslySetInnerHTML={{
-          __html: '[data-theme="dark"] .schema-icon { filter: brightness(1.8) saturate(0.8); }',
-        }}
-      />
       <div className="flex flex-1 min-h-0 gap-0 overflow-hidden">
         <div
           id="schema-explorer-sidebar"
-          className="fixed top-[var(--ec-banner-height,0px)] z-20 flex h-[calc(100vh-var(--ec-banner-height,0px))] flex-col overflow-hidden border-r border-[rgb(var(--ec-page-border))] bg-linear-to-b from-[rgb(var(--ec-page-bg))] via-[rgb(var(--ec-page-bg))] to-[rgb(var(--ec-accent)/0.06)]"
+          className="fixed top-[var(--ec-banner-height,0px)] z-20 flex h-[calc(100vh-var(--ec-banner-height,0px))] flex-col overflow-hidden border-r border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))]"
           style={{ left: 'var(--ec-vertical-nav-width)', width: 'var(--ec-schema-sidebar-width, 360px)' }}
         >
           <div className="flex h-[var(--ec-header-height)] flex-shrink-0 items-center justify-between gap-2 border-b border-[rgb(var(--ec-page-border))] px-4">
@@ -478,7 +473,7 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
                 placeholder="Search schemas..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-lg border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-dropdown-bg))] py-2 pl-9 pr-3 text-[12px] text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-icon-color))] transition-all focus:border-[rgb(var(--ec-accent))] focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)]"
+                className="h-9 w-full rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] pl-9 pr-3 text-[12px] text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-page-text-muted)/0.7)] transition-[border-color,box-shadow] hover:border-[rgb(var(--ec-page-text)/0.25)] focus:border-[rgb(var(--ec-page-text)/0.45)] focus:shadow-[0_0_0_3px_rgb(var(--ec-page-text)/0.08)] focus:outline-hidden focus:ring-0"
               />
             </div>
 
@@ -486,15 +481,15 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
               <button
                 onClick={() => setShowFormatFilters((prev) => !prev)}
                 aria-pressed={showFormatFilters}
-                className={`relative inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all ${
+                className={`relative inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors ${
                   showFormatFilters || activeFilterCount > 0
-                    ? 'border-[rgb(var(--ec-accent)/0.5)] bg-[rgb(var(--ec-accent))] text-white shadow-[0_10px_28px_rgb(var(--ec-accent)/0.3)]'
-                    : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-page-text-muted))] hover:border-[rgb(var(--ec-page-text-muted)/0.45)] hover:text-[rgb(var(--ec-page-text))]'
+                    ? 'border-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-page-text))] text-[rgb(var(--ec-page-bg))]'
+                    : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-page-text)/0.05)] hover:text-[rgb(var(--ec-page-text))]'
                 }`}
               >
-                <AdjustmentsHorizontalIcon className="h-4.5 w-4.5" />
+                <AdjustmentsHorizontalIcon className="h-4 w-4" />
                 {activeFilterCount > 0 && (
-                  <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-[rgb(var(--ec-page-bg))] bg-[rgb(var(--ec-page-text))] px-1 text-[10px] font-semibold tabular-nums text-[rgb(var(--ec-page-bg))]">
+                  <span className="absolute -right-1.5 -top-1.5 inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full border border-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-page-bg))] px-1 text-[10px] font-semibold tabular-nums text-[rgb(var(--ec-page-text))]">
                     {activeFilterCount}
                   </span>
                 )}
@@ -503,7 +498,7 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
           </div>
 
           {showFormatFilters && latestMessages.length > 0 && (
-            <div className="flex-shrink-0 space-y-3 border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover)/0.3)] px-4 py-3">
+            <div className="flex-shrink-0 space-y-3 border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.02)] px-4 py-3">
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-semibold text-[rgb(var(--ec-page-text))]">Filters</span>
                 {hasActiveFilters && (
@@ -513,7 +508,7 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
                       clearTypeFilters();
                       setSelectedSchemaType('all');
                     }}
-                    className="text-[11px] font-medium text-[rgb(var(--ec-accent))] hover:opacity-80"
+                    className="text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] underline-offset-2 hover:text-[rgb(var(--ec-page-text))] hover:underline"
                   >
                     Reset
                   </button>
@@ -559,9 +554,9 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto px-3 py-3">
+          <div className={`flex-1 overflow-y-auto ${paginatedMessages.length > 0 ? '' : 'p-3'}`}>
             {paginatedMessages.length > 0 ? (
-              <div className="space-y-3">
+              <div className="divide-y divide-[rgb(var(--ec-page-border))] border-b border-[rgb(var(--ec-page-border))]">
                 {paginatedMessages.map((message) => {
                   const groupKey = getGroupKey(message);
                   const isSelected = selectedGroupKey === groupKey;
@@ -584,8 +579,8 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
                 })}
               </div>
             ) : (
-              <div className="flex h-full flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-[rgb(var(--ec-page-border))] p-8 text-center">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgb(var(--ec-content-hover))]">
+              <div className="flex h-full flex-col items-center justify-center rounded-md border border-dashed border-[rgb(var(--ec-page-border))] p-8 text-center">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))]">
                   <MagnifyingGlassIcon className="h-5 w-5 text-[rgb(var(--ec-icon-color))]" />
                 </div>
                 <h3 className="mb-1 text-sm font-semibold text-[rgb(var(--ec-page-text))]">No schemas found</h3>
@@ -599,7 +594,7 @@ export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
                       clearTypeFilters();
                       setSelectedSchemaType('all');
                     }}
-                    className="text-sm font-medium text-[rgb(var(--ec-accent))] hover:underline"
+                    className="text-sm font-medium text-[rgb(var(--ec-page-text))] underline-offset-2 hover:underline"
                   >
                     Clear filters
                   </button>

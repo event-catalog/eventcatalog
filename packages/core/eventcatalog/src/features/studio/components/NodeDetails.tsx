@@ -60,7 +60,7 @@ export default memo(function NodeDetails({
   const resource = getResource(node.type, node.data);
   const link = getCatalogLink(node);
   const label = getNodeLabel(node.type);
-  const { icon: Icon, className: iconClassName } = NODE_ICONS[node.type ?? ''] ?? { icon: Box, className: '' };
+  const Icon = NODE_ICONS[node.type ?? '']?.icon ?? Box;
   const versioned = isVersioned(node.type);
   const name = String(resource.name ?? '');
   const version = String(link?.version ?? resource.version ?? '');
@@ -75,12 +75,10 @@ export default memo(function NodeDetails({
       onClose={onClose}
       kicker={
         <>
-          {/* Its type, in its colour (as the web's type pill) */}
-          <span className={`flex-none ${iconClassName}`}>
-            <span className="inline-flex items-center gap-1 rounded bg-current px-1.5 text-[9px] font-bold uppercase leading-4 tracking-wider">
-              <Icon aria-hidden size={10} className="text-white" />
-              <span className="text-white">{label}</span>
-            </span>
+          {/* Its type: an outlined pill with its icon, in the muted text colour (as the diagram's node card) */}
+          <span className="ec-doc-card-type">
+            <Icon aria-hidden />
+            {label}
           </span>
           {parentName && <span className="ec-doc-card-breadcrumb">in {parentName}</span>}
         </>
@@ -176,22 +174,22 @@ export default memo(function NodeDetails({
           if (!items.length) return null;
           return (
             <section key={heading} className="mt-3">
-              <h3 className="mb-1.5 text-xs font-semibold text-[rgb(var(--ec-page-text-muted))]">{heading}</h3>
+              <h3 className="mb-1 px-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">{heading}</h3>
               <ul className="space-y-0.5">
                 {items.map((item) => {
-                  const { icon: ItemIcon, className: itemIconClassName } = NODE_ICONS[item.type ?? ''] ?? {
-                    icon: Box,
-                    className: '',
-                  };
+                  const ItemIcon = NODE_ICONS[item.type ?? '']?.icon ?? Box;
                   return (
                     <li key={`${item.id}-${item.label}`}>
                       <button
                         type="button"
                         title={`Go to ${item.name}`}
                         onClick={() => onOpenNode(item.id)}
-                        className="flex w-full items-center gap-2 rounded-md px-1.5 py-1 text-left text-sm hover:bg-[rgb(var(--ec-content-hover))]"
+                        className="ec-doc-card-item"
                       >
-                        <ItemIcon aria-hidden size={15} className={`flex-none ${itemIconClassName}`} />
+                        {/* The icon on a neutral chip, no colour (as the diagram's card and search) */}
+                        <span aria-hidden className="ec-doc-card-item-icon">
+                          <ItemIcon />
+                        </span>
                         <span className="min-w-0 flex-1 truncate">{item.name}</span>
                         {item.label && (
                           <span className="flex-none text-[11px] text-[rgb(var(--ec-page-text-muted))]">{item.label}</span>

@@ -1,11 +1,9 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { XMarkIcon, ArrowsPointingOutIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
-import { oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import { codeTheme } from './code-theme';
 import { getLanguageForHighlight } from './utils';
 import type { SchemaItem } from './types';
-import { useDarkMode } from './useDarkMode';
 import { renderHighlightedRows } from '@utils/syntax-highlighter-renderer';
 
 interface SchemaCodeModalProps {
@@ -18,8 +16,6 @@ interface SchemaCodeModalProps {
 }
 
 export default function SchemaCodeModal({ isOpen, onOpenChange, message, onCopy, isCopied }: SchemaCodeModalProps) {
-  const isDarkMode = useDarkMode();
-
   if (!message.schemaContent) return null;
 
   return (
@@ -64,7 +60,7 @@ export default function SchemaCodeModal({ isOpen, onOpenChange, message, onCopy,
             <SyntaxHighlighter
               renderer={renderHighlightedRows}
               language={getLanguageForHighlight(message.schemaExtension)}
-              style={isDarkMode ? oneDark : oneLight}
+              style={codeTheme}
               customStyle={{
                 margin: 0,
                 padding: '1rem',

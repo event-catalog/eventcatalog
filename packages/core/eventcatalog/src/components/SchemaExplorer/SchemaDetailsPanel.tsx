@@ -345,7 +345,9 @@ export default function SchemaDetailsPanel({
 }: SchemaDetailsPanelProps) {
   const isPage = variant === 'page';
   // The version beside the title: muted and lighter, a little smaller than the name
-  const versionTextClass = `font-normal tracking-normal text-[rgb(var(--ec-page-text-muted))] ${isPage ? 'text-lg md:text-xl' : 'text-sm'}`;
+  // The version as a small mono pill beside the name
+  const versionTextClass =
+    'rounded-md border border-[rgb(var(--ec-page-border))] px-1.5 py-0.5 align-middle font-mono text-xs font-normal tracking-normal text-[rgb(var(--ec-page-text-muted))]';
   // The docs pages' left/right gutter on the schema's own page, the explorer panel's tighter one beside the list
   const gutter = isPage ? 'px-10' : 'px-6';
   const [loadDetails] = useState(createSchemaDetailsLoader);
@@ -588,24 +590,24 @@ export default function SchemaDetailsPanel({
               <div className="flex min-w-0 items-center gap-3">
                 {/* The format icon in the explorer panel; the schema's own page names the format after the version instead */}
                 {!isPage && (
-                  <div className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-lg bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border)/0.5)]">
+                  <div className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-md border border-[rgb(var(--ec-page-border))]">
                     {iconUrl ? (
-                      <img src={iconUrl} alt={`${ext} icon`} className="h-5 w-5 schema-icon" />
+                      <img src={iconUrl} alt={`${ext} icon`} className="h-5 w-5 schema-icon ec-mono-icon ec-mono-icon--active" />
                     ) : (
                       <span className="text-xs font-bold font-mono text-[rgb(var(--ec-page-text-muted))]">{'{ }'}</span>
                     )}
                   </div>
                 )}
-                {/* Name (v1.0.0): the version beside the title, muted; with other versions, it opens the list of them */}
+                {/* Name and version: the version in a pill beside the title; with other versions, it opens the list of them */}
                 <h2
                   className={
                     isPage
-                      ? 'truncate text-[28px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))] md:text-[34px]'
-                      : 'truncate text-xl font-semibold text-[rgb(var(--ec-page-text))]'
+                      ? 'truncate text-[28px] font-semibold leading-tight tracking-[-0.035em] text-[rgb(var(--ec-page-text))] md:text-[34px]'
+                      : 'truncate text-xl font-semibold tracking-[-0.025em] text-[rgb(var(--ec-page-text))]'
                   }
                 >
                   {message.data.name}
-                  {!hasMultipleVersions && <span className={`ml-2 ${versionTextClass}`}>({versionLabel})</span>}
+                  {!hasMultipleVersions && <span className={`ml-2.5 inline-block ${versionTextClass}`}>{versionLabel}</span>}
                 </h2>
                 {hasMultipleVersions && (
                   <div className="relative flex-shrink-0" ref={versionMenuRef}>
@@ -615,16 +617,16 @@ export default function SchemaDetailsPanel({
                       aria-expanded={isVersionMenuOpen}
                       aria-haspopup="listbox"
                       title="Switch version"
-                      className={`-ml-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-[rgb(var(--ec-page-text)/0.06)] hover:text-[rgb(var(--ec-page-text))] ${versionTextClass}`}
+                      className={`inline-flex items-center gap-1 transition-colors hover:bg-[rgb(var(--ec-page-text)/0.06)] hover:text-[rgb(var(--ec-page-text))] ${versionTextClass}`}
                     >
-                      ({versionLabel})
+                      {versionLabel}
                       <ChevronDownIcon className={`h-3 w-3 transition-transform ${isVersionMenuOpen ? 'rotate-180' : ''}`} />
                     </button>
                     {isVersionMenuOpen && (
                       <ul
                         role="listbox"
                         aria-label="Versions"
-                        className="absolute left-0 top-[calc(100%+0.4rem)] z-20 max-h-72 min-w-[12rem] overflow-y-auto rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] py-1 shadow-xl"
+                        className="absolute left-0 top-[calc(100%+0.4rem)] z-20 max-h-72 min-w-[12rem] overflow-y-auto rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] py-1 shadow-xl"
                       >
                         {uniqueAvailableVersions.map((version, idx) => {
                           const isCurrent = version.data.version === message.data.version;
@@ -636,16 +638,16 @@ export default function SchemaDetailsPanel({
                                   setIsVersionMenuOpen(false);
                                   if (!isCurrent) onVersionChange(version.data.version);
                                 }}
-                                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors hover:bg-[rgb(var(--ec-content-hover))] ${
+                                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)] ${
                                   isCurrent ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text-muted))]'
                                 }`}
                               >
                                 <CheckIcon
-                                  className={`h-3.5 w-3.5 flex-shrink-0 ${isCurrent ? 'text-[rgb(var(--ec-accent))]' : 'invisible'}`}
+                                  className={`h-3.5 w-3.5 flex-shrink-0 ${isCurrent ? 'text-[rgb(var(--ec-page-text))]' : 'invisible'}`}
                                 />
                                 <span className="font-mono tabular-nums">v{version.data.version}</span>
                                 {idx === 0 && (
-                                  <span className="ml-auto rounded bg-[rgb(var(--ec-accent-subtle))] px-1.5 py-0.5 text-[10px] font-medium text-[rgb(var(--ec-accent))]">
+                                  <span className="ml-auto rounded border border-[rgb(var(--ec-page-border))] px-1.5 py-0.5 text-[10px] font-medium text-[rgb(var(--ec-page-text-muted))]">
                                     latest
                                   </span>
                                 )}
@@ -671,13 +673,13 @@ export default function SchemaDetailsPanel({
             </div>
 
             <div className="relative flex-shrink-0" ref={actionsMenuRef}>
-              <div className="inline-flex overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover))] shadow-xs">
+              <div className="inline-flex overflow-hidden rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))]">
                 <button
                   type="button"
                   onClick={() => setIsActionsOpen((prev) => !prev)}
                   aria-expanded={isActionsOpen}
                   aria-haspopup="menu"
-                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-bg)/0.45)] hover:text-[rgb(var(--ec-accent))]"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
                 >
                   Actions
                 </button>
@@ -687,17 +689,17 @@ export default function SchemaDetailsPanel({
                   aria-expanded={isActionsOpen}
                   aria-haspopup="menu"
                   aria-label="Open actions menu"
-                  className="inline-flex items-center justify-center border-l border-[rgb(var(--ec-page-border))] px-2.5 py-2 text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-page-bg)/0.45)] hover:text-[rgb(var(--ec-page-text))]"
+                  className="inline-flex items-center justify-center border-l border-[rgb(var(--ec-page-border))] px-2 py-1.5 text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)] hover:text-[rgb(var(--ec-page-text))]"
                 >
                   <ChevronDownIcon className={`h-3.5 w-3.5 transition-transform ${isActionsOpen ? 'rotate-180' : ''}`} />
                 </button>
               </div>
 
               {isActionsOpen && (
-                <div className="absolute right-0 top-[calc(100%+0.5rem)] z-20 min-w-[220px] overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] shadow-xl">
+                <div className="absolute right-0 top-[calc(100%+0.5rem)] z-20 min-w-[220px] overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] shadow-xl">
                   <a
                     href={docsUrl}
-                    className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
                   >
                     <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
                     View documentation
@@ -707,7 +709,7 @@ export default function SchemaDetailsPanel({
                       handleDownload();
                       setIsActionsOpen(false);
                     }}
-                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
+                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
                   >
                     <ArrowDownTrayIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
                     Download schema
@@ -717,7 +719,7 @@ export default function SchemaDetailsPanel({
                       handleCopy();
                       setIsActionsOpen(false);
                     }}
-                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
+                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
                   >
                     {isCopied ? (
                       <CheckIcon className="h-3.5 w-3.5 text-green-400" />
@@ -743,10 +745,10 @@ export default function SchemaDetailsPanel({
                 <button
                   onClick={() => selectTab(tab.id)}
                   data-tab-group={tab.group}
-                  className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+                  className={`-mb-px inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors ${
                     activeTab === tab.id
-                      ? 'border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-page-text))]'
-                      : 'border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:border-[rgb(var(--ec-page-border))]'
+                      ? 'border-[rgb(var(--ec-page-text))] text-[rgb(var(--ec-page-text))]'
+                      : 'border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
                   }`}
                 >
                   {tab.icon}

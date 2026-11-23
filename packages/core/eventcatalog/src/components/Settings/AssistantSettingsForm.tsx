@@ -66,15 +66,8 @@ export const AssistantSettingsForm = ({ canEdit, initial, chatAvailable, inSSR, 
   return (
     <>
       <Toaster richColors closeButton position="bottom-right" theme="system" />
-      <form
-        onSubmit={(e) => e.preventDefault()}
-        className="divide-y divide-[rgb(var(--ec-page-border))] border-t border-[rgb(var(--ec-page-border))]"
-      >
-        {!canEdit && (
-          <div className="pb-6">
-            <ReadOnlyBanner />
-          </div>
-        )}
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+        {!canEdit && <ReadOnlyBanner />}
 
         <Row
           title="Assistant Agent"
@@ -113,7 +106,7 @@ export const AssistantSettingsForm = ({ canEdit, initial, chatAvailable, inSSR, 
 };
 
 const ConfigurationRequired = () => (
-  <div className="rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)] px-4 py-3">
+  <div className="rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)] px-4 py-3">
     <div className="flex items-start gap-3">
       <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] text-[rgb(var(--ec-page-text))]">
         <Wrench className="h-3.5 w-3.5" aria-hidden />
@@ -142,7 +135,7 @@ const ConfigurationRequired = () => (
 );
 
 const AssistantNeedsSSR = () => (
-  <div className="overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)]">
+  <div className="overflow-hidden rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)]">
     <div className="flex items-start gap-3 px-4 py-3.5">
       <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] text-[rgb(var(--ec-page-text))]">
         <ServerCog className="h-4 w-4" aria-hidden />
@@ -183,7 +176,7 @@ const AssistantNeedsSSR = () => (
 );
 
 const AssistantNeedsConfigFile = () => (
-  <div className="overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)]">
+  <div className="overflow-hidden rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)]">
     <div className="flex items-start gap-3 px-4 py-3.5">
       <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] text-[rgb(var(--ec-page-text))]">
         <Wrench className="h-4 w-4" aria-hidden />

@@ -1,88 +1,88 @@
 /**
  * Ocean Theme for EventCatalog
  *
- * A calm, professional theme inspired by ocean colors.
- * Deep blues and teals with soft aqua accents.
+ * Vercel's (Geist) neutral greys for every surface, with cyan only where something is
+ * interactive or selected: links, accents, focus.
  */
 
 /* Ocean Light Mode */
 :root[data-catalog-theme='ocean'],
 :root[data-catalog-theme='ocean'][data-theme='light'] {
-  /* Header - light with subtle teal tint */
+  /* Header - neutral, as the page */
   --ec-header-bg: 255 255 255; /* #ffffff */
-  --ec-header-text: 15 23 42; /* #0f172a */
-  --ec-header-border: 226 232 240; /* #e2e8f0 slate-200 - visible border */
+  --ec-header-text: 23 23 23; /* #171717 */
+  --ec-header-border: 235 235 235; /* #ebebeb */
 
   /* Primary brand color - ocean teal */
-  --ec-primary: 20 184 166; /* #14b8a6 teal-500 */
-  --ec-primary-hover: 13 148 136; /* #0d9488 teal-600 */
+  --ec-primary: 0 162 199; /* #00a2c7 */
+  --ec-primary-hover: 0 141 173; /* #008dad */
 
   /* Accent colors - teal for ocean theme */
-  --ec-accent: 20 184 166; /* #14b8a6 (teal-500) */
-  --ec-accent-hover: 13 148 136; /* #0d9488 (teal-600) */
-  --ec-accent-subtle: 204 251 241; /* #ccfbf1 (teal-100) */
-  --ec-accent-text: 17 94 89; /* #115e59 (teal-800) */
-  --ec-accent-gradient-from: 20 184 166; /* #14b8a6 (teal-500) */
-  --ec-accent-gradient-to: 15 118 110; /* #0f766e (teal-700) */
+  --ec-accent: 0 162 199; /* #00a2c7 */
+  --ec-accent-hover: 0 141 173; /* #008dad */
+  --ec-accent-subtle: 230 247 251; /* #e6f7fb */
+  --ec-accent-text: 16 125 152; /* #107d98 */
+  --ec-accent-gradient-from: 0 162 199; /* #00a2c7 */
+  --ec-accent-gradient-to: 0 141 173; /* #008dad */
 
   /* Buttons */
-  --ec-button-bg: 15 118 110; /* #0f766e teal-700 */
-  --ec-button-bg-hover: 17 94 89; /* #115e59 teal-800 */
+  --ec-button-bg: 23 23 23; /* #171717 */
+  --ec-button-bg-hover: 56 56 56; /* #383838 */
   --ec-button-text: 255 255 255; /* #ffffff */
 
   /* Dropdowns & menus */
   --ec-dropdown-bg: 255 255 255; /* #ffffff */
-  --ec-dropdown-text: 51 65 85; /* #334155 */
-  --ec-dropdown-hover: 240 253 250; /* #f0fdfa teal-50 */
-  --ec-dropdown-border: 226 232 240; /* #e2e8f0 slate-200 */
+  --ec-dropdown-text: 23 23 23; /* #171717 */
+  --ec-dropdown-hover: 242 242 242; /* #f2f2f2 */
+  --ec-dropdown-border: 235 235 235; /* #ebebeb */
 
   /* Icons */
-  --ec-icon-color: 71 85 105; /* #475569 slate-600 */
-  --ec-icon-hover: 15 118 110; /* #0f766e teal-700 */
+  --ec-icon-color: 102 102 102; /* #666666 */
+  --ec-icon-hover: 23 23 23; /* #171717 */
 
   /* Sidebar / Vertical Nav - light with teal accent */
   --ec-sidebar-bg: 255 255 255; /* #ffffff */
-  --ec-sidebar-bg-gradient: 240 253 250; /* #f0fdfa teal-50 */
-  --ec-sidebar-border: 226 232 240; /* #e2e8f0 slate-200 */
-  --ec-sidebar-text: 71 85 105; /* #475569 slate-600 */
-  --ec-sidebar-active-bg: 13 148 136; /* #0d9488 teal-600 */
+  --ec-sidebar-bg-gradient: 250 250 250; /* #fafafa */
+  --ec-sidebar-border: 235 235 235; /* #ebebeb */
+  --ec-sidebar-text: 102 102 102; /* #666666 */
+  --ec-sidebar-active-bg: 23 23 23; /* #171717 */
   --ec-sidebar-active-text: 255 255 255; /* #ffffff */
-  --ec-sidebar-hover-bg: 13 148 136; /* #0d9488 teal-600 - same as active for consistency */
+  --ec-sidebar-hover-bg: 242 242 242; /* #f2f2f2 */
 
   /* Rail / inset-panel surface (5% off the sidebar bg) */
-  --ec-rail-bg: 250 250 250; /* #fafafa - 2% darker than white */
-  --ec-rail-active-bg: 218 218 218; /* ~10% darker than rail bg */
+  --ec-rail-bg: 250 250 250; /* #fafafa */
+  --ec-rail-active-bg: 235 235 235; /* #ebebeb */
 
   /* Nested sidebar content */
   --ec-content-bg: 255 255 255; /* #ffffff */
-  --ec-content-text: 15 23 42; /* #0f172a */
-  --ec-content-text-muted: 71 85 105; /* #475569 slate-600 */
-  --ec-content-text-secondary: 100 116 139; /* #64748b slate-500 */
-  --ec-content-border: 226 232 240; /* #e2e8f0 slate-200 */
-  --ec-content-hover: 248 250 252; /* #f8fafc slate-50 - neutral gray for table headers */
-  --ec-content-active: 204 251 241; /* #ccfbf1 teal-100 */
+  --ec-content-text: 23 23 23; /* #171717 */
+  --ec-content-text-muted: 102 102 102; /* #666666 */
+  --ec-content-text-secondary: 143 143 143; /* #8f8f8f */
+  --ec-content-border: 235 235 235; /* #ebebeb */
+  --ec-content-hover: 250 250 250; /* #fafafa */
+  --ec-content-active: 242 242 242; /* #f2f2f2 */
 
   /* Input fields */
   --ec-input-bg: 255 255 255; /* #ffffff */
-  --ec-input-border: 203 213 225; /* #cbd5e1 slate-300 */
-  --ec-input-text: 15 23 42; /* #0f172a */
-  --ec-input-placeholder: 148 163 184; /* #94a3b8 */
+  --ec-input-border: 224 224 224; /* #e0e0e0 */
+  --ec-input-text: 23 23 23; /* #171717 */
+  --ec-input-placeholder: 143 143 143; /* #8f8f8f */
 
   /* Group headers */
-  --ec-group-icon-bg: 204 251 241; /* #ccfbf1 teal-100 */
-  --ec-group-icon-text: 17 94 89; /* #115e59 teal-800 */
+  --ec-group-icon-bg: 242 242 242; /* #f2f2f2 */
+  --ec-group-icon-text: 23 23 23; /* #171717 */
 
   /* Main content/docs area */
   --ec-page-bg: 255 255 255; /* #ffffff */
-  --ec-page-text: 15 23 42; /* #0f172a */
-  --ec-page-text-muted: 71 85 105; /* #475569 slate-600 */
-  --ec-page-border: 226 232 240; /* #e2e8f0 slate-200 */
+  --ec-page-text: 23 23 23; /* #171717 */
+  --ec-page-text-muted: 102 102 102; /* #666666 */
+  --ec-page-border: 235 235 235; /* #ebebeb */
 
   /* Card/elevated surfaces */
   --ec-card-bg: 255 255 255; /* #ffffff */
 
   /* Code blocks */
-  --ec-code-bg: 250 250 250; /* #fafafa - same as default light */
+  --ec-code-bg: 250 250 250; /* #fafafa */
 
   /* Badge colors - ocean theme */
   --ec-badge-domain-bg: 254 249 195; /* yellow-100 */
@@ -116,77 +116,77 @@
    * Creates a seamless, immersive dark experience
    */
 
-  /* Header - matches page bg for unified look */
-  --ec-header-bg: 2 6 23; /* #020617 slate-950 - matches page bg */
-  --ec-header-text: 226 232 240; /* #e2e8f0 */
-  --ec-header-border: 30 41 59; /* #1e293b */
+  /* Header - neutral, as the page */
+  --ec-header-bg: 10 10 10; /* #0a0a0a */
+  --ec-header-text: 237 237 237; /* #ededed */
+  --ec-header-border: 38 38 38; /* #262626 */
 
   /* Accent colors - teal for ocean dark theme */
-  --ec-accent: 45 212 191; /* #2dd4bf (teal-400) */
-  --ec-accent-hover: 20 184 166; /* #14b8a6 (teal-500) */
-  --ec-accent-subtle: 17 94 89 / 0.3; /* teal-800/30 */
-  --ec-accent-text: 94 234 212; /* #5eead4 (teal-300) */
-  --ec-accent-gradient-from: 45 212 191; /* #2dd4bf (teal-400) */
-  --ec-accent-gradient-to: 20 184 166; /* #14b8a6 (teal-500) */
+  --ec-accent: 76 204 230; /* #4ccce6 */
+  --ec-accent-hover: 120 220 240; /* #78dcf0 */
+  --ec-accent-subtle: 0 162 199 / 0.2; /* #00a2c7/0.2 */
+  --ec-accent-text: 76 204 230; /* #4ccce6 */
+  --ec-accent-gradient-from: 76 204 230; /* #4ccce6 */
+  --ec-accent-gradient-to: 120 220 240; /* #78dcf0 */
 
   /* Buttons */
-  --ec-button-bg: 20 184 166; /* #14b8a6 teal-500 */
-  --ec-button-bg-hover: 45 212 191; /* #2dd4bf teal-400 */
-  --ec-button-text: 2 6 23; /* #020617 */
+  --ec-button-bg: 237 237 237; /* #ededed */
+  --ec-button-bg-hover: 204 204 204; /* #cccccc */
+  --ec-button-text: 10 10 10; /* #0a0a0a */
 
   /* Dropdowns & menus - slightly elevated */
-  --ec-dropdown-bg: 15 23 42; /* #0f172a */
-  --ec-dropdown-text: 203 213 225; /* #cbd5e1 */
-  --ec-dropdown-hover: 30 41 59; /* #1e293b */
-  --ec-dropdown-border: 51 65 85; /* #334155 */
+  --ec-dropdown-bg: 17 17 17; /* #111111 */
+  --ec-dropdown-text: 237 237 237; /* #ededed */
+  --ec-dropdown-hover: 31 31 31; /* #1f1f1f */
+  --ec-dropdown-border: 46 46 46; /* #2e2e2e */
 
   /* Icons */
-  --ec-icon-color: 148 163 184; /* #94a3b8 */
-  --ec-icon-hover: 94 234 212; /* #5eead4 teal-300 */
+  --ec-icon-color: 161 161 161; /* #a1a1a1 */
+  --ec-icon-hover: 237 237 237; /* #ededed */
 
   /* Sidebar / Vertical Nav - same as page bg for unified look */
-  --ec-sidebar-bg: 2 6 23; /* #020617 slate-950 */
-  --ec-sidebar-bg-gradient: 2 6 23; /* #020617 - same as bg for unified look */
-  --ec-sidebar-border: 30 41 59; /* #1e293b */
-  --ec-sidebar-text: 148 163 184; /* #94a3b8 */
-  --ec-sidebar-active-bg: 20 184 166; /* #14b8a6 teal-500 */
-  --ec-sidebar-active-text: 2 6 23; /* #020617 */
-  --ec-sidebar-hover-bg: 30 41 59; /* #1e293b */
+  --ec-sidebar-bg: 10 10 10; /* #0a0a0a */
+  --ec-sidebar-bg-gradient: 10 10 10; /* #0a0a0a */
+  --ec-sidebar-border: 38 38 38; /* #262626 */
+  --ec-sidebar-text: 161 161 161; /* #a1a1a1 */
+  --ec-sidebar-active-bg: 237 237 237; /* #ededed */
+  --ec-sidebar-active-text: 10 10 10; /* #0a0a0a */
+  --ec-sidebar-hover-bg: 31 31 31; /* #1f1f1f */
 
-  /* Rail / inset-panel surface (5% lifted from the sidebar bg) */
-  --ec-rail-bg: 7 11 28; /* ~2% lighter than #020617 */
-  --ec-rail-active-bg: 33 37 54; /* ~10% lifted off rail bg */
+  /* Rail / inset-panel surface (black, a step below the #0a0a0a page, as Vercel's sidebar) */
+  --ec-rail-bg: 0 0 0; /* #000000 */
+  --ec-rail-active-bg: 31 31 31; /* #1f1f1f */
 
   /* Nested sidebar content - same as page bg */
-  --ec-content-bg: 2 6 23; /* #020617 */
-  --ec-content-text: 226 232 240; /* #e2e8f0 */
-  --ec-content-text-muted: 148 163 184; /* #94a3b8 */
-  --ec-content-text-secondary: 148 163 184; /* #94a3b8 */
-  --ec-content-border: 30 41 59; /* #1e293b */
-  --ec-content-hover: 15 23 42; /* #0f172a */
-  --ec-content-active: 30 41 59; /* #1e293b */
+  --ec-content-bg: 10 10 10; /* #0a0a0a */
+  --ec-content-text: 237 237 237; /* #ededed */
+  --ec-content-text-muted: 161 161 161; /* #a1a1a1 */
+  --ec-content-text-secondary: 143 143 143; /* #8f8f8f */
+  --ec-content-border: 38 38 38; /* #262626 */
+  --ec-content-hover: 26 26 26; /* #1a1a1a */
+  --ec-content-active: 31 31 31; /* #1f1f1f */
 
   /* Input fields */
-  --ec-input-bg: 15 23 42; /* #0f172a */
-  --ec-input-border: 51 65 85; /* #334155 */
-  --ec-input-text: 226 232 240; /* #e2e8f0 */
-  --ec-input-placeholder: 100 116 139; /* #64748b */
+  --ec-input-bg: 10 10 10; /* #0a0a0a */
+  --ec-input-border: 46 46 46; /* #2e2e2e */
+  --ec-input-text: 237 237 237; /* #ededed */
+  --ec-input-placeholder: 112 112 112; /* #707070 */
 
   /* Group headers */
-  --ec-group-icon-bg: 30 41 59; /* #1e293b */
-  --ec-group-icon-text: 94 234 212; /* #5eead4 teal-300 */
+  --ec-group-icon-bg: 31 31 31; /* #1f1f1f */
+  --ec-group-icon-text: 237 237 237; /* #ededed */
 
   /* Main content/docs area - base unified color */
-  --ec-page-bg: 2 6 23; /* #020617 */
-  --ec-page-text: 226 232 240; /* #e2e8f0 */
-  --ec-page-text-muted: 148 163 184; /* #94a3b8 */
-  --ec-page-border: 30 41 59; /* #1e293b */
+  --ec-page-bg: 10 10 10; /* #0a0a0a */
+  --ec-page-text: 237 237 237; /* #ededed */
+  --ec-page-text-muted: 161 161 161; /* #a1a1a1 */
+  --ec-page-border: 38 38 38; /* #262626 */
 
   /* Card/elevated surfaces - same as page for unified look */
-  --ec-card-bg: 2 6 23; /* #020617 */
+  --ec-card-bg: 10 10 10; /* #0a0a0a */
 
   /* Code blocks - slightly elevated for contrast */
-  --ec-code-bg: 15 23 42; /* #0f172a */
+  --ec-code-bg: 17 17 17; /* #111111 */
 
   /* Badge colors - ocean dark */
   --ec-badge-domain-bg: 113 63 18 / 0.3; /* yellow-900/30 */
@@ -215,37 +215,37 @@
 
 /* Ocean theme prose overrides */
 :root[data-catalog-theme='ocean'][data-theme='dark'] .prose {
-  --tw-prose-body: rgb(148 163 184); /* slate-400 */
-  --tw-prose-headings: rgb(226 232 240); /* slate-200 */
-  --tw-prose-lead: rgb(100 116 139); /* slate-500 */
-  --tw-prose-links: rgb(45 212 191); /* teal-400 */
-  --tw-prose-bold: rgb(226 232 240); /* slate-200 */
-  --tw-prose-counters: rgb(100 116 139); /* slate-500 */
-  --tw-prose-bullets: rgb(71 85 105); /* slate-600 */
-  --tw-prose-hr: rgb(30 41 59); /* slate-800 */
-  --tw-prose-quotes: rgb(226 232 240); /* slate-200 */
-  --tw-prose-quote-borders: rgb(51 65 85); /* slate-700 */
-  --tw-prose-captions: rgb(100 116 139); /* slate-500 */
-  --tw-prose-code: rgb(226 232 240); /* slate-200 */
-  --tw-prose-pre-code: rgb(148 163 184); /* slate-400 */
-  --tw-prose-pre-bg: rgb(15 23 42); /* slate-900 */
-  --tw-prose-th-borders: rgb(51 65 85); /* slate-700 */
-  --tw-prose-td-borders: rgb(30 41 59); /* slate-800 */
+  --tw-prose-body: rgb(161 161 161); /* #a1a1a1 */
+  --tw-prose-headings: rgb(237 237 237); /* #ededed */
+  --tw-prose-lead: rgb(143 143 143); /* #8f8f8f */
+  --tw-prose-links: rgb(76 204 230); /* #4ccce6 */
+  --tw-prose-bold: rgb(237 237 237); /* #ededed */
+  --tw-prose-counters: rgb(143 143 143); /* #8f8f8f */
+  --tw-prose-bullets: rgb(82 82 82); /* #525252 */
+  --tw-prose-hr: rgb(38 38 38); /* #262626 */
+  --tw-prose-quotes: rgb(237 237 237); /* #ededed */
+  --tw-prose-quote-borders: rgb(46 46 46); /* #2e2e2e */
+  --tw-prose-captions: rgb(143 143 143); /* #8f8f8f */
+  --tw-prose-code: rgb(237 237 237); /* #ededed */
+  --tw-prose-pre-code: rgb(161 161 161); /* #a1a1a1 */
+  --tw-prose-pre-bg: rgb(17 17 17); /* #111111 */
+  --tw-prose-th-borders: rgb(46 46 46); /* #2e2e2e */
+  --tw-prose-td-borders: rgb(38 38 38); /* #262626 */
 }
 
 :root[data-catalog-theme='ocean'][data-theme='dark'] .prose code {
-  background-color: rgb(30 41 59); /* slate-800 */
+  background-color: rgb(31 31 31); /* #1f1f1f */
 }
 
 :root[data-catalog-theme='ocean'][data-theme='dark'] .prose pre {
-  background-color: rgb(15 23 42); /* slate-900 */
-  border: 1px solid rgb(30 41 59); /* slate-800 */
+  background-color: rgb(17 17 17); /* #111111 */
+  border: 1px solid rgb(38 38 38); /* #262626 */
 }
 
 :root[data-catalog-theme='ocean'][data-theme='dark'] .prose a:not(:where(.not-prose *)) {
-  color: rgb(45 212 191); /* teal-400 */
+  color: rgb(76 204 230); /* #4ccce6 */
 }
 
 :root[data-catalog-theme='ocean'][data-theme='dark'] .prose a:not(:where(.not-prose *)):hover {
-  color: rgb(94 234 212); /* teal-300 */
+  color: rgb(120 220 240); /* #78dcf0 */
 }

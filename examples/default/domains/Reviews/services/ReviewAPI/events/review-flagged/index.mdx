@@ -14,8 +14,6 @@ badges:
     icon: BoltIcon
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `ReviewFlagged` is published by the [[service|review-api]] when a published review is flagged. The [[service|review-moderation-worker]] consumes it and re-screens the review, which may lead to it being rejected.
@@ -25,5 +23,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Architecture diagram
 
 <NodeGraph />
-
-<Footer />

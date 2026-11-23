@@ -77,8 +77,6 @@ specifications:
     name: Order Service AsyncAPI
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Order Service** is the heart of the Order Management System. It receives [[command|create-order]] from the [[system|checkout-system]], persists orders to the [[container|order-database]], and serves order lookups via [[query|get-order]]. It also handles [[command|cancel-order]], and consumes [[event|order-packed]] from the Fulfilment domain to track when an order has been packed. As orders move through their lifecycle it publishes detailed events covering creation, confirmation, amendments, operational holds, fulfilment, completion, cancellation, and archival.
@@ -112,5 +110,3 @@ The **Order Service** is the heart of the Order Management System. It receives [
 <NodeGraph />
 
 <MessageTable format="all" limit={12} />
-
-<Footer />

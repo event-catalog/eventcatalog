@@ -30,8 +30,6 @@ specifications:
     name: Product API
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Product API** is the front door to the Product Catalog System. It validates incoming commands, persists product data to the [[container|product-database]], and records every change to the outbox. The [[service|product-search-publisher]] then turns those changes into the domain events the rest of the business consumes.
@@ -55,5 +53,3 @@ The **Product API** is the front door to the Product Catalog System. It validate
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

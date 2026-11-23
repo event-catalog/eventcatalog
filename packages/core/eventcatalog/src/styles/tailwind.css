@@ -315,6 +315,27 @@
   margin-bottom: 0;
 }
 
+/* The code theme's colours (components/SchemaExplorer/code-theme.ts), from Vercel's palette: mostly the text colour,
+   keys in blue, strings in green, keywords and numbers in pink */
+:root {
+  --ec-code-token-text: 23 23 23; /* #171717 */
+  --ec-code-token-punctuation: 102 102 102; /* #666666 */
+  --ec-code-token-comment: 143 143 143; /* #8f8f8f */
+  --ec-code-token-key: 0 104 214; /* #0068d6 */
+  --ec-code-token-string: 41 122 58; /* #297a3a */
+  --ec-code-token-keyword: 196 21 98; /* #c41562 */
+  --ec-code-token-function: 125 0 204; /* #7d00cc */
+}
+:root[data-theme='dark'] {
+  --ec-code-token-text: 237 237 237; /* #ededed */
+  --ec-code-token-punctuation: 161 161 161; /* #a1a1a1 */
+  --ec-code-token-comment: 112 112 112; /* #707070 */
+  --ec-code-token-key: 82 168 255; /* #52a8ff */
+  --ec-code-token-string: 98 192 115; /* #62c073 */
+  --ec-code-token-keyword: 247 95 143; /* #f75f8f */
+  --ec-code-token-function: 196 114 251; /* #c472fb */
+}
+
 /* A resource's own icon (a technology's logo, a schema format) beside its page title and in the sidebar, in greys as
    the other icons are. A filter rather than a mask, so logos drawn with white detail (OpenAPI) keep it; dark mode
    inverts it, so black logos stay visible */

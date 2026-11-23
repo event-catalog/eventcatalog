@@ -1,10 +1,20 @@
 ---
 const { title, columns = 2 } = Astro.props;
+
+// Written out in full: Tailwind only generates classes it can find in the source, so a class built at runtime
+// (`md:grid-cols-${columns}`) never makes it into the CSS and the tiles stack in one column
+const columnClasses: Record<number, string> = {
+  1: 'md:grid-cols-1',
+  2: 'md:grid-cols-2',
+  3: 'md:grid-cols-3',
+  4: 'md:grid-cols-4',
+};
+const columnClass = columnClasses[Number(columns)] ?? columnClasses[2];
 ---
 
 <section class="not-prose my-8">
-  {title && <h2 class="text-2xl font-bold text-[rgb(var(--ec-page-text))] mb-6">{title}</h2>}
-  <div class={`grid grid-cols-1 md:grid-cols-${columns} gap-6 w-full not-prose`}>
+  {title && <h2 class="mb-6 text-2xl font-semibold tracking-[-0.025em] text-[rgb(var(--ec-page-text))]">{title}</h2>}
+  <div class={`grid w-full grid-cols-1 gap-6 not-prose ${columnClass}`}>
     <slot />
   </div>
 </section>

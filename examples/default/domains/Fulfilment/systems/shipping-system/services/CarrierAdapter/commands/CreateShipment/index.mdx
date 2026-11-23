@@ -15,8 +15,6 @@ sidebar:
   badge: 'POST'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 `CreateShipment` is sent by the [[service|carrier-adapter]] to the external [[system|carrier]] to dispatch a packed order. The carrier responds asynchronously with [[event|shipment-created]] and later [[event|shipment-delivered]] or [[event|shipment-failed]].
@@ -28,5 +26,3 @@ import Footer from '@catalog/components/footer.astro';
 ## Schema
 
 <SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
-
-<Footer />

@@ -1,82 +1,82 @@
 /**
  * Forest Theme for EventCatalog
  *
- * A natural, grounded theme inspired by deep forest greens.
- * Dark, rich greens with an earthy, calming presence.
+ * Vercel's (Geist) neutral greys for every surface, with green only where something is
+ * interactive or selected: links, accents, focus.
  */
 
 /* Forest Light Mode */
 :root[data-catalog-theme='forest'],
 :root[data-catalog-theme='forest'][data-theme='light'] {
-  /* Header - clean white */
+  /* Header - neutral, as the page */
   --ec-header-bg: 255 255 255; /* #ffffff */
-  --ec-header-text: 20 20 20; /* #141414 */
-  --ec-header-border: 229 229 229; /* #e5e5e5 (neutral-200) */
+  --ec-header-text: 23 23 23; /* #171717 */
+  --ec-header-border: 235 235 235; /* #ebebeb */
 
-  /* Primary brand color - deep forest green */
-  --ec-primary: 22 101 52; /* #166534 green-800 */
-  --ec-primary-hover: 20 83 45; /* #14532d green-900 */
+  /* Primary brand color - green (the darker step, so white text on it and links stay readable) */
+  --ec-primary: 33 131 88; /* #218358 */
+  --ec-primary-hover: 26 107 71; /* #1a6b47 */
 
-  /* Accent colors - deep forest green */
-  --ec-accent: 22 101 52; /* #166534 (green-800) */
-  --ec-accent-hover: 20 83 45; /* #14532d (green-900) */
-  --ec-accent-subtle: 220 252 231; /* #dcfce7 (green-100) */
-  --ec-accent-text: 20 83 45; /* #14532d (green-900) */
-  --ec-accent-gradient-from: 22 101 52; /* #166534 (green-800) */
-  --ec-accent-gradient-to: 20 83 45; /* #14532d (green-900) */
+  /* Accent colors - green */
+  --ec-accent: 33 131 88; /* #218358 */
+  --ec-accent-hover: 26 107 71; /* #1a6b47 */
+  --ec-accent-subtle: 230 246 235; /* #e6f6eb */
+  --ec-accent-text: 33 131 88; /* #218358 */
+  --ec-accent-gradient-from: 33 131 88; /* #218358 */
+  --ec-accent-gradient-to: 26 107 71; /* #1a6b47 */
 
   /* Buttons */
-  --ec-button-bg: 22 101 52; /* #166534 green-800 */
-  --ec-button-bg-hover: 20 83 45; /* #14532d green-900 */
+  --ec-button-bg: 23 23 23; /* #171717 */
+  --ec-button-bg-hover: 56 56 56; /* #383838 */
   --ec-button-text: 255 255 255; /* #ffffff */
 
   /* Dropdowns & menus */
   --ec-dropdown-bg: 255 255 255; /* #ffffff */
-  --ec-dropdown-text: 55 65 81; /* #374151 gray-700 */
-  --ec-dropdown-hover: 240 253 244; /* #f0fdf4 green-50 */
-  --ec-dropdown-border: 229 229 229; /* #e5e5e5 (neutral-200) */
+  --ec-dropdown-text: 23 23 23; /* #171717 */
+  --ec-dropdown-hover: 242 242 242; /* #f2f2f2 */
+  --ec-dropdown-border: 235 235 235; /* #ebebeb */
 
   /* Icons */
-  --ec-icon-color: 75 85 99; /* #4b5563 gray-600 */
-  --ec-icon-hover: 22 101 52; /* #166534 green-800 */
+  --ec-icon-color: 102 102 102; /* #666666 */
+  --ec-icon-hover: 23 23 23; /* #171717 */
 
   /* Sidebar / Vertical Nav */
   --ec-sidebar-bg: 255 255 255; /* #ffffff */
-  --ec-sidebar-bg-gradient: 240 253 244; /* #f0fdf4 green-50 */
-  --ec-sidebar-border: 229 229 229; /* #e5e5e5 (neutral-200) */
-  --ec-sidebar-text: 75 85 99; /* #4b5563 gray-600 */
-  --ec-sidebar-active-bg: 22 101 52; /* #166534 green-800 */
+  --ec-sidebar-bg-gradient: 250 250 250; /* #fafafa */
+  --ec-sidebar-border: 235 235 235; /* #ebebeb */
+  --ec-sidebar-text: 102 102 102; /* #666666 */
+  --ec-sidebar-active-bg: 23 23 23; /* #171717 */
   --ec-sidebar-active-text: 255 255 255; /* #ffffff */
-  --ec-sidebar-hover-bg: 22 101 52; /* #166534 green-800 */
+  --ec-sidebar-hover-bg: 242 242 242; /* #f2f2f2 */
 
   /* Rail / inset-panel surface (5% off the sidebar bg) */
-  --ec-rail-bg: 250 250 250; /* #fafafa - 2% darker than white */
-  --ec-rail-active-bg: 218 218 218; /* ~10% darker than rail bg */
+  --ec-rail-bg: 250 250 250; /* #fafafa */
+  --ec-rail-active-bg: 235 235 235; /* #ebebeb */
 
   /* Nested sidebar content */
   --ec-content-bg: 255 255 255; /* #ffffff */
-  --ec-content-text: 17 24 39; /* #111827 gray-900 */
-  --ec-content-text-muted: 75 85 99; /* #4b5563 gray-600 */
-  --ec-content-text-secondary: 107 114 128; /* #6b7280 gray-500 */
-  --ec-content-border: 229 229 229; /* #e5e5e5 (neutral-200) */
-  --ec-content-hover: 249 250 251; /* #f9fafb gray-50 */
-  --ec-content-active: 220 252 231; /* #dcfce7 green-100 */
+  --ec-content-text: 23 23 23; /* #171717 */
+  --ec-content-text-muted: 102 102 102; /* #666666 */
+  --ec-content-text-secondary: 143 143 143; /* #8f8f8f */
+  --ec-content-border: 235 235 235; /* #ebebeb */
+  --ec-content-hover: 250 250 250; /* #fafafa */
+  --ec-content-active: 242 242 242; /* #f2f2f2 */
 
   /* Input fields */
   --ec-input-bg: 255 255 255; /* #ffffff */
-  --ec-input-border: 209 213 219; /* #d1d5db gray-300 */
-  --ec-input-text: 17 24 39; /* #111827 gray-900 */
-  --ec-input-placeholder: 156 163 175; /* #9ca3af gray-400 */
+  --ec-input-border: 224 224 224; /* #e0e0e0 */
+  --ec-input-text: 23 23 23; /* #171717 */
+  --ec-input-placeholder: 143 143 143; /* #8f8f8f */
 
   /* Group headers */
-  --ec-group-icon-bg: 220 252 231; /* #dcfce7 green-100 */
-  --ec-group-icon-text: 20 83 45; /* #14532d green-900 */
+  --ec-group-icon-bg: 242 242 242; /* #f2f2f2 */
+  --ec-group-icon-text: 23 23 23; /* #171717 */
 
   /* Main content/docs area */
   --ec-page-bg: 255 255 255; /* #ffffff */
-  --ec-page-text: 17 24 39; /* #111827 gray-900 */
-  --ec-page-text-muted: 75 85 99; /* #4b5563 gray-600 */
-  --ec-page-border: 229 229 229; /* #e5e5e5 (neutral-200) */
+  --ec-page-text: 23 23 23; /* #171717 */
+  --ec-page-text-muted: 102 102 102; /* #666666 */
+  --ec-page-border: 235 235 235; /* #ebebeb */
 
   /* Card/elevated surfaces */
   --ec-card-bg: 255 255 255; /* #ffffff */
@@ -111,77 +111,77 @@
 
 /* Forest Dark Mode */
 :root[data-catalog-theme='forest'][data-theme='dark'] {
-  /* Header - deep forest dark */
-  --ec-header-bg: 3 7 18; /* #030712 gray-950 */
-  --ec-header-text: 243 244 246; /* #f3f4f6 gray-100 */
-  --ec-header-border: 31 41 55; /* #1f2937 gray-800 */
+  /* Header - neutral, as the page */
+  --ec-header-bg: 10 10 10; /* #0a0a0a */
+  --ec-header-text: 237 237 237; /* #ededed */
+  --ec-header-border: 38 38 38; /* #262626 */
 
-  /* Accent colors - muted forest green for dark */
-  --ec-accent: 74 222 128; /* #4ade80 (green-400) */
-  --ec-accent-hover: 34 197 94; /* #22c55e (green-500) */
-  --ec-accent-subtle: 20 83 45 / 0.3; /* green-900/30 */
-  --ec-accent-text: 134 239 172; /* #86efac (green-300) */
-  --ec-accent-gradient-from: 74 222 128; /* #4ade80 (green-400) */
-  --ec-accent-gradient-to: 34 197 94; /* #22c55e (green-500) */
+  /* Accent colors - green for dark */
+  --ec-accent: 61 214 140; /* #3dd68c */
+  --ec-accent-hover: 113 221 165; /* #71dda5 */
+  --ec-accent-subtle: 48 164 108 / 0.2; /* #30a46c/0.2 */
+  --ec-accent-text: 61 214 140; /* #3dd68c */
+  --ec-accent-gradient-from: 61 214 140; /* #3dd68c */
+  --ec-accent-gradient-to: 113 221 165; /* #71dda5 */
 
   /* Buttons */
-  --ec-button-bg: 22 101 52; /* #166534 green-800 */
-  --ec-button-bg-hover: 34 197 94; /* #22c55e green-500 */
-  --ec-button-text: 255 255 255; /* #ffffff */
+  --ec-button-bg: 237 237 237; /* #ededed */
+  --ec-button-bg-hover: 204 204 204; /* #cccccc */
+  --ec-button-text: 10 10 10; /* #0a0a0a */
 
   /* Dropdowns & menus */
-  --ec-dropdown-bg: 17 24 39; /* #111827 */
-  --ec-dropdown-text: 209 213 219; /* #d1d5db */
-  --ec-dropdown-hover: 31 41 55; /* #1f2937 */
-  --ec-dropdown-border: 31 41 55; /* #1f2937 gray-800 */
+  --ec-dropdown-bg: 17 17 17; /* #111111 */
+  --ec-dropdown-text: 237 237 237; /* #ededed */
+  --ec-dropdown-hover: 31 31 31; /* #1f1f1f */
+  --ec-dropdown-border: 46 46 46; /* #2e2e2e */
 
   /* Icons */
-  --ec-icon-color: 156 163 175; /* #9ca3af */
-  --ec-icon-hover: 134 239 172; /* #86efac green-300 */
+  --ec-icon-color: 161 161 161; /* #a1a1a1 */
+  --ec-icon-hover: 237 237 237; /* #ededed */
 
   /* Sidebar / Vertical Nav */
-  --ec-sidebar-bg: 3 7 18; /* #030712 gray-950 */
-  --ec-sidebar-bg-gradient: 3 7 18; /* #030712 */
-  --ec-sidebar-border: 31 41 55; /* #1f2937 gray-800 */
-  --ec-sidebar-text: 156 163 175; /* #9ca3af */
-  --ec-sidebar-active-bg: 22 101 52; /* #166534 green-800 */
-  --ec-sidebar-active-text: 255 255 255; /* #ffffff */
-  --ec-sidebar-hover-bg: 31 41 55; /* #1f2937 */
+  --ec-sidebar-bg: 10 10 10; /* #0a0a0a */
+  --ec-sidebar-bg-gradient: 10 10 10; /* #0a0a0a */
+  --ec-sidebar-border: 38 38 38; /* #262626 */
+  --ec-sidebar-text: 161 161 161; /* #a1a1a1 */
+  --ec-sidebar-active-bg: 237 237 237; /* #ededed */
+  --ec-sidebar-active-text: 10 10 10; /* #0a0a0a */
+  --ec-sidebar-hover-bg: 31 31 31; /* #1f1f1f */
 
-  /* Rail / inset-panel surface (5% lifted from the sidebar bg) */
-  --ec-rail-bg: 8 12 23; /* ~2% lighter than #030712 */
-  --ec-rail-active-bg: 34 38 49; /* ~10% lifted off rail bg */
+  /* Rail / inset-panel surface (black, a step below the #0a0a0a page, as Vercel's sidebar) */
+  --ec-rail-bg: 0 0 0; /* #000000 */
+  --ec-rail-active-bg: 31 31 31; /* #1f1f1f */
 
   /* Nested sidebar content */
-  --ec-content-bg: 3 7 18; /* #030712 */
-  --ec-content-text: 243 244 246; /* #f3f4f6 */
-  --ec-content-text-muted: 156 163 175; /* #9ca3af */
-  --ec-content-text-secondary: 156 163 175; /* #9ca3af */
-  --ec-content-border: 31 41 55; /* #1f2937 gray-800 */
-  --ec-content-hover: 17 24 39; /* #111827 */
-  --ec-content-active: 31 41 55; /* #1f2937 */
+  --ec-content-bg: 10 10 10; /* #0a0a0a */
+  --ec-content-text: 237 237 237; /* #ededed */
+  --ec-content-text-muted: 161 161 161; /* #a1a1a1 */
+  --ec-content-text-secondary: 143 143 143; /* #8f8f8f */
+  --ec-content-border: 38 38 38; /* #262626 */
+  --ec-content-hover: 26 26 26; /* #1a1a1a */
+  --ec-content-active: 31 31 31; /* #1f1f1f */
 
   /* Input fields */
-  --ec-input-bg: 17 24 39; /* #111827 */
-  --ec-input-border: 31 41 55; /* #1f2937 gray-800 */
-  --ec-input-text: 243 244 246; /* #f3f4f6 */
-  --ec-input-placeholder: 107 114 128; /* #6b7280 */
+  --ec-input-bg: 10 10 10; /* #0a0a0a */
+  --ec-input-border: 46 46 46; /* #2e2e2e */
+  --ec-input-text: 237 237 237; /* #ededed */
+  --ec-input-placeholder: 112 112 112; /* #707070 */
 
   /* Group headers */
-  --ec-group-icon-bg: 31 41 55; /* #1f2937 */
-  --ec-group-icon-text: 134 239 172; /* #86efac green-300 */
+  --ec-group-icon-bg: 31 31 31; /* #1f1f1f */
+  --ec-group-icon-text: 237 237 237; /* #ededed */
 
   /* Main content/docs area */
-  --ec-page-bg: 3 7 18; /* #030712 */
-  --ec-page-text: 243 244 246; /* #f3f4f6 */
-  --ec-page-text-muted: 156 163 175; /* #9ca3af */
-  --ec-page-border: 31 41 55; /* #1f2937 gray-800 */
+  --ec-page-bg: 10 10 10; /* #0a0a0a */
+  --ec-page-text: 237 237 237; /* #ededed */
+  --ec-page-text-muted: 161 161 161; /* #a1a1a1 */
+  --ec-page-border: 38 38 38; /* #262626 */
 
   /* Card/elevated surfaces */
-  --ec-card-bg: 3 7 18; /* #030712 */
+  --ec-card-bg: 10 10 10; /* #0a0a0a */
 
   /* Code blocks */
-  --ec-code-bg: 17 24 39; /* #111827 */
+  --ec-code-bg: 17 17 17; /* #111111 */
 
   /* Badge colors - forest dark */
   --ec-badge-domain-bg: 113 63 18 / 0.3; /* yellow-900/30 */
@@ -210,37 +210,37 @@
 
 /* Forest theme prose overrides */
 :root[data-catalog-theme='forest'][data-theme='dark'] .prose {
-  --tw-prose-body: rgb(156 163 175); /* gray-400 */
-  --tw-prose-headings: rgb(243 244 246); /* gray-100 */
-  --tw-prose-lead: rgb(107 114 128); /* gray-500 */
-  --tw-prose-links: rgb(74 222 128); /* green-400 */
-  --tw-prose-bold: rgb(243 244 246); /* gray-100 */
-  --tw-prose-counters: rgb(107 114 128); /* gray-500 */
-  --tw-prose-bullets: rgb(75 85 99); /* gray-600 */
-  --tw-prose-hr: rgb(31 41 55); /* gray-800 */
-  --tw-prose-quotes: rgb(243 244 246); /* gray-100 */
-  --tw-prose-quote-borders: rgb(55 65 81); /* gray-700 */
-  --tw-prose-captions: rgb(107 114 128); /* gray-500 */
-  --tw-prose-code: rgb(243 244 246); /* gray-100 */
-  --tw-prose-pre-code: rgb(156 163 175); /* gray-400 */
-  --tw-prose-pre-bg: rgb(17 24 39); /* gray-900 */
-  --tw-prose-th-borders: rgb(55 65 81); /* gray-700 */
-  --tw-prose-td-borders: rgb(31 41 55); /* gray-800 */
+  --tw-prose-body: rgb(161 161 161); /* #a1a1a1 */
+  --tw-prose-headings: rgb(237 237 237); /* #ededed */
+  --tw-prose-lead: rgb(143 143 143); /* #8f8f8f */
+  --tw-prose-links: rgb(61 214 140); /* #3dd68c */
+  --tw-prose-bold: rgb(237 237 237); /* #ededed */
+  --tw-prose-counters: rgb(143 143 143); /* #8f8f8f */
+  --tw-prose-bullets: rgb(82 82 82); /* #525252 */
+  --tw-prose-hr: rgb(38 38 38); /* #262626 */
+  --tw-prose-quotes: rgb(237 237 237); /* #ededed */
+  --tw-prose-quote-borders: rgb(46 46 46); /* #2e2e2e */
+  --tw-prose-captions: rgb(143 143 143); /* #8f8f8f */
+  --tw-prose-code: rgb(237 237 237); /* #ededed */
+  --tw-prose-pre-code: rgb(161 161 161); /* #a1a1a1 */
+  --tw-prose-pre-bg: rgb(17 17 17); /* #111111 */
+  --tw-prose-th-borders: rgb(46 46 46); /* #2e2e2e */
+  --tw-prose-td-borders: rgb(38 38 38); /* #262626 */
 }
 
 :root[data-catalog-theme='forest'][data-theme='dark'] .prose code {
-  background-color: rgb(31 41 55); /* gray-800 */
+  background-color: rgb(31 31 31); /* #1f1f1f */
 }
 
 :root[data-catalog-theme='forest'][data-theme='dark'] .prose pre {
-  background-color: rgb(17 24 39); /* gray-900 */
-  border: 1px solid rgb(31 41 55); /* gray-800 */
+  background-color: rgb(17 17 17); /* #111111 */
+  border: 1px solid rgb(38 38 38); /* #262626 */
 }
 
 :root[data-catalog-theme='forest'][data-theme='dark'] .prose a:not(:where(.not-prose *)) {
-  color: rgb(74 222 128); /* green-400 */
+  color: rgb(61 214 140); /* #3dd68c */
 }
 
 :root[data-catalog-theme='forest'][data-theme='dark'] .prose a:not(:where(.not-prose *)):hover {
-  color: rgb(134 239 172); /* green-300 */
+  color: rgb(113 221 165); /* #71dda5 */
 }

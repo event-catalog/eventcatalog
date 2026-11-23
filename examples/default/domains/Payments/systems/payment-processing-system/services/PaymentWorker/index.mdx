@@ -42,8 +42,6 @@ repository:
   url: 'https://github.com/acme/payment-worker'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Payment Worker** drives money movement. It requests charges from the external [[system|stripe]] via [[event|payment-requested]] and refunds via [[event|refund-requested]], then consumes the [[event|payment-succeeded]] and [[event|payment-failed]] events Stripe returns and records the outcome in the [[container|payment-database]]. It also refunds customers for returned items when the Fulfilment domain publishes [[event|return-received]].
@@ -68,5 +66,3 @@ The **Payment Worker** drives money movement. It requests charges from the exter
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />

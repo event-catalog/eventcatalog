@@ -20,14 +20,13 @@ repository:
   url: 'https://github.com/acme/picking-worker'
 ---
 
-import Footer from '@catalog/components/footer.astro';
-
 ## Overview
 
 The **Picking Worker** processes picking jobs created by the [[service|warehouse-service]]. As warehouse staff pick and pack each order, the worker updates the job in the [[container|warehouse-database]] and publishes [[event|order-packed]] when the order is complete.
 
 <Tiles>
   <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} message`} description="The order-packed event" />
+  <Tile icon="RectangleGroupIcon" href="/docs/systems/warehouse-system/1.0.0" title="Part of the Warehouse System" description="Picks and packs orders in the warehouse" />
 </Tiles>
 
 ## Architecture diagram
@@ -35,5 +34,3 @@ The **Picking Worker** processes picking jobs created by the [[service|warehouse
 <NodeGraph />
 
 <MessageTable format="all" limit={8} />
-
-<Footer />
