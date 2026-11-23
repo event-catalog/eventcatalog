@@ -1,0 +1,72 @@
+# Tells a Grok Bot routine that @eventcatalog/core or @eventcatalog/sdk was released,
+# so it can write the Discord #releases announcement.
+#
+# Releases cut by the Release workflow are created with the default GITHUB_TOKEN
+# (github-actions[bot]). GitHub does not start other workflows from events that
+# token creates, so this file does not see those releases. The Release workflow
+# posts them itself. This file runs when a person publishes a release, and when
+# someone re-sends an announcement by hand (workflow_dispatch). Bot-authored
+# releases are skipped here so a change in that GitHub behaviour cannot post twice.
+name: Notify release webhook
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to announce, for example @eventcatalog/core@5.16.0
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    name: Notify Grok Bot
+    runs-on: ubuntu-latest
+    if: >
+      github.repository == 'event-catalog/eventcatalog' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event_name == 'release' &&
+          github.event.release.draft == false &&
+          github.event.release.prerelease == false &&
+          github.actor != 'github-actions[bot]' &&
+          github.event.release.author.login != 'github-actions[bot]' &&
+          (
+            startsWith(github.event.release.tag_name, '@eventcatalog/core@') ||
+            startsWith(github.event.release.tag_name, '@eventcatalog/sdk@')
+          )
+        )
+      )
+    steps:
+      # The workflow file on the default branch is what GitHub runs for a release.
+      # The tagged commit is not guaranteed to contain this script.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Post release to Grok Bot
+        if: github.event_name == 'release'
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_NAME: ${{ github.event.release.name }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+          RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
+          RELEASE_DRAFT: ${{ github.event.release.draft }}
+          GROKBOT_RELEASE_WEBHOOK_URL: ${{ secrets.GROKBOT_RELEASE_WEBHOOK_URL }}
+          GROKBOT_RELEASE_WEBHOOK_AUTH: ${{ secrets.GROKBOT_RELEASE_WEBHOOK_AUTH }}
+        run: bash .github/scripts/notify-grokbot-release.sh --from-env
+
+      - name: Post a chosen release to Grok Bot
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          GROKBOT_RELEASE_WEBHOOK_URL: ${{ secrets.GROKBOT_RELEASE_WEBHOOK_URL }}
+          GROKBOT_RELEASE_WEBHOOK_AUTH: ${{ secrets.GROKBOT_RELEASE_WEBHOOK_AUTH }}
+        run: bash .github/scripts/notify-grokbot-release.sh --tag "$TAG"

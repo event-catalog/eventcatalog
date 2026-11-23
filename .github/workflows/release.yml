@@ -64,11 +64,26 @@ jobs:
         run: pnpm run build:bin
 
       - name: Create Release Pull Request or Publish to npm
+        id: changesets
         uses: changesets/action@v1
         with:
           publish: pnpm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # changesets/action creates each GitHub release with the default GITHUB_TOKEN above.
+      # Events created by that token do not start other workflows, so notify-release.yml
+      # never sees these. Post once per stable @eventcatalog/core and @eventcatalog/sdk
+      # release from the packages this step actually published. Prereleases (v5-beta)
+      # are not announced; that job only pushes git tags and does not create a release.
+      - name: Notify Grok Bot of core and SDK releases
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+          GROKBOT_RELEASE_WEBHOOK_URL: ${{ secrets.GROKBOT_RELEASE_WEBHOOK_URL }}
+          GROKBOT_RELEASE_WEBHOOK_AUTH: ${{ secrets.GROKBOT_RELEASE_WEBHOOK_AUTH }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/notify-grokbot-release.sh --published-packages
 
   # v5-beta is in changesets pre mode (.changeset/pre.json), so every push with new changesets
   # publishes beta versions (e.g. 5.0.0-beta.3) to the `beta` dist-tag straight away, without a version PR.
