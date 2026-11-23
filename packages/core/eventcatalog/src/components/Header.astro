@@ -4,6 +4,7 @@ import config from '@config';
 import Search from '@components/Search/Search.astro';
 import { buildUrl } from '@utils/url-builder';
 import { getSession } from '@utils/auth-astro/server';
+import { getColorMode } from '@utils/color-mode';
 import { isAuthEnabled, isEventCatalogChatVisible, isEventCatalogChatEnabled } from '@utils/feature';
 import { EnvironmentDropdown } from './EnvironmentDropdown';
 import ChatPanelButton from './ChatPanel/ChatPanelButton';
@@ -23,6 +24,7 @@ const logo = {
 
 const repositoryUrl = catalog?.repositoryUrl;
 const catalogName = config?.organizationName || config?.title || 'EventCatalog';
+const showThemeToggle = getColorMode(config).allowToggle;
 
 // Header icons match the theme toggle: a 20px icon in a padded button, coloured with the theme's icon colour
 const headerIconLinkClass =
@@ -78,7 +80,7 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
               {catalog.environments && catalog.environments.length > 0 && (
                 <EnvironmentDropdown environments={catalog.environments} client:idle />
               )}
-              <ThemeToggle client:idle />
+              {showThemeToggle && <ThemeToggle client:idle />}
               <div class="relative">
                 <button
                   id="profile-menu-button"
@@ -187,9 +189,11 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
                 )}
                 {/* -mr-2: the last icon's own padding, so its edge lines up with the left side's */}
                 <ul class="flex items-center gap-1 -mr-2">
-                  <li>
-                    <ThemeToggle client:idle />
-                  </li>
+                  {showThemeToggle && (
+                    <li>
+                      <ThemeToggle client:idle />
+                    </li>
+                  )}
                   {repositoryUrl && (
                     <li>
                       <a href={repositoryUrl} class={headerIconLinkClass} aria-label="View repository on GitHub">

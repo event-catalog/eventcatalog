@@ -6,6 +6,7 @@ import NavigationProgress from '../components/NavigationProgress.astro';
 import config from '@config';
 import { isLLMSTxtEnabled } from '@utils/feature';
 import { getMarkdownPathForPage } from '@utils/markdown-pages';
+import { getColorMode } from '@utils/color-mode';
 
 interface Props {
   /** The page's own title; the catalog's title follows it (the homepage has none) */
@@ -15,18 +16,37 @@ interface Props {
 
 const { title, description } = Astro.props;
 const catalogTheme = config.theme || 'default';
+// Also set on <html>, for the theme store (stores/theme-store.ts)
+const colorMode = getColorMode(config);
 // Lets agents find the page's Markdown (llms.txt links to the same URLs)
 const markdownPath = isLLMSTxtEnabled() ? getMarkdownPathForPage(Astro.url.pathname, import.meta.env.BASE_URL) : null;
 ---
 
 <!doctype html>
-<html lang="en" data-catalog-theme={catalogTheme}>
+<html
+  lang="en"
+  data-catalog-theme={catalogTheme}
+  data-color-mode={colorMode.default}
+  data-color-mode-toggle={String(colorMode.allowToggle)}
+>
   <head>
     <!-- Inline script to prevent flash of wrong theme -->
-    <script is:inline define:vars={{ catalogTheme }}>
+    <script is:inline define:vars={{ catalogTheme, colorMode }}>
       (function () {
         function getDefaultTheme() {
-          return 'dark';
+          if (colorMode.default !== 'system') return colorMode.default;
+          return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+
+        function getStoredTheme() {
+          // With the toggle hidden, a choice the visitor saved before doesn't apply
+          if (!colorMode.allowToggle) return null;
+          try {
+            const stored = localStorage.getItem('eventcatalog-theme');
+            return stored === 'light' || stored === 'dark' ? stored : null;
+          } catch (e) {
+            return null;
+          }
         }
 
         function getEmbeddedTheme() {
@@ -38,9 +58,7 @@ const markdownPath = isLLMSTxtEnabled() ? getMarkdownPathForPage(Astro.url.pathn
 
         function applyTheme() {
           // An embed can request its own theme without changing the user's saved catalog preference.
-          const embeddedTheme = getEmbeddedTheme();
-          const stored = localStorage.getItem('eventcatalog-theme');
-          const theme = embeddedTheme || (stored === 'light' || stored === 'dark' ? stored : getDefaultTheme());
+          const theme = getEmbeddedTheme() || getStoredTheme() || getDefaultTheme();
           document.documentElement.setAttribute('data-theme', theme);
           // Also ensure catalog theme is set (for page transitions)
           document.documentElement.setAttribute('data-catalog-theme', catalogTheme);
