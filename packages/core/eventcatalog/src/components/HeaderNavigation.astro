@@ -1,0 +1,96 @@
+---
+import { ArrowUpRight, ChevronDown } from 'lucide-react';
+import { getHeaderNavigationCurrent, serializeHeaderNavigationMatch } from '@utils/header-navigation';
+import type { HeaderNavigationItem, HeaderNavigationLink } from '@utils/header-navigation';
+import { resolveLucideIcon } from '@utils/lucide-icon';
+
+/**
+ * The catalog's own links in the header (`navigation.header`), docs-site style, with their dropdowns. The header's
+ * script copies them into its menu on small screens.
+ * The current link is marked here for the first page, then by the header's script (data-nav-match) on each navigation,
+ * as the header is kept across navigations.
+ * This is in every page's HTML, so it keeps its markup small: it's styled in styles/header-navigation.css, and a link
+ * current under its own path (the usual case) has an empty data-nav-match.
+ */
+interface Props {
+  items: HeaderNavigationItem[];
+}
+
+const { items } = Astro.props;
+const pathname = Astro.url.pathname;
+
+const linkAttributes = (link: HeaderNavigationLink) => {
+  const current = getHeaderNavigationCurrent(link.match, pathname);
+  return {
+    href: link.href,
+    target: link.external ? '_blank' : undefined,
+    rel: link.external ? 'noopener noreferrer' : undefined,
+    'data-nav-match': serializeHeaderNavigationMatch(link),
+    'data-active': current ? '' : undefined,
+    'aria-current': current === 'page' ? ('page' as const) : current ? ('true' as const) : undefined,
+  };
+};
+---
+
+<div data-header-nav-bar class="hidden md:flex shrink-0 items-center gap-2">
+  <ul data-header-nav class="flex items-center gap-0.5">
+    {
+      items.map((item) =>
+        item.type === 'link' ? (
+          <li>
+            <a {...linkAttributes(item)} class="ec-hnav-item ec-hnav-bar">
+              {item.label}
+              {item.external && <ArrowUpRight aria-hidden="true" />}
+            </a>
+          </li>
+        ) : (
+          <li class="relative" data-header-menu>
+            <button
+              type="button"
+              class="ec-hnav-item ec-hnav-bar"
+              aria-expanded="false"
+              data-header-menu-button
+              data-active={getHeaderNavigationCurrent(item.match, pathname) ? '' : undefined}
+            >
+              {item.label}
+              <ChevronDown aria-hidden="true" />
+            </button>
+            <div class="ec-hnav-menu">
+              <div class="ec-hnav-panel">
+                {item.sections.map((section) => (
+                  <div>
+                    {section.label && <p class="ec-hnav-label">{section.label}</p>}
+                    <ul>
+                      {section.items.map((link) => {
+                        const Icon = link.icon ? resolveLucideIcon(link.icon) : undefined;
+                        return (
+                          <li>
+                            <a {...linkAttributes(link)} class="ec-hnav-item ec-hnav-link">
+                              {Icon && (
+                                <span class="ec-hnav-icon">
+                                  <Icon strokeWidth={1.75} aria-hidden="true" />
+                                </span>
+                              )}
+                              <span>
+                                <span class="ec-hnav-title">
+                                  {link.label}
+                                  {link.external && <ArrowUpRight aria-hidden="true" />}
+                                </span>
+                                {link.description && <span class="ec-hnav-desc">{link.description}</span>}
+                              </span>
+                            </a>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </li>
+        )
+      )
+    }
+  </ul>
+  <div class="h-5 w-px bg-[rgb(var(--ec-header-border))]" aria-hidden="true"></div>
+</div>

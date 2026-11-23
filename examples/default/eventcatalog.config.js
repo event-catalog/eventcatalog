@@ -14,6 +14,14 @@ export default {
   port: 3000,
   outDir: "dist",
 
+  banner: {
+    message: 'This is a demo catalog. Create one for your own architecture with a single prompt.',
+    link: {
+      label: 'Get started',
+      href: 'https://www.eventcatalog.dev/docs/development/getting-started/installation',
+    },
+  },
+
   logo: {
     src: "/logo.png",
     text: 'Acme Inc',
@@ -73,6 +81,57 @@ export default {
 
   navigation: {
     pages: ["list:top-level-domains", "list:top-level-diagrams", "list:all"],
+    header: [
+      { label: "Architecture", href: "/visualiser/system-context-map", match: "/visualiser" },
+      { label: "Docs", href: "/docs/custom/platform/01-architecture-overview", match: "/docs/custom" },
+      { label: "Discover", href: "/discover/events", match: "/discover" },
+      {
+        label: "Resources",
+        items: [
+          {
+            label: "Run",
+            items: [
+              {
+                label: "Operational readiness",
+                href: "/docs/custom/operations/06-operational-readiness",
+                icon: "ShieldCheck",
+                description: "What a system needs before it ships",
+              },
+              {
+                label: "Change management",
+                href: "/docs/custom/operations/02-change-management",
+                icon: "GitPullRequest",
+                description: "How to change contracts safely",
+              },
+              { label: "Teams", href: "/directory/teams", icon: "Users", description: "Who owns what" },
+            ],
+          },
+          {
+            label: "Learn",
+            items: [
+              {
+                label: "Event design standards",
+                href: "/docs/custom/operations/05-event-design-standards",
+                icon: "BookOpen",
+                description: "How we name and publish events",
+              },
+              {
+                label: "Contract standards",
+                href: "/docs/custom/operations/04-contract-standards",
+                icon: "FileCheck",
+                description: "Rules for versioning messages",
+              },
+              {
+                label: "Schema explorer",
+                href: "/schemas/explorer",
+                icon: "FileCode",
+                description: "Every schema in one place",
+              },
+            ],
+          },
+        ],
+      },
+    ],
   },
 
   customDocs: {
