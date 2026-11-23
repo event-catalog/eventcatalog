@@ -67,6 +67,12 @@ const markdownPath = isLLMSTxtEnabled() ? getMarkdownPathForPage(Astro.url.pathn
         // Apply on initial load
         applyTheme();
 
+        // Follow the system as it changes. Here rather than only in the theme store, which isn't loaded on pages
+        // without the header toggle (allowToggle: false). A saved choice still wins (applyTheme checks it)
+        if (colorMode.default === 'system' && window.matchMedia) {
+          window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', applyTheme);
+        }
+
         // The ClientRouter swaps <html>'s attributes for the incoming page's, which doesn't have the theme (it's set
         // here). Give it the current one first, so nothing is drawn without a theme mid-navigation
         document.addEventListener('astro:before-swap', (event) => {
