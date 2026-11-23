@@ -1,5 +1,16 @@
 # @eventcatalog/core
 
+## 5.16.0
+
+### Minor Changes
+
+- b30dd58: feat(core): set the default colour mode with `colorMode` in `eventcatalog.config.js`. `default` ('dark', 'light' or 'system') is the mode a visitor sees until they use the header toggle, and `allowToggle: false` always uses it and hides the toggle. A catalog that doesn't set it opens in dark mode as before, and no longer switches to light when the visitor's system does.
+
+### Patch Changes
+
+- 9b31588: fix(core): draw a system with no services as an empty system box, joined to its relationships, instead of a blank diagram
+- bd7a9ee: fix(core): OpenAPI, AsyncAPI and GraphQL pages now show specifications kept in a folder inside the resource (e.g. `path: specifications/openapi.yaml`). Before, these pages looked for the file by its name only, next to the resource's `index.mdx`, and said the file was not found, while the download link served it. The pages now read the file from its whole path, as the generic specification page and the download link already did
+
 ## 5.15.0
 
 ### Minor Changes
