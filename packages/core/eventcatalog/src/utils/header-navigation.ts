@@ -50,9 +50,10 @@ export const resolveNavigationHref = (href: string): string | null => {
 
 const withoutTrailingSlash = (path: string) => (path.length > 1 ? path.replace(/\/+$/, '') : path);
 
-// The path a link counts as current under: base URL applied, no query, hash or trailing slash
+// The path a link counts as current under: base URL applied, no query, hash, trailing slash or spaces (the match is
+// written to the page space-separated)
 const toMatch = (path: string): HeaderNavigationMatch => {
-  const matchPath = withoutTrailingSlash(buildUrl(path.split(/[?#]/)[0] || '/', true));
+  const matchPath = withoutTrailingSlash(buildUrl(path.split(/[?#]/)[0] || '/', true)).replace(/ /g, '%20');
   // The catalog's root would contain every page, so it only matches itself
   const root = withoutTrailingSlash(buildUrl('/', true));
   return matchPath === root ? { path: matchPath, exact: true } : { path: matchPath };
@@ -132,6 +133,30 @@ export const resolveHeaderNavigation = (config: unknown): HeaderNavigationItem[]
       return link ? { type: 'link', ...link } : null;
     })
     .filter((item): item is HeaderNavigationItem => item !== null);
+};
+
+// The path a link's own href counts as current under (its href already has the base URL)
+const ownMatchPath = (href: string) => withoutTrailingSlash(href.split(/[?#]/)[0] || '/').replace(/ /g, '%20');
+
+/**
+ * A link's match paths as a short attribute value, since the header is in every page's HTML: space-separated, with `=`
+ * in front of exact paths (e.g. "/docs/custom =/"). An empty value stands for the link's own path, the usual case, and
+ * undefined for a link that's never current (another site)
+ */
+export const serializeHeaderNavigationMatch = (link: Pick<HeaderNavigationLink, 'href' | 'match'>): string | undefined => {
+  if (link.match.length === 0) return undefined;
+  const [only] = link.match;
+  if (link.match.length === 1 && !only.exact && only.path === ownMatchPath(link.href)) return '';
+  return link.match.map((entry) => `${entry.exact ? '=' : ''}${entry.path}`).join(' ');
+};
+
+/** Reads a link's match paths back from serializeHeaderNavigationMatch's value and the link's href */
+export const parseHeaderNavigationMatch = (value: string, href: string): HeaderNavigationMatch[] => {
+  if (value === '') return [{ path: ownMatchPath(href) }];
+  return value
+    .split(' ')
+    .filter(Boolean)
+    .map((entry) => (entry.startsWith('=') ? { path: entry.slice(1), exact: true } : { path: entry }));
 };
 
 /**

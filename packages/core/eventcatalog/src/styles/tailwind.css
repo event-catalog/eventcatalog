@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './header-navigation.css';
 
 /* Core templates live in the installed package, which automatic scanning skips. */
 @source '../';

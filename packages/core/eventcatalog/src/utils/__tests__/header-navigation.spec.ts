@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { getHeaderNavigationCurrent, resolveHeaderNavigation, resolveNavigationHref } from '../header-navigation';
+import {
+  getHeaderNavigationCurrent,
+  parseHeaderNavigationMatch,
+  resolveHeaderNavigation,
+  resolveNavigationHref,
+  serializeHeaderNavigationMatch,
+} from '../header-navigation';
 
 const setTrailingSlash = (enabled: boolean) => {
   // @ts-ignore
@@ -117,6 +123,43 @@ describe('header navigation', () => {
 
     it('drops links with any other scheme, such as javascript:', () => {
       expect(resolveNavigationHref('javascript:alert(1)')).toBeNull();
+    });
+  });
+
+  describe('serializeHeaderNavigationMatch', () => {
+    // The one link a config resolves to
+    const resolveLink = (config: Record<string, unknown>) => {
+      const [item] = resolveHeaderNavigation([config]);
+      if (item?.type !== 'link') throw new Error('Expected a link');
+      return item;
+    };
+    const roundTrip = (link: { href: string; match: { path: string; exact?: boolean }[] }) =>
+      parseHeaderNavigationMatch(serializeHeaderNavigationMatch(link) ?? '', link.href);
+
+    it("writes nothing but the attribute for a link that's current under its own path", () => {
+      const docs = resolveLink({ label: 'Docs', href: '/docs/custom?tab=all' });
+
+      expect(serializeHeaderNavigationMatch(docs)).toBe('');
+      expect(roundTrip(docs)).toEqual([{ path: '/docs/custom' }]);
+    });
+
+    it("writes match paths that differ from the link's own path, and reads them back the same", () => {
+      const docs = resolveLink({ label: 'Docs', href: '/docs/custom/intro', match: ['/docs/custom', '/'] });
+
+      expect(serializeHeaderNavigationMatch(docs)).toBe('/docs/custom =/');
+      expect(roundTrip(docs)).toEqual(docs.match);
+    });
+
+    it('leaves the attribute off a link that is never current', () => {
+      const status = resolveLink({ label: 'Status', href: 'https://status.example.com' });
+
+      expect(serializeHeaderNavigationMatch(status)).toBeUndefined();
+    });
+
+    it('encodes spaces in a match path, so it stays one entry', () => {
+      const link = resolveLink({ label: 'Runbooks', href: '/docs/custom/on call', match: '/docs/on call' });
+
+      expect(roundTrip(link)).toEqual([{ path: '/docs/on%20call' }]);
     });
   });
 

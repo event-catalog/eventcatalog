@@ -238,13 +238,12 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
     </div>
 
     {
+      // Filled from the header's links when it first opens (fillMobileMenu), so each page has them only once
       headerNavigation.length > 0 && (
         <div
           id="mobile-menu"
           class="md:hidden ec-hidden absolute inset-x-0 top-full border-b border-[rgb(var(--ec-header-border))] bg-[rgb(var(--ec-header-bg))] px-4 shadow-lg max-h-[calc(100vh-var(--ec-header-offset))] overflow-y-auto"
-        >
-          <HeaderNavigation items={headerNavigation} variant="mobile" />
-        </div>
+        />
       )
     }
   </div>
@@ -255,7 +254,7 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
 
 <script>
   import { signOut } from '@utils/auth-astro/client';
-  import { getHeaderNavigationCurrent, type HeaderNavigationMatch } from '@utils/header-navigation';
+  import { getHeaderNavigationCurrent, parseHeaderNavigationMatch } from '@utils/header-navigation';
 
   // The room the header's start keeps before its links move into the menu (less below lg, where it has no search box),
   // and the menu button's width
@@ -348,6 +347,7 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
 
     if (menuToggle && mobileMenu) {
       menuToggle.addEventListener('click', () => {
+        fillMobileMenu(header, mobileMenu);
         mobileMenu.classList.toggle('ec-hidden');
         menuToggle.setAttribute('aria-expanded', mobileMenu.classList.contains('ec-hidden') ? 'false' : 'true');
       });
@@ -400,18 +400,60 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
 
   // The header is kept across navigations, so its links' current section is marked on every page load
   function markCurrentHeaderLinks() {
-    document.querySelectorAll<HTMLElement>('#eventcatalog-header [data-nav-match]').forEach((link) => {
-      let match: HeaderNavigationMatch[] = [];
-      try {
-        match = JSON.parse(link.dataset.navMatch || '[]');
-      } catch {}
+    const header = document.getElementById('eventcatalog-header');
+    if (!header) return;
+
+    header.querySelectorAll<HTMLAnchorElement>('a[data-nav-match]').forEach((link) => {
+      const match = parseHeaderNavigationMatch(link.dataset.navMatch || '', link.getAttribute('href') || '');
       const current = getHeaderNavigationCurrent(match, window.location.pathname);
       link.toggleAttribute('data-active', Boolean(current));
-      if (link.tagName !== 'A') return;
       // "page" on the link's own page, "true" on the pages in its section
       if (current) link.setAttribute('aria-current', current === 'page' ? 'page' : 'true');
       else link.removeAttribute('aria-current');
     });
+    // A dropdown is current when one of its links is
+    header.querySelectorAll<HTMLElement>('[data-header-menu]').forEach((menu) => {
+      menu
+        .querySelector('[data-header-menu-button]')
+        ?.toggleAttribute('data-active', Boolean(menu.querySelector('a[data-active]')));
+    });
+  }
+
+  // The menu on small screens lists the header's links, copied from the bar the first time it opens
+  function fillMobileMenu(header: HTMLElement, mobileMenu: HTMLElement) {
+    if (mobileMenu.childElementCount > 0) return;
+
+    const list = document.createElement('ul');
+    list.className = 'ec-hnav-mobile-list';
+    const addLink = (target: HTMLElement, source: HTMLAnchorElement, label: string) => {
+      const link = source.cloneNode(false) as HTMLAnchorElement;
+      link.className = 'ec-hnav-item ec-hnav-mobile';
+      link.textContent = label;
+      const item = document.createElement('li');
+      item.append(link);
+      target.append(item);
+    };
+
+    header.querySelectorAll<HTMLElement>('[data-header-nav-bar] [data-header-nav] > li').forEach((entry) => {
+      if (!entry.matches('[data-header-menu]')) {
+        const link = entry.querySelector<HTMLAnchorElement>(':scope > a');
+        if (link) addLink(list, link, link.textContent?.trim() || '');
+        return;
+      }
+
+      const group = document.createElement('li');
+      const label = document.createElement('p');
+      label.className = 'ec-hnav-label';
+      label.textContent = entry.querySelector('[data-header-menu-button]')?.textContent?.trim() || '';
+      const links = document.createElement('ul');
+      entry.querySelectorAll<HTMLAnchorElement>('.ec-hnav-menu a').forEach((link) => {
+        addLink(links, link, link.querySelector('.ec-hnav-title')?.textContent?.trim() || '');
+      });
+      group.append(label, links);
+      list.append(group);
+    });
+
+    mobileMenu.append(list);
   }
 
   initializeHeader();
@@ -456,11 +498,6 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
   }
   #eventcatalog-header[data-nav-compact] #mobile-menu:not(.ec-hidden) {
     display: block;
-  }
-  /* A dropdown whose link was just clicked stays closed while the pointer is still over it */
-  #eventcatalog-header [data-header-menu][data-closing] > div {
-    visibility: hidden;
-    opacity: 0;
   }
 </style>
 

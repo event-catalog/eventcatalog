@@ -1,21 +1,22 @@
 ---
 import { ArrowUpRight, ChevronDown } from 'lucide-react';
-import { getHeaderNavigationCurrent } from '@utils/header-navigation';
+import { getHeaderNavigationCurrent, serializeHeaderNavigationMatch } from '@utils/header-navigation';
 import type { HeaderNavigationItem, HeaderNavigationLink } from '@utils/header-navigation';
 import { resolveLucideIcon } from '@utils/lucide-icon';
 
 /**
- * The catalog's own links in the header (`navigation.header`), docs-site style. `desktop` draws the bar with its
- * dropdowns; `mobile` draws the same links as a list for the header's mobile menu.
+ * The catalog's own links in the header (`navigation.header`), docs-site style, with their dropdowns. The header's
+ * script copies them into its menu on small screens.
  * The current link is marked here for the first page, then by the header's script (data-nav-match) on each navigation,
  * as the header is kept across navigations.
+ * This is in every page's HTML, so it keeps its markup small: it's styled in styles/header-navigation.css, and a link
+ * current under its own path (the usual case) has an empty data-nav-match.
  */
 interface Props {
   items: HeaderNavigationItem[];
-  variant?: 'desktop' | 'mobile';
 }
 
-const { items, variant = 'desktop' } = Astro.props;
+const { items } = Astro.props;
 const pathname = Astro.url.pathname;
 
 const linkAttributes = (link: HeaderNavigationLink) => {
@@ -24,137 +25,72 @@ const linkAttributes = (link: HeaderNavigationLink) => {
     href: link.href,
     target: link.external ? '_blank' : undefined,
     rel: link.external ? 'noopener noreferrer' : undefined,
-    'data-nav-match': JSON.stringify(link.match),
+    'data-nav-match': serializeHeaderNavigationMatch(link),
     'data-active': current ? '' : undefined,
-    'aria-current': current === 'page' ? 'page' : current ? 'true' : undefined,
+    'aria-current': current === 'page' ? ('page' as const) : current ? ('true' as const) : undefined,
   };
 };
-
-// Hover, current and focus states match the vertical nav's (.ec-rail-item in VerticalSideBarLayout)
-const navItemStates =
-  'text-[rgb(var(--ec-page-text-muted))] transition-colors duration-[120ms] hover:bg-[rgb(var(--ec-page-text)/0.045)] hover:text-[rgb(var(--ec-page-text))] data-[active]:bg-[rgb(var(--ec-page-text)/0.075)] data-[active]:text-[rgb(var(--ec-page-text))] focus:outline-hidden focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[rgb(var(--ec-accent))]';
-
-const barItemClass = `flex items-center gap-1 rounded-md px-3 py-1.5 text-[13.5px] font-medium whitespace-nowrap ${navItemStates}`;
-// While its menu is open, the button keeps its hover look
-const menuButtonClass = `${barItemClass} group-hover/menu:bg-[rgb(var(--ec-page-text)/0.045)] group-hover/menu:text-[rgb(var(--ec-page-text))] group-data-[open]/menu:bg-[rgb(var(--ec-page-text)/0.045)] group-data-[open]/menu:text-[rgb(var(--ec-page-text))]`;
-const sectionLabelClass = 'text-xs font-medium text-[rgb(var(--ec-page-text-muted)/0.75)]';
-
-// The menu opens on hover, or when its button is clicked, tapped or pressed (data-open, set by the header's script)
-const menuOpen =
-  'group-hover/menu:visible group-hover/menu:opacity-100 group-hover/menu:translate-y-0 group-hover/menu:pointer-events-auto group-data-[open]/menu:visible group-data-[open]/menu:opacity-100 group-data-[open]/menu:translate-y-0 group-data-[open]/menu:pointer-events-auto';
 ---
 
-{
-  variant === 'desktop' ? (
-    <div data-header-nav-bar class="hidden md:flex shrink-0 items-center gap-2">
-      <ul data-header-nav class="flex items-center gap-0.5">
-        {items.map((item) =>
-          item.type === 'link' ? (
-            <li>
-              <a {...linkAttributes(item)} class={barItemClass}>
-                {item.label}
-                {item.external && <ArrowUpRight className="h-3.5 w-3.5 opacity-60" aria-hidden="true" />}
-              </a>
-            </li>
-          ) : (
-            <li class="group/menu relative" data-header-menu>
-              <button
-                type="button"
-                class={menuButtonClass}
-                aria-expanded="false"
-                data-header-menu-button
-                data-nav-match={JSON.stringify(item.match)}
-                data-active={getHeaderNavigationCurrent(item.match, pathname) ? '' : undefined}
-              >
-                {item.label}
-                <ChevronDown
-                  className="h-3.5 w-3.5 opacity-70 transition-transform duration-200 group-hover/menu:rotate-180 group-data-[open]/menu:rotate-180"
-                  aria-hidden="true"
-                />
-              </button>
-              {/* pt-2 bridges the gap below the button, so moving the pointer onto the menu keeps it open */}
-              <div
-                class:list={[
-                  'pointer-events-none invisible absolute right-0 top-full z-50 pt-2 opacity-0 translate-y-1',
-                  'transition-[opacity,transform,visibility] duration-150 ease-out',
-                  menuOpen,
-                ]}
-              >
-                <div class="flex gap-1 rounded-xl border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-dropdown-bg))] p-1.5 shadow-[0_16px_40px_-12px_rgb(0_0_0/0.25)]">
-                  {item.sections.map((section) => (
-                    <div class="w-72">
-                      {section.label && <p class:list={['px-2.5 pt-2.5 pb-1', sectionLabelClass]}>{section.label}</p>}
-                      <ul>
-                        {section.items.map((link) => {
-                          const Icon = link.icon ? resolveLucideIcon(link.icon) : undefined;
-                          return (
-                            <li>
-                              <a
-                                {...linkAttributes(link)}
-                                class={`group/item flex items-start gap-3 rounded-md p-2.5 ${navItemStates}`}
-                              >
-                                {Icon && (
-                                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text-muted)/0.85)] transition-colors duration-[120ms] group-hover/item:text-[rgb(var(--ec-page-text))] group-data-[active]/item:text-[rgb(var(--ec-page-text))]">
-                                    <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-                                  </span>
-                                )}
-                                <span class:list={['min-w-0', Icon && 'pt-px']}>
-                                  <span class="flex items-center gap-1 text-[13.5px] font-medium text-[rgb(var(--ec-page-text))]">
-                                    {link.label}
-                                    {link.external && (
-                                      <ArrowUpRight
-                                        className="h-3.5 w-3.5 opacity-0 -translate-x-0.5 transition-all group-hover/item:opacity-60 group-hover/item:translate-x-0"
-                                        aria-hidden="true"
-                                      />
-                                    )}
-                                  </span>
-                                  {link.description && (
-                                    <span class="block text-[13px] font-normal leading-snug text-[rgb(var(--ec-page-text-muted))]">
-                                      {link.description}
-                                    </span>
-                                  )}
-                                </span>
-                              </a>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </li>
-          )
-        )}
-      </ul>
-      <div class="h-5 w-px bg-[rgb(var(--ec-header-border))]" aria-hidden="true" />
-    </div>
-  ) : (
-    <ul data-header-nav class="flex flex-col gap-1 py-3 text-sm font-medium">
-      {items.map((item) =>
+<div data-header-nav-bar class="hidden md:flex shrink-0 items-center gap-2">
+  <ul data-header-nav class="flex items-center gap-0.5">
+    {
+      items.map((item) =>
         item.type === 'link' ? (
           <li>
-            <a {...linkAttributes(item)} class={`block rounded-md px-2.5 py-2 ${navItemStates}`}>
+            <a {...linkAttributes(item)} class="ec-hnav-item ec-hnav-bar">
               {item.label}
+              {item.external && <ArrowUpRight aria-hidden="true" />}
             </a>
           </li>
         ) : (
-          <li class="pt-2">
-            <p class:list={['px-2.5 pb-1', sectionLabelClass]}>{item.label}</p>
-            <ul>
-              {item.sections
-                .flatMap((section) => section.items)
-                .map((link) => (
-                  <li>
-                    <a {...linkAttributes(link)} class={`block rounded-md px-2.5 py-2 ${navItemStates}`}>
-                      {link.label}
-                    </a>
-                  </li>
+          <li class="relative" data-header-menu>
+            <button
+              type="button"
+              class="ec-hnav-item ec-hnav-bar"
+              aria-expanded="false"
+              data-header-menu-button
+              data-active={getHeaderNavigationCurrent(item.match, pathname) ? '' : undefined}
+            >
+              {item.label}
+              <ChevronDown aria-hidden="true" />
+            </button>
+            <div class="ec-hnav-menu">
+              <div class="ec-hnav-panel">
+                {item.sections.map((section) => (
+                  <div>
+                    {section.label && <p class="ec-hnav-label">{section.label}</p>}
+                    <ul>
+                      {section.items.map((link) => {
+                        const Icon = link.icon ? resolveLucideIcon(link.icon) : undefined;
+                        return (
+                          <li>
+                            <a {...linkAttributes(link)} class="ec-hnav-item ec-hnav-link">
+                              {Icon && (
+                                <span class="ec-hnav-icon">
+                                  <Icon strokeWidth={1.75} aria-hidden="true" />
+                                </span>
+                              )}
+                              <span>
+                                <span class="ec-hnav-title">
+                                  {link.label}
+                                  {link.external && <ArrowUpRight aria-hidden="true" />}
+                                </span>
+                                {link.description && <span class="ec-hnav-desc">{link.description}</span>}
+                              </span>
+                            </a>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 ))}
-            </ul>
+              </div>
+            </div>
           </li>
         )
-      )}
-    </ul>
-  )
-}
+      )
+    }
+  </ul>
+  <div class="h-5 w-px bg-[rgb(var(--ec-header-border))]" aria-hidden="true"></div>
+</div>
