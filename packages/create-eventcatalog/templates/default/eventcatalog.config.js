@@ -5,6 +5,12 @@ export default {
     'This internal platform provides a comprehensive view of our event-driven architecture across all systems. Use this portal to discover existing domains, explore services and their dependencies, and understand the message contracts that connect our infrastructure',
   organizationName: '<organizationName>',
   theme: 'sunset',
+  // The color mode visitors see first: 'dark', 'light' or 'system' (follows their OS). Set allowToggle: false to hide
+  // the light/dark toggle in the header and always use the default.
+  colorMode: {
+    default: 'dark',
+    allowToggle: true,
+  },
   homepageLink: 'https://eventcatalog.dev/',
   editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
   // Supports static or server. Static renders a static site, server renders a server side rendered site
