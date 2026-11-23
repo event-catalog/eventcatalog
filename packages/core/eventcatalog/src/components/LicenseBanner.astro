@@ -4,7 +4,7 @@ import { getLicenseNotice } from '@utils/license-notice';
 // A thin bar across the top of the app when something needs doing about the license: it's expired or expiring, or the
 // trial has ended (not while a trial runs, which the header shows).
 // Only while running `eventcatalog dev`.
-// Its height is --ec-banner-height, which the header, the rail and the sidebars move down by (see VerticalSideBarLayout)
+// Its height is --ec-license-banner-height, part of --ec-banner-height, which the header, the rail and the sidebars move down by (see VerticalSideBarLayout)
 const notice = await getLicenseNotice(Astro.url);
 ---
 
@@ -14,7 +14,7 @@ const notice = await getLicenseNotice(Astro.url);
     <div
       id="ec-license-banner"
       role="status"
-      class="fixed inset-x-0 top-0 z-[45] flex h-[var(--ec-banner-height)] items-center justify-center gap-3 border-b border-[rgb(var(--ec-badge-color-amber-text)/0.2)] px-4 text-xs text-[rgb(var(--ec-badge-color-amber-text))]"
+      class="fixed inset-x-0 top-0 z-[45] flex h-[var(--ec-license-banner-height)] items-center justify-center gap-3 border-b border-[rgb(var(--ec-badge-color-amber-text)/0.2)] px-4 text-xs text-[rgb(var(--ec-badge-color-amber-text))]"
       style="background: linear-gradient(rgb(var(--ec-badge-color-amber-background)), rgb(var(--ec-badge-color-amber-background))), rgb(var(--ec-page-bg));"
     >
       <p class="min-w-0 truncate">{notice.message}</p>
