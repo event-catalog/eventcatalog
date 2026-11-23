@@ -35,7 +35,7 @@ export default function SearchResultPreview({
   return (
     <aside
       aria-label={`Preview of ${preview.title}`}
-      className="hidden w-80 shrink-0 flex-col gap-5 overflow-y-auto border-l border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover)/0.4)] p-5 md:flex"
+      className="hidden w-80 shrink-0 flex-col gap-5 overflow-y-auto border-l border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.02)] p-5 md:flex"
     >
       {/* The title (the type under it), then the summary: no icon, as the highlighted row beside it shows one */}
       <div className="flex flex-col gap-2.5">
@@ -78,7 +78,7 @@ export default function SearchResultPreview({
           <a
             href={primary.href}
             onClick={onNavigate}
-            className="inline-flex h-9 w-full items-center justify-between rounded-lg bg-[rgb(var(--ec-page-text))] pl-3.5 pr-2 text-[13px] font-medium text-[rgb(var(--ec-page-bg))] transition-opacity hover:opacity-85"
+            className="inline-flex h-9 w-full items-center justify-between rounded-md bg-[rgb(var(--ec-page-text))] pl-3.5 pr-2 text-[13px] font-medium text-[rgb(var(--ec-page-bg))] transition-opacity hover:opacity-85"
           >
             {primary.label}
             <kbd className="rounded bg-[rgb(var(--ec-page-bg)/0.18)] px-1.5 font-sans text-[11px]" aria-hidden="true">
@@ -93,7 +93,7 @@ export default function SearchResultPreview({
                 key={action.label}
                 href={action.href}
                 onClick={onNavigate}
-                className="inline-flex h-9 items-center justify-center rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] px-3 text-[13px] font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))]"
+                className="inline-flex h-9 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] px-3 text-[13px] font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
               >
                 {action.label}
               </a>

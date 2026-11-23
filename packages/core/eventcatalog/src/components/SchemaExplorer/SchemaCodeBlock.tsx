@@ -1,10 +1,8 @@
 import type { ReactNode } from 'react';
 import { ClipboardDocumentIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
-import { oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import { codeTheme } from './code-theme';
 import { getLanguageForHighlight, SCHEMA_CODE_STYLE } from './utils';
-import { useDarkMode } from './useDarkMode';
 import { renderHighlightedRows } from '@utils/syntax-highlighter-renderer';
 
 export const SCHEMA_CODE_ACTION_CLASS =
@@ -23,8 +21,6 @@ interface SchemaCodeBlockProps {
 
 /** Highlighted schema source with line numbers, as shown on the Schema tab of the Schema Explorer and on specification pages */
 export default function SchemaCodeBlock({ code, extension, onCopy, isCopied, onOpenFullscreen, actions }: SchemaCodeBlockProps) {
-  const isDarkMode = useDarkMode();
-
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-code-bg))]">
       <div className="pointer-events-none absolute right-4 top-4 z-10 flex items-center gap-1.5">
@@ -44,7 +40,7 @@ export default function SchemaCodeBlock({ code, extension, onCopy, isCopied, onO
         <SyntaxHighlighter
           renderer={renderHighlightedRows}
           language={getLanguageForHighlight(extension)}
-          style={isDarkMode ? oneDark : oneLight}
+          style={codeTheme}
           customStyle={{ ...SCHEMA_CODE_STYLE, height: '100%' }}
           showLineNumbers={true}
           wrapLines={true}
