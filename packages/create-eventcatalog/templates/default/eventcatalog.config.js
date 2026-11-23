@@ -24,6 +24,43 @@ export default {
   // read more at https://eventcatalog.dev/docs/development/customization/customize-sidebars/documentation-sidebar
   navigation: {
     pages: ['list:top-level-domains', 'list:top-level-diagrams', 'list:all'],
+    // Links in the header, like a docs site. Point them at your catalog's pages or other sites; an entry with items is a dropdown.
+    // read more at https://eventcatalog.dev/docs/development/customization/header-navigation
+    header: [
+      { label: 'Architecture', href: '/visualiser/system-context-map', match: '/visualiser' },
+      { label: 'Domains', href: '/discover/domains' },
+      { label: 'Schemas', href: '/schemas/explorer', match: '/schemas' },
+      {
+        label: 'Resources',
+        items: [
+          {
+            label: 'Explore',
+            items: [
+              {
+                label: 'Services',
+                href: '/discover/services',
+                icon: 'Server',
+                description: 'What each service sends and receives',
+              },
+              { label: 'Events', href: '/discover/events', icon: 'Zap', description: 'Every event in the architecture' },
+              { label: 'Flows', href: '/discover/flows', icon: 'Workflow', description: 'Business processes, step by step' },
+            ],
+          },
+          {
+            label: 'Organisation',
+            items: [
+              { label: 'Teams', href: '/directory/teams', icon: 'Users', description: 'Who owns what' },
+              {
+                label: 'Entity map',
+                href: '/visualiser/entity-map',
+                icon: 'Database',
+                description: 'The data behind each domain',
+              },
+            ],
+          },
+        ],
+      },
+    ],
   },
   mermaid: {
     enableSupportForElkLayout: true,

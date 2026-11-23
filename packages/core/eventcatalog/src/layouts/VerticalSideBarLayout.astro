@@ -14,6 +14,8 @@ interface Props {
 }
 
 import * as LucideIcons from 'lucide-react';
+import { resolveLucideIcon } from '@utils/lucide-icon';
+import { isExternalNavigationHref, resolveNavigationHref } from '@utils/header-navigation';
 import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
 import AnnouncementBanner from '../components/AnnouncementBanner.astro';
@@ -181,32 +183,6 @@ type VerticalNavigationItem = Required<Pick<NavigationItemConfig, 'id' | 'label'
   rel?: string;
   Icon: any;
 };
-
-const toPascalCase = (value: string) =>
-  value
-    .split(/[-_\s]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('');
-
-const resolveLucideIcon = (icon?: string) => {
-  if (!icon) return LucideIcons.Circle;
-
-  const icons = LucideIcons as unknown as Record<string, any>;
-  return (
-    icons[icon] || icons[`${icon}Icon`] || icons[toPascalCase(icon)] || icons[`${toPascalCase(icon)}Icon`] || LucideIcons.Circle
-  );
-};
-
-const normalizeNavigationHref = (href: string) => {
-  if (/^(https?:)?\/\//.test(href) || href.startsWith('mailto:') || href.startsWith('#')) {
-    return href;
-  }
-
-  return buildUrl(href);
-};
-
-const isExternalNavigationHref = (href: string) => /^https?:\/\//.test(href);
 
 const normalizeNavigationMatch = (match?: string | string[]) => {
   if (!match) return undefined;
@@ -381,7 +357,7 @@ const resolveNavigationItem = (item: NavigationItemConfig): VerticalNavigationIt
   // Studio is only there where canvases are on
   if (builtinId === '/studio' && !item.href && !isCanvasEnabled()) return null;
   const builtin = builtinNavigationItems[builtinId];
-  const href = item.href ? normalizeNavigationHref(item.href) : builtin?.href;
+  const href = item.href ? resolveNavigationHref(item.href) : builtin?.href;
 
   if (!href) return null;
 

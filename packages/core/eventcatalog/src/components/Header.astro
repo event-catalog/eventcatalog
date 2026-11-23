@@ -10,6 +10,8 @@ import { EnvironmentDropdown } from './EnvironmentDropdown';
 import ChatPanelButton from './ChatPanel/ChatPanelButton';
 import ThemeToggle from './ThemeToggle';
 import TrialBadge from './TrialBadge.astro';
+import HeaderNavigation from './HeaderNavigation.astro';
+import { resolveHeaderNavigation } from '@utils/header-navigation';
 
 let session = null;
 if (isAuthEnabled()) {
@@ -34,6 +36,8 @@ const iconMask = (name: string) => {
   const url = buildUrl(`/icons/${name}.svg`, true);
   return `mask: url("${url}") center / contain no-repeat; -webkit-mask: url("${url}") center / contain no-repeat;`;
 };
+
+const headerNavigation = resolveHeaderNavigation(config?.navigation?.header);
 
 const user = session?.user as { name?: string; email?: string; image?: string; provider?: string } | undefined;
 const userName = user?.name || user?.email || 'User';
@@ -63,7 +67,7 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
 >
   <div class="w-full px-6">
     <div class="flex justify-between items-center gap-4">
-      <div class="flex min-w-0 flex-1 items-center gap-2">
+      <div data-header-start class="flex min-w-0 flex-1 items-center gap-2">
         <!-- On the homepage, the catalog's name in place of the search box: its search is the page itself -->
         <p data-header-title class="hidden min-w-0 truncate text-sm font-semibold">{catalogName}</p>
         <div class="hidden lg:block min-w-0 flex-1 max-w-sm">
@@ -71,6 +75,8 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
         </div>
         {isEventCatalogChatVisible() && <ChatPanelButton configured={isEventCatalogChatEnabled()} client:idle />}
       </div>
+
+      {headerNavigation.length > 0 && <HeaderNavigation items={headerNavigation} />}
 
       <div class="hidden md:block shrink-0 ml-auto">
         {
@@ -208,37 +214,39 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
         }
       </div>
 
-      <div class="md:hidden">
-        <button
-          id="menu-toggle"
-          type="button"
-          class="text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-icon-hover))] focus:outline-hidden focus:text-[rgb(var(--ec-icon-hover))]"
-          aria-label="Toggle menu"
-        >
-          <svg viewBox="0 0 24 24" class="h-6 w-6 fill-current">
-            <path
-              fill-rule="evenodd"
-              d="M4 5h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2z"
-            ></path>
-          </svg>
-        </button>
-      </div>
+      {
+        headerNavigation.length > 0 && (
+          <div class="md:hidden" data-header-menu-toggle>
+            <button
+              id="menu-toggle"
+              type="button"
+              class="text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-icon-hover))] focus:outline-hidden focus:text-[rgb(var(--ec-icon-hover))]"
+              aria-label="Toggle menu"
+              aria-controls="mobile-menu"
+              aria-expanded="false"
+            >
+              <svg viewBox="0 0 24 24" class="h-6 w-6 fill-current">
+                <path
+                  fill-rule="evenodd"
+                  d="M4 5h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2z"
+                />
+              </svg>
+            </button>
+          </div>
+        )
+      }
     </div>
 
-    <div id="mobile-menu" class="md:hidden ec-hidden mt-4">
-      <ul class="flex flex-col space-y-8 my-4 mb-8">
-        <!-- {
-          navItems.map((item) => {
-            const isActive = currentPath.includes(item.href);
-            return (
-              <li class={`font-light ${isActive ? 'font-bold text-primary' : ''}`}>
-                <a href={item.href}>{item.label}</a>
-              </li>
-            );
-          })
-        } -->
-      </ul>
-    </div>
+    {
+      headerNavigation.length > 0 && (
+        <div
+          id="mobile-menu"
+          class="md:hidden ec-hidden absolute inset-x-0 top-full border-b border-[rgb(var(--ec-header-border))] bg-[rgb(var(--ec-header-bg))] px-4 shadow-lg max-h-[calc(100vh-var(--ec-header-offset))] overflow-y-auto"
+        >
+          <HeaderNavigation items={headerNavigation} variant="mobile" />
+        </div>
+      )
+    }
   </div>
 </nav>
 
@@ -247,6 +255,50 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
 
 <script>
   import { signOut } from '@utils/auth-astro/client';
+  import { getHeaderNavigationCurrent, type HeaderNavigationMatch } from '@utils/header-navigation';
+
+  // The room the header's start keeps before its links move into the menu (less below lg, where it has no search box),
+  // and the menu button's width
+  const minHeaderStartWidth = () => (window.matchMedia('(min-width: 1024px)').matches ? 240 : 120);
+  const MENU_TOGGLE_WIDTH = 40;
+
+  // Header dropdowns open on hover (CSS), and on a click, tap or key press of their button (data-open)
+  function initializeHeaderMenus(header: HTMLElement) {
+    const menus = Array.from(header.querySelectorAll<HTMLElement>('[data-header-menu]'));
+    const setOpen = (menu: HTMLElement, open: boolean) => {
+      menu.toggleAttribute('data-open', open);
+      menu.querySelector('[data-header-menu-button]')?.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+
+    menus.forEach((menu) => {
+      const button = menu.querySelector<HTMLButtonElement>('[data-header-menu-button]');
+      button?.addEventListener('click', () => setOpen(menu, !menu.hasAttribute('data-open')));
+      menu.addEventListener('focusout', (e) => {
+        if (!menu.contains(e.relatedTarget as Node | null)) setOpen(menu, false);
+      });
+      menu.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape' || !menu.hasAttribute('data-open')) return;
+        setOpen(menu, false);
+        button?.focus();
+      });
+      // A link navigates without reloading the header, so close the menu behind it, even while the pointer is still over
+      // it (data-closing hides it until the pointer leaves)
+      menu.addEventListener('click', (e) => {
+        if (!(e.target as HTMLElement).closest('a')) return;
+        setOpen(menu, false);
+        menu.setAttribute('data-closing', '');
+        (document.activeElement as HTMLElement | null)?.blur();
+      });
+      menu.addEventListener('pointerleave', () => menu.removeAttribute('data-closing'));
+    });
+
+    if (menus.length === 0) return;
+    document.addEventListener('click', (e) => {
+      menus.forEach((menu) => {
+        if (menu.hasAttribute('data-open') && !menu.contains(e.target as Node)) setOpen(menu, false);
+      });
+    });
+  }
 
   function initializeHeader() {
     // ClientRouter fires astro:page-load on the first load too, and the header persists across
@@ -258,9 +310,41 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
     const menuToggle = document.getElementById('menu-toggle');
     const mobileMenu = document.getElementById('mobile-menu');
 
+    initializeHeaderMenus(header);
+
+    // At md and up the sidebar takes room from the header: when the links leave too little for search, they move into
+    // the menu (data-nav-compact). Its width is kept so they come back once there's room for both
+    const headerStart = header.querySelector<HTMLElement>('[data-header-start]');
+    const headerLinks = header.querySelector<HTMLElement>('[data-header-nav-bar]');
+    if (headerStart && headerLinks) {
+      let linksWidth = 0;
+      const fitHeaderLinks = () => {
+        if (!header.hasAttribute('data-nav-compact')) {
+          // Below md the links are hidden (and in the menu) anyway
+          if (headerLinks.offsetWidth === 0 || headerStart.offsetWidth >= minHeaderStartWidth()) return;
+          linksWidth = headerLinks.offsetWidth;
+          header.setAttribute('data-nav-compact', '');
+        } else if (headerStart.offsetWidth - linksWidth - MENU_TOGGLE_WIDTH >= minHeaderStartWidth()) {
+          header.removeAttribute('data-nav-compact');
+        }
+      };
+      // The start block changes width on its own too, as the header's islands (theme toggle, environments) load
+      const observer = new ResizeObserver(fitHeaderLinks);
+      observer.observe(header);
+      observer.observe(headerStart);
+      fitHeaderLinks();
+    }
+
     if (menuToggle && mobileMenu) {
       menuToggle.addEventListener('click', () => {
         mobileMenu.classList.toggle('ec-hidden');
+        menuToggle.setAttribute('aria-expanded', mobileMenu.classList.contains('ec-hidden') ? 'false' : 'true');
+      });
+      // A link in the menu navigates without reloading the header, so close the menu behind it
+      mobileMenu.addEventListener('click', (e) => {
+        if (!(e.target as HTMLElement).closest('a')) return;
+        mobileMenu.classList.add('ec-hidden');
+        menuToggle.setAttribute('aria-expanded', 'false');
       });
     }
 
@@ -303,8 +387,28 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
     }
   }
 
+  // The header is kept across navigations, so its links' current section is marked on every page load
+  function markCurrentHeaderLinks() {
+    document.querySelectorAll<HTMLElement>('#eventcatalog-header [data-nav-match]').forEach((link) => {
+      let match: HeaderNavigationMatch[] = [];
+      try {
+        match = JSON.parse(link.dataset.navMatch || '[]');
+      } catch {}
+      const current = getHeaderNavigationCurrent(match, window.location.pathname);
+      link.toggleAttribute('data-active', Boolean(current));
+      if (link.tagName !== 'A') return;
+      // "page" on the link's own page, "true" on the pages in its section
+      if (current) link.setAttribute('aria-current', current === 'page' ? 'page' : 'true');
+      else link.removeAttribute('aria-current');
+    });
+  }
+
   initializeHeader();
-  document.addEventListener('astro:page-load', initializeHeader);
+  markCurrentHeaderLinks();
+  document.addEventListener('astro:page-load', () => {
+    initializeHeader();
+    markCurrentHeaderLinks();
+  });
 </script>
 
 <style is:global>
@@ -331,6 +435,22 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
   #eventcatalog-application:has([data-search-home]) #eventcatalog-header [data-header-title] {
     display: flex;
   }
+
+  /* Too narrow for the header's links (see fitHeaderLinks): they move into the menu, as on small screens */
+  #eventcatalog-header[data-nav-compact] [data-header-nav-bar] {
+    display: none;
+  }
+  #eventcatalog-header[data-nav-compact] [data-header-menu-toggle] {
+    display: block;
+  }
+  #eventcatalog-header[data-nav-compact] #mobile-menu:not(.ec-hidden) {
+    display: block;
+  }
+  /* A dropdown whose link was just clicked stays closed while the pointer is still over it */
+  #eventcatalog-header [data-header-menu][data-closing] > div {
+    visibility: hidden;
+    opacity: 0;
+  }
 </style>
 
 <style>
@@ -342,16 +462,6 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
   @media (max-width: 768px) {
     nav {
       transition: all 0.3s ease-out;
-    }
-
-    #mobile-menu {
-      transition: all 0.3s ease-out;
-      max-height: 0;
-      overflow: hidden;
-    }
-
-    #mobile-menu:not(.ec-hidden) {
-      max-height: 500px; /* Adjust this value as needed */
     }
   }
 </style>

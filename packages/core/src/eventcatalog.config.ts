@@ -84,6 +84,24 @@ type VerticalNavigationGroupConfig = {
   items?: VerticalNavigationItemConfig[];
 };
 
+type HeaderNavigationLinkConfig = {
+  label: string;
+  /** A catalog path (e.g. /docs/custom) or an external URL, which opens in a new tab */
+  href: string;
+  /** Any icon exported by lucide-react, for example BookOpen. Shown next to the link in a dropdown */
+  icon?: string;
+  /** Shown under the label in a dropdown */
+  description?: string;
+  /** One or more paths that mark this link as the current section. Defaults to the link's own path */
+  match?: string | string[];
+};
+
+type HeaderNavigationDropdownConfig = {
+  label: string;
+  /** Links, or labelled sections of links. Each section is drawn as a column */
+  items: (HeaderNavigationLinkConfig | { label: string; items: HeaderNavigationLinkConfig[] })[];
+};
+
 type GeneratorConfig = string | Record<string, unknown> | [string, Record<string, unknown>];
 
 export type FederationSourceConfig = {
@@ -484,6 +502,10 @@ export interface Config {
      * If omitted, EventCatalog renders the default navigation.
      */
     groups?: VerticalNavigationGroupConfig[];
+    /**
+     * Links shown in the header, like a docs site's navigation bar. An entry with items is a dropdown.
+     */
+    header?: (HeaderNavigationLinkConfig | HeaderNavigationDropdownConfig)[];
   };
   docs?: {
     sidebar: {
