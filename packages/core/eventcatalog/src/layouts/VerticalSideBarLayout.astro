@@ -16,6 +16,7 @@ interface Props {
 import * as LucideIcons from 'lucide-react';
 import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
+import AnnouncementBanner from '../components/AnnouncementBanner.astro';
 import LicenseBanner from '../components/LicenseBanner.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
 import SearchDataLoader from '../components/Search/SearchDataLoader.astro';
@@ -478,13 +479,19 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
         --ec-sidebar-panel-width: 17rem;
         /* The header's height, which the rail's logo row and the sidebars' headers line up with */
         --ec-header-height: 52px;
-        /* The license banner across the top (when there is one), which everything fixed to the top moves down by */
-        --ec-banner-height: 0px;
-        /* Where the page's content starts: under the banner and the header */
+        /* The banners across the top (when there are any): the license banner, then the catalog's announcement under
+           it. Everything fixed to the top moves down by both */
+        --ec-license-banner-height: 0px;
+        --ec-announcement-banner-height: 0px;
+        --ec-banner-height: calc(var(--ec-license-banner-height) + var(--ec-announcement-banner-height));
+        /* Where the page's content starts: under the banners and the header */
         --ec-header-offset: calc(var(--ec-header-height) + var(--ec-banner-height));
       }
       :root:has(#ec-license-banner) {
-        --ec-banner-height: 32px;
+        --ec-license-banner-height: 32px;
+      }
+      :root:not([data-embedded='true']):has(#ec-announcement-banner) {
+        --ec-announcement-banner-height: 32px;
       }
 
       :root[data-vertical-nav-collapsed='true'] {
@@ -547,7 +554,8 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       :root[data-embedded='true'] #eventcatalog-vertical-nav,
       :root[data-embedded='true'] #eventcatalog-header,
       :root[data-embedded='true'] #eventcatalog-header-spacer,
-      :root[data-embedded='true'] #sidebar {
+      :root[data-embedded='true'] #sidebar,
+      :root[data-embedded='true'] #ec-announcement-banner {
         display: none !important;
       }
       :root[data-embedded='true'] .app-shell {
@@ -766,6 +774,7 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
   {/* Load search data even when sidebar is hidden */}
   <SearchDataLoader />
   <LicenseBanner />
+  <AnnouncementBanner />
   <main id="eventcatalog-application" class="relative">
     {
       showHeader && (

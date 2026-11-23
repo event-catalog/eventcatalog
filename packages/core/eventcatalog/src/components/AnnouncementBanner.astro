@@ -1,0 +1,93 @@
+---
+import config from '@config';
+import { getBanner, type BannerType } from '@utils/banner';
+
+// The catalog's announcement (`banner` in eventcatalog.config.js): a thin bar across the top of every page.
+// Its height is --ec-announcement-banner-height, part of --ec-banner-height, which the header, the rail and the sidebars
+// move down by (see VerticalSideBarLayout). It sits under the license banner when both show.
+const banner = getBanner(config);
+
+// Each colour sits over a solid page colour: the dark theme's are see-through, and pages scroll beneath the banner
+const colors: Record<BannerType, { background: string; text: string }> = {
+  info: { background: '--ec-accent-subtle', text: '--ec-accent-text' },
+  warning: { background: '--ec-badge-color-amber-background', text: '--ec-badge-color-amber-text' },
+  danger: { background: '--ec-badge-color-red-background', text: '--ec-badge-color-red-text' },
+};
+const color = banner ? colors[banner.type] : undefined;
+const style = color
+  ? `background: linear-gradient(rgb(var(${color.background})), rgb(var(${color.background}))), rgb(var(--ec-page-bg)); color: rgb(var(${color.text})); border-color: rgb(var(${color.text}) / 0.2);`
+  : undefined;
+const bannerId = banner?.id;
+---
+
+<!-- z-45: above the page, sidebars and rail, below every modal's backdrop (z-50), which darkens it like the rest -->{
+  banner && (
+    <div
+      id="ec-announcement-banner"
+      role="region"
+      aria-label="Announcement"
+      class="fixed inset-x-0 top-[var(--ec-license-banner-height)] z-[45] flex h-[var(--ec-announcement-banner-height)] items-center justify-center gap-3 border-b px-10 text-xs"
+      style={style}
+    >
+      <p class="min-w-0 truncate" title={banner.message}>
+        {banner.message}
+      </p>
+      {banner.link && (
+        <a
+          href={banner.link.href}
+          class="shrink-0 font-semibold underline decoration-current/30 underline-offset-2 transition-colors hover:decoration-current"
+        >
+          {banner.link.label} →
+        </a>
+      )}
+      {banner.dismissible && (
+        <button
+          type="button"
+          data-announcement-dismiss
+          class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 opacity-70 transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-current"
+          aria-label="Dismiss announcement"
+        >
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      )}
+    </div>
+  )
+}
+{
+  banner?.dismissible && (
+    <script is:inline define:vars={{ bannerId }}>
+      // Runs straight after the banner, before it's drawn, so a dismissed banner never shows. The ClientRouter doesn't
+      // run it again on navigation (it's the same script), so the listeners below are registered once, for the tab.
+      (() => {
+        const storageKey = 'eventcatalog-banner-dismissed';
+        const isDismissed = () => {
+          try {
+            return localStorage.getItem(storageKey) === bannerId;
+          } catch {
+            return false;
+          }
+        };
+        const hide = (doc) => doc.getElementById('ec-announcement-banner')?.remove();
+
+        if (isDismissed()) hide(document);
+
+        // Each page brings its own copy of the banner: take it out of the incoming page before it's drawn
+        document.addEventListener('astro:before-swap', (event) => {
+          if (isDismissed()) hide(event.newDocument);
+        });
+
+        document.addEventListener('click', (event) => {
+          if (!(event.target instanceof Element) || !event.target.closest('[data-announcement-dismiss]')) return;
+          try {
+            localStorage.setItem(storageKey, bannerId);
+          } catch {
+            // Storage is blocked: the banner closes for this page only
+          }
+          hide(document);
+        });
+      })();
+    </script>
+  )
+}

@@ -367,6 +367,31 @@ export interface Config {
      */
     allowToggle?: boolean;
   };
+  /**
+   * A banner across the top of every page, for announcements (a migration, an outage, a new process).
+   * @example { message: 'Orders moves to Kafka on 1 March.', link: { label: 'Read the plan', href: '/docs/custom/kafka' } }
+   */
+  banner?: {
+    /** The announcement: plain text on one line (a long message is cut off, with the full text on hover) */
+    message: string;
+    /** A link after the message. A path like '/docs/...' is a page in the catalog; a full URL goes elsewhere */
+    link?: { label: string; href: string };
+    /**
+     * The banner's colour: 'info' (the theme's accent colour), 'warning' (amber) or 'danger' (red)
+     * @default 'info'
+     */
+    type?: 'info' | 'warning' | 'danger';
+    /**
+     * Let visitors close the banner. It stays closed for them until the message (or `id`) changes.
+     * @default true
+     */
+    dismissible?: boolean;
+    /**
+     * What a visitor's dismissal is remembered by. Leave it out and changing the message or link shows the banner
+     * again; set it to keep a reworded banner closed, or change it to show the banner to everyone again.
+     */
+    id?: string;
+  };
   auth?: AuthConfig;
   mcp?: McpConfig;
   /** EventCatalog Studio: collaborative canvases (experimental) */
