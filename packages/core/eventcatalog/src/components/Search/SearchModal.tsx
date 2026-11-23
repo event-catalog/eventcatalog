@@ -1,4 +1,4 @@
-import React, { Fragment, useState, useEffect, useMemo, useRef, type CSSProperties } from 'react';
+import React, { Fragment, useState, useEffect, useMemo, useRef } from 'react';
 import { Combobox, Dialog, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import {
@@ -132,18 +132,10 @@ const loadPagefindModule = (url: string) => {
   return nativeImport(url);
 };
 
-/** An icon given as a full URL (resolveIconUrl keeps those as they are), which may be on a server without CORS */
-const isExternalIcon = (value: string) => /^https?:\/\//i.test(value);
-
-/** An image as a mask, filled with the text colour (for the catalog's own icons: masks need CORS on other servers) */
-const iconMask = (url: string): CSSProperties => {
-  const mask = `url(${JSON.stringify(url)}) center / contain no-repeat`;
-  return { mask, WebkitMask: mask };
-};
-
 /**
- * A result's icon on a neutral chip. One with an icon of its own (a technology's logo) is drawn as a mask in the same
- * colour as the others, so every icon in the list has the same tone
+ * A result's icon on a neutral chip. One with an icon of its own (a technology's logo) is the image in greys, as on the
+ * docs pages (ec-mono-icon): black logos land on the same grey as the other icons, and logos keep their detail (a mask
+ * would flatten ones drawn with white detail, like OpenAPI's, and needs CORS for icons on other servers)
  */
 const ResultIcon = ({
   item,
@@ -163,19 +155,12 @@ const ResultIcon = ({
         box
       )}
     >
-      {item.rawNode?.leftIcon && isExternalIcon(item.rawNode.leftIcon) ? (
-        // An icon on another server: a mask needs that server to allow CORS, so it's an image in greys instead
+      {item.rawNode?.leftIcon ? (
         <img
-          src={item.rawNode.leftIcon}
+          src={resolveIconUrl(item.rawNode.leftIcon)}
           alt=""
           loading="lazy"
-          className={classNames(glyph, 'object-contain ec-mono-icon ec-mono-icon--active')}
-        />
-      ) : item.rawNode?.leftIcon ? (
-        <span
-          aria-hidden="true"
-          className={classNames(glyph, 'bg-current')}
-          style={iconMask(resolveIconUrl(item.rawNode.leftIcon))}
+          className={classNames(glyph, 'object-contain ec-mono-icon')}
         />
       ) : (
         <Icon className={glyph} aria-hidden="true" />
