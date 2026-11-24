@@ -1,0 +1,401 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { buildUrl } from '@utils/url-builder';
+import { getDomains } from '@utils/collections/domains';
+import { getServices } from '@utils/collections/services';
+import { getEvents } from '@utils/collections/events';
+import { getCommands } from '@utils/collections/commands';
+import { getQueries } from '@utils/collections/queries';
+import { getFlows } from '@utils/collections/flows';
+import config from '@config';
+import { ArrowLeft, ArrowRight, House, Layers } from 'lucide-react';
+import '@fontsource/inter';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/700.css';
+import '../styles/tailwind.css';
+import '../styles/theme.css';
+import '../styles/themes/ocean.css';
+import '../styles/themes/sapphire.css';
+import '../styles/themes/sunset.css';
+import '../styles/themes/forest.css';
+
+/**
+ * The catalog's 404 page. A page of its own, outside the app's header and sidebar, so it's plain it's an error and not
+ * part of the catalog, but in the catalog's theme and with its logo. A static build writes it to dist/404.html, which
+ * most static hosts serve for missing paths; on a server it answers unmatched routes and the pages that rewrite to /404
+ * (an unknown resource or version)
+ */
+
+// The catalog's own styles (eventcatalog.styles.css), as every other page has them
+try {
+  await import('@catalog/styles');
+} catch {}
+
+const [domains, services, events, commands, queries, flows] = await Promise.all([
+  getDomains({ getAllVersions: false }),
+  getServices({ getAllVersions: false }),
+  getEvents({ getAllVersions: false, hydrateServices: false }),
+  getCommands({ getAllVersions: false, hydrateServices: false }),
+  getQueries({ getAllVersions: false, hydrateServices: false }),
+  getFlows({ getAllVersions: false }),
+]);
+
+// Browse opens the first type the catalog has any of
+const browseTarget = [
+  { path: '/discover/domains', count: domains.length },
+  { path: '/discover/services', count: services.filter((service) => !service.data.externalSystem).length },
+  { path: '/discover/events', count: events.length },
+  { path: '/discover/commands', count: commands.length },
+  { path: '/discover/queries', count: queries.length },
+  { path: '/discover/flows', count: flows.length },
+].find((target) => target.count > 0);
+
+const homeHref = buildUrl(config.landingPage || '/');
+const browseHref = browseTarget ? buildUrl(browseTarget.path) : undefined;
+const logoSrc = config?.logo?.src ? buildUrl('/' + config.logo.src.replace(/^\/+/, ''), true) : buildUrl('/logo.png', true);
+const logoAlt = config?.logo?.alt || 'EventCatalog';
+const catalogName = config?.logo?.text || config?.organizationName || config?.title || 'EventCatalog';
+---
+
+<BaseLayout title="Page not found">
+  <div class="ec-not-found" data-not-found>
+    <div class="ec-not-found-grid-bg" aria-hidden="true"></div>
+
+    <header class="ec-not-found-top">
+      <a href={homeHref} class="ec-not-found-brand">
+        <img src={logoSrc} alt={logoAlt} class="h-6 w-6" />
+        <span>{catalogName}</span>
+      </a>
+    </header>
+
+    <main class="ec-not-found-main">
+      <p class="ec-not-found-eyebrow">Error 404</p>
+      <h1 class="ec-not-found-code" aria-label="404">404</h1>
+
+      <h2 class="ec-not-found-title">This page doesn't exist</h2>
+      <p class="ec-not-found-lead">
+        The link may be mistyped, or what it pointed to has been moved, renamed or removed from the catalog.
+      </p>
+      <p class="ec-not-found-path" data-not-found-path hidden></p>
+
+      <!-- Filled in by the script below when the missing page belongs to a resource that's still in the catalog -->
+      <a class="ec-not-found-suggestion" data-not-found-suggestion hidden>
+        <span class="min-w-0 text-left">
+          <span class="ec-not-found-suggestion-label">Looking for <span data-not-found-suggestion-name></span>?</span>
+          <span class="ec-not-found-suggestion-description">It's still in the catalog. Go to its latest version.</span>
+        </span>
+        <ArrowRight className="ec-not-found-suggestion-arrow" aria-hidden="true" />
+      </a>
+
+      <div class="ec-not-found-actions">
+        <a href={homeHref} class="ec-not-found-button ec-not-found-button--primary">
+          <House className="h-4 w-4" aria-hidden="true" />
+          Back to home
+        </a>
+        {
+          browseHref && (
+            <a href={browseHref} class="ec-not-found-button">
+              <Layers className="h-4 w-4" aria-hidden="true" />
+              Browse resources
+            </a>
+          )
+        }
+        <button type="button" class="ec-not-found-button" data-not-found-back hidden>
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          Go back
+        </button>
+      </div>
+    </main>
+
+    <footer class="ec-not-found-footer">
+      <a href="https://www.eventcatalog.dev" target="_blank" rel="noopener noreferrer">Powered by EventCatalog</a>
+    </footer>
+  </div>
+</BaseLayout>
+
+<script>
+  import { buildUrl } from '@utils/url-builder';
+
+  // Pages under /docs that aren't resources
+  const NOT_RESOURCE_TYPES = new Set(['custom', 'llm']);
+
+  /** The resource a missing URL belongs to, e.g. /docs/services/OrderService/9.9.9 or /visualiser/services/OrderService */
+  const resourceFromPath = (pathname: string) => {
+    const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
+    const path = base && pathname.startsWith(base) ? pathname.slice(base.length) : pathname;
+    const match = path.match(/^\/(?:docs|visualiser|architecture)\/([^/]+)\/([^/]+)/);
+    if (!match || NOT_RESOURCE_TYPES.has(match[1])) return undefined;
+    try {
+      return { type: match[1], id: decodeURIComponent(match[2]) };
+    } catch {
+      return undefined;
+    }
+  };
+
+  const bind = async () => {
+    const page = document.querySelector<HTMLElement>('[data-not-found]');
+    if (!page || page.dataset.bound) return;
+    page.dataset.bound = 'true';
+
+    // Back, only when there's somewhere in the catalog to go back to
+    const back = page.querySelector<HTMLButtonElement>('[data-not-found-back]');
+    if (back && document.referrer && new URL(document.referrer).origin === window.location.origin) {
+      back.hidden = false;
+      back.addEventListener('click', () => window.history.back());
+    }
+
+    // A static host serves this page at the missing URL, so the browser has the path the reader asked for
+    const { pathname } = window.location;
+    const pathElement = page.querySelector<HTMLElement>('[data-not-found-path]');
+    if (pathElement && !/\/404(\.html)?\/?$/.test(pathname)) {
+      let readablePath = pathname;
+      try {
+        readablePath = decodeURI(pathname);
+      } catch {}
+      pathElement.textContent = readablePath;
+      pathElement.hidden = false;
+    }
+
+    // /docs/{type}/{id} sends you to the resource's latest version, and is only there while the resource is
+    const resource = resourceFromPath(pathname);
+    if (!resource) return;
+    const latestHref = buildUrl(`/docs/${resource.type}/${encodeURIComponent(resource.id)}`);
+    if (new URL(latestHref, window.location.origin).pathname.replace(/\/$/, '') === pathname.replace(/\/$/, '')) return;
+
+    try {
+      const response = await fetch(latestHref, { headers: { accept: 'text/html' } });
+      if (!response.ok) return;
+    } catch {
+      return;
+    }
+
+    const suggestion = page.querySelector<HTMLAnchorElement>('[data-not-found-suggestion]');
+    const name = suggestion?.querySelector<HTMLElement>('[data-not-found-suggestion-name]');
+    if (!suggestion || !name) return;
+    suggestion.href = latestHref;
+    name.textContent = resource.id;
+    suggestion.hidden = false;
+  };
+
+  bind();
+</script>
+
+<style is:global>
+  /*
+   * A page of its own: the catalog's logo at the top, a large 404 in the middle over a faint grid. Monochrome like the rest of the catalog, all from the theme's variables, so it works
+   * light, dark and in custom themes
+   */
+  .ec-not-found {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    min-height: 100vh;
+    min-height: 100dvh;
+    flex-direction: column;
+    overflow: hidden;
+    background: rgb(var(--ec-page-bg));
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgb(var(--ec-page-text));
+    -webkit-font-smoothing: antialiased;
+    --ec-not-found-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    --ec-not-found-line: rgb(var(--ec-page-border));
+  }
+  .ec-not-found-grid-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgb(var(--ec-page-border) / 0.8) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(var(--ec-page-border) / 0.8) 1px, transparent 1px);
+    background-size: 56px 56px;
+    background-position: center center;
+    mask-image: radial-gradient(60% 55% at 50% 45%, #000 10%, transparent 75%);
+    -webkit-mask-image: radial-gradient(60% 55% at 50% 45%, #000 10%, transparent 75%);
+  }
+
+  .ec-not-found-top {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+  }
+  @media (min-width: 768px) {
+    .ec-not-found-top {
+      padding: 1.5rem 2.5rem;
+    }
+  }
+  .ec-not-found-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: rgb(var(--ec-page-text));
+  }
+
+  .ec-not-found-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem 4rem;
+    text-align: center;
+  }
+  .ec-not-found-eyebrow {
+    font-family: var(--ec-not-found-mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(var(--ec-page-text-muted));
+  }
+  /* The large number, fading into the page towards its foot */
+  .ec-not-found-code {
+    margin-top: 0.25rem;
+    font-size: clamp(7rem, 22vw, 13rem);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.07em;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(to bottom, rgb(var(--ec-page-text)) 35%, rgb(var(--ec-page-text) / 0.15));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    user-select: none;
+  }
+
+  .ec-not-found-title {
+    margin-top: 1.75rem;
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+    color: rgb(var(--ec-page-text));
+  }
+  .ec-not-found-lead {
+    margin-top: 0.75rem;
+    max-width: 30rem;
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgb(var(--ec-page-text-muted));
+    text-wrap: balance;
+  }
+  /* The missing path, as the reader typed or followed it */
+  .ec-not-found-path {
+    max-width: min(36rem, 100%);
+    margin-top: 1rem;
+    padding: 2px 8px;
+    overflow-wrap: anywhere;
+    border: 1px solid var(--ec-not-found-line);
+    border-radius: 4px;
+    background: rgb(var(--ec-page-text) / 0.04);
+    font-family: var(--ec-not-found-mono);
+    font-size: 12px;
+    color: rgb(var(--ec-page-text-muted));
+  }
+  .ec-not-found [hidden] {
+    display: none !important;
+  }
+
+  .ec-not-found-suggestion {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 26rem;
+    margin-top: 1.5rem;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--ec-not-found-line);
+    border-radius: 6px;
+    background: rgb(var(--ec-card-bg, var(--ec-page-bg)));
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+    transition: border-color 150ms;
+  }
+  .ec-not-found-suggestion:hover,
+  .ec-not-found-suggestion:focus-visible {
+    border-color: rgb(var(--ec-page-text) / 0.35);
+  }
+  .ec-not-found-suggestion-label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+    color: rgb(var(--ec-page-text));
+  }
+  .ec-not-found-suggestion-description {
+    display: block;
+    margin-top: 2px;
+    font-size: 13px;
+    color: rgb(var(--ec-page-text-muted));
+  }
+  .ec-not-found-suggestion-arrow {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin-left: auto;
+    color: rgb(var(--ec-page-text-muted));
+    transition: transform 150ms;
+  }
+  .ec-not-found-suggestion:hover .ec-not-found-suggestion-arrow {
+    transform: translateX(2px);
+  }
+
+  .ec-not-found-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+  }
+  .ec-not-found-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding: 0 1rem;
+    border: 1px solid var(--ec-not-found-line);
+    border-radius: 6px;
+    background: rgb(var(--ec-page-bg));
+    font-size: 14px;
+    font-weight: 500;
+    color: rgb(var(--ec-page-text));
+    transition:
+      border-color 150ms,
+      background-color 150ms,
+      opacity 150ms;
+  }
+  .ec-not-found-button:hover {
+    border-color: rgb(var(--ec-page-text) / 0.25);
+    background: rgb(var(--ec-page-text) / 0.03);
+  }
+  .ec-not-found-button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgb(var(--ec-page-text) / 0.12);
+  }
+  .ec-not-found-button--primary {
+    border-color: rgb(var(--ec-page-text));
+    background: rgb(var(--ec-page-text));
+    color: rgb(var(--ec-page-bg));
+  }
+  .ec-not-found-button--primary:hover {
+    border-color: rgb(var(--ec-page-text));
+    background: rgb(var(--ec-page-text));
+    opacity: 0.88;
+  }
+
+  .ec-not-found-footer {
+    padding: 1.5rem;
+    text-align: center;
+    font-family: var(--ec-not-found-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: rgb(var(--ec-page-text-muted) / 0.7);
+  }
+  .ec-not-found-footer a:hover {
+    color: rgb(var(--ec-page-text));
+  }
+</style>
