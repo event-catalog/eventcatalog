@@ -36,7 +36,7 @@ function GlowHandle({
         width: 12,
         height: 12,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #0ea5e9, #0369a1)",
+        background: "linear-gradient(135deg, #00a2c7, #107d98)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.dataProduct,
@@ -107,11 +107,11 @@ function Agent(props: AgentNode) {
   const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
-    ? "rgba(239,68,68,0.25)"
-    : "rgba(239,68,68,0.1)";
+    ? "rgba(229,72,77,0.25)"
+    : "rgba(229,72,77,0.1)";
   const draftStripe =
     nodeColor?.draftStripe ??
-    (isDark ? "rgba(14,165,233,0.25)" : "rgba(14,165,233,0.15)");
+    (isDark ? "rgba(0,162,199,0.25)" : "rgba(0,162,199,0.15)");
   const providerLabel = model?.provider;
   const providerIconSrc = getProviderIconSrc(providerLabel, isDark);
   const modelLabel = model?.name;
@@ -120,12 +120,12 @@ function Agent(props: AgentNode) {
     <div
       className={classNames(
         "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
-        props?.selected ? "ring-2 ring-sky-400/60 ring-offset-2" : "",
+        props?.selected ? "ring-2 ring-[#3db9cf]/60 ring-offset-2" : "",
         deprecated
-          ? "border-dashed border-red-500"
+          ? "border-dashed border-[#e5484d]"
           : draft
-            ? "border-dashed border-sky-400"
-            : "border-sky-500",
+            ? "border-dashed border-[#3db9cf]"
+            : "border-[#00a2c7]",
       )}
       style={{
         background: deprecated
@@ -133,7 +133,7 @@ function Agent(props: AgentNode) {
           : draft
             ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), var(--ec-agent-node-bg, rgb(var(--ec-card-bg)))`
             : "var(--ec-agent-node-bg, rgb(var(--ec-card-bg)))",
-        boxShadow: "0 2px 12px rgba(14, 165, 233, 0.15)",
+        boxShadow: "0 2px 12px rgba(0, 162, 199, 0.15)",
         ...(nodeColor && getNodeCardStyle(nodeColor, { deprecated, draft })),
       }}
     >
@@ -161,7 +161,7 @@ function Agent(props: AgentNode) {
         <span
           className={classNames(
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
-            deprecated ? "bg-red-500" : "bg-sky-500",
+            deprecated ? "bg-[#e5484d]" : "bg-[#00a2c7]",
           )}
           style={deprecated ? undefined : nodeColor?.badge}
         >
@@ -188,7 +188,7 @@ function Agent(props: AgentNode) {
           <div className="flex items-baseline gap-1 min-w-0">
             <TruncatedResourceName
               value={name}
-              tooltipBorderColor={nodeColor?.tooltipBorder ?? "#0ea5e9"}
+              tooltipBorderColor={nodeColor?.tooltipBorder ?? "#00a2c7"}
               className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
             >
               {name}
@@ -214,7 +214,7 @@ function Agent(props: AgentNode) {
         {(providerLabel || modelLabel) && (
           <div className="flex items-center gap-1 flex-wrap mt-1.5">
             {providerLabel && (
-              <span className="inline-flex items-center text-[7px] font-bold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-700 dark:text-sky-300 uppercase tracking-wide">
+              <span className="inline-flex items-center text-[7px] font-bold px-1.5 py-0.5 rounded bg-[#00a2c7]/10 text-[#107d98] dark:text-[#7dcedc] uppercase tracking-wide">
                 {providerIconSrc && (
                   <img
                     src={providerIconSrc}
@@ -227,7 +227,7 @@ function Agent(props: AgentNode) {
               </span>
             )}
             {modelLabel && (
-              <span className="inline-flex items-center text-[7px] font-bold px-1.5 py-0.5 rounded bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text-muted))] border border-sky-500/30 max-w-[8.5rem] truncate">
+              <span className="inline-flex items-center text-[7px] font-bold px-1.5 py-0.5 rounded bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text-muted))] border border-[#00a2c7]/30 max-w-[8.5rem] truncate">
                 {modelLabel}
               </span>
             )}
@@ -236,9 +236,9 @@ function Agent(props: AgentNode) {
 
         <OwnerIndicator
           owners={normalizedOwners}
-          accentColor="bg-sky-400"
-          borderColor={nodeColor?.ownerBorder ?? "rgba(14,165,233,0.08)"}
-          iconClass="text-sky-300"
+          accentColor="bg-[#3db9cf]"
+          borderColor={nodeColor?.ownerBorder ?? "rgba(0,162,199,0.08)"}
+          iconClass="text-[#7dcedc]"
           accentStyle={nodeColor?.ownerAccent}
           iconStyle={nodeColor?.ownerIcon}
         />

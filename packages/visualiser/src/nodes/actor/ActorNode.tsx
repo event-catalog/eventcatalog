@@ -25,7 +25,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         width: 12,
         height: 12,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #eab308, #a16207)",
+        background: "linear-gradient(135deg, #ffc53d, #ab6400)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.actor,
@@ -57,7 +57,7 @@ function PostItActor(props: ActorNode) {
     <div
       className={classNames(
         "relative min-w-44 max-w-56 min-h-[120px]",
-        props?.selected ? "ring-2 ring-yellow-400/60 ring-offset-1" : "",
+        props?.selected ? "ring-2 ring-[#e2a336]/60 ring-offset-1" : "",
       )}
     >
       <Handle
@@ -77,14 +77,14 @@ function PostItActor(props: ActorNode) {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(135deg, #fef9c3 0%, #fde047 40%, #eab308 100%)",
+            "linear-gradient(135deg, #fff7c2 0%, #e9c162 40%, #ffc53d 100%)",
           boxShadow:
             "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
           transform: "rotate(1deg)",
           border: deprecated
-            ? "2px dashed rgba(239, 68, 68, 0.5)"
+            ? "2px dashed rgba(229, 72, 77, 0.5)"
             : draft
-              ? "2px dashed rgba(234, 179, 8, 0.5)"
+              ? "2px dashed rgba(255, 197, 61, 0.5)"
               : "none",
         }}
       >
@@ -98,7 +98,7 @@ function PostItActor(props: ActorNode) {
             height: 0,
             borderStyle: "solid",
             borderWidth: "18px 0 0 18px",
-            borderColor: "#a16207 transparent transparent transparent",
+            borderColor: "#ab6400 transparent transparent transparent",
             opacity: 0.3,
           }}
         />
@@ -107,18 +107,18 @@ function PostItActor(props: ActorNode) {
       <div className="relative px-3.5 py-3">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
-            <User className="w-3 h-3 text-yellow-900/50" strokeWidth={2.5} />
-            <span className="text-[8px] font-bold text-yellow-900/50 uppercase tracking-widest">
+            <User className="w-3 h-3 text-[#4f3422]/50" strokeWidth={2.5} />
+            <span className="text-[8px] font-bold text-[#4f3422]/50 uppercase tracking-widest">
               Actor
             </span>
           </div>
           {draft && (
-            <span className="text-[8px] font-extrabold text-amber-900 bg-amber-100 border border-dashed border-amber-400 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[8px] font-extrabold text-[#4f3422] bg-[#fff7c2] border border-dashed border-[#e2a336] px-1.5 py-0.5 rounded uppercase">
               Draft
             </span>
           )}
           {deprecated && (
-            <span className="text-[7px] font-bold text-white bg-red-500 border border-red-600 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[7px] font-bold text-white bg-[#e5484d] border border-[#dc3e42] px-1.5 py-0.5 rounded uppercase">
               Deprecated
             </span>
           )}
@@ -127,10 +127,10 @@ function PostItActor(props: ActorNode) {
         <TruncatedResourceName
           as="div"
           value={name}
-          tooltipBorderColor="#eab308"
+          tooltipBorderColor="#ffc53d"
           className={classNames(
             "text-[13px] font-bold leading-snug truncate",
-            deprecated ? "text-yellow-950/40 line-through" : "text-yellow-950",
+            deprecated ? "text-[#4f3422]/40 line-through" : "text-[#4f3422]",
           )}
         >
           {name}
@@ -138,7 +138,7 @@ function PostItActor(props: ActorNode) {
 
         {mode === "full" && summary && (
           <div
-            className="mt-2 pt-1.5 border-t border-yellow-900/10 text-[9px] text-yellow-950/60 leading-relaxed overflow-hidden"
+            className="mt-2 pt-1.5 border-t border-[#4f3422]/10 text-[9px] text-[#4f3422]/60 leading-relaxed overflow-hidden"
             style={LINE_CLAMP_STYLE}
             title={summary}
           >
@@ -156,27 +156,27 @@ function DefaultActor(props: ActorNode) {
   const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
-    ? "rgba(239,68,68,0.25)"
-    : "rgba(239,68,68,0.1)";
+    ? "rgba(229,72,77,0.25)"
+    : "rgba(229,72,77,0.1)";
 
   return (
     <div
       className={classNames(
         "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
-        props?.selected ? "ring-2 ring-yellow-400/60 ring-offset-2" : "",
+        props?.selected ? "ring-2 ring-[#e2a336]/60 ring-offset-2" : "",
         deprecated
-          ? "border-dashed border-red-500"
+          ? "border-dashed border-[#e5484d]"
           : draft
-            ? `border-dashed ${isDark ? "border-yellow-400" : "border-yellow-400/60"}`
-            : "border-yellow-500",
+            ? `border-dashed ${isDark ? "border-[#e2a336]" : "border-[#e2a336]/60"}`
+            : "border-[#ffc53d]",
       )}
       style={{
         background: deprecated
           ? `repeating-linear-gradient(135deg, transparent, transparent 6px, ${deprecatedStripe} 6px, ${deprecatedStripe} 7px), var(--ec-actor-node-bg, rgb(var(--ec-card-bg)))`
           : draft
-            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${isDark ? "rgba(234,179,8,0.25)" : "rgba(234,179,8,0.15)"} 4px, ${isDark ? "rgba(234,179,8,0.25)" : "rgba(234,179,8,0.15)"} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${isDark ? "rgba(234,179,8,0.25)" : "rgba(234,179,8,0.15)"} 4px, ${isDark ? "rgba(234,179,8,0.25)" : "rgba(234,179,8,0.15)"} 4.5px), var(--ec-actor-node-bg, rgb(var(--ec-card-bg)))`
+            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${isDark ? "rgba(255,197,61,0.25)" : "rgba(255,197,61,0.15)"} 4px, ${isDark ? "rgba(255,197,61,0.25)" : "rgba(255,197,61,0.15)"} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${isDark ? "rgba(255,197,61,0.25)" : "rgba(255,197,61,0.15)"} 4px, ${isDark ? "rgba(255,197,61,0.25)" : "rgba(255,197,61,0.15)"} 4.5px), var(--ec-actor-node-bg, rgb(var(--ec-card-bg)))`
             : "var(--ec-actor-node-bg, rgb(var(--ec-card-bg)))",
-        boxShadow: "0 2px 12px rgba(234, 179, 8, 0.15)",
+        boxShadow: "0 2px 12px rgba(255, 197, 61, 0.15)",
       }}
     >
       <Handle
@@ -200,7 +200,7 @@ function DefaultActor(props: ActorNode) {
         <span
           className={classNames(
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
-            deprecated ? "bg-red-500" : "bg-yellow-500",
+            deprecated ? "bg-[#e5484d]" : "bg-[#ffc53d]",
           )}
         >
           <User className="w-2.5 h-2.5" strokeWidth={2.5} />
@@ -214,7 +214,7 @@ function DefaultActor(props: ActorNode) {
         <TruncatedResourceName
           as="div"
           value={name}
-          tooltipBorderColor="#eab308"
+          tooltipBorderColor="#ffc53d"
           className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
         >
           {name}

@@ -39,7 +39,7 @@ const GlowHandle = memo(function GlowHandle({
         width: 12,
         height: 12,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #22c55e, #15803d)",
+        background: "linear-gradient(135deg, #30a46c, #218358)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.query,
@@ -72,7 +72,7 @@ function PostItQuery(props: QueryNode) {
     <div
       className={classNames(
         "relative min-w-44 max-w-56 min-h-[120px]",
-        props?.selected ? "ring-2 ring-green-400/60 ring-offset-1" : "",
+        props?.selected ? "ring-2 ring-[#5bb98b]/60 ring-offset-1" : "",
       )}
       style={nodeColor?.ring}
     >
@@ -95,14 +95,14 @@ function PostItQuery(props: QueryNode) {
         style={{
           background:
             nodeColor?.paper ??
-            "linear-gradient(135deg, #bbf7d0 0%, #86efac 40%, #22c55e 100%)",
+            "linear-gradient(135deg, #c4e8d1 0%, #8eceaa 40%, #30a46c 100%)",
           boxShadow:
             "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
           transform: "rotate(-1deg)",
           border: deprecated
-            ? "2px dashed rgba(239, 68, 68, 0.5)"
+            ? "2px dashed rgba(229, 72, 77, 0.5)"
             : draft
-              ? `2px dashed ${nodeColor?.paperDraftBorder ?? "rgba(34, 197, 94, 0.5)"}`
+              ? `2px dashed ${nodeColor?.paperDraftBorder ?? "rgba(48, 164, 108, 0.5)"}`
               : "none",
         }}
       >
@@ -117,7 +117,7 @@ function PostItQuery(props: QueryNode) {
             height: 0,
             borderStyle: "solid",
             borderWidth: "18px 0 0 18px",
-            borderColor: `${nodeColor?.corner ?? "#16a34a"} transparent transparent transparent`,
+            borderColor: `${nodeColor?.corner ?? "#2b9a66"} transparent transparent transparent`,
             opacity: 0.3,
           }}
         />
@@ -127,24 +127,24 @@ function PostItQuery(props: QueryNode) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
             <Search
-              className="w-3 h-3 text-green-900/50"
+              className="w-3 h-3 text-[#193b2d]/50"
               strokeWidth={2.5}
               style={nodeColor?.muted}
             />
             <span
-              className="text-[8px] font-bold text-green-900/50 uppercase tracking-widest"
+              className="text-[8px] font-bold text-[#193b2d]/50 uppercase tracking-widest"
               style={nodeColor?.muted}
             >
               {typeLabel}
             </span>
           </div>
           {draft && (
-            <span className="text-[8px] font-extrabold text-amber-900 bg-amber-100 border border-dashed border-amber-400 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[8px] font-extrabold text-[#4f3422] bg-[#fff7c2] border border-dashed border-[#e2a336] px-1.5 py-0.5 rounded uppercase">
               Draft
             </span>
           )}
           {deprecated && (
-            <span className="text-[7px] font-bold text-white bg-red-500 border border-red-600 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[7px] font-bold text-white bg-[#e5484d] border border-[#dc3e42] px-1.5 py-0.5 rounded uppercase">
               Deprecated
             </span>
           )}
@@ -165,14 +165,14 @@ function PostItQuery(props: QueryNode) {
           <TruncatedResourceName
             as="div"
             value={name}
-            tooltipBorderColor={nodeColor?.tooltipBorder ?? "#22c55e"}
+            tooltipBorderColor={nodeColor?.tooltipBorder ?? "#30a46c"}
             style={
               nodeColor &&
               (deprecated ? nodeColor.nameDeprecated : nodeColor.name)
             }
             className={classNames(
               "text-[13px] font-bold leading-snug min-w-0 truncate",
-              deprecated ? "text-green-950/40 line-through" : "text-green-950",
+              deprecated ? "text-[#193b2d]/40 line-through" : "text-[#193b2d]",
             )}
           >
             {name}
@@ -181,7 +181,7 @@ function PostItQuery(props: QueryNode) {
 
         {version && (
           <div
-            className="text-[9px] text-green-900/40 font-semibold mt-0.5"
+            className="text-[9px] text-[#193b2d]/40 font-semibold mt-0.5"
             style={nodeColor?.version}
           >
             v{version}
@@ -190,7 +190,7 @@ function PostItQuery(props: QueryNode) {
 
         {mode === "full" && summary && (
           <div
-            className="mt-2 pt-1.5 border-t border-green-900/10 text-[9px] text-green-950/60 leading-relaxed overflow-hidden"
+            className="mt-2 pt-1.5 border-t border-[#193b2d]/10 text-[9px] text-[#193b2d]/60 leading-relaxed overflow-hidden"
             style={
               nodeColor
                 ? { ...LINE_CLAMP_STYLE, ...nodeColor.summary }
@@ -232,22 +232,22 @@ function DefaultQuery(props: QueryNode) {
   const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
-    ? "rgba(239,68,68,0.25)"
-    : "rgba(239,68,68,0.1)";
+    ? "rgba(229,72,77,0.25)"
+    : "rgba(229,72,77,0.1)";
   const draftStripe =
     nodeColor?.draftStripe ??
-    (isDark ? "rgba(34,197,94,0.25)" : "rgba(34,197,94,0.15)");
+    (isDark ? "rgba(48,164,108,0.25)" : "rgba(48,164,108,0.15)");
 
   return (
     <div
       className={classNames(
         "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
-        props?.selected ? "ring-2 ring-green-400/60 ring-offset-2" : "",
+        props?.selected ? "ring-2 ring-[#5bb98b]/60 ring-offset-2" : "",
         deprecated
-          ? "border-dashed border-red-500"
+          ? "border-dashed border-[#e5484d]"
           : draft
-            ? `border-dashed ${isDark ? "border-green-400" : "border-green-400/60"}`
-            : "border-green-500",
+            ? `border-dashed ${isDark ? "border-[#5bb98b]" : "border-[#5bb98b]/60"}`
+            : "border-[#30a46c]",
       )}
       style={{
         background: deprecated
@@ -255,7 +255,7 @@ function DefaultQuery(props: QueryNode) {
           : draft
             ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), var(--ec-query-node-bg, rgb(var(--ec-card-bg)))`
             : "var(--ec-query-node-bg, rgb(var(--ec-card-bg)))",
-        boxShadow: "0 2px 12px rgba(34, 197, 94, 0.15)",
+        boxShadow: "0 2px 12px rgba(48, 164, 108, 0.15)",
         ...(nodeColor && getNodeCardStyle(nodeColor, { deprecated, draft })),
       }}
     >
@@ -285,7 +285,7 @@ function DefaultQuery(props: QueryNode) {
         <span
           className={classNames(
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
-            deprecated ? "bg-red-500" : "bg-green-500",
+            deprecated ? "bg-[#e5484d]" : "bg-[#30a46c]",
           )}
           style={deprecated ? undefined : nodeColor?.badge}
         >
@@ -298,7 +298,7 @@ function DefaultQuery(props: QueryNode) {
       {/* Schema badge top-right */}
       {schema && (
         <span
-          className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-green-500 rounded-full px-1.5 py-0.5 uppercase tracking-wide"
+          className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-[#30a46c] rounded-full px-1.5 py-0.5 uppercase tracking-wide"
           style={{
             position: "absolute",
             top: -8,
@@ -336,7 +336,7 @@ function DefaultQuery(props: QueryNode) {
             <div className="flex items-baseline gap-1 min-w-0">
               <TruncatedResourceName
                 value={name}
-                tooltipBorderColor={nodeColor?.tooltipBorder ?? "#22c55e"}
+                tooltipBorderColor={nodeColor?.tooltipBorder ?? "#30a46c"}
                 className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
               >
                 {name}
@@ -369,9 +369,9 @@ function DefaultQuery(props: QueryNode) {
         {/* Owners */}
         <OwnerIndicator
           owners={owners}
-          accentColor="bg-green-400"
-          borderColor={nodeColor?.ownerBorder ?? "rgba(34,197,94,0.08)"}
-          iconClass="text-green-300"
+          accentColor="bg-[#5bb98b]"
+          borderColor={nodeColor?.ownerBorder ?? "rgba(48,164,108,0.08)"}
+          iconClass="text-[#8eceaa]"
           accentStyle={nodeColor?.ownerAccent}
           iconStyle={nodeColor?.ownerIcon}
         />

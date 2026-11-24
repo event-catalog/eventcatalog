@@ -132,7 +132,7 @@ export default memo(function CustomEdge({
         <EdgeLabelPortal>
           <div
             style={labelPositionStyle}
-            className={`ec-edge-label ${crossDomain ? CROSS_DOMAIN_CLASS : ""} nodrag nopan max-w-[120px] text-xs bg-[rgb(var(--ec-card-bg))] px-2 py-1 rounded border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] font-medium shadow-sm text-center`}
+            className={`ec-edge-label ${crossDomain ? CROSS_DOMAIN_CLASS : ""} nodrag nopan max-w-[120px] text-[10px] leading-[14px] tracking-[-0.01em] bg-[rgb(var(--ec-card-bg))] px-1.5 py-0.5 rounded-[5px] border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.06),0_2px_8px_-2px_rgba(0,0,0,0.08)] text-center`}
           >
             {label}
           </div>

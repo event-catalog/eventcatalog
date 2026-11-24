@@ -212,7 +212,7 @@ export default memo(function CanvasControls({
           onClick={onToggleNoteMode}
         >
           <WithKey shortcut="N">
-            <StickyNote className="h-4 w-4 text-yellow-500" />
+            <StickyNote className="h-4 w-4 text-[#ffc53d]" />
           </WithKey>
         </ToolbarButton>
         {/* Excalidraw's text tool: click anywhere and type */}

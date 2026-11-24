@@ -33,12 +33,12 @@ const CONTAINER_STYLE = {
   width: "100%",
   height: "100%",
   borderRadius: 14,
-  border: "2px solid var(--ec-system-group-border, #c4b5fd)",
+  border: "2px solid var(--ec-system-group-border, #c2b5f5)",
   // Slightly gray, translucent body so the grouped children read as "inside".
-  backgroundColor: "var(--ec-system-group-bg, rgba(100, 116, 139, 0.06))",
+  backgroundColor: "var(--ec-system-group-bg, rgba(141, 141, 141, 0.06))",
   position: "relative" as const,
   overflow: "visible" as const,
-  boxShadow: "0 2px 16px rgba(139, 92, 246, 0.10)",
+  boxShadow: "0 2px 16px rgba(110, 86, 207, 0.10)",
 } as const;
 
 const HEADER_STYLE = {
@@ -50,8 +50,8 @@ const HEADER_STYLE = {
   borderTopLeftRadius: 12,
   borderTopRightRadius: 12,
   // Faint violet wash on the header, separated from the body by a hairline.
-  background: "var(--ec-system-group-header-bg, rgba(139, 92, 246, 0.05))",
-  borderBottom: "1px solid var(--ec-system-group-border, #c4b5fd)",
+  background: "var(--ec-system-group-header-bg, rgba(110, 86, 207, 0.05))",
+  borderBottom: "1px solid var(--ec-system-group-border, #c2b5f5)",
   display: "flex",
   alignItems: "center" as const,
   padding: "0 16px",
@@ -71,7 +71,7 @@ const BADGE_STYLE = {
   letterSpacing: "0.12em",
   textTransform: "uppercase" as const,
   color: "white",
-  background: "#8b5cf6",
+  background: "#6e56cf",
   padding: "2px 7px",
   borderRadius: 5,
   boxShadow: "0 1px 2px rgba(0,0,0,0.12)",
@@ -82,30 +82,30 @@ const NAME_STYLE = {
   fontSize: 14,
   fontWeight: 700,
   // Falls back to the group text colour, which is lighter in dark mode
-  color: "var(--ec-system-group-text, var(--ec-group-text, #5b21b6))",
+  color: "var(--ec-system-group-text, var(--ec-group-text, #6550b9))",
   whiteSpace: "nowrap" as const,
 } as const;
 
 const VERSION_STYLE = {
   fontSize: 10,
   fontWeight: 500,
-  color: "#a78bfa",
+  color: "#aa99ec",
   marginLeft: 6,
 } as const;
 
 // Domains use the same boundary box, in the domain colour (yellow)
 const DOMAIN_CONTAINER_STYLE = {
   ...CONTAINER_STYLE,
-  border: "2px solid var(--ec-domain-group-border, #facc15)",
-  backgroundColor: "var(--ec-domain-group-bg, rgba(250, 204, 21, 0.04))",
-  boxShadow: "0 2px 16px rgba(234, 179, 8, 0.10)",
+  border: "2px solid var(--ec-domain-group-border, #e2a336)",
+  backgroundColor: "var(--ec-domain-group-bg, rgba(226, 163, 54, 0.04))",
+  boxShadow: "0 2px 16px rgba(255, 197, 61, 0.10)",
 } as const;
 const DOMAIN_HEADER_STYLE = {
   ...HEADER_STYLE,
-  background: "var(--ec-domain-group-header-bg, rgba(250, 204, 21, 0.08))",
-  borderBottom: "1px solid var(--ec-domain-group-border, #facc15)",
+  background: "var(--ec-domain-group-header-bg, rgba(226, 163, 54, 0.08))",
+  borderBottom: "1px solid var(--ec-domain-group-border, #e2a336)",
 } as const;
-const DOMAIN_BADGE_STYLE = { ...BADGE_STYLE, background: "#eab308" } as const;
+const DOMAIN_BADGE_STYLE = { ...BADGE_STYLE, background: "#ffc53d" } as const;
 const DOMAIN_NAME_STYLE = {
   ...NAME_STYLE,
   color: "var(--ec-domain-group-text, rgb(var(--ec-page-text)))",
@@ -149,7 +149,7 @@ export default memo(function SystemGroupNode({ data }: NodeProps) {
       >
         <TruncatedResourceName
           value={resource?.name || typeLabel}
-          tooltipBorderColor={isDomain ? "#eab308" : "#8b5cf6"}
+          tooltipBorderColor={isDomain ? "#ffc53d" : "#6e56cf"}
           className="truncate"
           style={isDomain ? DOMAIN_NAME_STYLE : NAME_STYLE}
         >

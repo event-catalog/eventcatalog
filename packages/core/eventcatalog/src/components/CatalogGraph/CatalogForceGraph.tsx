@@ -22,12 +22,13 @@
  * double-click to open its docs, click the background to clear focus.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { forceCenter, forceCollide, forceLink, forceManyBody, forceSimulation, forceX, forceY } from 'd3-force';
 import { select } from 'd3-selection';
 import { zoom, zoomIdentity } from 'd3-zoom';
 import type { ZoomTransform } from 'd3-zoom';
 import { drag } from 'd3-drag';
-import { getColorForCollection, tailwind500RgbByColor } from '@utils/collection-colors';
+import { getColorForCollection, radixRgbByColor } from '@utils/collection-colors';
 import { getIconForCollection } from '@utils/collections/icons';
 import { buildUrl } from '@utils/url-builder';
 import type { CatalogGraphWireLink, CatalogGraphWireNode } from '@utils/node-graphs/catalog-force-graph';
@@ -162,7 +163,8 @@ const LENSES: Record<string, Lens> = {
 /** Ownership edges are social, not structural — never route cluster assignment through them */
 const OWNERSHIP_EDGE_LABELS = new Set(['owned by']);
 
-const nodeColor = (collection: string) => `rgb(${tailwind500RgbByColor[getColorForCollection(collection)]})`;
+// Each resource's colour as the visualiser's nodes draw it (Radix's scales)
+const nodeColor = (collection: string) => `rgb(${radixRgbByColor[getColorForCollection(collection)]})`;
 
 const nodeRadius = (degree: number, isHub = false) =>
   isHub ? Math.min(16 + Math.sqrt(degree) * 3, 38) : Math.min(6 + Math.sqrt(degree) * 2.5, 22);
@@ -212,6 +214,44 @@ const MAX_FIT_SCALE = 2.5;
 
 /** The lens detail slider's top position means "show everything" */
 const MAX_LENS_DEPTH = 4;
+
+/** A few steps to pick from (a depth): a small segmented control, the picked step filled in the text colour */
+function Segmented({
+  label,
+  steps,
+  value,
+  onChange,
+}: {
+  label: string;
+  steps: { value: number; label: string }[];
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    // A group of toggle buttons (aria-pressed): radio roles would promise arrow-key navigation these don't have
+    <div
+      role="group"
+      aria-label={label}
+      className="inline-flex gap-0.5 rounded-md border border-[rgb(var(--ec-page-border))] p-0.5"
+    >
+      {steps.map((step) => (
+        <button
+          key={step.value}
+          type="button"
+          aria-pressed={value === step.value}
+          onClick={() => onChange(step.value)}
+          className={`h-6 min-w-6 rounded-[4px] px-1.5 font-mono text-[11px] transition-colors ${
+            value === step.value
+              ? 'bg-[rgb(var(--ec-page-text))] text-[rgb(var(--ec-page-bg))]'
+              : 'text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-page-text)/0.06)] hover:text-[rgb(var(--ec-page-text))]'
+          }`}
+        >
+          {step.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 const escapeHtml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -572,7 +612,7 @@ const CatalogForceGraph = ({
   // Chip/badge colours derive from the collection palette (inline styles because
   // the class names would be dynamic, which Tailwind can't see)
   const collectionChipStyle = (collection: string) => {
-    const rgb = tailwind500RgbByColor[getColorForCollection(collection)];
+    const rgb = radixRgbByColor[getColorForCollection(collection)];
     return {
       border: `1px solid rgb(${rgb} / 0.25)`,
       backgroundColor: `rgb(${rgb} / 0.1)`,
@@ -691,7 +731,8 @@ const CatalogForceGraph = ({
     let theme = { bg: '', text: '', muted: '' };
     const resolveTheme = () => {
       theme = {
-        bg: readThemeColor(container, '--ec-page-bg', 'rgb(255 255 255)'),
+        // The canvas's tone (as the visualiser's), so nodes' outlines match what's behind them
+        bg: readThemeColor(container, '--ec-graph-canvas-bg', 'rgb(250 250 250)'),
         text: readThemeColor(container, '--ec-page-text', 'rgb(17 24 39)'),
         muted: readThemeColor(container, '--ec-page-text-muted', 'rgb(107 114 128)'),
       };
@@ -1286,7 +1327,7 @@ const CatalogForceGraph = ({
   return (
     <div
       ref={containerRef}
-      className={`relative h-full w-full overflow-hidden motion-safe:transition-opacity motion-safe:duration-500 ${visible ? 'opacity-100' : 'opacity-0'}`}
+      className={`relative h-full w-full overflow-hidden bg-[rgb(var(--ec-graph-canvas-bg))] motion-safe:transition-opacity motion-safe:duration-500 ${visible ? 'opacity-100' : 'opacity-0'}`}
     >
       {/* Hidden icon sources: React renders them once, the sprite effect rasterises
           them for the canvas. Both lucide (color prop) and heroicons (currentColor
@@ -1304,17 +1345,18 @@ const CatalogForceGraph = ({
       <canvas ref={canvasRef} role="img" aria-label="Catalog resource graph" />
       <div
         ref={tooltipRef}
-        className="pointer-events-none absolute z-10 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] shadow-md transition-opacity duration-100"
+        className="pointer-events-none absolute z-10 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] shadow-[0_1px_2px_rgb(0_0_0/0.06),0_8px_24px_-8px_rgb(0_0_0/0.18)] transition-opacity duration-100"
         style={{ opacity: 0 }}
       />
       {/* Top-left chrome stacks in one column so the link and lens picker never overlap */}
       <div className="absolute left-3 top-3 z-10 flex flex-col items-start gap-2">
         {showLensPicker && (
-          <div className="flex flex-col gap-2 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs shadow-xs">
-            <div className="flex items-center gap-2">
-              <label htmlFor="catalog-graph-lens" className="font-semibold text-[rgb(var(--ec-page-text))]">
-                Lens
-              </label>
+          // Labels in one column, their controls in the next
+          <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] p-2.5 text-xs shadow-[0_1px_2px_rgb(0_0_0/0.06),0_8px_24px_-8px_rgb(0_0_0/0.18)]">
+            <label htmlFor="catalog-graph-lens" className="text-xs text-[rgb(var(--ec-page-text-muted))]">
+              Lens
+            </label>
+            <div className="relative">
               <select
                 id="catalog-graph-lens"
                 value={lensKey}
@@ -1326,7 +1368,7 @@ const CatalogForceGraph = ({
                   setHiddenCollections(new Set());
                 }}
                 title={lens.description}
-                className="rounded-sm border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] px-2 py-1 text-[rgb(var(--ec-input-text))]"
+                className="h-7 w-full min-w-36 cursor-pointer appearance-none rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] pl-2 pr-7 text-[13px] text-[rgb(var(--ec-page-text))] transition-[border-color,box-shadow] hover:border-[rgb(var(--ec-page-text)/0.25)] focus:border-[rgb(var(--ec-page-text)/0.4)] focus:shadow-[0_0_0_3px_rgb(var(--ec-page-text)/0.08)] focus:outline-hidden"
               >
                 {Object.entries(LENSES).map(([key, { label }]) => (
                   <option key={key} value={key}>
@@ -1334,31 +1376,36 @@ const CatalogForceGraph = ({
                   </option>
                 ))}
               </select>
+              <ChevronDown
+                aria-hidden="true"
+                className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[rgb(var(--ec-page-text-muted))]"
+              />
             </div>
             {lens.hubCollections && !focusedNode && (
-              <label
-                className="flex items-center gap-2 text-[rgb(var(--ec-page-text-muted))]"
-                title="How many relationship hops to show around the anchor nodes"
-              >
-                Detail
-                <input
-                  type="range"
-                  min={1}
-                  max={MAX_LENS_DEPTH}
-                  step={1}
+              <>
+                <span
+                  className="text-xs text-[rgb(var(--ec-page-text-muted))]"
+                  title="How many relationship hops to show around the anchor nodes"
+                >
+                  Detail
+                </span>
+                <Segmented
+                  label="Detail"
+                  steps={[1, 2, 3, MAX_LENS_DEPTH].map((depth) => ({
+                    value: depth,
+                    label: depth >= MAX_LENS_DEPTH ? 'All' : String(depth),
+                  }))}
                   value={lensDepth}
-                  onChange={(event) => setLensDepth(Number(event.target.value))}
-                  className="w-24 accent-[rgb(var(--ec-accent))]"
+                  onChange={setLensDepth}
                 />
-                <span className="w-5 text-[rgb(var(--ec-page-text))]">{lensDepth >= MAX_LENS_DEPTH ? 'All' : lensDepth}</span>
-              </label>
+              </>
             )}
           </div>
         )}
         {openInGraphHref && (
           <a
             href={openInGraphHref}
-            className="rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] shadow-xs hover:bg-[rgb(var(--ec-accent-subtle))]"
+            className="rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] shadow-[0_1px_2px_rgb(0_0_0/0.06),0_8px_24px_-8px_rgb(0_0_0/0.18)] hover:bg-[rgb(var(--ec-page-text)/0.05)]"
           >
             {openInGraphLabel ?? 'Open full screen'} →
           </a>
@@ -1366,7 +1413,7 @@ const CatalogForceGraph = ({
       </div>
       {(showSearch || focusedNode) && (
         // z-20: the search dropdown must paint over the Resources legend below it
-        <div className="absolute right-3 top-3 z-20 flex flex-col gap-2 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs shadow-xs">
+        <div className="absolute right-3 top-3 z-20 flex flex-col gap-2 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs shadow-[0_1px_2px_rgb(0_0_0/0.06),0_8px_24px_-8px_rgb(0_0_0/0.18)]">
           {showSearch && (
             <div ref={searchContainerRef} className="relative">
               <input
@@ -1380,7 +1427,7 @@ const CatalogForceGraph = ({
                 }}
                 onFocus={() => setShowSuggestions(true)}
                 onKeyDown={handleSearchKeyDown}
-                className="w-56 rounded-sm border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] py-1 pl-2 pr-7 text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-page-text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
+                className="w-56 rounded-md border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] focus:border-[rgb(var(--ec-page-text)/0.4)] focus:outline-hidden py-1 pl-2 pr-7 text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-page-text-muted))] focus:shadow-[0_0_0_3px_rgb(var(--ec-page-text)/0.08)]"
               />
               {searchValue && (
                 <button
@@ -1393,7 +1440,7 @@ const CatalogForceGraph = ({
                 </button>
               )}
               {showSuggestions && searchSuggestions.length > 0 && (
-                <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-lg">
+                <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-lg">
                   {searchSuggestions.map((node, index) => {
                     const Icon = getIconForCollection(node.collection);
                     const chipStyle = collectionChipStyle(node.collection);
@@ -1404,7 +1451,7 @@ const CatalogForceGraph = ({
                         type="button"
                         onClick={() => selectSuggestion(node)}
                         onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                        className={`flex w-full items-center gap-2 px-2 py-1.5 text-left ${isSelected ? 'bg-[rgb(var(--ec-accent-subtle))]' : ''}`}
+                        className={`flex w-full items-center gap-2 px-2 py-1.5 text-left ${isSelected ? 'bg-[rgb(var(--ec-page-text)/0.06)]' : ''}`}
                       >
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md" style={chipStyle}>
                           <Icon width={13} height={13} />
@@ -1432,7 +1479,7 @@ const CatalogForceGraph = ({
               <button
                 type="button"
                 onClick={() => setFocusKey(null)}
-                className="flex items-center gap-1 self-start rounded-full border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 text-[rgb(var(--ec-page-text))] hover:opacity-80"
+                className="flex items-center gap-1 self-start rounded-full border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-2 py-0.5 text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
                 title="Clear focus"
               >
                 <span
@@ -1442,26 +1489,22 @@ const CatalogForceGraph = ({
                 Focused: {focusedNode.label}
                 <span aria-hidden="true">×</span>
               </button>
-              <label className="flex items-center gap-2 text-[rgb(var(--ec-page-text-muted))]">
-                Depth
-                <input
-                  type="range"
-                  min={1}
-                  max={3}
-                  step={1}
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">Depth</span>
+                <Segmented
+                  label="Depth"
+                  steps={[1, 2, 3].map((depth) => ({ value: depth, label: String(depth) }))}
                   value={focusDepth}
-                  onChange={(event) => setFocusDepth(Number(event.target.value))}
-                  className="w-24 accent-[rgb(var(--ec-accent))]"
+                  onChange={setFocusDepth}
                 />
-                <span className="w-3 text-[rgb(var(--ec-page-text))]">{focusDepth}</span>
-              </label>
+              </div>
             </>
           )}
         </div>
       )}
       {focusedNode && (
-        <div className="absolute bottom-3 left-3 z-10 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] p-3 text-xs shadow-xs">
-          <div className="mb-2 font-semibold text-[rgb(var(--ec-page-text))]">You are here</div>
+        <div className="absolute bottom-3 left-3 z-10 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] p-3 text-xs shadow-[0_1px_2px_rgb(0_0_0/0.06),0_8px_24px_-8px_rgb(0_0_0/0.18)]">
+          <div className="mb-1.5 px-1 text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))]">You are here</div>
           <ul className="space-y-1">
             {[...focusAncestors].reverse().map((ancestor, index) => (
               <li key={ancestor.key} style={{ paddingLeft: index * 14 }}>
@@ -1469,7 +1512,7 @@ const CatalogForceGraph = ({
                   type="button"
                   onClick={() => setFocusKey(ancestor.key)}
                   title={`Focus ${ancestor.label}`}
-                  className="flex w-full items-center gap-1.5 rounded-sm px-1 py-0.5 text-left hover:bg-[rgb(var(--ec-accent-subtle))]"
+                  className="flex w-full items-center gap-1.5 rounded-md px-1 py-0.5 text-left hover:bg-[rgb(var(--ec-page-text)/0.05)]"
                 >
                   {index > 0 && <span className="text-[rgb(var(--ec-page-text-muted))]">↳</span>}
                   <span
@@ -1500,8 +1543,8 @@ const CatalogForceGraph = ({
         </div>
       )}
       {showLegend && (
-        <div className="absolute bottom-3 right-3 z-10 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] p-3 text-xs shadow-xs">
-          <div className="mb-2 font-semibold text-[rgb(var(--ec-page-text))]">Resources</div>
+        <div className="absolute bottom-3 right-3 z-10 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] p-3 text-xs shadow-[0_1px_2px_rgb(0_0_0/0.06),0_8px_24px_-8px_rgb(0_0_0/0.18)]">
+          <div className="mb-1.5 px-1 text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))]">Resources</div>
           <ul className="space-y-1">
             {collectionsInGraph.map(({ collection, count }) => {
               const hidden = hiddenCollections.has(collection);
@@ -1510,7 +1553,7 @@ const CatalogForceGraph = ({
                   <button
                     type="button"
                     onClick={() => toggleCollection(collection)}
-                    className={`flex w-full items-center gap-2 rounded-sm px-1 py-0.5 text-left hover:bg-[rgb(var(--ec-accent-subtle))] ${hidden ? 'opacity-40' : ''}`}
+                    className={`flex w-full items-center gap-2 rounded-md px-1 py-0.5 text-left hover:bg-[rgb(var(--ec-page-text)/0.05)] ${hidden ? 'opacity-40' : ''}`}
                   >
                     <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: nodeColor(collection) }} />
                     <span className="text-[rgb(var(--ec-page-text))]">

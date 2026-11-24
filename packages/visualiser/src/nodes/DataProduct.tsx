@@ -33,7 +33,7 @@ function GlowHandle({
         width: 12,
         height: 12,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #6366f1, #4338ca)",
+        background: "linear-gradient(135deg, #3e63dd, #3a5bc7)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.dataProduct,
@@ -81,7 +81,7 @@ function PostItDataProduct(props: DataProductNode) {
     <div
       className={classNames(
         "relative min-w-44 max-w-56 min-h-[120px]",
-        props?.selected ? "ring-2 ring-indigo-400/60 ring-offset-1" : "",
+        props?.selected ? "ring-2 ring-[#8da4ef]/60 ring-offset-1" : "",
       )}
       style={nodeColor?.ring}
     >
@@ -104,14 +104,14 @@ function PostItDataProduct(props: DataProductNode) {
         style={{
           background:
             nodeColor?.paper ??
-            "linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 40%, #6366f1 100%)",
+            "linear-gradient(135deg, #d2deff 0%, #abbdf9 40%, #3e63dd 100%)",
           boxShadow:
             "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
           transform: "rotate(1deg)",
           border: deprecated
-            ? "2px dashed rgba(239, 68, 68, 0.5)"
+            ? "2px dashed rgba(229, 72, 77, 0.5)"
             : draft
-              ? `2px dashed ${nodeColor?.paperDraftBorder ?? "rgba(99, 102, 241, 0.5)"}`
+              ? `2px dashed ${nodeColor?.paperDraftBorder ?? "rgba(62, 99, 221, 0.5)"}`
               : "none",
         }}
       >
@@ -126,7 +126,7 @@ function PostItDataProduct(props: DataProductNode) {
             height: 0,
             borderStyle: "solid",
             borderWidth: "18px 0 0 18px",
-            borderColor: `${nodeColor?.corner ?? "#4338ca"} transparent transparent transparent`,
+            borderColor: `${nodeColor?.corner ?? "#3a5bc7"} transparent transparent transparent`,
             opacity: 0.3,
           }}
         />
@@ -138,24 +138,24 @@ function PostItDataProduct(props: DataProductNode) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
             <Package
-              className="w-3 h-3 text-indigo-900/50"
+              className="w-3 h-3 text-[#1f2d5c]/50"
               strokeWidth={2.5}
               style={nodeColor?.muted}
             />
             <span
-              className="text-[8px] font-bold text-indigo-900/50 uppercase tracking-widest"
+              className="text-[8px] font-bold text-[#1f2d5c]/50 uppercase tracking-widest"
               style={nodeColor?.muted}
             >
               {typeLabel}
             </span>
           </div>
           {draft && (
-            <span className="text-[8px] font-extrabold text-amber-900 bg-amber-100 border border-dashed border-amber-400 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[8px] font-extrabold text-[#4f3422] bg-[#fff7c2] border border-dashed border-[#e2a336] px-1.5 py-0.5 rounded uppercase">
               Draft
             </span>
           )}
           {deprecated && (
-            <span className="text-[7px] font-bold text-white bg-red-500 border border-red-600 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[7px] font-bold text-white bg-[#e5484d] border border-[#dc3e42] px-1.5 py-0.5 rounded uppercase">
               Deprecated
             </span>
           )}
@@ -177,16 +177,14 @@ function PostItDataProduct(props: DataProductNode) {
           <TruncatedResourceName
             as="div"
             value={name}
-            tooltipBorderColor={nodeColor?.tooltipBorder ?? "#6366f1"}
+            tooltipBorderColor={nodeColor?.tooltipBorder ?? "#3e63dd"}
             style={
               nodeColor &&
               (deprecated ? nodeColor.nameDeprecated : nodeColor.name)
             }
             className={classNames(
               "text-[13px] font-bold leading-snug min-w-0 truncate",
-              deprecated
-                ? "text-indigo-950/40 line-through"
-                : "text-indigo-950",
+              deprecated ? "text-[#1f2d5c]/40 line-through" : "text-[#1f2d5c]",
             )}
           >
             {name}
@@ -196,7 +194,7 @@ function PostItDataProduct(props: DataProductNode) {
         {/* Version */}
         {version && (
           <div
-            className="text-[9px] text-indigo-900/40 font-semibold mt-0.5"
+            className="text-[9px] text-[#1f2d5c]/40 font-semibold mt-0.5"
             style={nodeColor?.version}
           >
             v{version}
@@ -206,7 +204,7 @@ function PostItDataProduct(props: DataProductNode) {
         {/* Summary */}
         {mode === "full" && summary && (
           <div
-            className="mt-2 pt-1.5 border-t border-indigo-900/10 text-[9px] text-indigo-950/60 leading-relaxed overflow-hidden"
+            className="mt-2 pt-1.5 border-t border-[#1f2d5c]/10 text-[9px] text-[#1f2d5c]/60 leading-relaxed overflow-hidden"
             style={
               nodeColor
                 ? { ...LINE_CLAMP_STYLE, ...nodeColor.summary }
@@ -232,22 +230,22 @@ function DefaultDataProduct(props: DataProductNode) {
   const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
-    ? "rgba(239,68,68,0.25)"
-    : "rgba(239,68,68,0.1)";
+    ? "rgba(229,72,77,0.25)"
+    : "rgba(229,72,77,0.1)";
   const draftStripe =
     nodeColor?.draftStripe ??
-    (isDark ? "rgba(99,102,241,0.25)" : "rgba(99,102,241,0.15)");
+    (isDark ? "rgba(62,99,221,0.25)" : "rgba(62,99,221,0.15)");
 
   return (
     <div
       className={classNames(
         "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
-        props?.selected ? "ring-2 ring-indigo-400/60 ring-offset-2" : "",
+        props?.selected ? "ring-2 ring-[#8da4ef]/60 ring-offset-2" : "",
         deprecated
-          ? "border-dashed border-red-500"
+          ? "border-dashed border-[#e5484d]"
           : draft
-            ? `border-dashed ${isDark ? "border-indigo-400" : "border-indigo-400/60"}`
-            : "border-indigo-500",
+            ? `border-dashed ${isDark ? "border-[#8da4ef]" : "border-[#8da4ef]/60"}`
+            : "border-[#3e63dd]",
       )}
       style={{
         background: deprecated
@@ -255,7 +253,7 @@ function DefaultDataProduct(props: DataProductNode) {
           : draft
             ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), var(--ec-dp-node-bg, rgb(var(--ec-card-bg)))`
             : "var(--ec-dp-node-bg, rgb(var(--ec-card-bg)))",
-        boxShadow: "0 2px 12px rgba(99, 102, 241, 0.15)",
+        boxShadow: "0 2px 12px rgba(62, 99, 221, 0.15)",
         ...(nodeColor && getNodeCardStyle(nodeColor, { deprecated, draft })),
       }}
     >
@@ -284,7 +282,7 @@ function DefaultDataProduct(props: DataProductNode) {
         <span
           className={classNames(
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
-            deprecated ? "bg-red-500" : "bg-indigo-500",
+            deprecated ? "bg-[#e5484d]" : "bg-[#3e63dd]",
           )}
           style={deprecated ? undefined : nodeColor?.badge}
         >
@@ -312,7 +310,7 @@ function DefaultDataProduct(props: DataProductNode) {
           <div className="flex items-baseline gap-1 min-w-0">
             <TruncatedResourceName
               value={name}
-              tooltipBorderColor={nodeColor?.tooltipBorder ?? "#6366f1"}
+              tooltipBorderColor={nodeColor?.tooltipBorder ?? "#3e63dd"}
               className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
             >
               {name}

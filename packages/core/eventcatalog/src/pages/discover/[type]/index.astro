@@ -22,6 +22,7 @@ import {
 } from '@components/Tables/Discover';
 import config from '@config';
 import { buildUrl } from '@utils/url-builder';
+import { getIconSvg } from '@utils/badges';
 import { Page } from './_index.data';
 
 export const prerender = Page.prerender;
@@ -359,7 +360,8 @@ const tableData = enrichedData.map((d: any) => ({
     version: d.data.version,
     latestVersion: d.data?.latestVersion,
     draft: d.data?.draft,
-    badges: d.data?.badges,
+    // Each badge's icon (if it has one) as SVG, drawn by the table in place of its colour dot, as on the resource's page
+    badges: d.data?.badges?.map((badge: any) => ({ ...badge, iconSvg: badge.icon ? getIconSvg(badge.icon) : undefined })),
     status: d.data?.status,
     date: d.data?.date,
     statusBadge: d.data?.status ? createAdrStatusBadge(d.data.status) : undefined,

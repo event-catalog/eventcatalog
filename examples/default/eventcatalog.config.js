@@ -87,7 +87,7 @@ export default {
   navigation: {
     pages: ["list:top-level-domains", "list:top-level-diagrams", "list:all"],
     header: [
-      { label: "Architecture", href: "/visualiser/system-context-map", match: "/visualiser" },
+      { label: "Architecture", href: "/visualiser/graph?lens=domains", match: "/visualiser" },
       { label: "Docs", href: "/docs/custom/platform/01-architecture-overview", match: "/docs/custom" },
       { label: "Discover", href: "/discover/events", match: "/discover" },
       {

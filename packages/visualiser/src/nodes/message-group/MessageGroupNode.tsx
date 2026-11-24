@@ -29,7 +29,7 @@ const TYPE_ICONS: Record<string, React.ComponentType<any>> = {
 
 const CARD_STYLE: React.CSSProperties = {
   borderRadius: 12,
-  border: "2px solid rgba(139, 92, 246, 0.4)",
+  border: "2px solid rgba(110, 86, 207, 0.4)",
   background: "var(--ec-message-group-node-bg, rgb(var(--ec-card-bg)))",
   pointerEvents: "none" as const,
 };
@@ -78,11 +78,11 @@ export default memo(function MessageGroupNode(props: MessageGroupNode) {
       {/* Main card */}
       <div
         className={`relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible ${
-          props.selected ? "ring-2 ring-violet-400/60 ring-offset-2" : ""
-        } border-violet-500`}
+          props.selected ? "ring-2 ring-[#aa99ec]/60 ring-offset-2" : ""
+        } border-[#6e56cf]`}
         style={{
           background: "var(--ec-message-group-node-bg, rgb(var(--ec-card-bg)))",
-          boxShadow: "0 2px 12px rgba(139, 92, 246, 0.15)",
+          boxShadow: "0 2px 12px rgba(110, 86, 207, 0.15)",
         }}
       >
         <Handle
@@ -107,7 +107,7 @@ export default memo(function MessageGroupNode(props: MessageGroupNode) {
               width: 12,
               height: 12,
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #a78bfa, #7c3aed)",
+              background: "linear-gradient(135deg, #aa99ec, #654dc4)",
               border: "2px solid rgb(var(--ec-page-bg))",
               zIndex: 20,
               ...HANDLE_GLOW.generic,
@@ -126,7 +126,7 @@ export default memo(function MessageGroupNode(props: MessageGroupNode) {
               width: 12,
               height: 12,
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #a78bfa, #7c3aed)",
+              background: "linear-gradient(135deg, #aa99ec, #654dc4)",
               border: "2px solid rgb(var(--ec-page-bg))",
               zIndex: 20,
               ...HANDLE_GLOW.generic,
@@ -136,7 +136,7 @@ export default memo(function MessageGroupNode(props: MessageGroupNode) {
         )}
 
         <div className="absolute -top-2.5 left-2.5 z-10">
-          <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-violet-600">
+          <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-[#654dc4]">
             <Layers className="w-2.5 h-2.5" strokeWidth={2.5} />
             Group
           </span>
@@ -146,7 +146,7 @@ export default memo(function MessageGroupNode(props: MessageGroupNode) {
           <TruncatedResourceName
             as="div"
             value={groupName}
-            tooltipBorderColor="#8b5cf6"
+            tooltipBorderColor="#6e56cf"
             className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
           >
             {groupName}
@@ -157,9 +157,9 @@ export default memo(function MessageGroupNode(props: MessageGroupNode) {
               className="text-[10px] font-medium px-1.5 py-0.5 rounded"
               style={{
                 background: isDark
-                  ? "rgba(139, 92, 246, 0.2)"
-                  : "rgba(139, 92, 246, 0.1)",
-                color: isDark ? "#c4b5fd" : "#6d28d9",
+                  ? "rgba(110, 86, 207, 0.2)"
+                  : "rgba(110, 86, 207, 0.1)",
+                color: isDark ? "#c2b5f5" : "#6550b9",
               }}
             >
               {messageCount} {messageCount === 1 ? "message" : "messages"}

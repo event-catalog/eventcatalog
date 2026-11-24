@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { Copy, FileText, Sparkles, ChevronDownIcon, ExternalLink, PenSquareIcon, RssIcon } from 'lucide-react';
+import { ArrowUpRight, Copy, FileText, Sparkles, ChevronDownIcon, PenSquareIcon, RssIcon } from 'lucide-react';
 import React, { Suspense, isValidElement, lazy, useState } from 'react';
 import type { Schema } from '@utils/collections/schemas';
 import { buildUrl, toMarkdownUrl } from '@utils/url-builder';
@@ -30,20 +30,19 @@ const MenuItemContent = ({
   } else {
     // It must be an ElementType (component constructor like Lucide icon)
     const IconComponent = iconProp as React.ElementType;
-    iconElement = <IconComponent className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />;
+    iconElement = <IconComponent className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))]" />;
   }
 
+  // A plain muted icon, then the title (with an arrow when it opens a new tab) and what it does under it
   return (
-    <div className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[rgb(var(--ec-dropdown-border)/0.8)] bg-[rgb(var(--ec-page-bg))]">
-        {iconElement}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 text-sm font-medium leading-5 text-[rgb(var(--ec-dropdown-text))]">
+    <div className="flex items-start gap-3 px-2.5 py-2">
+      <div className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">{iconElement}</div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1 text-[13px] font-medium leading-5 text-[rgb(var(--ec-page-text))]">
           <span>{title}</span>
-          {external && <ExternalLink className="h-3.5 w-3.5 shrink-0 text-[rgb(var(--ec-icon-color))]" />}
+          {external && <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-[rgb(var(--ec-page-text-muted))]" />}
         </div>
-        <div className="text-xs leading-4 text-[rgb(var(--ec-content-text-muted))]">{description}</div>
+        <div className="text-xs leading-4 text-[rgb(var(--ec-page-text-muted))]">{description}</div>
       </div>
     </div>
   );
@@ -58,7 +57,6 @@ export function CopyPageMenu({
   rssFeedEnabled = false,
   preferChatAsDefault = false,
   chatButtonText = 'Ask',
-  variant = 'menu',
   mcpServerUrl,
   resourceName,
   mcpResourceType,
@@ -71,7 +69,6 @@ export function CopyPageMenu({
   rssFeedEnabled: boolean;
   preferChatAsDefault?: boolean;
   chatButtonText?: string;
-  variant?: 'menu' | 'toolbar';
   mcpServerUrl?: string;
   resourceName?: string;
   mcpResourceType?: 'domain' | 'system';
@@ -253,181 +250,33 @@ export function CopyPageMenu({
     return null;
   }
 
-  const actionButtonClass =
-    'group inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors duration-150 hover:text-[rgb(var(--ec-page-text))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 focus:ring-offset-[rgb(var(--ec-page-bg))] rounded-md';
-  const actionIconClass = 'h-3.5 w-3.5 shrink-0 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-page-text))]';
   const mcpDescription = `Connect an MCP client to this ${mcpResourceType ?? 'resource'}`;
 
-  const hasToolbarActions =
-    availableActions.chat ||
-    availableActions.copyMarkdown ||
-    availableActions.viewMarkdown ||
-    availableActions.copySchemas ||
-    availableActions.rssFeed ||
-    availableActions.mcpServer ||
-    availableActions.editPage;
-
-  if (variant === 'toolbar') {
-    if (!hasToolbarActions) return null;
-
-    const showMcpToolbarAction = availableActions.mcpServer;
-    const showCopyMarkdownToolbarAction = availableActions.copyMarkdown && !showMcpToolbarAction;
-    const hasSecondaryToolbarAction = showMcpToolbarAction || showCopyMarkdownToolbarAction;
-    const moreActionsAvailable =
-      availableActions.copySchemas ||
-      availableActions.rssFeed ||
-      availableActions.editPage ||
-      (showMcpToolbarAction && availableActions.copyMarkdown);
-
-    return (
-      <div className="not-prose flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-[rgb(var(--ec-page-text-muted))]">
-        {availableActions.chat && (
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'))}
-            className={actionButtonClass}
-          >
-            <Sparkles className={actionIconClass} />
-            Ask a question
-          </button>
-        )}
-
-        {availableActions.chat && (hasSecondaryToolbarAction || availableActions.viewMarkdown || moreActionsAvailable) && (
-          <span className="h-4 w-px bg-[rgb(var(--ec-page-border))]" aria-hidden="true" />
-        )}
-
-        {showMcpToolbarAction && (
-          <button type="button" onClick={() => setMcpDialogOpen(true)} className={actionButtonClass}>
-            <McpIcon className={actionIconClass} />
-            Connect to MCP server
-          </button>
-        )}
-
-        {showCopyMarkdownToolbarAction && (
-          <button type="button" onClick={copyMarkdownToClipboard} className={actionButtonClass}>
-            <Copy className={actionIconClass} />
-            {copyButtonText}
-          </button>
-        )}
-
-        {hasSecondaryToolbarAction && (availableActions.viewMarkdown || moreActionsAvailable) && (
-          <span className="h-4 w-px bg-[rgb(var(--ec-page-border))]" aria-hidden="true" />
-        )}
-
-        {availableActions.viewMarkdown && (
-          <button type="button" onClick={() => window.open(markdownUrl, '_blank')} className={actionButtonClass}>
-            <FileText className={actionIconClass} />
-            View as Markdown
-          </button>
-        )}
-
-        {availableActions.viewMarkdown && moreActionsAvailable && (
-          <span className="h-4 w-px bg-[rgb(var(--ec-page-border))]" aria-hidden="true" />
-        )}
-
-        {moreActionsAvailable && (
-          <DropdownMenu.Root open={open} onOpenChange={setOpen}>
-            <DropdownMenu.Trigger asChild>
-              <button type="button" className={actionButtonClass}>
-                More actions
-                <ChevronDownIcon className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
-              </button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content
-              className="z-50 w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-[rgb(var(--ec-dropdown-border)/0.8)] bg-[rgb(var(--ec-page-bg))] px-1.5 py-1.5 shadow-[0_24px_64px_rgb(0_0_0/0.35)]"
-              sideOffset={10}
-              align="start"
-            >
-              {showMcpToolbarAction && availableActions.copyMarkdown && (
-                <DropdownMenu.Item
-                  className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
-                  onSelect={() => copyMarkdownToClipboard()}
-                >
-                  <MenuItemContent icon={Copy} title="Copy page as markdown" description="Copy page as Markdown for LLMs" />
-                </DropdownMenu.Item>
-              )}
-
-              {availableActions.copySchemas &&
-                schemas.map((schema) => {
-                  const title =
-                    schema.format === 'asyncapi'
-                      ? 'Copy AsyncAPI specification'
-                      : schema.format === 'openapi'
-                        ? 'Copy OpenAPI specification'
-                        : 'Copy schema';
-                  const type =
-                    schema.format === 'asyncapi' || schema.format === 'openapi'
-                      ? 'specification'
-                      : `${schema.format.toUpperCase()} schema`;
-
-                  const Icon =
-                    schema.format === 'asyncapi' ? (
-                      <img src={buildUrl('/icons/asyncapi.svg', true)} className="w-4 h-4" />
-                    ) : schema.format === 'openapi' ? (
-                      <img src={buildUrl('/icons/openapi.svg', true)} className="w-4 h-4" />
-                    ) : (
-                      FileText
-                    );
-
-                  return (
-                    <DropdownMenu.Item
-                      key={schema.url}
-                      className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
-                      onSelect={() => copySchemaToClipboard(schema)}
-                    >
-                      <MenuItemContent icon={Icon} title={title} description={`Copy ${type} to clipboard`} />
-                    </DropdownMenu.Item>
-                  );
-                })}
-
-              {availableActions.rssFeed && (
-                <DropdownMenu.Item
-                  className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
-                  onSelect={() => window.open(buildUrl(`/rss/all/rss.xml`), '_blank')}
-                >
-                  <MenuItemContent icon={RssIcon} title="RSS Feed" description="View this page as RSS feed" external={true} />
-                </DropdownMenu.Item>
-              )}
-
-              {availableActions.editPage && (
-                <DropdownMenu.Item
-                  className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
-                  onSelect={() => window.open(editUrl, '_blank')}
-                >
-                  <MenuItemContent
-                    icon={PenSquareIcon}
-                    title="Edit page"
-                    description="Edit the contents of this page"
-                    external={true}
-                  />
-                </DropdownMenu.Item>
-              )}
-            </DropdownMenu.Content>
-          </DropdownMenu.Root>
-        )}
-        {mcpDialog}
-      </div>
-    );
-  }
+  // The menu's groups (only those with something in them, divided by hairlines): the assistant; copying and viewing the
+  // page; connecting to it; editing it
+  const hasCopyGroup = availableActions.copyMarkdown || availableActions.copySchemas || availableActions.viewMarkdown;
+  const hasConnectGroup = availableActions.mcpServer || availableActions.rssFeed;
+  const groups = [availableActions.chat, hasCopyGroup, hasConnectGroup, availableActions.editPage];
+  const separatorBefore = (index: number) => groups.slice(0, index).some(Boolean) && groups[index];
 
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen}>
-      {/* The split button: filled in the text colour (black, or white in dark mode), as the app's primary buttons are */}
-      <div className="inline-flex h-8 items-stretch overflow-hidden rounded-md bg-[rgb(var(--ec-page-text))] text-[rgb(var(--ec-page-bg))] shadow-xs">
+      {/* The split button, outlined as Vercel's (and GitBook's): the default action, then the menu */}
+      <div className="inline-flex h-8 items-stretch overflow-hidden rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text))] shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
         {/* Left Button: Default Action */}
         <button
           type="button"
           onClick={handleDefaultAction}
-          className="inline-flex h-full items-center justify-center gap-1.5 whitespace-nowrap bg-transparent pl-3 pr-2.5 text-[13px] font-medium transition-colors duration-150 hover:bg-[rgb(var(--ec-page-bg)/0.14)] focus-visible:z-10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgb(var(--ec-page-bg)/0.5)]"
+          className="inline-flex h-full items-center justify-center gap-1.5 whitespace-nowrap bg-transparent pl-2.5 pr-3 text-[13px] font-medium transition-colors duration-150 hover:bg-[rgb(var(--ec-page-text)/0.05)] focus-visible:z-10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgb(var(--ec-page-text)/0.2)]"
         >
-          <defaultAction.icon className="h-3.5 w-3.5" />
+          <defaultAction.icon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
           {buttonText}
         </button>
         {/* Right Button: Dropdown Trigger */}
         <DropdownMenu.Trigger asChild>
           <button
             type="button"
-            className="inline-flex h-full w-7 items-center justify-center border-l border-[rgb(var(--ec-page-bg)/0.2)] bg-transparent transition-colors duration-150 hover:bg-[rgb(var(--ec-page-bg)/0.14)] focus-visible:z-10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgb(var(--ec-page-bg)/0.5)]"
+            className="inline-flex h-full w-8 items-center justify-center border-l border-[rgb(var(--ec-page-border))] bg-transparent text-[rgb(var(--ec-page-text-muted))] transition-colors duration-150 hover:bg-[rgb(var(--ec-page-text)/0.05)] hover:text-[rgb(var(--ec-page-text))] focus-visible:z-10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgb(var(--ec-page-text)/0.2)]"
             aria-label="More options"
           >
             <ChevronDownIcon className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
@@ -435,36 +284,24 @@ export function CopyPageMenu({
         </DropdownMenu.Trigger>
       </div>
 
-      {/* Adjust styling for the content dropdown */}
       <DropdownMenu.Content
-        className="z-50 w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-[rgb(var(--ec-dropdown-border)/0.8)] bg-[rgb(var(--ec-page-bg))] px-1.5 py-1.5 shadow-[0_24px_64px_rgb(0_0_0/0.35)]"
-        sideOffset={10}
+        className="z-50 w-80 max-w-[calc(100vw-1.5rem)] rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] p-1 shadow-[0_4px_8px_-4px_rgb(0_0_0/0.06),0_16px_32px_-8px_rgb(0_0_0/0.16)]"
+        sideOffset={8}
         align="end"
       >
-        {availableActions.mcpServer && (
+        {availableActions.chat && (
           <DropdownMenu.Item
-            className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
-            onSelect={() => setMcpDialogOpen(true)}
+            className="cursor-pointer rounded-lg outline-hidden transition-colors duration-150 data-[highlighted]:bg-[rgb(var(--ec-page-text)/0.05)]"
+            onSelect={() => window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'))}
           >
-            <MenuItemContent icon={McpIcon} title="Connect to MCP server" description={mcpDescription} />
+            <MenuItemContent icon={Sparkles} title="EventCatalog Assistant" description="Ask the assistant about this page" />
           </DropdownMenu.Item>
         )}
 
-        {availableActions.chat && (
-          <>
-            <DropdownMenu.Item
-              className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
-              onSelect={() => window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'))}
-            >
-              <MenuItemContent icon={Sparkles} title="EventCatalog Assistant" description="Ask questions about this page" />
-            </DropdownMenu.Item>
-            <DropdownMenu.Separator className="mx-3 my-3 h-px bg-[rgb(var(--ec-dropdown-border)/0.8)]" />
-          </>
-        )}
-
+        {separatorBefore(1) && <DropdownMenu.Separator className="-mx-1 my-1 h-px bg-[rgb(var(--ec-page-border))]" />}
         {availableActions.copyMarkdown && (
           <DropdownMenu.Item
-            className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
+            className="cursor-pointer rounded-lg outline-hidden transition-colors duration-150 data-[highlighted]:bg-[rgb(var(--ec-page-text)/0.05)]"
             onSelect={() => copyMarkdownToClipboard()}
           >
             <MenuItemContent icon={Copy} title="Copy page" description="Copy page as Markdown for LLMs" />
@@ -486,9 +323,9 @@ export function CopyPageMenu({
 
             const Icon =
               schema.format === 'asyncapi' ? (
-                <img src={buildUrl('/icons/asyncapi.svg', true)} className="w-4 h-4" />
+                <img src={buildUrl('/icons/asyncapi.svg', true)} className="ec-mono-icon ec-mono-icon--active h-4 w-4" />
               ) : schema.format === 'openapi' ? (
-                <img src={buildUrl('/icons/openapi.svg', true)} className="w-4 h-4" />
+                <img src={buildUrl('/icons/openapi.svg', true)} className="ec-mono-icon ec-mono-icon--active h-4 w-4" />
               ) : (
                 FileText
               );
@@ -496,7 +333,7 @@ export function CopyPageMenu({
             return (
               <DropdownMenu.Item
                 key={schema.url}
-                className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
+                className="cursor-pointer rounded-lg outline-hidden transition-colors duration-150 data-[highlighted]:bg-[rgb(var(--ec-page-text)/0.05)]"
                 onSelect={() => copySchemaToClipboard(schema)}
               >
                 <MenuItemContent icon={Icon} title={title} description={`Copy ${type} to clipboard`} />
@@ -506,7 +343,7 @@ export function CopyPageMenu({
 
         {availableActions.viewMarkdown && (
           <DropdownMenu.Item
-            className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
+            className="cursor-pointer rounded-lg outline-hidden transition-colors duration-150 data-[highlighted]:bg-[rgb(var(--ec-page-text)/0.05)]"
             onSelect={() => window.open(markdownUrl, '_blank')}
           >
             <MenuItemContent
@@ -518,30 +355,38 @@ export function CopyPageMenu({
           </DropdownMenu.Item>
         )}
 
-        {availableActions.rssFeed && (
+        {separatorBefore(2) && <DropdownMenu.Separator className="-mx-1 my-1 h-px bg-[rgb(var(--ec-page-border))]" />}
+        {availableActions.mcpServer && (
           <DropdownMenu.Item
-            className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
-            onSelect={() => window.open(buildUrl(`/rss/all/rss.xml`), '_blank')}
+            className="cursor-pointer rounded-lg outline-hidden transition-colors duration-150 data-[highlighted]:bg-[rgb(var(--ec-page-text)/0.05)]"
+            onSelect={() => setMcpDialogOpen(true)}
           >
-            <MenuItemContent icon={RssIcon} title="RSS Feed" description="View this page as RSS feed" external={true} />
+            <MenuItemContent icon={McpIcon} title="Connect with MCP" description={mcpDescription} />
           </DropdownMenu.Item>
         )}
 
+        {availableActions.rssFeed && (
+          <DropdownMenu.Item
+            className="cursor-pointer rounded-lg outline-hidden transition-colors duration-150 data-[highlighted]:bg-[rgb(var(--ec-page-text)/0.05)]"
+            onSelect={() => window.open(buildUrl(`/rss/all/rss.xml`), '_blank')}
+          >
+            <MenuItemContent icon={RssIcon} title="RSS feed" description="Follow changes to the catalog" external={true} />
+          </DropdownMenu.Item>
+        )}
+
+        {separatorBefore(3) && <DropdownMenu.Separator className="-mx-1 my-1 h-px bg-[rgb(var(--ec-page-border))]" />}
         {availableActions.editPage && (
-          <>
-            <DropdownMenu.Separator className="mx-3 my-3 h-px bg-[rgb(var(--ec-dropdown-border)/0.8)]" />
-            <DropdownMenu.Item
-              className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
-              onSelect={() => window.open(editUrl, '_blank')}
-            >
-              <MenuItemContent
-                icon={PenSquareIcon}
-                title="Edit page"
-                description="Edit the contents of this page"
-                external={true}
-              />
-            </DropdownMenu.Item>
-          </>
+          <DropdownMenu.Item
+            className="cursor-pointer rounded-lg outline-hidden transition-colors duration-150 data-[highlighted]:bg-[rgb(var(--ec-page-text)/0.05)]"
+            onSelect={() => window.open(editUrl, '_blank')}
+          >
+            <MenuItemContent
+              icon={PenSquareIcon}
+              title="Edit page"
+              description="Edit the contents of this page"
+              external={true}
+            />
+          </DropdownMenu.Item>
         )}
       </DropdownMenu.Content>
       {mcpDialog}

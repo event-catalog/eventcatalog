@@ -35,8 +35,8 @@ interface CanvasToolbarProps {
   handleFitView: () => void;
 }
 
-// A toolbar button's colours: muted, highlighted with the catalog's accent when selected, greyed out when it can't
-// be used
+// A toolbar button's colours, neutral as Vercel's: muted, on a grey when selected, greyed out when it can't be used.
+// (Colour-mixes: the visualiser's colour variables are comma-separated, so `rgb(var(--x) / a)` doesn't work in them)
 const toolbarButtonColors = ({
   active = false,
   disabled = false,
@@ -47,8 +47,8 @@ const toolbarButtonColors = ({
   disabled
     ? "opacity-40 cursor-not-allowed text-[rgb(var(--ec-page-text-muted))]"
     : active
-      ? "bg-[rgb(var(--ec-catalog-accent,79_70_229)/0.15)] text-[rgb(var(--ec-catalog-accent,79_70_229))] hover:bg-[rgb(var(--ec-catalog-accent,79_70_229)/0.22)]"
-      : "text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-catalog-accent,79_70_229)/0.08)] hover:text-[rgb(var(--ec-page-text))]";
+      ? "bg-[color-mix(in_srgb,rgb(var(--ec-page-text))_10%,transparent)] text-[rgb(var(--ec-page-text))] hover:bg-[color-mix(in_srgb,rgb(var(--ec-page-text))_14%,transparent)]"
+      : "text-[rgb(var(--ec-page-text-muted))] hover:bg-[color-mix(in_srgb,rgb(var(--ec-page-text))_6%,transparent)] hover:text-[rgb(var(--ec-page-text))]";
 
 /** A button in a toolbar, with its tooltip (what it does, and why it can't be used when it can't) */
 export const ToolbarButton = ({
@@ -98,7 +98,7 @@ export const ZoomLevel = memo(function ZoomLevel({
   const zoom = useStore((state) => Math.round(state.transform[2] * 100));
   return (
     <div
-      className={`w-12 text-center text-xs font-medium tabular-nums text-[rgb(var(--ec-page-text-muted))] ${className}`}
+      className={`w-12 text-center font-mono text-[11px] tabular-nums text-[rgb(var(--ec-page-text-muted))] ${className}`}
     >
       {zoom}%
     </div>
@@ -112,7 +112,7 @@ export const ToolbarDivider = () => (
 /** The frame of a toolbar (e.g. the bar at the bottom of a diagram, or of a Studio canvas), with tooltips */
 export const Toolbar = ({ children }: { children: ReactNode }) => (
   <TipProvider>
-    <div className="flex items-center gap-0.5 p-1 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-md">
+    <div className="flex items-center gap-0.5 p-1 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-8px_rgba(0,0,0,0.18)]">
       {children}
     </div>
   </TipProvider>

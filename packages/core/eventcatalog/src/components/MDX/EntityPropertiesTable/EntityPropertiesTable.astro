@@ -60,71 +60,74 @@ const isComponentEnabled = collection === 'entities';
 
 {
   isComponentEnabled && properties && properties.length > 0 ? (
-    <div class="overflow-x-auto relative not-prose">
-      <table class="w-full text-sm text-left text-[rgb(var(--ec-page-text-muted))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-xs">
-        <thead class="text-xs text-[rgb(var(--ec-page-text))] uppercase bg-[rgb(var(--ec-content-hover))]">
+    // As Vercel's tables: a rounded frame, quiet header labels, thin rows, mono names and types, enum values and the
+    // reference as small mono pills, and "required" as a neutral outlined pill (not the accent)
+    <div class="not-prose overflow-x-auto rounded-lg border border-[rgb(var(--ec-page-border))]">
+      <table class="w-full text-left text-[13px] text-[rgb(var(--ec-page-text-muted))]">
+        <thead class="border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.02)] text-xs text-[rgb(var(--ec-page-text-muted))]">
           <tr>
-            <th scope="col" class="py-3 px-6">
+            <th scope="col" class="px-4 py-2.5 font-medium">
               Name
             </th>
-            <th scope="col" class="py-3 px-6">
+            <th scope="col" class="px-4 py-2.5 font-medium">
               Type
             </th>
-            <th scope="col" class="py-3 px-6">
+            <th scope="col" class="px-4 py-2.5 font-medium">
               Required
             </th>
-            <th scope="col" class="py-3 px-6 min-w-[250px]">
+            <th scope="col" class="min-w-[250px] px-4 py-2.5 font-medium">
               Description
             </th>
-            <th scope="col" class="py-3 px-6 min-w-[180px]">
+            <th scope="col" class="min-w-[180px] px-4 py-2.5 font-medium">
               Reference
             </th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="divide-y divide-[rgb(var(--ec-page-border))]">
           {propertyRows.map(({ property: prop, depth }) => (
-            <tr class="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border-b border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] align-top">
+            <tr class="align-top transition-colors hover:bg-[rgb(var(--ec-page-text)/0.02)]">
               <td
-                class="py-4 pr-6 font-medium text-[rgb(var(--ec-page-text))] whitespace-nowrap"
-                style={`padding-left: ${24 + depth * 20}px`}
+                class="whitespace-nowrap py-3 pr-4 font-mono text-[13px] font-medium text-[rgb(var(--ec-page-text))]"
+                style={`padding-left: ${16 + depth * 20}px`}
               >
-                {depth > 0 && <span class="mr-1 text-[rgb(var(--ec-icon-color))]">↳</span>}
-                <code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{prop.name}</code>
+                {depth > 0 && <span class="mr-1.5 text-[rgb(var(--ec-page-text-muted))]">↳</span>}
+                {prop.name}
               </td>
-              <td class="py-4 px-6 text-[rgb(var(--ec-page-text-muted))]">
-                <code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{getPropertyTypeLabel(prop)}</code>
+              <td class="px-4 py-3">
+                <span class="whitespace-nowrap font-mono text-[12px] text-[rgb(var(--ec-page-text-muted))]">
+                  {getPropertyTypeLabel(prop)}
+                </span>
                 {prop.enum && (
-                  <div class="text-xs text-[rgb(var(--ec-page-text-muted))] mt-2">
-                    <span class="font-semibold block mb-1">Enum:</span>
-                    <ul class="list-disc list-inside ml-2 space-y-1">
-                      {prop.enum.map((enumValue: string) => (
-                        <li>
-                          <code class="text-xs bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{enumValue}</code>
-                        </li>
-                      ))}
-                    </ul>
+                  <div class="mt-2 flex max-w-[220px] flex-wrap gap-1">
+                    {prop.enum.map((enumValue: string) => (
+                      <span class="rounded-[4px] border border-[rgb(var(--ec-page-border))] px-1.5 font-mono text-[11px] leading-[18px] whitespace-nowrap text-[rgb(var(--ec-page-text))]">
+                        {enumValue}
+                      </span>
+                    ))}
                   </div>
                 )}
               </td>
-              <td class="py-4 px-6">
+              <td class="px-4 py-3">
                 {prop.required ? (
-                  <span class="bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))] text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                    Required
+                  <span class="rounded-[4px] border border-[rgb(var(--ec-page-border))] px-1.5 font-mono text-[11px] leading-[18px] text-[rgb(var(--ec-page-text))]">
+                    required
                   </span>
                 ) : (
-                  <span class="bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                    Optional
-                  </span>
+                  <span class="font-mono text-[11px] leading-[18px] text-[rgb(var(--ec-page-text-muted))]">optional</span>
                 )}
               </td>
-              <td class="py-4 px-6 text-[rgb(var(--ec-page-text-muted))]">
-                {prop.description || <span class="text-[rgb(var(--ec-icon-color))] italic">No description provided.</span>}
+              <td class="px-4 py-3 leading-relaxed">
+                {prop.description || (
+                  <span class="text-[rgb(var(--ec-page-text-muted))] opacity-70">No description provided.</span>
+                )}
               </td>
-              <td class="py-4 px-6 text-[rgb(var(--ec-page-text-muted))]">
+              <td class="px-4 py-3">
                 {prop.references ? (
                   <div class="flex flex-col gap-1">
-                    <code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5 w-fit">{prop.references}</code>
-                    <span class="text-xs">
+                    <span class="rounded-[4px] border border-[rgb(var(--ec-page-border))] px-1.5 font-mono text-[11px] leading-[18px] w-fit text-[rgb(var(--ec-page-text))]">
+                      {prop.references}
+                    </span>
+                    <span class="text-xs text-[rgb(var(--ec-page-text-muted))]">
                       {prop.referenceTarget === 'entity'
                         ? 'Whole entity'
                         : prop.referencesIdentifier
@@ -133,7 +136,7 @@ const isComponentEnabled = collection === 'entities';
                     </span>
                   </div>
                 ) : (
-                  <span class="text-[rgb(var(--ec-icon-color))]">—</span>
+                  <span class="text-[rgb(var(--ec-page-text-muted))]">—</span>
                 )}
               </td>
             </tr>

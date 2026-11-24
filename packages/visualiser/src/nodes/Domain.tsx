@@ -101,7 +101,7 @@ export default memo(function DomainNode({ data, id: nodeId }: any) {
   return (
     <ContextMenu.Root>
       <ContextMenu.Trigger>
-        <div className="w-full rounded-lg border-2 border-yellow-400 bg-[rgb(var(--ec-card-bg))] shadow-lg">
+        <div className="w-full rounded-lg border-2 border-[#e2a336] bg-[rgb(var(--ec-card-bg))] shadow-lg">
           {/* Lets edges connect to the domain itself, not only its services */}
           <Handle
             type="target"
@@ -114,12 +114,12 @@ export default memo(function DomainNode({ data, id: nodeId }: any) {
             style={HIDDEN_HANDLE_STYLE}
           />
           <div className="bg-[rgb(var(--ec-domain-header-bg,253_224_71)/0.2)] px-3 py-2 flex items-center space-x-2">
-            {Icon && <Icon className="w-4 h-4 text-yellow-500" />}
+            {Icon && <Icon className="w-4 h-4 text-[#ffc53d]" />}
             <div>
               <span className="text-sm font-bold text-[rgb(var(--ec-page-text))]">
                 {name}
               </span>
-              <span className="text-xs text-yellow-500 ml-2">v{version}</span>
+              <span className="text-xs text-[#ffc53d] ml-2">v{version}</span>
             </div>
           </div>
           {mode === "full" && services.length > 0 && (
@@ -131,24 +131,24 @@ export default memo(function DomainNode({ data, id: nodeId }: any) {
                   <ContextMenu.Root key={`${service.data.id}-${index}`}>
                     <ContextMenu.Trigger asChild>
                       <div
-                        className={`relative flex items-center justify-between px-3 py-2 cursor-pointer ${index !== services.length - 1 ? "border-b border-[rgb(var(--ec-page-border))]" : ""} ${isHighlighted ? "bg-pink-100 border-pink-300" : ""}`}
+                        className={`relative flex items-center justify-between px-3 py-2 cursor-pointer ${index !== services.length - 1 ? "border-b border-[rgb(var(--ec-page-border))]" : ""} ${isHighlighted ? "bg-[#fee9f5] border-[#e7acd0]" : ""}`}
                       >
                         <Handle
                           type="target"
                           position={Position.Left}
                           id={`${service.data.id}-target`}
-                          className="!left-[-1px] !w-2 !h-2 !bg-gray-400 !border !border-gray-500 !rounded-full !z-10"
+                          className="!left-[-1px] !w-2 !h-2 !bg-[#bbbbbb] !border !border-[#8d8d8d] !rounded-full !z-10"
                           style={HANDLE_LEFT_STYLE}
                         />
                         <Handle
                           type="source"
                           position={Position.Right}
                           id={`${service.data.id}-source`}
-                          className="!right-[-1px] !w-2 !h-2 !bg-gray-400 !border !border-gray-500 !rounded-full !z-10"
+                          className="!right-[-1px] !w-2 !h-2 !bg-[#bbbbbb] !border !border-[#8d8d8d] !rounded-full !z-10"
                           style={HANDLE_RIGHT_STYLE}
                         />
                         <div className="flex items-center space-x-3">
-                          <div className="flex items-center justify-center w-5 h-5 bg-pink-500 rounded">
+                          <div className="flex items-center justify-center w-5 h-5 bg-[#d6409f] rounded">
                             {ServerIcon && (
                               <ServerIcon className="w-3 h-3 text-white" />
                             )}

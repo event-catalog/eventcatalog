@@ -15,9 +15,9 @@ const CONTAINER_STYLE: React.CSSProperties = {
   width: "100%",
   height: "100%",
   borderRadius: 12,
-  border: "2px solid rgba(20, 184, 166, 0.5)",
-  backgroundColor: "rgba(20, 184, 166, 0.08)",
-  boxShadow: "0 2px 12px rgba(20, 184, 166, 0.12)",
+  border: "2px solid rgba(18, 165, 148, 0.5)",
+  backgroundColor: "rgba(18, 165, 148, 0.08)",
+  boxShadow: "0 2px 12px rgba(18, 165, 148, 0.12)",
   position: "relative",
   overflow: "visible",
 };
@@ -30,8 +30,8 @@ const HEADER_STYLE: React.CSSProperties = {
   height: 44,
   borderTopLeftRadius: 10,
   borderTopRightRadius: 10,
-  background: "rgba(20, 184, 166, 0.12)",
-  borderBottom: "1px solid rgba(20, 184, 166, 0.3)",
+  background: "rgba(18, 165, 148, 0.12)",
+  borderBottom: "1px solid rgba(18, 165, 148, 0.3)",
   overflow: "visible",
 };
 
@@ -44,7 +44,7 @@ const BADGE_STYLE: React.CSSProperties = {
   gap: 3,
   padding: "2px 8px",
   borderRadius: 4,
-  background: "#0d9488",
+  background: "#0d9b8a",
   boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
   zIndex: 10,
   fontSize: 8,
@@ -75,13 +75,13 @@ const FLOW_NAME_STYLE: React.CSSProperties = {
 const VERSION_STYLE: React.CSSProperties = {
   fontSize: 10,
   fontWeight: 500,
-  color: "#5eead4",
+  color: "#83cdc1",
   marginLeft: 8,
 };
 
 const COLLAPSE_BUTTON_STYLE: React.CSSProperties = {
-  background: "#0d9488",
-  border: "1px solid #5eead4",
+  background: "#0d9b8a",
+  border: "1px solid #83cdc1",
   borderRadius: 6,
   padding: "4px 10px",
   cursor: "pointer",
@@ -119,7 +119,7 @@ export default memo(function FlowExpandedNode({
           >
             <TruncatedResourceName
               value={flowName || "Flow"}
-              tooltipBorderColor="#14b8a6"
+              tooltipBorderColor="#12a594"
               className="truncate"
               style={FLOW_NAME_STYLE}
             >

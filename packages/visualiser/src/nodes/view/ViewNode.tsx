@@ -14,7 +14,7 @@ import { TruncatedResourceName } from "../TruncatedResourceName";
 import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
 
 // Views are sky blue, so they stand apart from commands (blue) and data stores (indigo)
-const VIEW_COLOR = "#0ea5e9";
+const VIEW_COLOR = "#00a2c7";
 
 const GlowHandle = memo(function GlowHandle({
   side,
@@ -32,7 +32,7 @@ const GlowHandle = memo(function GlowHandle({
         width: 12,
         height: 12,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #38bdf8, #0284c7)",
+        background: "linear-gradient(135deg, #3db9cf, #0797b9)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.view,
@@ -64,12 +64,12 @@ export default memo(function View(props: ViewNode) {
   return (
     <div
       className={[
-        "relative min-w-48 max-w-60 rounded-xl border-2 border-sky-500 overflow-visible",
-        props.selected ? "ring-2 ring-sky-400/60 ring-offset-2" : "",
+        "relative min-w-48 max-w-60 rounded-xl border-2 border-[#00a2c7] overflow-visible",
+        props.selected ? "ring-2 ring-[#3db9cf]/60 ring-offset-2" : "",
       ].join(" ")}
       style={{
         background: "rgb(var(--ec-card-bg))",
-        boxShadow: "0 2px 12px rgba(14, 165, 233, 0.15)",
+        boxShadow: "0 2px 12px rgba(0, 162, 199, 0.15)",
       }}
     >
       {props.data.isFocused && <FocusedResourceIndicator />}
@@ -91,7 +91,7 @@ export default memo(function View(props: ViewNode) {
 
       {/* Type badge top-left */}
       <div className="absolute -top-2.5 left-2.5 z-10">
-        <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-sky-500">
+        <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-[#00a2c7]">
           <MonitorIcon className="w-2.5 h-2.5" strokeWidth={2.5} />
           View
         </span>
@@ -137,9 +137,9 @@ export default memo(function View(props: ViewNode) {
         {/* Owners */}
         <OwnerIndicator
           owners={ownersNormalized}
-          accentColor="bg-sky-400"
-          borderColor="rgba(14,165,233,0.08)"
-          iconClass="text-sky-300"
+          accentColor="bg-[#3db9cf]"
+          borderColor="rgba(0,162,199,0.08)"
+          iconClass="text-[#7dcedc]"
         />
       </div>
     </div>

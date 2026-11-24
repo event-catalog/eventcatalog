@@ -2211,12 +2211,18 @@ const NodeGraphBuilder = ({
     window.dispatchEvent(new CustomEvent("eventcatalog:open-chat"));
   }, []);
 
+  // With messages hidden (L2) on a diagram that has more at L3, the nodes on show aren't the whole diagram. A saved
+  // layout must place every node to be used (applyLayoutToNodes), so saving here would write a file that's never
+  // applied. Diagrams with nothing more at L3 show every node at L2, so they can still be saved.
+  const showsPartialGraph = hideMessages && hasLevel3Detail && !isOverview;
+
   // Layout persistence handlers (dev mode only)
   const handleSaveLayout = useCallback(async (): Promise<boolean> => {
     if (!resourceKey || !onSaveLayout) return false;
     // Grouping is only a way of looking at the graph: grouped, nodes are
     // placed inside their groups, which a saved layout can't show
     if (swimlanesRef.current) return false;
+    if (showsPartialGraph) return false;
 
     const positions: Record<string, { x: number; y: number }> = {};
     nodesRef.current.forEach((node) => {
@@ -2228,7 +2234,7 @@ const NodeGraphBuilder = ({
     });
 
     return await onSaveLayout(resourceKey, positions);
-  }, [resourceKey, onSaveLayout]);
+  }, [resourceKey, onSaveLayout, showsPartialGraph]);
 
   // What the diagram shows, for Studio to start a canvas from: the full graph (Studio shows the other levels itself),
   // the levels as the diagram draws them, and the level shown, for it to open at. Taken when Studio asks for it
@@ -2788,7 +2794,11 @@ const NodeGraphBuilder = ({
                     setIsShareModalOpen={setIsShareModalOpen}
                     toggleFullScreen={toggleFullScreen}
                     isDevMode={isDevMode}
-                    onSaveLayout={swimlanes ? undefined : handleSaveLayout}
+                    onSaveLayout={
+                      swimlanes || showsPartialGraph
+                        ? undefined
+                        : handleSaveLayout
+                    }
                     onResetLayout={handleResetLayout}
                     notesCount={totalNotesCount}
                     onOpenNotes={openNotesModal}
@@ -3008,29 +3018,33 @@ const NodeGraphBuilder = ({
               </Panel>
             )}
             {/* Dev Mode: Layout change indicator */}
-            {isDevMode && hasLayoutChanges && !swimlanes && (
-              <Panel
-                position="bottom-left"
-                style={
-                  isFlowGraph && showFlowWalkthrough
-                    ? LAYOUT_CHANGE_PANEL_STYLE_WITH_WALKTHROUGH
-                    : LAYOUT_CHANGE_PANEL_STYLE_DEFAULT
-                }
-              >
-                <div className="bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-md px-3 py-2 flex items-center gap-3">
-                  <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">
-                    Layout changed
-                  </span>
-                  <button
-                    onClick={handleQuickSaveLayout}
-                    disabled={isSavingLayout}
-                    className="text-xs font-medium text-white bg-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent-hover))] px-2 py-1 rounded transition-colors disabled:opacity-50"
-                  >
-                    {isSavingLayout ? "Saving..." : "Save"}
-                  </button>
-                </div>
-              </Panel>
-            )}
+            {/* Not at L2: a layout saved with messages hidden is never applied (see handleSaveLayout) */}
+            {isDevMode &&
+              hasLayoutChanges &&
+              !swimlanes &&
+              !showsPartialGraph && (
+                <Panel
+                  position="bottom-left"
+                  style={
+                    isFlowGraph && showFlowWalkthrough
+                      ? LAYOUT_CHANGE_PANEL_STYLE_WITH_WALKTHROUGH
+                      : LAYOUT_CHANGE_PANEL_STYLE_DEFAULT
+                  }
+                >
+                  <div className="bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-md px-3 py-2 flex items-center gap-3">
+                    <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">
+                      Layout changed
+                    </span>
+                    <button
+                      onClick={handleQuickSaveLayout}
+                      disabled={isSavingLayout}
+                      className="text-xs font-medium text-white bg-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent-hover))] px-2 py-1 rounded transition-colors disabled:opacity-50"
+                    >
+                      {isSavingLayout ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+                </Panel>
+              )}
             {includeKey && (
               <LegendPanel
                 legend={legend}

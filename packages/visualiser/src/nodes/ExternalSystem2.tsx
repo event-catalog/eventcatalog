@@ -10,13 +10,13 @@ export default memo(function ExternalSystemNode(props: any) {
         type="target"
         position={Position.Left}
         style={EXTERNAL_SYSTEM_HANDLE_STYLE}
-        className="bg-gray-500"
+        className="bg-[#8d8d8d]"
       />
       <Handle
         type="source"
         position={Position.Right}
         style={EXTERNAL_SYSTEM_HANDLE_STYLE}
-        className="bg-gray-500"
+        className="bg-[#8d8d8d]"
       />
       <ExternalSystemComponent {...props} />
     </div>

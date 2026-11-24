@@ -28,7 +28,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         width: 12,
         height: 12,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #a855f7, #7e22ce)",
+        background: "linear-gradient(135deg, #8e4ec6, #8145b5)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.external,
@@ -63,7 +63,7 @@ function PostItExternalSystem(props: ExternalSystemNode) {
     <div
       className={classNames(
         "relative min-w-44 max-w-56 min-h-[120px]",
-        props?.selected ? "ring-2 ring-purple-400/60 ring-offset-1" : "",
+        props?.selected ? "ring-2 ring-[#be93e4]/60 ring-offset-1" : "",
       )}
     >
       <Handle
@@ -83,14 +83,14 @@ function PostItExternalSystem(props: ExternalSystemNode) {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(135deg, #e9d5ff 0%, #c084fc 40%, #a855f7 100%)",
+            "linear-gradient(135deg, #ead5f9 0%, #be93e4 40%, #8e4ec6 100%)",
           boxShadow:
             "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
           transform: "rotate(-1deg)",
           border: deprecated
-            ? "2px dashed rgba(239, 68, 68, 0.5)"
+            ? "2px dashed rgba(229, 72, 77, 0.5)"
             : draft
-              ? "2px dashed rgba(168, 85, 247, 0.5)"
+              ? "2px dashed rgba(142, 78, 198, 0.5)"
               : "none",
         }}
       >
@@ -104,7 +104,7 @@ function PostItExternalSystem(props: ExternalSystemNode) {
             height: 0,
             borderStyle: "solid",
             borderWidth: "18px 0 0 18px",
-            borderColor: "#7e22ce transparent transparent transparent",
+            borderColor: "#8145b5 transparent transparent transparent",
             opacity: 0.3,
           }}
         />
@@ -113,18 +113,18 @@ function PostItExternalSystem(props: ExternalSystemNode) {
       <div className="relative px-3.5 py-3">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
-            <Globe className="w-3 h-3 text-purple-900/50" strokeWidth={2.5} />
-            <span className="text-[8px] font-bold text-purple-900/50 uppercase tracking-widest">
+            <Globe className="w-3 h-3 text-[#402060]/50" strokeWidth={2.5} />
+            <span className="text-[8px] font-bold text-[#402060]/50 uppercase tracking-widest">
               External
             </span>
           </div>
           {draft && (
-            <span className="text-[8px] font-extrabold text-amber-900 bg-amber-100 border border-dashed border-amber-400 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[8px] font-extrabold text-[#4f3422] bg-[#fff7c2] border border-dashed border-[#e2a336] px-1.5 py-0.5 rounded uppercase">
               Draft
             </span>
           )}
           {deprecated && (
-            <span className="text-[7px] font-bold text-white bg-red-500 border border-red-600 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[7px] font-bold text-white bg-[#e5484d] border border-[#dc3e42] px-1.5 py-0.5 rounded uppercase">
               Deprecated
             </span>
           )}
@@ -133,24 +133,24 @@ function PostItExternalSystem(props: ExternalSystemNode) {
         <TruncatedResourceName
           as="div"
           value={name}
-          tooltipBorderColor="#a855f7"
+          tooltipBorderColor="#8e4ec6"
           className={classNames(
             "text-[13px] font-bold leading-snug truncate",
-            deprecated ? "text-purple-950/40 line-through" : "text-purple-950",
+            deprecated ? "text-[#402060]/40 line-through" : "text-[#402060]",
           )}
         >
           {name}
         </TruncatedResourceName>
 
         {version && (
-          <div className="text-[9px] text-purple-900/40 font-semibold mt-0.5">
+          <div className="text-[9px] text-[#402060]/40 font-semibold mt-0.5">
             v{version}
           </div>
         )}
 
         {mode === "full" && summary && (
           <div
-            className="mt-2 pt-1.5 border-t border-purple-900/10 text-[9px] text-purple-950/60 leading-relaxed overflow-hidden"
+            className="mt-2 pt-1.5 border-t border-[#402060]/10 text-[9px] text-[#402060]/60 leading-relaxed overflow-hidden"
             style={LINE_CLAMP_STYLE}
             title={summary}
           >
@@ -169,27 +169,27 @@ function DefaultExternalSystem(props: ExternalSystemNode) {
   const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
-    ? "rgba(239,68,68,0.25)"
-    : "rgba(239,68,68,0.1)";
+    ? "rgba(229,72,77,0.25)"
+    : "rgba(229,72,77,0.1)";
 
   return (
     <div
       className={classNames(
         "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
-        props?.selected ? "ring-2 ring-purple-400/60 ring-offset-2" : "",
+        props?.selected ? "ring-2 ring-[#be93e4]/60 ring-offset-2" : "",
         deprecated
-          ? "border-dashed border-red-500"
+          ? "border-dashed border-[#e5484d]"
           : draft
-            ? `border-dashed ${isDark ? "border-purple-400" : "border-purple-400/60"}`
-            : "border-purple-500",
+            ? `border-dashed ${isDark ? "border-[#be93e4]" : "border-[#be93e4]/60"}`
+            : "border-[#8e4ec6]",
       )}
       style={{
         background: deprecated
           ? `repeating-linear-gradient(135deg, transparent, transparent 6px, ${deprecatedStripe} 6px, ${deprecatedStripe} 7px), var(--ec-external-node-bg, rgb(var(--ec-card-bg)))`
           : draft
-            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${isDark ? "rgba(168,85,247,0.25)" : "rgba(168,85,247,0.15)"} 4px, ${isDark ? "rgba(168,85,247,0.25)" : "rgba(168,85,247,0.15)"} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${isDark ? "rgba(168,85,247,0.25)" : "rgba(168,85,247,0.15)"} 4px, ${isDark ? "rgba(168,85,247,0.25)" : "rgba(168,85,247,0.15)"} 4.5px), var(--ec-external-node-bg, rgb(var(--ec-card-bg)))`
+            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${isDark ? "rgba(142,78,198,0.25)" : "rgba(142,78,198,0.15)"} 4px, ${isDark ? "rgba(142,78,198,0.25)" : "rgba(142,78,198,0.15)"} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${isDark ? "rgba(142,78,198,0.25)" : "rgba(142,78,198,0.15)"} 4px, ${isDark ? "rgba(142,78,198,0.25)" : "rgba(142,78,198,0.15)"} 4.5px), var(--ec-external-node-bg, rgb(var(--ec-card-bg)))`
             : "var(--ec-external-node-bg, rgb(var(--ec-card-bg)))",
-        boxShadow: "0 2px 12px rgba(168, 85, 247, 0.15)",
+        boxShadow: "0 2px 12px rgba(142, 78, 198, 0.15)",
       }}
     >
       <Handle
@@ -213,7 +213,7 @@ function DefaultExternalSystem(props: ExternalSystemNode) {
         <span
           className={classNames(
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
-            deprecated ? "bg-red-500" : "bg-purple-500",
+            deprecated ? "bg-[#e5484d]" : "bg-[#8e4ec6]",
           )}
         >
           <Globe className="w-2.5 h-2.5" strokeWidth={2.5} />
@@ -227,7 +227,7 @@ function DefaultExternalSystem(props: ExternalSystemNode) {
         <div className="flex items-baseline gap-1 min-w-0">
           <TruncatedResourceName
             value={name}
-            tooltipBorderColor="#a855f7"
+            tooltipBorderColor="#8e4ec6"
             className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
           >
             {name}

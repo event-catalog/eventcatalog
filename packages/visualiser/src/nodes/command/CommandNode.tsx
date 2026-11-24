@@ -39,7 +39,7 @@ const GlowHandle = memo(function GlowHandle({
         width: 12,
         height: 12,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+        background: "linear-gradient(135deg, #0090ff, #0d74ce)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.command,
@@ -72,7 +72,7 @@ function PostItCommand(props: CommandNode) {
     <div
       className={classNames(
         "relative min-w-44 max-w-56 min-h-[120px]",
-        props?.selected ? "ring-2 ring-blue-400/60 ring-offset-1" : "",
+        props?.selected ? "ring-2 ring-[#5eb1ef]/60 ring-offset-1" : "",
       )}
       style={nodeColor?.ring}
     >
@@ -95,14 +95,14 @@ function PostItCommand(props: CommandNode) {
         style={{
           background:
             nodeColor?.paper ??
-            "linear-gradient(135deg, #bfdbfe 0%, #93c5fd 40%, #3b82f6 100%)",
+            "linear-gradient(135deg, #c2e5ff 0%, #8ec8f6 40%, #0090ff 100%)",
           boxShadow:
             "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
           transform: "rotate(-1deg)",
           border: deprecated
-            ? "2px dashed rgba(239, 68, 68, 0.5)"
+            ? "2px dashed rgba(229, 72, 77, 0.5)"
             : draft
-              ? `2px dashed ${nodeColor?.paperDraftBorder ?? "rgba(59, 130, 246, 0.5)"}`
+              ? `2px dashed ${nodeColor?.paperDraftBorder ?? "rgba(0, 144, 255, 0.5)"}`
               : "none",
         }}
       >
@@ -117,7 +117,7 @@ function PostItCommand(props: CommandNode) {
             height: 0,
             borderStyle: "solid",
             borderWidth: "18px 0 0 18px",
-            borderColor: `${nodeColor?.corner ?? "#1d4ed8"} transparent transparent transparent`,
+            borderColor: `${nodeColor?.corner ?? "#0d74ce"} transparent transparent transparent`,
             opacity: 0.3,
           }}
         />
@@ -127,24 +127,24 @@ function PostItCommand(props: CommandNode) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
             <MessageSquare
-              className="w-3 h-3 text-blue-900/50"
+              className="w-3 h-3 text-[#113264]/50"
               strokeWidth={2.5}
               style={nodeColor?.muted}
             />
             <span
-              className="text-[8px] font-bold text-blue-900/50 uppercase tracking-widest"
+              className="text-[8px] font-bold text-[#113264]/50 uppercase tracking-widest"
               style={nodeColor?.muted}
             >
               {typeLabel}
             </span>
           </div>
           {draft && (
-            <span className="text-[8px] font-extrabold text-amber-900 bg-amber-100 border border-dashed border-amber-400 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[8px] font-extrabold text-[#4f3422] bg-[#fff7c2] border border-dashed border-[#e2a336] px-1.5 py-0.5 rounded uppercase">
               Draft
             </span>
           )}
           {deprecated && (
-            <span className="text-[7px] font-bold text-white bg-red-500 border border-red-600 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[7px] font-bold text-white bg-[#e5484d] border border-[#dc3e42] px-1.5 py-0.5 rounded uppercase">
               Deprecated
             </span>
           )}
@@ -165,14 +165,14 @@ function PostItCommand(props: CommandNode) {
           <TruncatedResourceName
             as="div"
             value={name}
-            tooltipBorderColor={nodeColor?.tooltipBorder ?? "#3b82f6"}
+            tooltipBorderColor={nodeColor?.tooltipBorder ?? "#0090ff"}
             style={
               nodeColor &&
               (deprecated ? nodeColor.nameDeprecated : nodeColor.name)
             }
             className={classNames(
               "text-[13px] font-bold leading-snug min-w-0 truncate",
-              deprecated ? "text-blue-950/40 line-through" : "text-blue-950",
+              deprecated ? "text-[#113264]/40 line-through" : "text-[#113264]",
             )}
           >
             {name}
@@ -181,7 +181,7 @@ function PostItCommand(props: CommandNode) {
 
         {version && (
           <div
-            className="text-[9px] text-blue-900/40 font-semibold mt-0.5"
+            className="text-[9px] text-[#113264]/40 font-semibold mt-0.5"
             style={nodeColor?.version}
           >
             v{version}
@@ -190,7 +190,7 @@ function PostItCommand(props: CommandNode) {
 
         {mode === "full" && summary && (
           <div
-            className="mt-2 pt-1.5 border-t border-blue-900/10 text-[9px] text-blue-950/60 leading-relaxed overflow-hidden"
+            className="mt-2 pt-1.5 border-t border-[#113264]/10 text-[9px] text-[#113264]/60 leading-relaxed overflow-hidden"
             style={
               nodeColor
                 ? { ...LINE_CLAMP_STYLE, ...nodeColor.summary }
@@ -232,22 +232,22 @@ function DefaultCommand(props: CommandNode) {
   const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
-    ? "rgba(239,68,68,0.25)"
-    : "rgba(239,68,68,0.1)";
+    ? "rgba(229,72,77,0.25)"
+    : "rgba(229,72,77,0.1)";
   const draftStripe =
     nodeColor?.draftStripe ??
-    (isDark ? "rgba(59,130,246,0.25)" : "rgba(59,130,246,0.15)");
+    (isDark ? "rgba(0,144,255,0.25)" : "rgba(0,144,255,0.15)");
 
   return (
     <div
       className={classNames(
         "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
-        props?.selected ? "ring-2 ring-blue-400/60 ring-offset-2" : "",
+        props?.selected ? "ring-2 ring-[#5eb1ef]/60 ring-offset-2" : "",
         deprecated
-          ? "border-dashed border-red-500"
+          ? "border-dashed border-[#e5484d]"
           : draft
-            ? `border-dashed ${isDark ? "border-blue-400" : "border-blue-400/60"}`
-            : "border-blue-500",
+            ? `border-dashed ${isDark ? "border-[#5eb1ef]" : "border-[#5eb1ef]/60"}`
+            : "border-[#0090ff]",
       )}
       style={{
         background: deprecated
@@ -255,7 +255,7 @@ function DefaultCommand(props: CommandNode) {
           : draft
             ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), var(--ec-command-node-bg, rgb(var(--ec-card-bg)))`
             : "var(--ec-command-node-bg, rgb(var(--ec-card-bg)))",
-        boxShadow: "0 2px 12px rgba(59, 130, 246, 0.15)",
+        boxShadow: "0 2px 12px rgba(0, 144, 255, 0.15)",
         ...(nodeColor && getNodeCardStyle(nodeColor, { deprecated, draft })),
       }}
     >
@@ -285,7 +285,7 @@ function DefaultCommand(props: CommandNode) {
         <span
           className={classNames(
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
-            deprecated ? "bg-red-500" : "bg-blue-500",
+            deprecated ? "bg-[#e5484d]" : "bg-[#0090ff]",
           )}
           style={deprecated ? undefined : nodeColor?.badge}
         >
@@ -298,7 +298,7 @@ function DefaultCommand(props: CommandNode) {
       {/* Schema badge top-right */}
       {schema && (
         <span
-          className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-blue-500 rounded-full px-1.5 py-0.5 uppercase tracking-wide"
+          className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-[#0090ff] rounded-full px-1.5 py-0.5 uppercase tracking-wide"
           style={{
             position: "absolute",
             top: -8,
@@ -336,7 +336,7 @@ function DefaultCommand(props: CommandNode) {
             <div className="flex items-baseline gap-1 min-w-0">
               <TruncatedResourceName
                 value={name}
-                tooltipBorderColor={nodeColor?.tooltipBorder ?? "#3b82f6"}
+                tooltipBorderColor={nodeColor?.tooltipBorder ?? "#0090ff"}
                 className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
               >
                 {name}
@@ -369,9 +369,9 @@ function DefaultCommand(props: CommandNode) {
         {/* Owners */}
         <OwnerIndicator
           owners={owners}
-          accentColor="bg-blue-400"
-          borderColor={nodeColor?.ownerBorder ?? "rgba(59,130,246,0.08)"}
-          iconClass="text-blue-300"
+          accentColor="bg-[#5eb1ef]"
+          borderColor={nodeColor?.ownerBorder ?? "rgba(0,144,255,0.08)"}
+          iconClass="text-[#8ec8f6]"
           accentStyle={nodeColor?.ownerAccent}
           iconStyle={nodeColor?.ownerIcon}
         />

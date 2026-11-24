@@ -120,14 +120,14 @@ export const EDGE_WARNING_STYLE = {
 } as const;
 
 export const EDGE_DEFAULT_STYLE = {
-  stroke: "var(--ec-edge-stroke, #d1d5db)",
+  stroke: "var(--ec-edge-stroke, #cecece)",
   strokeWidth: 2.625,
   strokeDasharray: "5 5",
 } as const;
 
 export const EDGE_FLOW_BASE_STYLE = {
   strokeWidth: 3,
-  stroke: "var(--ec-edge-stroke, #6b7280)",
+  stroke: "var(--ec-edge-stroke, #8d8d8d)",
   strokeDasharray: "5 5",
 } as const;
 
@@ -150,17 +150,17 @@ export const QUEUE_BORDER_STYLE = {
 const glow = (rgb: string) => ({ "--ec-glow": rgb }) as CSSProperties;
 
 export const HANDLE_GLOW = {
-  event: glow("251, 146, 60"),
-  service: glow("236, 72, 153"),
-  command: glow("59, 130, 246"),
-  query: glow("34, 197, 94"),
-  data: glow("59, 130, 246"),
-  channel: glow("107, 114, 128"),
-  actor: glow("234, 179, 8"),
-  domain: glow("234, 179, 8"),
-  external: glow("168, 85, 247"),
-  dataProduct: glow("99, 102, 241"),
-  view: glow("14, 165, 233"),
+  event: glow("247, 107, 21"),
+  service: glow("214, 64, 159"),
+  command: glow("0, 144, 255"),
+  query: glow("48, 164, 108"),
+  data: glow("0, 144, 255"),
+  channel: glow("141, 141, 141"),
+  actor: glow("255, 197, 61"),
+  domain: glow("255, 197, 61"),
+  external: glow("142, 78, 198"),
+  dataProduct: glow("62, 99, 221"),
+  view: glow("0, 162, 199"),
   // Nodes without a colour of their own (fields, message groups, custom steps)
-  generic: glow("251, 146, 60"),
+  generic: glow("236, 148, 85"),
 } as const;

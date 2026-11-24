@@ -44,12 +44,12 @@ const DELIVERY_GUARANTEE_LABELS: Record<string, string> = {
 };
 
 const GUARANTEE_COLORS: Record<string, { hex: string; rgb: string }> = {
-  "exactly-once": { hex: "#22d3ee", rgb: "34,211,238" },
-  "at-least-once": { hex: "#a78bfa", rgb: "167,139,250" },
-  "at-most-once": { hex: "#f87171", rgb: "248,113,113" },
+  "exactly-once": { hex: "#3db9cf", rgb: "61,185,207" },
+  "at-least-once": { hex: "#aa99ec", rgb: "170,153,236" },
+  "at-most-once": { hex: "#eb8e90", rgb: "235,142,144" },
 };
 
-const DEFAULT_GUARANTEE = { hex: "#6b7280", rgb: "107,114,128" };
+const DEFAULT_GUARANTEE = { hex: "#8d8d8d", rgb: "141,141,141" };
 
 const TYPE_ICONS: Record<string, LucideIcon> = {
   ListEnd,
@@ -65,7 +65,7 @@ const TYPE_ICONS: Record<string, LucideIcon> = {
  * service's pink. Its card has a border in the same red.
  */
 const DEAD_LETTER_BADGE_STYLE: CSSProperties = {
-  background: "#111827",
+  background: "#202020",
   boxShadow: `0 0 0 1px ${DEAD_LETTER_COLOR}`,
 };
 const DEAD_LETTER_ICON_STYLE: CSSProperties = { color: DEAD_LETTER_COLOR };
@@ -165,7 +165,7 @@ function GlowHandle({
         width: 12,
         height: 12,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #6b7280, #374151)",
+        background: "linear-gradient(135deg, #8d8d8d, #646464)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.channel,
@@ -228,7 +228,7 @@ function PostItChannel(props: ChannelNode) {
     <div
       className={classNames(
         "relative min-w-44 max-w-56 min-h-[120px]",
-        props?.selected ? "ring-2 ring-gray-400/60 ring-offset-1" : "",
+        props?.selected ? "ring-2 ring-[#bbbbbb]/60 ring-offset-1" : "",
       )}
       style={nodeColor?.ring}
     >
@@ -252,14 +252,14 @@ function PostItChannel(props: ChannelNode) {
         style={{
           background:
             nodeColor?.paper ??
-            "linear-gradient(135deg, #e5e7eb 0%, #d1d5db 40%, #6b7280 100%)",
+            "linear-gradient(135deg, #e0e0e0 0%, #cecece 40%, #8d8d8d 100%)",
           boxShadow:
             "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
           transform: "rotate(-1deg)",
           border: deprecated
-            ? "2px dashed rgba(239, 68, 68, 0.5)"
+            ? "2px dashed rgba(229, 72, 77, 0.5)"
             : draft
-              ? `2px dashed ${nodeColor?.paperDraftBorder ?? "rgba(107, 114, 128, 0.5)"}`
+              ? `2px dashed ${nodeColor?.paperDraftBorder ?? "rgba(141, 141, 141, 0.5)"}`
               : "none",
         }}
       >
@@ -274,7 +274,7 @@ function PostItChannel(props: ChannelNode) {
             height: 0,
             borderStyle: "solid",
             borderWidth: "18px 0 0 18px",
-            borderColor: `${nodeColor?.corner ?? "#374151"} transparent transparent transparent`,
+            borderColor: `${nodeColor?.corner ?? "#646464"} transparent transparent transparent`,
             opacity: 0.3,
           }}
         />
@@ -285,12 +285,12 @@ function PostItChannel(props: ChannelNode) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
             <TypeIcon
-              className="w-3 h-3 text-gray-900/50"
+              className="w-3 h-3 text-[#202020]/50"
               strokeWidth={2.5}
               style={nodeColor?.muted}
             />
             <span
-              className="text-[8px] font-bold text-gray-900/50 uppercase tracking-widest"
+              className="text-[8px] font-bold text-[#202020]/50 uppercase tracking-widest"
               style={nodeColor?.muted}
             >
               {typeLabel}
@@ -298,12 +298,12 @@ function PostItChannel(props: ChannelNode) {
           </div>
           <div className="flex items-center gap-1">
             {draft && (
-              <span className="text-[8px] font-extrabold text-amber-900 bg-amber-100 border border-dashed border-amber-400 px-1.5 py-0.5 rounded uppercase">
+              <span className="text-[8px] font-extrabold text-[#4f3422] bg-[#fff7c2] border border-dashed border-[#e2a336] px-1.5 py-0.5 rounded uppercase">
                 Draft
               </span>
             )}
             {deprecated && (
-              <span className="text-[7px] font-bold text-white bg-red-500 border border-red-600 px-1.5 py-0.5 rounded uppercase">
+              <span className="text-[7px] font-bold text-white bg-[#e5484d] border border-[#dc3e42] px-1.5 py-0.5 rounded uppercase">
                 Deprecated
               </span>
             )}
@@ -327,21 +327,23 @@ function PostItChannel(props: ChannelNode) {
             <TruncatedResourceName
               as="div"
               value={name}
-              tooltipBorderColor={nodeColor?.tooltipBorder ?? "#6b7280"}
+              tooltipBorderColor={nodeColor?.tooltipBorder ?? "#8d8d8d"}
               style={
                 nodeColor &&
                 (deprecated ? nodeColor.nameDeprecated : nodeColor.name)
               }
               className={classNames(
                 "text-[13px] font-bold leading-snug truncate",
-                deprecated ? "text-gray-950/40 line-through" : "text-gray-950",
+                deprecated
+                  ? "text-[#202020]/40 line-through"
+                  : "text-[#202020]",
               )}
             >
               {name}
             </TruncatedResourceName>
             {version && (
               <span
-                className="text-[9px] text-gray-900/30 font-medium shrink-0"
+                className="text-[9px] text-[#202020]/30 font-medium shrink-0"
                 style={nodeColor?.version}
               >
                 v{version}
@@ -353,7 +355,7 @@ function PostItChannel(props: ChannelNode) {
         {/* Summary */}
         {mode === "full" && summary && (
           <div
-            className="mt-1 text-[9px] text-gray-950/50 leading-relaxed overflow-hidden"
+            className="mt-1 text-[9px] text-[#202020]/50 leading-relaxed overflow-hidden"
             style={
               nodeColor
                 ? { ...LINE_CLAMP_STYLE, color: nodeColor.summary.color }
@@ -382,7 +384,7 @@ function PostItChannel(props: ChannelNode) {
               </span>
             )}
             {protocols?.[0] && (
-              <span className="inline-flex items-center text-[7px] font-semibold text-gray-900/50 bg-gray-900/10 rounded-full px-1.5 py-0.5 uppercase tracking-wide">
+              <span className="inline-flex items-center text-[7px] font-semibold text-[#202020]/50 bg-[#202020]/10 rounded-full px-1.5 py-0.5 uppercase tracking-wide">
                 {protocols[0]}
               </span>
             )}
@@ -423,25 +425,25 @@ function DefaultChannel(props: ChannelNode) {
   const connected = useNodeHasConnections(DEAD_LETTER_HANDLE);
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
-    ? "rgba(239,68,68,0.25)"
-    : "rgba(239,68,68,0.1)";
+    ? "rgba(229,72,77,0.25)"
+    : "rgba(229,72,77,0.1)";
   const draftStripe =
     nodeColor?.draftStripe ??
-    (isDark ? "rgba(107,114,128,0.25)" : "rgba(107,114,128,0.15)");
+    (isDark ? "rgba(141,141,141,0.25)" : "rgba(141,141,141,0.15)");
   const guarantee = getGuarantee(deliveryGuarantee);
 
   return (
     <div
       className={classNames(
         "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
-        props?.selected ? "ring-2 ring-gray-400/60 ring-offset-2" : "",
+        props?.selected ? "ring-2 ring-[#bbbbbb]/60 ring-offset-2" : "",
         deprecated
-          ? "border-dashed border-red-500"
+          ? "border-dashed border-[#e5484d]"
           : draft
-            ? `border-dashed ${isDark ? "border-gray-400" : "border-gray-400/60"}`
+            ? `border-dashed ${isDark ? "border-[#bbbbbb]" : "border-[#bbbbbb]/60"}`
             : isDark
-              ? "border-gray-400"
-              : "border-gray-500",
+              ? "border-[#bbbbbb]"
+              : "border-[#8d8d8d]",
       )}
       style={{
         background: deprecated
@@ -449,7 +451,7 @@ function DefaultChannel(props: ChannelNode) {
           : draft
             ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), ${CARD_BACKGROUND}`
             : CARD_BACKGROUND,
-        boxShadow: "0 2px 12px rgba(107, 114, 128, 0.15)",
+        boxShadow: "0 2px 12px rgba(141, 141, 141, 0.15)",
         ...(nodeColor && getNodeCardStyle(nodeColor, { deprecated, draft })),
       }}
     >
@@ -483,7 +485,7 @@ function DefaultChannel(props: ChannelNode) {
         <span
           className={classNames(
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
-            deprecated ? "bg-red-500" : "bg-gray-500",
+            deprecated ? "bg-[#e5484d]" : "bg-[#8d8d8d]",
           )}
           style={
             deprecated
@@ -524,7 +526,7 @@ function DefaultChannel(props: ChannelNode) {
           <div className="flex items-baseline gap-1.5 min-w-0">
             <TruncatedResourceName
               value={name}
-              tooltipBorderColor={nodeColor?.tooltipBorder ?? "#6b7280"}
+              tooltipBorderColor={nodeColor?.tooltipBorder ?? "#8d8d8d"}
               className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
             >
               {name}
@@ -587,7 +589,7 @@ function DefaultChannel(props: ChannelNode) {
                 style={{
                   background: isDark
                     ? "rgba(255,255,255,0.08)"
-                    : "rgba(107,114,128,0.1)",
+                    : "rgba(141,141,141,0.1)",
                   color: "rgb(var(--ec-page-text-muted))",
                 }}
               >
@@ -600,9 +602,9 @@ function DefaultChannel(props: ChannelNode) {
         {/* Owners */}
         <OwnerIndicator
           owners={owners}
-          accentColor="bg-gray-400"
-          borderColor={nodeColor?.ownerBorder ?? "rgba(107,114,128,0.08)"}
-          iconClass="text-gray-300"
+          accentColor="bg-[#bbbbbb]"
+          borderColor={nodeColor?.ownerBorder ?? "rgba(141,141,141,0.08)"}
+          iconClass="text-[#cecece]"
           accentStyle={nodeColor?.ownerAccent}
           iconStyle={nodeColor?.ownerIcon}
         />

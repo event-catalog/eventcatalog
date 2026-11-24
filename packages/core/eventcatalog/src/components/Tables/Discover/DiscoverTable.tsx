@@ -11,7 +11,7 @@ import {
   type ColumnFiltersState,
   type SortingState,
 } from '@tanstack/react-table';
-import { ArrowDown, ArrowUp, ArrowUpDown, SearchX, X, Search, Users } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, RotateCcw, SearchX, X, Search, Users } from 'lucide-react';
 import { UserIcon } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useState } from 'react';
 import type { TableConfiguration } from '@types';
@@ -70,6 +70,8 @@ export interface DiscoverTableData {
       backgroundColor?: string;
       textColor?: string;
       url?: string;
+      /** Its icon as SVG markup, rendered on the server (see getIconSvg) */
+      iconSvg?: string;
     }>;
     status?: string;
     date?: string | Date;
@@ -810,7 +812,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
         <div className="flex h-[var(--ec-header-height)] flex-shrink-0 items-center justify-between gap-3 border-b border-[rgb(var(--ec-page-border))] px-4">
           <h2 className="text-[13px] font-semibold text-[rgb(var(--ec-page-text))]">Filters</h2>
           <div className="flex items-center gap-3 text-xs">
-            <span className="tabular-nums text-[rgb(var(--ec-page-text-muted))]">
+            <span className="font-mono text-[11px] tabular-nums text-[rgb(var(--ec-page-text-muted))]">
               {totalResults} {totalResults === 1 ? 'result' : 'results'}
             </span>
             {activeFilterCount > 0 && (
@@ -831,7 +833,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Kind</label>
               <FilterDropdown
-                label="Select kind..."
+                label="All"
                 selectedItems={selectedKind ? [selectedKind.label] : []}
                 onClear={() => {}}
                 clearable={false}
@@ -858,7 +860,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Producers</label>
                   <FilterDropdown
-                    label="Select producers..."
+                    label="All"
                     selectedItems={selectedProducerNames}
                     onClear={() => setSelectedProducers([])}
                     onRemoveItem={(name) => {
@@ -884,7 +886,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Consumers</label>
                   <FilterDropdown
-                    label="Select consumers..."
+                    label="All"
                     selectedItems={selectedConsumerNames}
                     onClear={() => setSelectedConsumers([])}
                     onRemoveItem={(name) => {
@@ -940,7 +942,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Provider</label>
                     <FilterDropdown
-                      label="Select providers..."
+                      label="All"
                       selectedItems={selectedAgentProviderNames}
                       onClear={() => setSelectedAgentProviders([])}
                       onRemoveItem={(name) => {
@@ -966,7 +968,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Model</label>
                     <FilterDropdown
-                      label="Select models..."
+                      label="All"
                       selectedItems={selectedAgentModelNames}
                       onClear={() => setSelectedAgentModels([])}
                       onRemoveItem={(name) => {
@@ -994,7 +996,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Domains</label>
                 <FilterDropdown
-                  label="Select domains..."
+                  label="All"
                   selectedItems={selectedDomainNames}
                   onClear={() => setSelectedDomains([])}
                   onRemoveItem={(name) => {
@@ -1020,7 +1022,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Owners</label>
                 <FilterDropdown
-                  label="Select owners..."
+                  label="All"
                   selectedItems={selectedOwnerNames}
                   onClear={() => setSelectedOwners([])}
                   onRemoveItem={(name) => {
@@ -1077,7 +1079,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Status</label>
                 <FilterDropdown
-                  label="Select statuses..."
+                  label="All"
                   selectedItems={selectedStatusNames}
                   onClear={() => setSelectedStatuses([])}
                   onRemoveItem={(name) => {
@@ -1103,7 +1105,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Badges</label>
                 <FilterDropdown
-                  label="Select badges..."
+                  label="All"
                   selectedItems={selectedBadges}
                   onClear={() => setSelectedBadges([])}
                   onRemoveItem={(badge) => toggleBadge(badge)}
@@ -1126,7 +1128,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Properties</label>
                 <FilterDropdown
-                  label="Select properties..."
+                  label="All"
                   selectedItems={selectedPropertyLabels}
                   onClear={() => setSelectedProperties([])}
                   onRemoveItem={(label) => {
@@ -1150,7 +1152,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Version</label>
               <FilterDropdown
-                label="Select version..."
+                label="All"
                 selectedItems={[...(showOnlyLatest ? ['Latest only'] : []), ...(onlyShowDrafts ? ['Drafts only'] : [])]}
                 onClear={() => {
                   setShowOnlyLatest(true);
@@ -1264,17 +1266,26 @@ export function DiscoverTable<T extends DiscoverTableData>({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={table.getAllColumns().length} className="px-4 py-12 text-center">
-                      <div className="flex flex-col items-center justify-center text-[rgb(var(--ec-page-text-muted))]">
-                        <SearchX className="w-10 h-10 text-[rgb(var(--ec-icon-color))] mb-3 opacity-50" />
-                        <p className="text-sm font-medium text-[rgb(var(--ec-page-text-muted))]">No results found</p>
-                        <p className="text-xs text-[rgb(var(--ec-icon-color))] mt-1">Try adjusting your search or filters</p>
+                    <td colSpan={table.getAllColumns().length} className="px-4 py-16 text-center">
+                      {/* As Vercel's: the icon in a small outlined square, a heading, a muted line, then what to do */}
+                      <div className="flex flex-col items-center justify-center">
+                        <span
+                          className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)] text-[rgb(var(--ec-page-text-muted))]"
+                          aria-hidden="true"
+                        >
+                          <SearchX className="h-[18px] w-[18px]" />
+                        </span>
+                        <p className="text-sm font-medium text-[rgb(var(--ec-page-text))]">No results found</p>
+                        <p className="mt-1 text-[13px] text-[rgb(var(--ec-page-text-muted))]">
+                          Try adjusting your search or filters
+                        </p>
                         {activeFilterCount > 0 && (
                           <button
                             type="button"
                             onClick={clearAllFilters}
-                            className="mt-3 rounded-md border border-[rgb(var(--ec-page-border))] px-2.5 py-1 text-xs font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-page-text)/0.045)]"
+                            className="mt-5 inline-flex h-8 items-center gap-1.5 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-3 text-[13px] font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
                           >
+                            <RotateCcw className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" aria-hidden="true" />
                             Clear all filters
                           </button>
                         )}

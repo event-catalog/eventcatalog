@@ -17,7 +17,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         width: 12,
         height: 12,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #06b6d4, #0891b2)",
+        background: "linear-gradient(135deg, #00a2c7, #0797b9)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.generic,
@@ -49,12 +49,12 @@ export default memo(function Field(props: FieldNode) {
     <div
       className={classNames(
         "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
-        props?.selected ? "ring-2 ring-cyan-400/60 ring-offset-2" : "",
-        "border-cyan-500",
+        props?.selected ? "ring-2 ring-[#3db9cf]/60 ring-offset-2" : "",
+        "border-[#00a2c7]",
       )}
       style={{
         background: "var(--ec-field-node-bg, rgb(var(--ec-card-bg)))",
-        boxShadow: "0 2px 12px rgba(6, 182, 212, 0.15)",
+        boxShadow: "0 2px 12px rgba(0, 162, 199, 0.15)",
       }}
     >
       <Handle
@@ -72,7 +72,7 @@ export default memo(function Field(props: FieldNode) {
 
       {/* Type badge top-left */}
       <div className="absolute -top-2.5 left-2.5 z-10">
-        <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-cyan-600">
+        <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-[#0797b9]">
           <Database className="w-2.5 h-2.5" strokeWidth={2.5} />
           Field
         </span>
@@ -81,7 +81,7 @@ export default memo(function Field(props: FieldNode) {
       {/* Field type badge top-right */}
       {fieldType && (
         <span
-          className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-cyan-500 rounded-full px-1.5 py-0.5 uppercase tracking-wide"
+          className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-[#00a2c7] rounded-full px-1.5 py-0.5 uppercase tracking-wide"
           style={{ position: "absolute", top: -8, right: 10 }}
         >
           {fieldType}

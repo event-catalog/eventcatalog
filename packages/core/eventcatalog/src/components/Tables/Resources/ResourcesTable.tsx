@@ -410,10 +410,17 @@ export function ResourcesTable({ resources, title, description, typeLabels }: Re
             <tbody className="divide-y divide-[rgb(var(--ec-page-border)/0.5)]">
               {table.getRowModel().rows.length === 0 && (
                 <tr>
-                  <td colSpan={table.getVisibleLeafColumns().length} className="px-4 py-12">
-                    <div className="flex flex-col items-center justify-center gap-2 text-center text-[rgb(var(--ec-page-text-muted))]">
-                      <SearchX className="h-6 w-6" aria-hidden="true" />
-                      <p className="text-sm">No resources found.</p>
+                  <td colSpan={table.getVisibleLeafColumns().length} className="px-4 py-16">
+                    {/* As the discover tables': the icon in a small outlined square, a heading and a muted line */}
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <span
+                        className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)] text-[rgb(var(--ec-page-text-muted))]"
+                        aria-hidden="true"
+                      >
+                        <SearchX className="h-[18px] w-[18px]" />
+                      </span>
+                      <p className="text-sm font-medium text-[rgb(var(--ec-page-text))]">No resources found</p>
+                      <p className="mt-1 text-[13px] text-[rgb(var(--ec-page-text-muted))]">Try a different search or type</p>
                     </div>
                   </td>
                 </tr>

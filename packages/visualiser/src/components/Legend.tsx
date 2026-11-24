@@ -53,55 +53,55 @@ const getLegendLabel = (key: string) => LEGEND_LABELS[key] ?? key;
 // Icon + text colour per legend key, mirroring each collection's node styling.
 // When a key has no icon mapped, the legend falls back to its coloured square.
 const LEGEND_ICONS: Record<string, { Icon: LucideIcon; colorClass: string }> = {
-  events: { Icon: Zap, colorClass: "text-orange-600" },
-  event: { Icon: Zap, colorClass: "text-orange-600" },
-  agent: { Icon: Bot, colorClass: "text-sky-600" },
-  agents: { Icon: Bot, colorClass: "text-sky-600" },
-  agentTool: { Icon: Wrench, colorClass: "text-violet-600" },
-  "agent-tool": { Icon: Wrench, colorClass: "text-violet-600" },
-  services: { Icon: ServerIcon, colorClass: "text-pink-600" },
-  service: { Icon: ServerIcon, colorClass: "text-pink-600" },
-  flows: { Icon: Workflow, colorClass: "text-teal-600" },
-  commands: { Icon: MessageSquare, colorClass: "text-blue-600" },
-  command: { Icon: MessageSquare, colorClass: "text-blue-600" },
-  queries: { Icon: SearchIcon, colorClass: "text-green-600" },
-  query: { Icon: SearchIcon, colorClass: "text-green-600" },
-  channels: { Icon: ArrowLeftRight, colorClass: "text-gray-600" },
-  channel: { Icon: ArrowLeftRight, colorClass: "text-gray-600" },
-  externalSystem: { Icon: Globe, colorClass: "text-pink-600" },
-  systems: { Icon: GroupIcon, colorClass: "text-purple-600" },
-  system: { Icon: GroupIcon, colorClass: "text-purple-600" },
-  actor: { Icon: User, colorClass: "text-yellow-500" },
-  "context-actor": { Icon: User, colorClass: "text-yellow-500" },
-  "context-domain": { Icon: Boxes, colorClass: "text-yellow-500" },
-  data: { Icon: Database, colorClass: "text-blue-600" },
-  "data-products": { Icon: Boxes, colorClass: "text-indigo-600" },
-  field: { Icon: Box, colorClass: "text-cyan-600" },
+  events: { Icon: Zap, colorClass: "text-[#ef5f00]" },
+  event: { Icon: Zap, colorClass: "text-[#ef5f00]" },
+  agent: { Icon: Bot, colorClass: "text-[#0797b9]" },
+  agents: { Icon: Bot, colorClass: "text-[#0797b9]" },
+  agentTool: { Icon: Wrench, colorClass: "text-[#654dc4]" },
+  "agent-tool": { Icon: Wrench, colorClass: "text-[#654dc4]" },
+  services: { Icon: ServerIcon, colorClass: "text-[#cf3897]" },
+  service: { Icon: ServerIcon, colorClass: "text-[#cf3897]" },
+  flows: { Icon: Workflow, colorClass: "text-[#0d9b8a]" },
+  commands: { Icon: MessageSquare, colorClass: "text-[#0588f0]" },
+  command: { Icon: MessageSquare, colorClass: "text-[#0588f0]" },
+  queries: { Icon: SearchIcon, colorClass: "text-[#2b9a66]" },
+  query: { Icon: SearchIcon, colorClass: "text-[#2b9a66]" },
+  channels: { Icon: ArrowLeftRight, colorClass: "text-[#838383]" },
+  channel: { Icon: ArrowLeftRight, colorClass: "text-[#838383]" },
+  externalSystem: { Icon: Globe, colorClass: "text-[#cf3897]" },
+  systems: { Icon: GroupIcon, colorClass: "text-[#8347b9]" },
+  system: { Icon: GroupIcon, colorClass: "text-[#8347b9]" },
+  actor: { Icon: User, colorClass: "text-[#ffc53d]" },
+  "context-actor": { Icon: User, colorClass: "text-[#ffc53d]" },
+  "context-domain": { Icon: Boxes, colorClass: "text-[#ffc53d]" },
+  data: { Icon: Database, colorClass: "text-[#0588f0]" },
+  "data-products": { Icon: Boxes, colorClass: "text-[#3358d4]" },
+  field: { Icon: Box, colorClass: "text-[#0797b9]" },
 };
 
 // The coloured square for kinds without an icon
 const LEGEND_COLORS: Record<string, string> = {
-  events: "bg-orange-600",
-  agent: "bg-sky-600",
-  agents: "bg-sky-600",
-  agentTool: "bg-violet-600",
-  "agent-tool": "bg-violet-600",
-  services: "bg-pink-600",
-  flows: "bg-teal-600",
-  commands: "bg-blue-600",
-  queries: "bg-green-600",
-  channels: "bg-gray-600",
-  externalSystem: "bg-pink-600",
-  systems: "bg-purple-600",
-  system: "bg-purple-600",
-  actor: "bg-yellow-500",
-  "context-actor": "bg-yellow-500",
-  step: "bg-gray-700",
-  data: "bg-blue-600",
-  "data-products": "bg-indigo-600",
-  field: "bg-cyan-600",
-  messageGroup: "bg-violet-600",
-  messageGroupExpanded: "bg-violet-600",
+  events: "bg-[#ef5f00]",
+  agent: "bg-[#0797b9]",
+  agents: "bg-[#0797b9]",
+  agentTool: "bg-[#654dc4]",
+  "agent-tool": "bg-[#654dc4]",
+  services: "bg-[#cf3897]",
+  flows: "bg-[#0d9b8a]",
+  commands: "bg-[#0588f0]",
+  queries: "bg-[#2b9a66]",
+  channels: "bg-[#838383]",
+  externalSystem: "bg-[#cf3897]",
+  systems: "bg-[#8347b9]",
+  system: "bg-[#8347b9]",
+  actor: "bg-[#ffc53d]",
+  "context-actor": "bg-[#ffc53d]",
+  step: "bg-[#646464]",
+  data: "bg-[#0588f0]",
+  "data-products": "bg-[#3358d4]",
+  field: "bg-[#0797b9]",
+  messageGroup: "bg-[#654dc4]",
+  messageGroupExpanded: "bg-[#654dc4]",
 };
 
 /** The legend for some nodes: each domain's steps (when grouped by domain), then each kind of node */
@@ -117,7 +117,7 @@ export const getLegend = (nodes: Node<any>[]): Record<string, LegendEntry> => {
   domainGroups.forEach((groupId) => {
     legend[`${groupId} (Domain)`] = {
       count: nodes.filter((node) => node.data.group?.id === groupId).length,
-      colorClass: "bg-yellow-600",
+      colorClass: "bg-[#ffba18]",
       groupId,
     };
   });
@@ -157,8 +157,8 @@ export const LegendPanel = memo(function LegendPanel({
       position="bottom-right"
       style={showMinimap ? LEGEND_PANEL_STYLE_WITH_MINIMAP : undefined}
     >
-      <div className="bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] font-light px-4 text-[12px] shadow-md py-1 rounded-md">
-        <ul className="m-0 p-0 ">
+      <div className="rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] p-1 text-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-8px_rgba(0,0,0,0.18)]">
+        <ul className="m-0 p-0">
           {Object.entries(legend).map(([key, { count, colorClass }]) => {
             const legendIcon = LEGEND_ICONS[key];
             const hidden = hiddenKeys.includes(key);
@@ -166,7 +166,7 @@ export const LegendPanel = memo(function LegendPanel({
               <li
                 key={key}
                 title={`${hidden ? "Show" : "Hide"} ${getLegendLabel(key)}`}
-                className={`flex space-x-2 items-center text-[10px] cursor-pointer text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))] hover:underline transition-opacity ${hidden ? "opacity-40" : ""}`}
+                className={`flex items-center gap-2 rounded-md px-2 py-1 text-[11px] cursor-pointer text-[rgb(var(--ec-page-text-muted))] hover:bg-[color-mix(in_srgb,rgb(var(--ec-page-text))_6%,transparent)] hover:text-[rgb(var(--ec-page-text))] transition-colors ${hidden ? "opacity-40" : ""}`}
                 onClick={() => onLegendClick(key)}
               >
                 {legendIcon ? (

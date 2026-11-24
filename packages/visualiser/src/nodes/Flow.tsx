@@ -192,7 +192,7 @@ export default memo(function FlowNode({
         <ContextMenu.Content className="min-w-[220px] bg-[rgb(var(--ec-card-bg))] rounded-md p-1 shadow-md border border-[rgb(var(--ec-page-border))]">
           <ContextMenu.Item
             asChild
-            className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
+            className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-[#ffefd6] rounded-sm flex items-center"
           >
             <a href={buildUrl(`/docs/flows/${id}/${version}`)}>
               Read documentation
@@ -200,7 +200,7 @@ export default memo(function FlowNode({
           </ContextMenu.Item>
           <ContextMenu.Item
             asChild
-            className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
+            className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-[#ffefd6] rounded-sm flex items-center"
           >
             <a href={buildUrl(`/visualiser/flows/${id}/${version}`)}>
               Focus node
@@ -210,7 +210,7 @@ export default memo(function FlowNode({
           <ContextMenu.Item asChild>
             <a
               href={buildUrl(`/docs/flows/${id}/${version}/changelog`)}
-              className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
+              className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-[#ffefd6] rounded-sm flex items-center"
               target="_blank"
               rel="noopener noreferrer"
             >

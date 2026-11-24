@@ -13,8 +13,8 @@ const CONTAINER_STYLE: React.CSSProperties = {
   width: "100%",
   height: "100%",
   borderRadius: 12,
-  border: "2px solid rgba(139, 92, 246, 0.5)",
-  backgroundColor: "rgba(139, 92, 246, 0.05)",
+  border: "2px solid rgba(110, 86, 207, 0.5)",
+  backgroundColor: "rgba(110, 86, 207, 0.05)",
   position: "relative",
   overflow: "visible",
 };
@@ -27,8 +27,8 @@ const HEADER_STYLE: React.CSSProperties = {
   height: 44,
   borderTopLeftRadius: 10,
   borderTopRightRadius: 10,
-  background: "rgba(139, 92, 246, 0.12)",
-  borderBottom: "1px solid rgba(139, 92, 246, 0.3)",
+  background: "rgba(110, 86, 207, 0.12)",
+  borderBottom: "1px solid rgba(110, 86, 207, 0.3)",
   overflow: "visible",
 };
 
@@ -41,7 +41,7 @@ const BADGE_STYLE: React.CSSProperties = {
   gap: 3,
   padding: "2px 8px",
   borderRadius: 4,
-  background: "#7c3aed",
+  background: "#654dc4",
   boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
   zIndex: 10,
   fontSize: 8,
@@ -63,7 +63,7 @@ const HEADER_CONTENT_STYLE: React.CSSProperties = {
 const GROUP_NAME_STYLE: React.CSSProperties = {
   fontSize: 11,
   fontWeight: 700,
-  color: "var(--ec-group-text, #5b21b6)",
+  color: "var(--ec-group-text, #6550b9)",
   letterSpacing: "0.04em",
   textTransform: "uppercase",
   whiteSpace: "nowrap",
@@ -72,13 +72,13 @@ const GROUP_NAME_STYLE: React.CSSProperties = {
 const COUNT_STYLE: React.CSSProperties = {
   fontSize: 10,
   fontWeight: 500,
-  color: "#a78bfa",
+  color: "#aa99ec",
   marginLeft: 8,
 };
 
 const COLLAPSE_BUTTON_STYLE: React.CSSProperties = {
-  background: "#7c3aed",
-  border: "1px solid #a78bfa",
+  background: "#654dc4",
+  border: "1px solid #aa99ec",
   borderRadius: 6,
   padding: "4px 10px",
   cursor: "pointer",
@@ -116,7 +116,7 @@ export default memo(function MessageGroupExpandedNode({
           >
             <TruncatedResourceName
               value={groupName || "Group"}
-              tooltipBorderColor="#8b5cf6"
+              tooltipBorderColor="#6e56cf"
               className="truncate"
               style={GROUP_NAME_STYLE}
             >

@@ -247,7 +247,7 @@ export default memo(function EntityNode({
                   {property.name}
                 </span>
                 {property.required && (
-                  <span className="text-red-500 text-xs">*</span>
+                  <span className="text-[#e5484d] text-xs">*</span>
                 )}
               </div>
               <span className="text-sm text-[rgb(var(--ec-page-text-muted))] font-mono shrink-0">
@@ -258,15 +258,15 @@ export default memo(function EntityNode({
             {referencedEntityId && (
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
                 <div
-                  className="w-2 h-2 bg-blue-500 rounded-full"
+                  className="w-2 h-2 bg-[#0090ff] rounded-full"
                   title={`References ${referencedEntityId}`}
                 ></div>
               </div>
             )}
 
             {isHovered && property.description && (
-              <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 z-[9999] w-[200px] bg-gray-900 text-white text-xs rounded-lg py-2 px-3 pointer-events-none shadow-xl max-w-xl opacity-100">
-                <div className="text-gray-200 whitespace-normal break-words">
+              <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 z-[9999] w-[200px] bg-[#202020] text-white text-xs rounded-lg py-2 px-3 pointer-events-none shadow-xl max-w-xl opacity-100">
+                <div className="text-[#e0e0e0] whitespace-normal break-words">
                   {property.description}
                 </div>
                 <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
@@ -289,19 +289,19 @@ export default memo(function EntityNode({
         <div
           className={classNames(
             "bg-[rgb(var(--ec-card-bg))] border rounded-lg shadow-sm min-w-[200px]",
-            externalToDomain ? "border-amber-500/60" : "border-blue-400/50",
+            externalToDomain ? "border-[#ffc53d]/60" : "border-[#5eb1ef]/50",
             // Selected, like the other nodes: a ring in the colour of its border
             selected &&
               (externalToDomain
-                ? "ring-2 ring-amber-400/60 ring-offset-2"
-                : "ring-2 ring-blue-400/60 ring-offset-2"),
+                ? "ring-2 ring-[#e2a336]/60 ring-offset-2"
+                : "ring-2 ring-[#5eb1ef]/60 ring-offset-2"),
           )}
         >
           {/* Table Header */}
           <div
             className={classNames(
               "relative px-4 py-2 rounded-t-lg border-b border-[rgb(var(--ec-page-border))]",
-              externalToDomain ? "bg-amber-500/20" : "bg-blue-500/15",
+              externalToDomain ? "bg-[#ffc53d]/20" : "bg-[#0090ff]/15",
             )}
           >
             <Handle
@@ -317,13 +317,13 @@ export default memo(function EntityNode({
               )}
               <TruncatedResourceName
                 value={name}
-                tooltipBorderColor={externalToDomain ? "#f59e0b" : "#60a5fa"}
+                tooltipBorderColor={externalToDomain ? "#ffc53d" : "#5eb1ef"}
                 className="font-semibold text-[rgb(var(--ec-page-text))] text-sm truncate"
               >
                 {name}
               </TruncatedResourceName>
               {aggregateRoot && (
-                <span className="text-xs bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded font-medium shrink-0">
+                <span className="text-xs bg-[#ffc53d]/20 text-[#ffba18] dark:text-[#e2a336] px-1.5 py-0.5 rounded font-medium shrink-0">
                   AR
                 </span>
               )}

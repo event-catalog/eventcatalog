@@ -26,52 +26,52 @@ export interface NoteNodeProps extends NodeProps<NoteNode> {
 
 const AVAILABLE_COLORS = {
   yellow: {
-    bg: "bg-gradient-to-br from-yellow-200 to-yellow-300",
-    border: "border-yellow-400",
-    text: "text-yellow-900",
+    bg: "bg-gradient-to-br from-[#fbe577] to-[#e9c162]",
+    border: "border-[#e2a336]",
+    text: "text-[#4f3422]",
     placeholder: "placeholder-yellow-600",
-    selectedRing: "ring-yellow-500",
-    tooltipBorderColor: "#facc15",
+    selectedRing: "ring-[#ffc53d]",
+    tooltipBorderColor: "#e2a336",
   },
   blue: {
-    bg: "bg-blue-200",
-    border: "border-blue-400",
-    text: "text-blue-900",
+    bg: "bg-[#c2e5ff]",
+    border: "border-[#5eb1ef]",
+    text: "text-[#113264]",
     placeholder: "placeholder-blue-600",
-    selectedRing: "ring-blue-500",
-    tooltipBorderColor: "#60a5fa",
+    selectedRing: "ring-[#0090ff]",
+    tooltipBorderColor: "#5eb1ef",
   },
   green: {
-    bg: "bg-green-200",
-    border: "border-green-400",
-    text: "text-green-900",
+    bg: "bg-[#c4e8d1]",
+    border: "border-[#5bb98b]",
+    text: "text-[#193b2d]",
     placeholder: "placeholder-green-600",
-    selectedRing: "ring-green-500",
-    tooltipBorderColor: "#4ade80",
+    selectedRing: "ring-[#30a46c]",
+    tooltipBorderColor: "#5bb98b",
   },
   pink: {
-    bg: "bg-pink-200",
-    border: "border-pink-400",
-    text: "text-pink-900",
+    bg: "bg-[#f6cee7]",
+    border: "border-[#dd93c2]",
+    text: "text-[#651249]",
     placeholder: "placeholder-pink-600",
-    selectedRing: "ring-pink-500",
-    tooltipBorderColor: "#f472b6",
+    selectedRing: "ring-[#d6409f]",
+    tooltipBorderColor: "#dd93c2",
   },
   purple: {
-    bg: "bg-purple-200",
-    border: "border-purple-400",
-    text: "text-purple-900",
+    bg: "bg-[#ead5f9]",
+    border: "border-[#be93e4]",
+    text: "text-[#402060]",
     placeholder: "placeholder-purple-600",
-    selectedRing: "ring-purple-500",
-    tooltipBorderColor: "#c084fc",
+    selectedRing: "ring-[#8e4ec6]",
+    tooltipBorderColor: "#be93e4",
   },
   gray: {
-    bg: "bg-gray-200",
-    border: "border-gray-400",
-    text: "text-gray-900",
+    bg: "bg-[#e0e0e0]",
+    border: "border-[#bbbbbb]",
+    text: "text-[#202020]",
     placeholder: "placeholder-gray-600",
-    selectedRing: "ring-gray-500",
-    tooltipBorderColor: "#9ca3af",
+    selectedRing: "ring-[#8d8d8d]",
+    tooltipBorderColor: "#bbbbbb",
   },
 } as const;
 
@@ -121,7 +121,7 @@ export default memo(function NoteNodeComponent({
         // Inline code
         .replace(
           /`(.*?)`/gim,
-          '<code class="bg-gray-200 px-1 rounded text-[9px] font-mono">$1</code>',
+          '<code class="bg-[#e0e0e0] px-1 rounded text-[9px] font-mono">$1</code>',
         )
         // Simple lists
         .replace(/^• (.*$)/gim, '<li class="text-[10px] ml-3">• $1</li>')
@@ -216,12 +216,12 @@ export default memo(function NoteNodeComponent({
       <Handle
         type="target"
         position={Position.Left}
-        className="!left-[-1px] !w-2 !h-2 !bg-gray-400 !border !border-gray-500 !rounded-full !z-10"
+        className="!left-[-1px] !w-2 !h-2 !bg-[#bbbbbb] !border !border-[#8d8d8d] !rounded-full !z-10"
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="!right-[-1px] !w-2 !h-2 !bg-gray-400 !border !border-gray-500 !rounded-full !z-10"
+        className="!right-[-1px] !w-2 !h-2 !bg-[#bbbbbb] !border !border-[#8d8d8d] !rounded-full !z-10"
       />
       {selected && !isEditing && !readOnly && (
         <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 flex space-x-1 p-1 bg-[rgb(var(--ec-card-bg))] rounded-md shadow-lg border border-[rgb(var(--ec-page-border))] z-20">
@@ -252,10 +252,10 @@ export default memo(function NoteNodeComponent({
           colorClasses.text,
           "prose prose-sm max-w-full",
           selected
-            ? `border-blue-600 ring-2 ${colorClasses.selectedRing} shadow-xl`
+            ? `border-[#0588f0] ring-2 ${colorClasses.selectedRing} shadow-xl`
             : "shadow-md hover:shadow-lg",
           currentColorName === "yellow"
-            ? "shadow-yellow-300/50 shadow-lg transform rotate-0.5"
+            ? "shadow-[#e9c162]/50 shadow-lg transform rotate-0.5"
             : "",
         )}
         style={POSITION_RELATIVE_STYLE}
@@ -286,14 +286,14 @@ export default memo(function NoteNodeComponent({
             />
             {isTextOverflowing && (
               <div
-                className="pointer-events-none absolute left-1/2 bottom-full z-[9999] mb-4 hidden w-max max-w-[320px] -translate-x-1/2 rounded-md border bg-slate-950 px-2.5 py-1.5 text-[11px] font-medium leading-snug text-white shadow-lg group-hover:block"
+                className="pointer-events-none absolute left-1/2 bottom-full z-[9999] mb-4 hidden w-max max-w-[320px] -translate-x-1/2 rounded-md border bg-[#202020] px-2.5 py-1.5 text-[11px] font-medium leading-snug text-white shadow-lg group-hover:block"
                 style={{ borderColor: colorClasses.tooltipBorderColor }}
               >
                 <span className="block whitespace-pre-wrap break-words">
                   {currentText}
                 </span>
                 <span
-                  className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1/2 rotate-45 border-b border-r bg-slate-950"
+                  className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1/2 rotate-45 border-b border-r bg-[#202020]"
                   style={{
                     borderBottomColor: colorClasses.tooltipBorderColor,
                     borderRightColor: colorClasses.tooltipBorderColor,

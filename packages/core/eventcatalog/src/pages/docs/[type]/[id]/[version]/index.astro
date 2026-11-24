@@ -399,7 +399,7 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
   <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
     <div class="flex docs-layout w-full">
-      <div class="w-full min-w-0 lg:mr-2 xl:pr-8 pt-5 pb-8 bg-[rgb(var(--ec-page-bg))]">
+      <div class="w-full min-w-0 lg:mr-2 xl:pr-[42px] pt-5 pb-8 bg-[rgb(var(--ec-page-bg))]">
         <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-4 pt-2">
           <div>
             <div>
@@ -413,8 +413,9 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                     },
                     { label: 'Overview' },
                   ]} />
-                <div class="flex items-center gap-3">
-                  <div class="flex items-center gap-1.5">
+                {/* The title (and favourite) on the left, the page's actions (Ask, copy, view, connect, edit) on the right */}
+                <div class="flex items-start justify-between gap-4">
+                  <div class="flex min-w-0 items-center gap-1.5">
                     <h2 id="doc-page-header" class="text-[28px] md:text-[34px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))]">
                       {props.data.name}
                       {props.data.latestVersion !== props.data.version && <span>(v{props.data.version})</span>}
@@ -429,6 +430,21 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                         collectionToResourceMap[props.collection as keyof typeof collectionToResourceMap].slice(1)}
                       href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`)}
                       size="md"
+                    />
+                  </div>
+                  <div class="shrink-0 pt-1.5">
+                    <CopyAsMarkdown
+                      client:only="react"
+                      schemas={schemasForResource}
+                      chatQuery={generatePromptForResource(props)}
+                      chatEnabled={isEventCatalogChatVisible()}
+                      markdownDownloadEnabled={isMarkdownDownloadEnabled()}
+                      rssFeedEnabled={isRSSEnabled()}
+                      editUrl={editUrl}
+                      preferChatAsDefault={isEventCatalogChatVisible()}
+                      mcpServerUrl={mcpServerUrl}
+                      resourceName={props.data.name}
+                      mcpResourceType={mcpResourceType}
                     />
                   </div>
                 </div>
@@ -446,22 +462,6 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                 </div>
               )
             }
-            <div class="pt-5">
-              <CopyAsMarkdown
-                client:only="react"
-                variant="toolbar"
-                schemas={schemasForResource}
-                chatQuery={generatePromptForResource(props)}
-                chatEnabled={isEventCatalogChatVisible()}
-                markdownDownloadEnabled={isMarkdownDownloadEnabled()}
-                rssFeedEnabled={isRSSEnabled()}
-                editUrl={editUrl}
-                preferChatAsDefault={isEventCatalogChatVisible()}
-                mcpServerUrl={mcpServerUrl}
-                resourceName={props.data.name}
-                mcpResourceType={mcpResourceType}
-              />
-            </div>
             {
               httpOperation && (
                 <div class="pt-4">
@@ -688,8 +688,9 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
         id="eventcatalog-docs-sidebar"
         class="hidden xl:block sticky top-[calc(var(--ec-header-offset)+0.25rem)] self-start w-[280px] max-h-[calc(100vh-var(--ec-header-offset)-0.25rem)] overflow-y-auto py-2 flex-shrink-0 pr-4 bg-[rgb(var(--ec-page-bg))]"
       >
-        {/* On this page, Tags, Versions: separated by hairlines */}
-        <div class="mt-8 divide-y divide-[rgb(var(--ec-page-border))] [&>*]:py-6 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+        {/* On this page, Tags, Versions: separated by hairlines. Starts level with the breadcrumb: the content column's
+            20px top padding and the header's 8px, against this column's 8px and this 20px */}
+        <div class="mt-5 divide-y divide-[rgb(var(--ec-page-border))] [&>*]:py-6 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
           {
             headings.length > 0 && (
               <div>

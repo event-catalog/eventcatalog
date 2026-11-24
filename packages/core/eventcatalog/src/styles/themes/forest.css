@@ -210,7 +210,7 @@
 
 /* Forest theme prose overrides */
 :root[data-catalog-theme='forest'][data-theme='dark'] .prose {
-  --tw-prose-body: rgb(161 161 161); /* #a1a1a1 */
+  --tw-prose-body: rgb(189 189 189); /* #bdbdbd: a step brighter than secondary text, for long reading */
   --tw-prose-headings: rgb(237 237 237); /* #ededed */
   --tw-prose-lead: rgb(143 143 143); /* #8f8f8f */
   --tw-prose-links: rgb(61 214 140); /* #3dd68c */

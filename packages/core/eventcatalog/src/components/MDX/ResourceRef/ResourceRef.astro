@@ -215,8 +215,8 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
         <a
           href={href}
           class:list={[
-            'resource-ref-trigger inline-flex items-center gap-1 px-1 -mx-1 rounded font-medium underline decoration-dotted decoration-2 underline-offset-[3px] transition-colors',
-            'text-[var(--ec-resource-ref-color)] decoration-[var(--ec-resource-ref-color)] hover:bg-[var(--ec-resource-ref-bg)]',
+            'resource-ref-trigger inline-flex items-center gap-1 px-1 -mx-1 rounded font-medium underline decoration-dotted decoration-1 underline-offset-[3px] transition-colors',
+            'text-[var(--ec-resource-ref-color)] decoration-[var(--ec-resource-ref-decoration)] hover:bg-[var(--ec-resource-ref-bg)]',
           ]}
           style={resourceReferenceStyle}
           data-tooltip-id={tooltipId}
@@ -234,69 +234,76 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
             {isDeprecated && ' (deprecated)'}
           </span>
         </a>
-        {/* The hover card: what it is, what it's connected to, where to go. Out of the prose styles (not-prose), so its
-            links stay quiet; the details line up in two columns */}
+        {/* The hover card, as Vercel's: what it is (a mono line with its type and version), its name and summary, what
+            it's connected to, then where to go (the other views as small buttons, its docs as the main one). Out of the
+            prose styles (not-prose), so its links stay quiet; the details line up in two columns */}
         <span
           id={tooltipId}
-          class="resource-ref-tooltip not-prose fixed z-[9999] w-80 overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-left opacity-0 shadow-[0_8px_30px_rgb(0_0_0/0.12)] pointer-events-none transition-all duration-150 scale-95 origin-top-left"
+          class="resource-ref-tooltip not-prose fixed z-[9999] w-80 overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-left opacity-0 shadow-[0_4px_8px_-4px_rgb(0_0_0/0.06),0_16px_32px_-8px_rgb(0_0_0/0.14)] pointer-events-none transition-all duration-150 scale-95 origin-top-left"
           style={resourceReferenceStyle}
         >
-          {isDeprecated && (
-            <span class="flex items-center gap-1.5 border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-badge-event-bg))] px-3.5 py-1.5 text-xs font-medium text-[rgb(var(--ec-badge-event-text))]">
-              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              Deprecated
-            </span>
-          )}
-
-          <span class="block px-3.5 pt-3.5 pb-3">
-            {/* Its icon, then its name with the type and version under it */}
-            <span class="flex items-start gap-2.5">
-              <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))]">
+          <span class="block px-4 pt-3.5 pb-3.5">
+            {/* What it is: its icon on a chip in its colour, its type in mono, then its version (and if it's deprecated) */}
+            <span class="flex items-center gap-2">
+              <span
+                class="flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] bg-[var(--ec-resource-ref-bg)]"
+                aria-hidden="true"
+              >
                 {resourceIconUrl ? (
                   <img
                     src={resourceIconUrl}
                     alt=""
-                    class="ec-mono-icon ec-mono-icon--active m-0 block h-4 w-4 object-contain"
+                    class="ec-mono-icon ec-mono-icon--active m-0 block h-3 w-3 object-contain"
                     loading="lazy"
                   />
                 ) : (
                   <svg
-                    class="h-4 w-4"
+                    class="h-3 w-3"
                     style="color: var(--ec-resource-ref-color);"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
-                    stroke-width="1.75"
+                    stroke-width="2"
                     set:html={iconPath}
                   />
                 )}
               </span>
-              <span class="flex min-w-0 flex-col">
-                <span class="truncate text-sm font-semibold leading-5 text-[rgb(var(--ec-page-text))]">
-                  {resource?.data?.name || resourceId}
-                </span>
-                <span class="text-xs leading-4 text-[rgb(var(--ec-page-text-muted))]">
-                  <span>{label}</span>
-                  {isVersionedResource && <span> · v{resource?.data?.version}</span>}
-                </span>
+              <span class="font-mono text-[10.5px] uppercase tracking-[0.06em] text-[rgb(var(--ec-page-text-muted))]">
+                {label}
+              </span>
+              <span class="ml-auto flex items-center gap-1.5">
+                {isDeprecated && (
+                  <span class="rounded-[4px] border border-[rgb(var(--ec-badge-color-red-text)/0.4)] px-1.5 font-mono text-[10px] uppercase leading-[18px] text-[rgb(var(--ec-badge-color-red-text))]">
+                    Deprecated
+                  </span>
+                )}
+                {isVersionedResource && (
+                  <span class="rounded-[4px] border border-[rgb(var(--ec-page-border))] px-1.5 font-mono text-[10px] leading-[18px] text-[rgb(var(--ec-page-text-muted))]">
+                    v{resource?.data?.version}
+                  </span>
+                )}
               </span>
             </span>
 
+            {/* Its name */}
+            <span
+              class:list={[
+                'mt-2.5 block truncate text-[15px] font-semibold leading-5 tracking-[-0.02em] text-[rgb(var(--ec-page-text))]',
+                isDeprecated && 'line-through decoration-[rgb(var(--ec-page-text-muted))]',
+              ]}
+            >
+              {resource?.data?.name || resourceId}
+            </span>
+
             {truncatedSummary && (
-              <span class="mt-2.5 block text-[13px] leading-relaxed text-[rgb(var(--ec-page-text-muted))]">
+              <span class="mt-1.5 block text-[13px] leading-relaxed text-[rgb(var(--ec-page-text-muted))]">
                 {truncatedSummary}
               </span>
             )}
 
             {/* The details, labels in one column and values in the next */}
             {(isService && (sends.length > 0 || receives.length > 0)) || hasSpecifications || owners.length > 0 ? (
-              <span class="mt-3 grid grid-cols-[5rem_minmax(0,1fr)] gap-x-3 gap-y-1.5 border-t border-[rgb(var(--ec-page-border))] pt-3 text-xs leading-5">
+              <span class="mt-3.5 grid grid-cols-[4.5rem_minmax(0,1fr)] items-baseline gap-x-3 gap-y-2 border-t border-[rgb(var(--ec-page-border))] pt-3.5 text-xs leading-5">
                 {isService && sends.length > 0 && (
                   <>
                     <span class="text-[rgb(var(--ec-page-text-muted))]">Publishes</span>
@@ -306,7 +313,7 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
                           {msg.resolvedVersion && msg.resolvedCollection ? (
                             <a
                               href={buildUrl(`/docs/${msg.resolvedCollection}/${msg.id}/${msg.resolvedVersion}`)}
-                              class="hover:text-[rgb(var(--ec-accent))] hover:underline"
+                              class="rounded-sm underline-offset-2 hover:underline hover:decoration-[rgb(var(--ec-page-text-muted))]"
                             >
                               {msg.id}
                             </a>
@@ -329,7 +336,7 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
                           {msg.resolvedVersion && msg.resolvedCollection ? (
                             <a
                               href={buildUrl(`/docs/${msg.resolvedCollection}/${msg.id}/${msg.resolvedVersion}`)}
-                              class="hover:text-[rgb(var(--ec-accent))] hover:underline"
+                              class="rounded-sm underline-offset-2 hover:underline hover:decoration-[rgb(var(--ec-page-text-muted))]"
                             >
                               {msg.id}
                             </a>
@@ -351,7 +358,7 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
                         <>
                           <a
                             href={getSpecUrl(spec, resourceId, resource?.data?.version)}
-                            class="hover:text-[rgb(var(--ec-accent))] hover:underline"
+                            class="rounded-sm underline-offset-2 hover:underline hover:decoration-[rgb(var(--ec-page-text-muted))]"
                           >
                             {spec.type === 'generic' && spec.name ? spec.name : getSpecLabel(spec.type)}
                           </a>
@@ -364,19 +371,22 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
                 {owners.length > 0 && (
                   <>
                     <span class="text-[rgb(var(--ec-page-text-muted))]">{owners.length > 1 ? 'Owners' : 'Owner'}</span>
-                    <span class="break-words text-[rgb(var(--ec-page-text))]">
-                      {owners.map((o: any, idx: number) => (
-                        <>
-                          {o.href ? (
-                            <a href={o.href} class="hover:text-[rgb(var(--ec-accent))] hover:underline">
-                              {o.id}
-                            </a>
-                          ) : (
-                            <span>{o.id}</span>
-                          )}
-                          {idx < owners.length - 1 && ', '}
-                        </>
-                      ))}
+                    {/* Each owner as a small mono pill */}
+                    <span class="flex flex-wrap gap-1">
+                      {owners.map((o: any) =>
+                        o.href ? (
+                          <a
+                            href={o.href}
+                            class="rounded-[4px] border border-[rgb(var(--ec-page-border))] px-1.5 font-mono text-[11px] leading-[18px] text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
+                          >
+                            {o.id}
+                          </a>
+                        ) : (
+                          <span class="rounded-[4px] border border-[rgb(var(--ec-page-border))] px-1.5 font-mono text-[11px] leading-[18px] text-[rgb(var(--ec-page-text))]">
+                            {o.id}
+                          </span>
+                        )
+                      )}
                     </span>
                   </>
                 )}
@@ -384,13 +394,13 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
             ) : null}
           </span>
 
-          {/* Where to go: the other views on the left, its docs on the right */}
-          <span class="flex items-center justify-between gap-3 border-t border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.025)] px-3.5 py-2 text-xs">
-            <span class="flex items-center gap-3 text-[rgb(var(--ec-page-text-muted))]">
+          {/* Where to go: the other views as small outlined buttons, its docs as the main (filled) one */}
+          <span class="flex items-center justify-between gap-2 border-t border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.02)] px-4 py-2.5 text-xs">
+            <span class="flex flex-wrap items-center gap-1.5">
               {type === 'flow' && (
                 <a
                   href={buildUrl(`/visualiser/${collection}/${resourceId}/${resource?.data?.version}`)}
-                  class="hover:text-[rgb(var(--ec-page-text))]"
+                  class="inline-flex h-6 items-center rounded-md border border-[rgb(var(--ec-page-border))] px-2 font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
                 >
                   View flow
                 </a>
@@ -398,7 +408,7 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
               {hasSchema && (
                 <a
                   href={buildUrl(`/schemas/${collection}/${resourceId}/${resource?.data?.version}`)}
-                  class="hover:text-[rgb(var(--ec-page-text))]"
+                  class="inline-flex h-6 items-center rounded-md border border-[rgb(var(--ec-page-border))] px-2 font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
                 >
                   Schema
                 </a>
@@ -406,22 +416,27 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
               {hasVisualizer && type !== 'flow' && (
                 <a
                   href={buildUrl(`/visualiser/${collection}/${resourceId}/${resource?.data?.version}`)}
-                  class="hover:text-[rgb(var(--ec-page-text))]"
+                  class="inline-flex h-6 items-center rounded-md border border-[rgb(var(--ec-page-border))] px-2 font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
                 >
                   Diagram
                 </a>
               )}
               {repositoryUrl && (
-                <a href={repositoryUrl} target="_blank" rel="noopener noreferrer" class="hover:text-[rgb(var(--ec-page-text))]">
+                <a
+                  href={repositoryUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex h-6 items-center rounded-md border border-[rgb(var(--ec-page-border))] px-2 font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
+                >
                   Repository
                 </a>
               )}
             </span>
             <a
               href={href}
-              class="inline-flex items-center gap-1 font-medium text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))]"
+              class="inline-flex h-6 shrink-0 items-center gap-1 rounded-md bg-[rgb(var(--ec-page-text))] px-2.5 font-medium text-[rgb(var(--ec-page-bg))] transition-opacity hover:opacity-85"
             >
-              {type === 'diagram' ? 'View diagram' : type === 'doc' ? 'View doc' : 'View docs'}
+              {type === 'diagram' ? 'Open diagram' : type === 'doc' ? 'Open doc' : 'Open docs'}
               <span aria-hidden="true">→</span>
             </a>
           </span>

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { getCollectionTextColorClass } from '@utils/collection-colors';
-import { getResourceReferenceColorName, getResourceReferenceStyle } from '@utils/resource-reference-colors';
+import {
+  getResourceReferenceColorName,
+  getResourceReferenceColors,
+  getResourceReferenceStyle,
+} from '@utils/resource-reference-colors';
 
 describe('resource-reference-colors', () => {
   it('maps resource types to the same colors used in the explore tables', () => {
@@ -23,16 +27,25 @@ describe('resource-reference-colors', () => {
     expect(getResourceReferenceColorName('unknown')).toBe('gray');
   });
 
-  it('returns CSS variables using the Tailwind 500 shade', () => {
+  it('softens the type colour: mixed with the page text (by the theme strength) for the text, faint for the underline and hover', () => {
     expect(getResourceReferenceStyle('service')).toBe(
-      '--ec-resource-ref-bg: rgb(236 72 153 / 0.12); --ec-resource-ref-color: rgb(236 72 153); color: var(--ec-resource-ref-color); text-decoration-color: var(--ec-resource-ref-color)'
+      '--ec-resource-ref-bg: rgb(236 72 153 / 0.1); --ec-resource-ref-color: color-mix(in srgb, rgb(236 72 153) var(--ec-resource-ref-strength, 80%), rgb(var(--ec-page-text))); --ec-resource-ref-decoration: rgb(236 72 153 / var(--ec-resource-ref-decoration-alpha, 0.5)); color: var(--ec-resource-ref-color); text-decoration-color: var(--ec-resource-ref-decoration)'
     );
   });
 
   it('uses the active theme accent color for custom documentation references', () => {
     expect(getResourceReferenceStyle('doc')).toBe(
-      '--ec-resource-ref-bg: rgb(var(--ec-accent) / 0.12); --ec-resource-ref-color: rgb(var(--ec-accent)); color: var(--ec-resource-ref-color); text-decoration-color: var(--ec-resource-ref-color)'
+      '--ec-resource-ref-bg: rgb(var(--ec-accent) / 0.1); --ec-resource-ref-color: color-mix(in srgb, rgb(var(--ec-accent)) var(--ec-resource-ref-strength, 80%), rgb(var(--ec-page-text))); --ec-resource-ref-decoration: rgb(var(--ec-accent) / var(--ec-resource-ref-decoration-alpha, 0.5)); color: var(--ec-resource-ref-color); text-decoration-color: var(--ec-resource-ref-decoration)'
     );
+  });
+
+  it('gives the chat the same colours as the docs', () => {
+    expect(getResourceReferenceColors('236 72 153')).toEqual({
+      '--ec-resource-ref-bg': 'rgb(236 72 153 / 0.1)',
+      '--ec-resource-ref-color':
+        'color-mix(in srgb, rgb(236 72 153) var(--ec-resource-ref-strength, 80%), rgb(var(--ec-page-text)))',
+      '--ec-resource-ref-decoration': 'rgb(236 72 153 / var(--ec-resource-ref-decoration-alpha, 0.5))',
+    });
   });
 
   it('returns static Tailwind text classes for collection colors', () => {

@@ -36,7 +36,7 @@ function ToolTypeBadge({ type }: { type: string }) {
 
   if (normalizedType === "mcp") {
     return (
-      <span className="inline-flex items-center gap-1 text-[7px] font-bold px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-500/25">
+      <span className="inline-flex items-center gap-1 text-[7px] font-bold px-1.5 py-0.5 rounded bg-[#6e56cf]/10 text-[#6550b9] dark:text-[#c2b5f5] border border-[#6e56cf]/25">
         <span
           className="w-2 h-2 shrink-0 [&>svg]:w-2 [&>svg]:h-2"
           dangerouslySetInnerHTML={{ __html: isDark ? mcpDark : mcpLight }}
@@ -47,7 +47,7 @@ function ToolTypeBadge({ type }: { type: string }) {
   }
 
   return (
-    <span className="inline-flex items-center text-[7px] font-bold px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-500/25">
+    <span className="inline-flex items-center text-[7px] font-bold px-1.5 py-0.5 rounded bg-[#6e56cf]/10 text-[#6550b9] dark:text-[#c2b5f5] border border-[#6e56cf]/25">
       {label}
     </span>
   );
@@ -65,7 +65,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         width: 12,
         height: 12,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
+        background: "linear-gradient(135deg, #6e56cf, #6550b9)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.dataProduct,
@@ -83,12 +83,12 @@ function AgentTool(props: AgentToolNode) {
   return (
     <div
       className={classNames(
-        "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible border-violet-500",
-        props?.selected ? "ring-2 ring-violet-400/60 ring-offset-2" : "",
+        "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible border-[#6e56cf]",
+        props?.selected ? "ring-2 ring-[#aa99ec]/60 ring-offset-2" : "",
       )}
       style={{
         background: "var(--ec-agent-tool-node-bg, rgb(var(--ec-card-bg)))",
-        boxShadow: "0 2px 12px rgba(139, 92, 246, 0.15)",
+        boxShadow: "0 2px 12px rgba(110, 86, 207, 0.15)",
       }}
     >
       <Handle
@@ -105,7 +105,7 @@ function AgentTool(props: AgentToolNode) {
       {connected.source && <GlowHandle side="right" />}
 
       <div className="absolute -top-2.5 left-2.5 flex items-center gap-1.5 z-10">
-        <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-violet-500">
+        <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-[#6e56cf]">
           <Wrench className="w-2.5 h-2.5" strokeWidth={2.5} />
           Tool
         </span>
@@ -122,7 +122,7 @@ function AgentTool(props: AgentToolNode) {
           )}
           <TruncatedResourceName
             value={name}
-            tooltipBorderColor="#8b5cf6"
+            tooltipBorderColor="#6e56cf"
             className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
           >
             {name}
@@ -142,7 +142,7 @@ function AgentTool(props: AgentToolNode) {
         <div className="mt-1.5 flex items-center gap-1 flex-wrap">
           <ToolTypeBadge type={type} />
           {url && (
-            <span className="inline-flex items-center text-[7px] font-bold px-1.5 py-0.5 rounded bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text-muted))] border border-violet-500/25 max-w-[9rem] truncate">
+            <span className="inline-flex items-center text-[7px] font-bold px-1.5 py-0.5 rounded bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text-muted))] border border-[#6e56cf]/25 max-w-[9rem] truncate">
               {url}
             </span>
           )}

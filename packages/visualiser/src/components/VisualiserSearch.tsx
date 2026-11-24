@@ -391,167 +391,167 @@ const VisualiserSearch = memo(
           events: {
             label: "Event",
             Icon: Zap,
-            iconClass: "border-orange-500/25 bg-orange-500/10 text-orange-500",
+            iconClass: "border-[#f76b15]/25 bg-[#f76b15]/10 text-[#f76b15]",
             badgeClass:
-              "border-orange-500/25 bg-orange-500/10 text-orange-700 dark:text-orange-300",
+              "border-[#f76b15]/25 bg-[#f76b15]/10 text-[#cc4e00] dark:text-[#f5ae73]",
           },
           event: {
             label: "Event",
             Icon: Zap,
-            iconClass: "border-orange-500/25 bg-orange-500/10 text-orange-500",
+            iconClass: "border-[#f76b15]/25 bg-[#f76b15]/10 text-[#f76b15]",
             badgeClass:
-              "border-orange-500/25 bg-orange-500/10 text-orange-700 dark:text-orange-300",
+              "border-[#f76b15]/25 bg-[#f76b15]/10 text-[#cc4e00] dark:text-[#f5ae73]",
           },
           commands: {
             label: "Command",
             Icon: MessageSquare,
-            iconClass: "border-blue-500/25 bg-blue-500/10 text-blue-500",
+            iconClass: "border-[#0090ff]/25 bg-[#0090ff]/10 text-[#0090ff]",
             badgeClass:
-              "border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+              "border-[#0090ff]/25 bg-[#0090ff]/10 text-[#0d74ce] dark:text-[#8ec8f6]",
           },
           command: {
             label: "Command",
             Icon: MessageSquare,
-            iconClass: "border-blue-500/25 bg-blue-500/10 text-blue-500",
+            iconClass: "border-[#0090ff]/25 bg-[#0090ff]/10 text-[#0090ff]",
             badgeClass:
-              "border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+              "border-[#0090ff]/25 bg-[#0090ff]/10 text-[#0d74ce] dark:text-[#8ec8f6]",
           },
           queries: {
             label: "Query",
             Icon: SearchIcon,
-            iconClass: "border-green-500/25 bg-green-500/10 text-green-500",
+            iconClass: "border-[#30a46c]/25 bg-[#30a46c]/10 text-[#30a46c]",
             badgeClass:
-              "border-green-500/25 bg-green-500/10 text-green-700 dark:text-green-300",
+              "border-[#30a46c]/25 bg-[#30a46c]/10 text-[#218358] dark:text-[#8eceaa]",
           },
           query: {
             label: "Query",
             Icon: SearchIcon,
-            iconClass: "border-green-500/25 bg-green-500/10 text-green-500",
+            iconClass: "border-[#30a46c]/25 bg-[#30a46c]/10 text-[#30a46c]",
             badgeClass:
-              "border-green-500/25 bg-green-500/10 text-green-700 dark:text-green-300",
+              "border-[#30a46c]/25 bg-[#30a46c]/10 text-[#218358] dark:text-[#8eceaa]",
           },
           services: {
             label: "Service",
             Icon: Server,
-            iconClass: "border-pink-500/25 bg-pink-500/10 text-pink-500",
+            iconClass: "border-[#d6409f]/25 bg-[#d6409f]/10 text-[#d6409f]",
             badgeClass:
-              "border-pink-500/25 bg-pink-500/10 text-pink-700 dark:text-pink-300",
+              "border-[#d6409f]/25 bg-[#d6409f]/10 text-[#c2298a] dark:text-[#e7acd0]",
           },
           agents: {
             label: "Agent",
             Icon: Bot,
-            iconClass: "border-sky-500/25 bg-sky-500/10 text-sky-500",
+            iconClass: "border-[#00a2c7]/25 bg-[#00a2c7]/10 text-[#00a2c7]",
             badgeClass:
-              "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+              "border-[#00a2c7]/25 bg-[#00a2c7]/10 text-[#107d98] dark:text-[#7dcedc]",
           },
           agent: {
             label: "Agent",
             Icon: Bot,
-            iconClass: "border-sky-500/25 bg-sky-500/10 text-sky-500",
+            iconClass: "border-[#00a2c7]/25 bg-[#00a2c7]/10 text-[#00a2c7]",
             badgeClass:
-              "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+              "border-[#00a2c7]/25 bg-[#00a2c7]/10 text-[#107d98] dark:text-[#7dcedc]",
           },
           agentTool: {
             label: "Agent Tool",
             Icon: Wrench,
-            iconClass: "border-violet-500/25 bg-violet-500/10 text-violet-500",
+            iconClass: "border-[#6e56cf]/25 bg-[#6e56cf]/10 text-[#6e56cf]",
             badgeClass:
-              "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+              "border-[#6e56cf]/25 bg-[#6e56cf]/10 text-[#6550b9] dark:text-[#c2b5f5]",
           },
           "agent-tool": {
             label: "Agent Tool",
             Icon: Wrench,
-            iconClass: "border-violet-500/25 bg-violet-500/10 text-violet-500",
+            iconClass: "border-[#6e56cf]/25 bg-[#6e56cf]/10 text-[#6e56cf]",
             badgeClass:
-              "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+              "border-[#6e56cf]/25 bg-[#6e56cf]/10 text-[#6550b9] dark:text-[#c2b5f5]",
           },
           domains: {
             label: "Domain",
             Icon: Blocks,
             iconClass:
-              "border-yellow-500/25 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+              "border-[#ffc53d]/25 bg-[#ffc53d]/10 text-[#ffba18] dark:text-[#e2a336]",
             badgeClass:
-              "border-yellow-500/25 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
+              "border-[#ffc53d]/25 bg-[#ffc53d]/10 text-[#ab6400] dark:text-[#e9c162]",
           },
           systems: {
             label: "System",
             Icon: Group,
-            iconClass: "border-violet-500/25 bg-violet-500/10 text-violet-500",
+            iconClass: "border-[#6e56cf]/25 bg-[#6e56cf]/10 text-[#6e56cf]",
             badgeClass:
-              "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+              "border-[#6e56cf]/25 bg-[#6e56cf]/10 text-[#6550b9] dark:text-[#c2b5f5]",
           },
           flows: {
             label: "Flow",
             Icon: Workflow,
-            iconClass: "border-teal-500/25 bg-teal-500/10 text-teal-500",
+            iconClass: "border-[#12a594]/25 bg-[#12a594]/10 text-[#12a594]",
             badgeClass:
-              "border-teal-500/25 bg-teal-500/10 text-teal-700 dark:text-teal-300",
+              "border-[#12a594]/25 bg-[#12a594]/10 text-[#008573] dark:text-[#83cdc1]",
           },
           channels: {
             label: "Channel",
             Icon: ListTree,
-            iconClass: "border-gray-500/25 bg-gray-500/10 text-gray-500",
+            iconClass: "border-[#8d8d8d]/25 bg-[#8d8d8d]/10 text-[#8d8d8d]",
             badgeClass:
-              "border-gray-500/25 bg-gray-500/10 text-gray-700 dark:text-gray-300",
+              "border-[#8d8d8d]/25 bg-[#8d8d8d]/10 text-[#646464] dark:text-[#cecece]",
           },
           data: {
             label: "Data",
             Icon: Database,
-            iconClass: "border-blue-500/25 bg-blue-500/10 text-blue-500",
+            iconClass: "border-[#0090ff]/25 bg-[#0090ff]/10 text-[#0090ff]",
             badgeClass:
-              "border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+              "border-[#0090ff]/25 bg-[#0090ff]/10 text-[#0d74ce] dark:text-[#8ec8f6]",
           },
           entities: {
             label: "Entity",
             Icon: Database,
-            iconClass: "border-blue-500/25 bg-blue-500/10 text-blue-500",
+            iconClass: "border-[#0090ff]/25 bg-[#0090ff]/10 text-[#0090ff]",
             badgeClass:
-              "border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+              "border-[#0090ff]/25 bg-[#0090ff]/10 text-[#0d74ce] dark:text-[#8ec8f6]",
           },
           externalSystem: {
             label: "External",
             Icon: Server,
-            iconClass: "border-pink-500/25 bg-pink-500/10 text-pink-500",
+            iconClass: "border-[#d6409f]/25 bg-[#d6409f]/10 text-[#d6409f]",
             badgeClass:
-              "border-pink-500/25 bg-pink-500/10 text-pink-700 dark:text-pink-300",
+              "border-[#d6409f]/25 bg-[#d6409f]/10 text-[#c2298a] dark:text-[#e7acd0]",
           },
           actor: {
             label: "Actor",
             Icon: User,
             iconClass:
-              "border-yellow-500/25 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+              "border-[#ffc53d]/25 bg-[#ffc53d]/10 text-[#ffba18] dark:text-[#e2a336]",
             badgeClass:
-              "border-yellow-500/25 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
+              "border-[#ffc53d]/25 bg-[#ffc53d]/10 text-[#ab6400] dark:text-[#e9c162]",
           },
           "context-actor": {
             label: "Actor",
             Icon: User,
             iconClass:
-              "border-yellow-500/25 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+              "border-[#ffc53d]/25 bg-[#ffc53d]/10 text-[#ffba18] dark:text-[#e2a336]",
             badgeClass:
-              "border-yellow-500/25 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
+              "border-[#ffc53d]/25 bg-[#ffc53d]/10 text-[#ab6400] dark:text-[#e9c162]",
           },
           user: {
             label: "User",
             Icon: User,
             iconClass:
-              "border-yellow-500/25 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+              "border-[#ffc53d]/25 bg-[#ffc53d]/10 text-[#ffba18] dark:text-[#e2a336]",
             badgeClass:
-              "border-yellow-500/25 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
+              "border-[#ffc53d]/25 bg-[#ffc53d]/10 text-[#ab6400] dark:text-[#e9c162]",
           },
           messageGroup: {
             label: "Group",
             Icon: Layers,
-            iconClass: "border-violet-500/25 bg-violet-500/10 text-violet-500",
+            iconClass: "border-[#6e56cf]/25 bg-[#6e56cf]/10 text-[#6e56cf]",
             badgeClass:
-              "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+              "border-[#6e56cf]/25 bg-[#6e56cf]/10 text-[#6550b9] dark:text-[#c2b5f5]",
           },
           messageGroupExpanded: {
             label: "Group",
             Icon: Layers,
-            iconClass: "border-violet-500/25 bg-violet-500/10 text-violet-500",
+            iconClass: "border-[#6e56cf]/25 bg-[#6e56cf]/10 text-[#6e56cf]",
             badgeClass:
-              "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+              "border-[#6e56cf]/25 bg-[#6e56cf]/10 text-[#6550b9] dark:text-[#c2b5f5]",
           },
         };
 
@@ -559,9 +559,9 @@ const VisualiserSearch = memo(
           meta[nodeType] || {
             label: nodeType,
             Icon: Layers,
-            iconClass: "border-gray-500/25 bg-gray-500/10 text-gray-500",
+            iconClass: "border-[#8d8d8d]/25 bg-[#8d8d8d]/10 text-[#8d8d8d]",
             badgeClass:
-              "border-gray-500/25 bg-gray-500/10 text-gray-700 dark:text-gray-300",
+              "border-[#8d8d8d]/25 bg-[#8d8d8d]/10 text-[#646464] dark:text-[#cecece]",
           }
         );
       }, []);
@@ -728,7 +728,7 @@ const VisualiserSearch = memo(
               onChange={handleSearchChange}
               onKeyDown={handleSearchKeyDown}
               onFocus={handleSearchFocus}
-              className="w-full px-4 py-2 pr-10 bg-[rgb(var(--ec-input-bg))] border border-[rgb(var(--ec-input-border))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-page-text-muted))] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-transparent"
+              className="h-9 w-full px-3 pr-10 text-sm bg-[rgb(var(--ec-input-bg))] border border-[rgb(var(--ec-input-border))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-page-text-muted))] rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-8px_rgba(0,0,0,0.18)] transition-[border-color,box-shadow] focus:outline-none focus:border-[color-mix(in_srgb,rgb(var(--ec-page-text))_40%,transparent)] focus:shadow-[0_0_0_3px_color-mix(in_srgb,rgb(var(--ec-page-text))_10%,transparent)]"
             />
             {searchQuery && (
               <button
@@ -755,7 +755,7 @@ const VisualiserSearch = memo(
           {showSuggestions && filteredSuggestions.length > 0 && (
             <div
               ref={suggestionsListRef}
-              className="absolute top-full left-0 right-0 mt-1 bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] rounded-md shadow-lg z-50 max-h-60 overflow-y-auto"
+              className="absolute top-full left-0 right-0 mt-1 p-1 bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-8px_rgba(0,0,0,0.18)] z-50 max-h-60 overflow-y-auto"
             >
               {filteredSuggestions.map((suggestion, index) => {
                 const nodeTypeMeta = getNodeTypeMeta(suggestion.type);
@@ -769,10 +769,10 @@ const VisualiserSearch = memo(
                     }}
                     onClick={() => handleSuggestionClick(suggestion)}
                     onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                    className={`px-3 py-2 cursor-pointer flex items-start gap-3 ${
+                    className={`px-2 py-1.5 rounded-md cursor-pointer flex items-start gap-3 ${
                       isSelected
-                        ? "bg-[rgb(var(--ec-accent-subtle))] outline outline-1 -outline-offset-1 outline-[rgb(var(--ec-accent))]"
-                        : "hover:bg-[rgb(var(--ec-page-border)/0.5)]"
+                        ? "bg-[color-mix(in_srgb,rgb(var(--ec-page-text))_8%,transparent)]"
+                        : "hover:bg-[color-mix(in_srgb,rgb(var(--ec-page-text))_5%,transparent)]"
                     }`}
                   >
                     <span

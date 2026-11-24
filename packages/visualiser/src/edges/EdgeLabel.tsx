@@ -13,6 +13,10 @@ interface EdgeLabelProps {
   style?: CSSProperties;
 }
 
+/**
+ * An edge's label, as a small neutral pill (as Vercel's): the first line (what the edge does, e.g. "publishes") in the
+ * text colour, any lines after it (the message, or the rest of a route) muted, with no italics
+ */
 export default function EdgeLabel({
   zIndex,
   crossDomain = false,
@@ -28,7 +32,7 @@ export default function EdgeLabel({
   return (
     <EdgeLabelPortal>
       <div
-        className={`ec-edge-label ${crossDomain ? CROSS_DOMAIN_CLASS : ""} nodrag nopan rounded-md border border-[rgb(var(--ec-page-border))] px-2 py-1 text-center text-[10px] font-medium leading-tight text-[rgb(var(--ec-page-text))] shadow-sm`}
+        className={`ec-edge-label ${crossDomain ? CROSS_DOMAIN_CLASS : ""} nodrag nopan rounded-[5px] border border-[rgb(var(--ec-page-border))] px-1.5 py-0.5 text-center text-[10px] leading-[14px] tracking-[-0.01em] shadow-[0_1px_2px_rgba(0,0,0,0.06),0_2px_8px_-2px_rgba(0,0,0,0.08)]`}
         style={{
           position: "absolute",
           transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
@@ -41,7 +45,11 @@ export default function EdgeLabel({
         {lines.map((line, index) => (
           <div
             key={`${line}-${index}`}
-            className={`whitespace-nowrap ${index > 0 ? "italic" : ""}`}
+            className={`whitespace-nowrap ${
+              index > 0
+                ? "text-[rgb(var(--ec-page-text-muted))]"
+                : "font-medium text-[rgb(var(--ec-page-text))]"
+            }`}
           >
             {line}
           </div>

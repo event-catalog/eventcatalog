@@ -18,8 +18,11 @@ const Badge = memo(function Badge({
   const { x, y } = node.internals.positionAbsolute;
   return (
     <div
-      className={`absolute flex items-center justify-center rounded-full font-bold text-white shadow-md bg-[rgb(var(--ec-accent))] ${
-        current ? "ring-4 ring-[rgb(var(--ec-accent)/0.3)]" : "opacity-90"
+      // Neutral, as the walkthrough's card: the text colour, the step being shown ringed in a grey of it
+      className={`absolute flex items-center justify-center rounded-full font-mono font-semibold text-[rgb(var(--ec-page-bg))] bg-[rgb(var(--ec-page-text))] shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-8px_rgba(0,0,0,0.18)] ${
+        current
+          ? "ring-4 ring-[color-mix(in_srgb,rgb(var(--ec-page-text))_20%,transparent)]"
+          : "opacity-90"
       }`}
       style={{
         width: BADGE_SIZE,
