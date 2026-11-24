@@ -952,6 +952,50 @@ export function buildIconPackDescriptors(iconPacks: string[]): Array<{ name: str
 }
 
 /**
+ * Reads an EventCatalog theme colour (stored as "r g b") as a colour mermaid can use.
+ */
+function getThemeColor(name: string, fallback: string): string {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value ? `rgb(${value})` : fallback;
+}
+
+/**
+ * Mermaid's dark theme draws Wardley maps on a grey #333 box, so in dark mode they
+ * use the catalog's own colours and sit on the page background instead.
+ */
+function getDarkWardleyThemeVariables() {
+  const text = getThemeColor('--ec-page-text', '#ededed');
+  const muted = getThemeColor('--ec-page-text-muted', '#a1a1a1');
+  const pageBg = getThemeColor('--ec-page-bg', '#0a0a0a');
+  return {
+    backgroundColor: 'transparent',
+    axisColor: muted,
+    axisTextColor: text,
+    gridColor: getThemeColor('--ec-page-border', '#262626'),
+    componentFill: pageBg,
+    componentStroke: text,
+    componentLabelColor: text,
+    linkStroke: muted,
+    annotationStroke: muted,
+    annotationTextColor: text,
+    annotationFill: pageBg,
+  };
+}
+
+/**
+ * Mermaid hardcodes some Wardley map colours (black stage lines and anchor labels, white
+ * markers and note boxes) instead of reading the theme, so they vanish in dark mode.
+ */
+function recolorDarkWardleyMap(svg: SVGElement): void {
+  const text = getThemeColor('--ec-page-text', '#ededed');
+  const muted = getThemeColor('--ec-page-text-muted', '#a1a1a1');
+  const pageBg = getThemeColor('--ec-page-bg', '#0a0a0a');
+  svg.querySelectorAll('[stroke="#000"]').forEach((el) => el.setAttribute('stroke', muted));
+  svg.querySelectorAll('[fill="#000"]').forEach((el) => el.setAttribute('fill', text));
+  svg.querySelectorAll('[fill="white"]').forEach((el) => el.setAttribute('fill', pageBg));
+}
+
+/**
  * High-level function to render Mermaid diagrams with zoom
  */
 export async function renderMermaidWithZoom(graphs: HTMLCollectionOf<Element>, mermaidConfig?: any): Promise<void> {
@@ -1002,6 +1046,7 @@ export async function renderMermaidWithZoom(graphs: HTMLCollectionOf<Element>, m
     secondaryTextColor: '#c9d1d9',
     tertiaryTextColor: '#f0f6fc',
     lineColor: '#6b7280',
+    wardley: getDarkWardleyThemeVariables(),
   };
 
   mermaid.initialize({
@@ -1048,6 +1093,9 @@ export async function renderMermaidWithZoom(graphs: HTMLCollectionOf<Element>, m
 
       // Initialize zoom on the SVG
       const svgElement = container.querySelector('svg');
+      if (svgElement && isDarkMode && result.diagramType === 'wardley') {
+        recolorDarkWardleyMap(svgElement);
+      }
       if (svgElement) {
         await initMermaidZoom(svgElement as SVGElement, container, id, {
           diagramContent: content,
