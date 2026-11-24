@@ -61,12 +61,26 @@ const pagefindAttributes =
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
   <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
     <div class="flex docs-layout w-full">
-      <div class="w-full min-w-0 lg:mr-2 xl:pr-8 pt-5 pb-8 bg-[rgb(var(--ec-page-bg))]">
+      <div class="w-full min-w-0 lg:mr-2 xl:pr-[42px] pt-5 pb-8 bg-[rgb(var(--ec-page-bg))]">
         {/* Header mirrors the resource page (docs/[type]/[id]/[version]/index.astro) so docs feel like part of the resource. */}
         <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-2">
           <div class="flex flex-col gap-4">
             <DocsBreadcrumb collection={props.data.resourceCollection} items={breadcrumb} />
-            <h2 id="doc-page-header" class="text-[28px] md:text-[34px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))]">{title}</h2>
+            <div class="flex items-start justify-between gap-4">
+              <h2 id="doc-page-header" class="text-[28px] md:text-[34px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))]">{title}</h2>
+              <div class="shrink-0 pt-1.5">
+                <CopyAsMarkdown
+                  client:only="react"
+                  schemas={[]}
+                  chatQuery={chatQuery}
+                  chatEnabled={chatEnabled}
+                  editUrl=""
+                  markdownDownloadEnabled={isMarkdownDownloadEnabled()}
+                  rssFeedEnabled={false}
+                  preferChatAsDefault={chatEnabled}
+                />
+              </div>
+            </div>
           </div>
           {
             props.data.summary && (
@@ -82,19 +96,6 @@ const pagefindAttributes =
               </div>
             )
           }
-          <div class="pt-5">
-            <CopyAsMarkdown
-              client:only="react"
-              variant="toolbar"
-              schemas={[]}
-              chatQuery={chatQuery}
-              chatEnabled={chatEnabled}
-              editUrl=""
-              markdownDownloadEnabled={isMarkdownDownloadEnabled()}
-              rssFeedEnabled={false}
-              preferChatAsDefault={chatEnabled}
-            />
-          </div>
         </div>
         <div data-pagefind-ignore>
           {

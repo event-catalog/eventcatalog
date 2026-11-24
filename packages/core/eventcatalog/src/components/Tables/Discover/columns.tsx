@@ -3,14 +3,29 @@ import { useMemo, useState } from 'react';
 import { ArrowDownIcon, ArrowTopRightOnSquareIcon, ArrowUpIcon } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import { getColorAndIconForCollection } from '@utils/collections/icons';
-import { getCollectionTextColorClass } from '@utils/collection-colors';
-import { getBadgeHref, getBadgeReactStyle } from '@utils/badge-styles';
+import { tailwind500RgbByColor, type CollectionColor } from '@utils/collection-colors';
+import { getResourceReferenceColors } from '@utils/resource-reference-colors';
+import { getBadgeHref, getBadgeTint } from '@utils/badge-styles';
 import { isIconPath, resolveIconUrl } from '@utils/icon';
 import type { DiscoverTableData, CollectionType } from './DiscoverTable';
 import type { TableConfiguration } from '@types';
 import { formatAdrDate, isAdrCollection } from '@utils/collections/adr-constants';
 import { CornerDownRight } from 'lucide-react';
 import { RowActionsMenu } from '../RowActionsMenu';
+
+// A type's icon in its colour, softened as the docs' resource references are (mixed with the text colour, by how much
+// the theme keeps), so a column of icons doesn't read as bright dots
+const softTypeColor = (color: string) => {
+  const rgb = tailwind500RgbByColor[color as CollectionColor];
+  return rgb ? { color: getResourceReferenceColors(rgb)['--ec-resource-ref-color'] } : undefined;
+};
+
+// A small square mono pill (a version, "Subdomain"), as elsewhere in the catalog
+const MONO_PILL =
+  'rounded-[4px] border border-[rgb(var(--ec-page-border))] px-1.5 font-mono text-[10px] leading-[18px] text-[rgb(var(--ec-page-text-muted))]';
+
+// An empty cell
+const EmptyCell = () => <span className="text-xs text-[rgb(var(--ec-page-text-muted))] opacity-60">—</span>;
 
 const columnHelper = createColumnHelper<DiscoverTableData>();
 
@@ -54,11 +69,11 @@ const AgentProviderIcon = ({ provider, className }: { provider: string; classNam
 const BadgesCell = ({
   badges,
 }: {
-  badges: Array<{ content: string; backgroundColor?: string; textColor?: string; url?: string }>;
+  badges: Array<{ content: string; backgroundColor?: string; textColor?: string; url?: string; iconSvg?: string }>;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!badges || badges.length === 0) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>;
+  if (!badges || badges.length === 0) return <EmptyCell />;
 
   const visibleItems = isExpanded ? badges : badges.slice(0, 3);
   const hiddenCount = badges.length - 3;
@@ -67,23 +82,37 @@ const BadgesCell = ({
     <div className="flex flex-col gap-1 items-start">
       {visibleItems.map((badge, index) => {
         const href = getBadgeHref(badge);
+        // Neutral and outlined, with its icon (if it has one) or a dot in the badge's colour, as on the resource's page
         const className =
-          'inline-flex items-center px-2 py-0.5 text-[11px] font-normal rounded-md max-w-[140px] truncate border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] bg-transparent';
+          'inline-flex max-w-[160px] items-center gap-1.5 rounded-[5px] border border-[rgb(var(--ec-page-border))] bg-transparent px-1.5 py-0.5 text-[11px] font-normal text-[rgb(var(--ec-page-text))]';
+        const tint = getBadgeTint(badge);
+        const dot = badge.iconSvg ? (
+          // Our own icons (a Heroicon or a protocol's), rendered on the server: not markup from the catalog's content
+          <span
+            aria-hidden="true"
+            className="flex h-3 w-3 shrink-0 items-center justify-center [&_svg]:h-3 [&_svg]:w-3"
+            style={{ color: tint ?? 'rgb(var(--ec-page-text-muted))' }}
+            dangerouslySetInnerHTML={{ __html: badge.iconSvg }}
+          />
+        ) : tint ? (
+          <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: tint }} />
+        ) : null;
 
         return href ? (
           <a
             key={`${badge.content}-${index}`}
             href={href}
-            className={className}
-            style={getBadgeReactStyle(badge)}
+            className={`${className} transition-colors hover:bg-[rgb(var(--ec-page-text)/0.04)]`}
             title={badge.content}
           >
+            {dot}
             <span className="truncate">{badge.content}</span>
             <ArrowTopRightOnSquareIcon className="ml-1 h-3 w-3 shrink-0 opacity-70" aria-hidden="true" />
           </a>
         ) : (
-          <span key={`${badge.content}-${index}`} className={className} style={getBadgeReactStyle(badge)} title={badge.content}>
-            {badge.content}
+          <span key={`${badge.content}-${index}`} className={className} title={badge.content}>
+            {dot}
+            <span className="truncate">{badge.content}</span>
           </span>
         );
       })}
@@ -128,17 +157,13 @@ const ResourceNameCell = ({ item }: { item: DiscoverTableData }) => {
         {resourceIconUrl ? (
           <img src={resourceIconUrl} alt="" className="h-5 w-5 flex-shrink-0 rounded-sm object-contain" />
         ) : (
-          <Icon className={`h-4 w-4 flex-shrink-0 ${getCollectionTextColorClass(color, 'text-[rgb(var(--ec-icon-color))]')}`} />
+          <Icon className="h-4 w-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" style={softTypeColor(color)} />
         )}
         <span className="text-[13px] font-medium text-[rgb(var(--ec-page-text))] group-hover:underline group-hover:underline-offset-2">
           {item.data.name}
         </span>
-        {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
-        {item.isSubdomain && (
-          <span className="rounded-full border border-[rgb(var(--ec-page-border))] px-1.5 py-0.5 text-[10px] font-medium text-[rgb(var(--ec-page-text-muted))]">
-            Subdomain
-          </span>
-        )}
+        {!isLatestVersion && <span className={MONO_PILL}>v{item.data.version}</span>}
+        {item.isSubdomain && <span className={`${MONO_PILL} uppercase tracking-[0.04em]`}>Subdomain</span>}
       </a>
 
       {subdomains.length > 0 && (
@@ -220,7 +245,7 @@ const createSummaryColumn = (tableConfiguration: TableConfiguration) =>
 // Collection list cell renderer (for producers, consumers, services, etc.)
 const CollectionListCell = ({
   items,
-  emptyText = '-',
+  emptyText = '—',
   maxVisible = 3,
 }: {
   items: Array<{ collection: string; data: { id: string; name: string; version: string } }> | undefined;
@@ -238,7 +263,8 @@ const CollectionListCell = ({
     [items]
   );
 
-  if (!items || items.length === 0) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">{emptyText}</span>;
+  if (!items || items.length === 0)
+    return <span className="text-xs text-[rgb(var(--ec-page-text-muted))] opacity-60">{emptyText}</span>;
 
   const visibleItems = isExpanded ? itemsWithIcons : itemsWithIcons.slice(0, maxVisible);
   const hiddenCount = itemsWithIcons.length - maxVisible;
@@ -251,7 +277,7 @@ const CollectionListCell = ({
           href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
           className="group inline-flex items-center gap-1.5 text-[13px] text-[rgb(var(--ec-page-text-muted))] transition-colors hover:text-[rgb(var(--ec-page-text))]"
         >
-          <item.Icon className={`h-3.5 w-3.5 ${getCollectionTextColorClass(item.color)} flex-shrink-0`} />
+          <item.Icon className="h-3.5 w-3.5 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" style={softTypeColor(item.color)} />
           <span className="truncate max-w-[120px]" title={item.data.name}>
             {item.data.name}
           </span>
@@ -287,7 +313,7 @@ export const getAgentColumns = (tableConfiguration: TableConfiguration) => [
     header: () => <span>{tableConfiguration?.columns?.provider?.label || 'Provider'}</span>,
     cell: (info) => {
       const provider = info.getValue() as string | undefined;
-      if (!provider) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>;
+      if (!provider) return <EmptyCell />;
       return (
         <span className="inline-flex items-center gap-2" title={provider} aria-label={provider}>
           <AgentProviderIcon provider={provider} className="h-3 w-3 flex-shrink-0 rounded-sm object-contain" />
@@ -304,7 +330,7 @@ export const getAgentColumns = (tableConfiguration: TableConfiguration) => [
     header: () => <span>{tableConfiguration?.columns?.model?.label || 'Model'}</span>,
     cell: (info) => {
       const model = info.getValue() as any;
-      if (!model?.name) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>;
+      if (!model?.name) return <EmptyCell />;
       return (
         <div className="flex flex-col gap-0.5 text-[13px]">
           <span className="font-medium text-[rgb(var(--ec-page-text))]">{model.name}</span>
@@ -364,7 +390,7 @@ export const getAdrColumns = (tableConfiguration: TableConfiguration) => [
     enableSorting: false,
     cell: (info) => {
       const badge = info.getValue();
-      if (!badge) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>;
+      if (!badge) return <EmptyCell />;
       return <BadgesCell badges={[badge]} />;
     },
     meta: {
@@ -381,7 +407,7 @@ export const getAdrColumns = (tableConfiguration: TableConfiguration) => [
     },
     cell: (info) => {
       const date = info.getValue();
-      if (!date) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>;
+      if (!date) return <EmptyCell />;
       return <span className="text-[0.8rem] text-[rgb(var(--ec-page-text))]">{formatAdrDate(new Date(date))}</span>;
     },
     meta: {

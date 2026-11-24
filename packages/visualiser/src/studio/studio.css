@@ -368,18 +368,17 @@ html .studio-drag-preview.eventcatalog-visualizer .react-flow {
 
 /* Each kind's icon colour (the visualiser's -600s) is too dark on the dark theme's cards: a lighter shade there, as
    EventCatalog's dark theme uses (on the canvas and what's dragged onto it: not the rest of the page it's on) */
-:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-pink-600 { color: #f472b6; }
-:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-orange-600 { color: #fb923c; }
-:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-blue-600 { color: #60a5fa; }
-:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-green-600 { color: #4ade80; }
-:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-gray-600 { color: #9ca3af; }
-:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-violet-600 { color: #a78bfa; }
-:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-purple-600 { color: #c084fc; }
-:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-sky-600 { color: #38bdf8; }
-:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-emerald-600 { color: #34d399; }
-:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-indigo-600 { color: #818cf8; }
-:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-teal-600 { color: #2dd4bf; }
-:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-cyan-600 { color: #22d3ee; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-\[\#cf3897\] { color: #dd93c2; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-\[\#ef5f00\] { color: #ec9455; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-\[\#0588f0\] { color: #5eb1ef; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-\[\#2b9a66\] { color: #5bb98b; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-\[\#838383\] { color: #bbbbbb; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-\[\#654dc4\] { color: #aa99ec; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-\[\#8347b9\] { color: #be93e4; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-\[\#0797b9\] { color: #3db9cf; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-\[\#26997b\] { color: #56ba9f; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-\[\#3358d4\] { color: #8da4ef; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-\[\#0d9b8a\] { color: #53b9ab; }
 
 /* An entity's whole-entity source, on its header's right (level with the visualiser's target on the left) */
 .studio-canvas .react-flow__handle.studio-entity-source { top: 29px !important; }
@@ -408,12 +407,7 @@ html .studio-drag-preview.eventcatalog-visualizer .react-flow {
 
 /* The canvas's dots on the dark theme: the visualiser's are bright enough to busy the page, so a quieter grey, as
    Excalidraw's are */
-[data-theme='dark'] .eventcatalog-visualizer.studio-canvas { --ec-bg-dots: #353b46; }
-
-/* A picked tool or level on the dark theme: the accent's -600 on its own tint is hard to read there, so a lighter
-   indigo on a slightly stronger tint (the canvas's own buttons, not the page's) */
-:root[data-theme='dark'] .studio-canvas button[aria-pressed='true'] { color: #a5b4fc; background-color: rgb(99 102 241 / 0.24); }
-:root[data-theme='dark'] .studio-canvas button[aria-pressed='true']:hover { background-color: rgb(99 102 241 / 0.32); }
+[data-theme='dark'] .eventcatalog-visualizer.studio-canvas { --ec-bg-dots: #2e2e2e; }
 
 /* Hotspots: a node with any glows in the colour of the most important (critical red, warning amber, info blue), so
    it's found at a glance; their markers sit on its top right corner (Hotspots.tsx). The glow is still: an animated

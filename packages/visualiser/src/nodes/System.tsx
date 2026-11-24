@@ -80,8 +80,8 @@ export default memo(function SystemNode({ data }: any) {
   // without the busier striped treatment.
   const cardBackground = isExternal
     ? isDark
-      ? "rgba(148,163,184,0.12)"
-      : "rgba(148,163,184,0.1)"
+      ? "rgba(187,187,187,0.12)"
+      : "rgba(187,187,187,0.1)"
     : "var(--ec-system-node-bg, rgb(var(--ec-card-bg)))";
 
   const goToMap = () => {
@@ -108,11 +108,11 @@ export default memo(function SystemNode({ data }: any) {
       className={classNames(
         "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
         opensMap && "cursor-pointer",
-        isExternal ? "border-dashed border-violet-400" : "border-violet-500",
+        isExternal ? "border-dashed border-[#aa99ec]" : "border-[#6e56cf]",
       )}
       style={{
         background: cardBackground,
-        boxShadow: "0 2px 12px rgba(139, 92, 246, 0.15)",
+        boxShadow: "0 2px 12px rgba(110, 86, 207, 0.15)",
       }}
     >
       {isFocused && <FocusedResourceIndicator />}
@@ -129,7 +129,7 @@ export default memo(function SystemNode({ data }: any) {
 
       {/* Floating type badge on the top-left border */}
       <div className="absolute -top-2.5 left-2.5 flex items-center gap-1.5 z-10">
-        <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-violet-500">
+        <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-[#6e56cf]">
           <GroupIcon className="w-2.5 h-2.5" strokeWidth={2.5} />
           {isExternal ? "External System" : "System"}
         </span>
@@ -139,7 +139,7 @@ export default memo(function SystemNode({ data }: any) {
         <div className="flex items-baseline gap-1 min-w-0">
           <TruncatedResourceName
             value={name}
-            tooltipBorderColor="#8b5cf6"
+            tooltipBorderColor="#6e56cf"
             className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
           >
             {name}
@@ -171,7 +171,7 @@ export default memo(function SystemNode({ data }: any) {
                 title={`${count} ${label}`}
                 className="flex items-center gap-1 text-[10px] text-[rgb(var(--ec-page-text-muted))]"
               >
-                <Icon className="w-3 h-3 text-violet-500" strokeWidth={2} />
+                <Icon className="w-3 h-3 text-[#6e56cf]" strokeWidth={2} />
                 <span className="font-medium">{count}</span>
               </div>
             ))}

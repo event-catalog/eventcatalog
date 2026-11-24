@@ -16,22 +16,22 @@ export const TeamNode = memo(function TeamNode({ data, selected }: NodeProps) {
   const name = team.name || "Team";
   return (
     <div
-      className={`relative min-w-44 max-w-60 rounded-xl border-2 border-emerald-500 ${selected ? "ring-2 ring-emerald-400/60 ring-offset-2" : ""}`}
+      className={`relative min-w-44 max-w-60 rounded-xl border-2 border-[#29a383] ${selected ? "ring-2 ring-[#56ba9f]/60 ring-offset-2" : ""}`}
       style={{
         background: "rgb(var(--ec-card-bg))",
-        boxShadow: "0 2px 12px rgba(16, 185, 129, 0.15)",
+        boxShadow: "0 2px 12px rgba(41, 163, 131, 0.15)",
       }}
     >
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />
       <div className="absolute -top-2.5 left-2.5 z-10 flex items-center">
-        <span className="inline-flex items-center gap-1 rounded bg-emerald-500 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-widest text-white shadow-sm">
+        <span className="inline-flex items-center gap-1 rounded bg-[#29a383] px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-widest text-white shadow-sm">
           <Users className="h-2.5 w-2.5" strokeWidth={2.5} />
           Team
         </span>
       </div>
       <div className="flex items-start gap-2 px-3 pb-2.5 pt-3.5">
-        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
+        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#29a383]/10 text-[#26997b]">
           <Users className="h-3.5 w-3.5" />
         </span>
         <div className="min-w-0">

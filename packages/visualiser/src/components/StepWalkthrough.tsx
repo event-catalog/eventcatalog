@@ -120,10 +120,12 @@ const getStepInfo = (node: CustomNode) => {
 // Small, as the walkthrough sits over the flow
 const BUTTON =
   "flex items-center justify-center gap-1 h-7 text-xs rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--ec-accent))] transition-colors";
-const PRIMARY_BUTTON = `${BUTTON} px-2.5 font-semibold text-white bg-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent-hover))]`;
-const QUIET_BUTTON = `${BUTTON} px-2 font-medium text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-page-border)/0.4)]`;
+// Neutral, as Vercel's (and the diagram's toolbar): the main action filled in the text colour, the rest grey on hover.
+// (Colour-mixes: the visualiser's colour variables are comma-separated, so `rgb(var(--x) / a)` doesn't work in them)
+const PRIMARY_BUTTON = `${BUTTON} px-2.5 font-medium text-[rgb(var(--ec-page-bg))] bg-[rgb(var(--ec-page-text))] hover:opacity-85`;
+const QUIET_BUTTON = `${BUTTON} px-2 font-medium text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[color-mix(in_srgb,rgb(var(--ec-page-text))_6%,transparent)]`;
 const ICON_BUTTON =
-  "flex items-center justify-center w-6 h-6 rounded text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-page-border)/0.4)]";
+  "flex items-center justify-center w-6 h-6 rounded-md text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[color-mix(in_srgb,rgb(var(--ec-page-text))_6%,transparent)]";
 
 export default memo(function StepWalkthrough({
   nodes,
@@ -307,12 +309,12 @@ export default memo(function StepWalkthrough({
   // change its size), naming the step the flow starts with
   if (!isWalking || !info) {
     return (
-      <div className="ml-12 w-[360px] rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-lg overflow-hidden">
-        <div className="h-0.5 bg-[rgb(var(--ec-page-border)/0.5)]" />
+      <div className="ml-12 w-[360px] rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-8px_rgba(0,0,0,0.18)] overflow-hidden">
+        <div className="h-0.5 bg-[color-mix(in_srgb,rgb(var(--ec-page-text))_8%,transparent)]" />
         <div className="px-3 pt-2 pb-2">
           {/* As tall as the step's title row (its icon buttons) */}
           <div className="flex items-center gap-2 min-w-0 h-6">
-            <span className="flex items-center justify-center shrink-0 w-5 h-5 rounded-full bg-[rgb(var(--ec-accent))] text-white">
+            <span className="flex items-center justify-center shrink-0 w-5 h-5 rounded-full bg-[rgb(var(--ec-page-text))] text-[rgb(var(--ec-page-bg))]">
               <Play className="w-2.5 h-2.5 fill-current" />
             </span>
             <h3 className="flex-1 min-w-0 truncate text-sm font-semibold text-[rgb(var(--ec-page-text))]">
@@ -347,18 +349,18 @@ export default memo(function StepWalkthrough({
   const isBranch = availablePaths.length > 1;
 
   return (
-    <div className="ml-12 w-[360px] rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-lg overflow-hidden">
+    <div className="ml-12 w-[360px] rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-8px_rgba(0,0,0,0.18)] overflow-hidden">
       {/* Progress through the flow, on the way it's being walked */}
-      <div className="h-0.5 bg-[rgb(var(--ec-page-border)/0.5)]">
+      <div className="h-0.5 bg-[color-mix(in_srgb,rgb(var(--ec-page-text))_8%,transparent)]">
         <div
-          className="h-full bg-[rgb(var(--ec-accent))] transition-[width] duration-300"
+          className="h-full bg-[rgb(var(--ec-page-text))] transition-[width] duration-300"
           style={{ width: `${(stepNumber / totalSteps) * 100}%` }}
         />
       </div>
 
       <div className="px-3 pt-2 pb-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="shrink-0 text-[11px] font-semibold tabular-nums text-[rgb(var(--ec-page-text-muted))]">
+          <span className="shrink-0 font-mono text-[11px] tabular-nums text-[rgb(var(--ec-page-text-muted))]">
             {stepNumber}/{totalSteps}
           </span>
           <span
@@ -408,7 +410,7 @@ export default memo(function StepWalkthrough({
           </p>
         )}
         {expanded && info.detail && (
-          <p className="mt-1.5 pt-1.5 border-t border-[rgb(var(--ec-page-border)/0.6)] text-xs leading-snug text-[rgb(var(--ec-page-text-muted))] max-h-32 overflow-y-auto">
+          <p className="mt-1.5 pt-1.5 border-t border-[rgb(var(--ec-page-border))] text-xs leading-snug text-[rgb(var(--ec-page-text-muted))] max-h-32 overflow-y-auto">
             {info.detail}
           </p>
         )}
@@ -417,7 +419,7 @@ export default memo(function StepWalkthrough({
             type="button"
             onClick={() => setExpanded(!expanded)}
             aria-expanded={expanded}
-            className="mt-0.5 text-[11px] font-medium text-[rgb(var(--ec-accent))] hover:underline"
+            className="mt-0.5 text-[11px] font-medium text-[rgb(var(--ec-page-text))] underline-offset-2 hover:underline"
           >
             {expanded ? "Less" : "More"}
           </button>
@@ -458,7 +460,7 @@ export default memo(function StepWalkthrough({
                 }
                 aria-label="Which way the flow goes next"
                 title="Which way next (or press its number)"
-                className="min-w-0 flex-1 max-w-[210px] h-7 pl-2 pr-6 text-xs truncate rounded-md border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
+                className="min-w-0 flex-1 max-w-[210px] h-7 pl-2 pr-6 text-xs truncate rounded-md border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] transition-[border-color,box-shadow] focus:outline-none focus:border-[color-mix(in_srgb,rgb(var(--ec-page-text))_40%,transparent)] focus:shadow-[0_0_0_3px_color-mix(in_srgb,rgb(var(--ec-page-text))_10%,transparent)]"
               >
                 {availablePaths.map((path, index) => {
                   const target = getStepInfo(path.targetNode).title;

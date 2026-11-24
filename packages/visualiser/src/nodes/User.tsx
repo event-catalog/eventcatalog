@@ -43,15 +43,15 @@ export default memo(function UserNode({
   return (
     <div
       className={classNames(
-        `rounded-md border flex justify-start bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] border-yellow-400`,
+        `rounded-md border flex justify-start bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] border-[#e2a336]`,
         mode === "full" ? "min-h-[5em]" : "min-h-[2em]",
       )}
       style={NODE_WIDTH_STYLE}
     >
       <div
         className={classNames(
-          "bg-gradient-to-b from-yellow-400 to-yellow-600 relative flex flex-col items-center w-5 justify-between rounded-l-sm text-orange-100-500",
-          `border-r-[1px] border-yellow-500`,
+          "bg-gradient-to-b from-[#e2a336] to-[#ffba18] relative flex flex-col items-center w-5 justify-between rounded-l-sm text-[#ffefd6]-500",
+          `border-r-[1px] border-[#ffc53d]`,
         )}
       >
         <UserIcon className="w-4 h-4 opacity-90 text-white mt-1" />
@@ -73,7 +73,7 @@ export default memo(function UserNode({
             <TruncatedResourceName
               as="div"
               value={displayName}
-              tooltipBorderColor="#eab308"
+              tooltipBorderColor="#ffc53d"
               className="text-sm font-bold truncate pb-0.5"
             >
               {displayName}
@@ -100,7 +100,7 @@ export default memo(function UserNode({
               <TruncatedResourceName
                 as="div"
                 value={displayName}
-                tooltipBorderColor="#eab308"
+                tooltipBorderColor="#ffc53d"
                 className="text-xs font-bold truncate pb-0.5"
               >
                 {displayName}

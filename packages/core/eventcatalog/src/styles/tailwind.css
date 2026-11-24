@@ -294,15 +294,16 @@
 @source inline("{group-hover:,dark:group-hover:,}text-{orange,blue,green,emerald,amber,violet,pink,purple,gray,yellow,teal,cyan,indigo}-{400,600}");
 
 /*
- * A docs page's summary, under its title: one step lighter and smaller than the title, regular weight, comfortable
- * line height and a readable line length
+ * A page's subtitle under its title (resource pages, the discover tables): set as the homepage's lead is
+ * (.ec-search-home-lead), so every page's subtitle reads the same, with a readable line length
  */
 .ec-docs-summary {
   margin-top: 0.5rem;
   max-width: 72ch;
   font-size: 17px;
   font-weight: 400;
-  line-height: 1.65;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
   color: rgb(var(--ec-page-text-muted));
 }
 
@@ -313,6 +314,28 @@
 }
 .ec-column > astro-island:last-child > div:last-of-type {
   margin-bottom: 0;
+}
+
+/* The architecture graph's canvas (CatalogGraph): the visualiser's tones, a step off the page in dark mode so the graph
+   reads as its own surface */
+:root {
+  --ec-graph-canvas-bg: 250 250 250;
+}
+:root[data-theme='dark'] {
+  --ec-graph-canvas-bg: 17 17 17;
+}
+
+/* Resource references' colours (utils/resource-reference-colors.ts): how much of the type's colour their text keeps
+   (the rest is the page's text colour) and how strong their underline is. The light theme keeps most of it: its
+   near-black text would darken the colour to grey. The dark theme mixes in a little more of its light text, softening
+   the colour without washing it out */
+:root {
+  --ec-resource-ref-strength: 85%;
+  --ec-resource-ref-decoration-alpha: 0.6;
+}
+:root[data-theme='dark'] {
+  --ec-resource-ref-strength: 95%;
+  --ec-resource-ref-decoration-alpha: 0.65;
 }
 
 /* The code theme's colours (components/SchemaExplorer/code-theme.ts), from Vercel's palette: mostly the text colour,
@@ -336,11 +359,13 @@
   --ec-code-token-function: 196 114 251; /* #c472fb */
 }
 
-/* A resource's own icon (a technology's logo, a schema format) beside its page title and in the sidebar, in greys as
-   the other icons are. A filter rather than a mask, so logos drawn with white detail (OpenAPI) keep it; dark mode
-   inverts it, so black logos stay visible */
+/* A resource's own icon (a technology's logo, a schema format) beside its page title, in the sidebar and in search, in
+   greys as the other icons are. A filter rather than a mask, so logos drawn with white detail (OpenAPI) keep it.
+   A coloured logo turns mid grey in greyscale, so it's darkened (light theme) or, once inverted, brightened (dark
+   theme) to the tone a black logo has: a green or cyan logo then lands on the same grey as the line icons beside it,
+   and its white detail stays a different tone from its shape */
 .ec-mono-icon {
-  filter: grayscale(1);
+  filter: grayscale(1) brightness(0.45);
   opacity: 0.6;
   transition: opacity 120ms;
 }
@@ -349,7 +374,7 @@
   opacity: 0.9;
 }
 :root[data-theme='dark'] .ec-mono-icon {
-  filter: grayscale(1) invert(1);
+  filter: grayscale(1) invert(1) brightness(1.9);
 }
 
 /* Controls drawn over a surface that's always light (the AsyncAPI viewer): the light theme's colours, in either theme,

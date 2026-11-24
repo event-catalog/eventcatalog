@@ -144,12 +144,26 @@ const editUrl =
             <div class="flex flex-col gap-3">
               <DocsBreadcrumb items={breadcrumb} />
               <div>
-                <h2
-                  id="doc-page-header"
-                  class="text-[28px] md:text-[34px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))]"
-                >
-                  {doc.title}
-                </h2>
+                {/* The title on the left, the page's actions (Ask, copy, view, edit) on the right, as the resource pages */}
+                <div class="flex items-start justify-between gap-4">
+                  <h2
+                    id="doc-page-header"
+                    class="text-[28px] md:text-[34px] font-semibold leading-tight tracking-[-0.025em] text-[rgb(var(--ec-page-text))]"
+                  >
+                    {doc.title}
+                  </h2>
+                  <div class="shrink-0 pt-1.5">
+                    <CopyAsMarkdown
+                      client:only="react"
+                      schemas={[]}
+                      chatEnabled={isEventCatalogChatVisible()}
+                      markdownDownloadEnabled={isMarkdownDownloadEnabled()}
+                      rssFeedEnabled={isRSSEnabled()}
+                      editUrl={editUrl}
+                      preferChatAsDefault={isEventCatalogChatVisible()}
+                    />
+                  </div>
+                </div>
                 {doc.summary && <p class="ec-docs-summary">{doc.summary}</p>}
               </div>
               {
@@ -162,18 +176,6 @@ const editUrl =
                   </div>
                 )
               }
-              <div class="pt-2">
-                <CopyAsMarkdown
-                  client:only="react"
-                  variant="toolbar"
-                  schemas={[]}
-                  chatEnabled={isEventCatalogChatVisible()}
-                  markdownDownloadEnabled={isMarkdownDownloadEnabled()}
-                  rssFeedEnabled={isRSSEnabled()}
-                  editUrl={editUrl}
-                  preferChatAsDefault={isEventCatalogChatVisible()}
-                />
-              </div>
             </div>
           </div>
           <div class="prose prose-md max-w-none pt-8 pb-4 w-full text-[15px]">

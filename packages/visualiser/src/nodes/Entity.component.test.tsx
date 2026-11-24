@@ -91,7 +91,7 @@ describe("EntityNode", () => {
   it("shows a ring when selected, like the other nodes", () => {
     renderEntity({ selected: true });
     expect(card().className).toContain("ring-2");
-    expect(card().className).toContain("ring-blue-400/60");
+    expect(card().className).toContain("ring-[#5eb1ef]/60");
   });
 
   it("shows no ring when not selected", () => {
@@ -101,7 +101,7 @@ describe("EntityNode", () => {
 
   it("rings an entity from another domain in the amber of its border", () => {
     renderEntity({ selected: true, externalToDomain: true });
-    expect(card().className).toContain("ring-amber-400/60");
+    expect(card().className).toContain("ring-[#e2a336]/60");
   });
 
   it("renders the whole-entity target and expands embedded properties from the whole row", () => {

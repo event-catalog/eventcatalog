@@ -19,9 +19,9 @@ export const LANE_ICONS: Record<SwimlaneGroupBy, typeof Boxes> = {
 // are easy to tell apart. External and unassigned lanes are grey. Colours are
 // comma separated for rgba(), as the visualiser's theme variables are.
 export const LANE_TINTS: Record<SwimlaneGroupBy, string> = {
-  domain: "234, 179, 8",
-  system: "139, 92, 246",
-  team: "14, 165, 233",
+  domain: "255, 197, 61",
+  system: "110, 86, 207",
+  team: "0, 162, 199",
 };
 const NEUTRAL_TINT = "var(--ec-page-text)";
 const tinted = (tint: string, alpha: number) => `rgba(${tint}, ${alpha})`;

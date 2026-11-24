@@ -320,9 +320,28 @@
   --ec-badge-color-rose-text: 253 164 175;
 }
 
+/* Light mode prose: Vercel's (Geist) neutral greys, in place of Tailwind Typography's blue-tinted defaults. Body text a
+   dark neutral grey (between Geist's primary #171717 and secondary #666666, for long reading), headings the text colour */
+:root .prose,
+:root[data-theme='light'] .prose {
+  --tw-prose-body: rgb(77 77 77); /* #4d4d4d */
+  --tw-prose-headings: rgb(23 23 23); /* #171717 */
+  --tw-prose-lead: rgb(102 102 102); /* #666666 */
+  --tw-prose-bold: rgb(23 23 23); /* #171717 */
+  --tw-prose-counters: rgb(143 143 143); /* #8f8f8f */
+  --tw-prose-bullets: rgb(187 187 187); /* #bbbbbb */
+  --tw-prose-hr: rgb(235 235 235); /* #ebebeb */
+  --tw-prose-quotes: rgb(23 23 23); /* #171717 */
+  --tw-prose-quote-borders: rgb(224 224 224); /* #e0e0e0 */
+  --tw-prose-captions: rgb(143 143 143); /* #8f8f8f */
+  --tw-prose-code: rgb(23 23 23); /* #171717 */
+  --tw-prose-th-borders: rgb(224 224 224); /* #e0e0e0 */
+  --tw-prose-td-borders: rgb(235 235 235); /* #ebebeb */
+}
+
 /* Dark mode prose overrides for documentation content */
 :root[data-theme='dark'] .prose {
-  --tw-prose-body: rgb(161 161 161); /* #a1a1a1 */
+  --tw-prose-body: rgb(189 189 189); /* #bdbdbd: a step brighter than secondary text, for long reading */
   --tw-prose-headings: rgb(237 237 237); /* #ededed */
   --tw-prose-lead: rgb(143 143 143); /* #8f8f8f */
   --tw-prose-links: rgb(196 114 251); /* #c472fb */

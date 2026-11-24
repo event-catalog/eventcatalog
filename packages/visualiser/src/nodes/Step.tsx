@@ -31,14 +31,14 @@ export default memo(function StepNode({
   return (
     <div
       className={classNames(
-        "rounded-md border flex justify-start bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] border-blue-400 min-h-[3em]",
+        "rounded-md border flex justify-start bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] border-[#5eb1ef] min-h-[3em]",
       )}
       style={NODE_WIDTH_STYLE}
     >
       <div
         className={classNames(
-          "bg-gradient-to-b from-gray-700 to-gray-700 relative flex flex-col items-center w-5 justify-end rounded-l-sm text-orange-100-500",
-          `border-r-[1px] border-gray-500`,
+          "bg-gradient-to-b from-[#646464] to-[#646464] relative flex flex-col items-center w-5 justify-end rounded-l-sm text-[#ffefd6]-500",
+          `border-r-[1px] border-[#8d8d8d]`,
         )}
       >
         {mode === "full" && (
@@ -67,7 +67,7 @@ export default memo(function StepNode({
             <TruncatedResourceName
               as="div"
               value={title}
-              tooltipBorderColor="#60a5fa"
+              tooltipBorderColor="#5eb1ef"
               className="text-sm font-bold truncate pb-0.5"
             >
               {title}
@@ -87,7 +87,7 @@ export default memo(function StepNode({
               <TruncatedResourceName
                 as="div"
                 value={title}
-                tooltipBorderColor="#60a5fa"
+                tooltipBorderColor="#5eb1ef"
                 className="text-xs font-bold truncate pb-0.5"
               >
                 {title}

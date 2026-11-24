@@ -1,21 +1,21 @@
 import { memo } from "react";
 
 const METHOD_COLORS: Record<string, { bg: string; text: string }> = {
-  GET: { bg: "rgba(34,197,94,0.15)", text: "#22c55e" },
-  POST: { bg: "rgba(59,130,246,0.15)", text: "#3b82f6" },
-  PUT: { bg: "rgba(245,158,11,0.15)", text: "#f59e0b" },
-  PATCH: { bg: "rgba(245,158,11,0.15)", text: "#f59e0b" },
-  DELETE: { bg: "rgba(239,68,68,0.15)", text: "#ef4444" },
-  OPTIONS: { bg: "rgba(139,92,246,0.15)", text: "#8b5cf6" },
-  HEAD: { bg: "rgba(107,114,128,0.15)", text: "#6b7280" },
-  QUERY: { bg: "rgba(6,182,212,0.15)", text: "#06b6d4" },
+  GET: { bg: "rgba(48,164,108,0.15)", text: "#30a46c" },
+  POST: { bg: "rgba(0,144,255,0.15)", text: "#0090ff" },
+  PUT: { bg: "rgba(255,197,61,0.15)", text: "#ffc53d" },
+  PATCH: { bg: "rgba(255,197,61,0.15)", text: "#ffc53d" },
+  DELETE: { bg: "rgba(229,72,77,0.15)", text: "#e5484d" },
+  OPTIONS: { bg: "rgba(110,86,207,0.15)", text: "#6e56cf" },
+  HEAD: { bg: "rgba(141,141,141,0.15)", text: "#8d8d8d" },
+  QUERY: { bg: "rgba(0,162,199,0.15)", text: "#00a2c7" },
 };
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  "2": { bg: "rgba(34,197,94,0.15)", text: "#22c55e" },
-  "3": { bg: "rgba(59,130,246,0.15)", text: "#3b82f6" },
-  "4": { bg: "rgba(245,158,11,0.15)", text: "#f59e0b" },
-  "5": { bg: "rgba(239,68,68,0.15)", text: "#ef4444" },
+  "2": { bg: "rgba(48,164,108,0.15)", text: "#30a46c" },
+  "3": { bg: "rgba(0,144,255,0.15)", text: "#0090ff" },
+  "4": { bg: "rgba(255,197,61,0.15)", text: "#ffc53d" },
+  "5": { bg: "rgba(229,72,77,0.15)", text: "#e5484d" },
 };
 
 function getStatusColor(code: number) {
@@ -29,7 +29,7 @@ export const MethodBadge = memo(function MethodBadge({
   method: string;
 }) {
   const upper = method.toUpperCase();
-  const colors = METHOD_COLORS[upper] || { bg: "#6b7280", text: "#ffffff" };
+  const colors = METHOD_COLORS[upper] || { bg: "#8d8d8d", text: "#ffffff" };
   return (
     <span
       className="inline-flex items-center text-[8px] font-extrabold uppercase tracking-wide px-1.5 py-0.5 rounded"

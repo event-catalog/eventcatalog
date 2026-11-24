@@ -68,6 +68,26 @@ export const tailwind500RgbByColor: Record<CollectionColor, string> = {
   violet: '139 92 246',
 };
 
+/**
+ * Each colour from Radix's scales (step 9, the palette Vercel's Geist colours are built on), as the visualiser's nodes
+ * draw them: for graphs that should match the diagrams. Yellow is Radix's amber (its yellow is lemon), sky its cyan
+ */
+export const radixRgbByColor: Record<CollectionColor, string> = {
+  orange: '247 107 21',
+  blue: '0 144 255',
+  green: '48 164 108',
+  pink: '214 64 159',
+  yellow: '255 197 61',
+  teal: '18 165 148',
+  purple: '142 78 198',
+  red: '229 72 77',
+  gray: '141 141 141',
+  cyan: '0 162 199',
+  sky: '0 162 199',
+  indigo: '62 99 221',
+  violet: '110 86 207',
+};
+
 export const collectionTextColorClassByColor: Record<CollectionColor, string> = {
   orange: 'text-orange-500',
   blue: 'text-blue-500',

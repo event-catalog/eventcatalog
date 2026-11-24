@@ -28,7 +28,8 @@ try {
 // Load and apply saved layout if it exists
 const resourceKey = design ? buildResourceKey('designs', design.id || id) : '';
 const savedLayout = resourceKey ? await loadSavedLayout(resourceKey) : null;
-const nodesWithLayout = design ? applyLayoutToNodes(design.nodes || [], savedLayout) : ([] as any[]);
+// A design's nodes are placed by hand, so a new one keeps its own position beside the saved ones
+const nodesWithLayout = design ? applyLayoutToNodes(design.nodes || [], savedLayout, { allowPartial: true }) : ([] as any[]);
 ---
 
 {

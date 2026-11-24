@@ -16,7 +16,7 @@ const GROUP_CONTAINER_STYLE = {
   width: "100%",
   height: "100%",
   borderRadius: 12,
-  border: "2px solid var(--ec-group-border, #c4b5fd)",
+  border: "2px solid var(--ec-group-border, #c2b5f5)",
   backgroundColor: "var(--ec-group-bg, rgba(250, 248, 255, 0.35))",
   position: "relative" as const,
   overflow: "visible" as const,
@@ -31,7 +31,7 @@ const GROUP_HEADER_STYLE = {
   borderTopLeftRadius: 10,
   borderTopRightRadius: 10,
   background: "var(--ec-group-header-bg, rgba(237, 233, 254, 0.7))",
-  borderBottom: "1px solid var(--ec-group-border, #c4b5fd)",
+  borderBottom: "1px solid var(--ec-group-border, #c2b5f5)",
   overflow: "visible" as const,
 } as const;
 
@@ -51,8 +51,8 @@ const GROUP_ICON_CIRCLE_STYLE = {
   width: 32,
   height: 32,
   borderRadius: "50%",
-  background: "#7c3aed",
-  border: "2px solid #a78bfa",
+  background: "#654dc4",
+  border: "2px solid #aa99ec",
   display: "flex",
   alignItems: "center" as const,
   justifyContent: "center" as const,
@@ -79,7 +79,7 @@ const GROUP_BANNER_INNER_STYLE = {
 const GROUP_DOMAIN_NAME_STYLE = {
   fontSize: 15,
   fontWeight: 800,
-  color: "var(--ec-group-text, #5b21b6)",
+  color: "var(--ec-group-text, #6550b9)",
   letterSpacing: "0.06em",
   textTransform: "uppercase" as const,
   whiteSpace: "nowrap" as const,
@@ -88,10 +88,10 @@ const GROUP_DOMAIN_NAME_STYLE = {
 const GROUP_VERSION_STYLE = {
   fontSize: 9,
   fontWeight: 500,
-  color: "#a78bfa",
+  color: "#aa99ec",
 } as const;
 
-const GROUP_ICON_COLOR_STYLE = { color: "#7c3aed" } as const;
+const GROUP_ICON_COLOR_STYLE = { color: "#654dc4" } as const;
 const GROUP_ICON_WHITE_STYLE = { color: "white" } as const;
 
 export default memo(function GroupNode({ data }: NodeProps) {
@@ -120,7 +120,7 @@ export default memo(function GroupNode({ data }: NodeProps) {
           <div style={GROUP_BANNER_INNER_STYLE}>
             <TruncatedResourceName
               value={domain?.name || "Domain"}
-              tooltipBorderColor="#7c3aed"
+              tooltipBorderColor="#654dc4"
               className="truncate"
               style={GROUP_DOMAIN_NAME_STYLE}
             >

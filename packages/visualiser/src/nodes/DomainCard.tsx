@@ -31,7 +31,7 @@ interface Data {
 
 const CARD_STYLE = {
   background: "var(--ec-domain-node-bg, rgb(var(--ec-card-bg)))",
-  boxShadow: "0 2px 12px rgba(234, 179, 8, 0.15)",
+  boxShadow: "0 2px 12px rgba(255, 197, 61, 0.15)",
 } as const;
 
 // Shown on the sides with edges, as on every other card
@@ -51,7 +51,7 @@ const GlowHandle = memo(function GlowHandle({
         width: 12,
         height: 12,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #eab308, #a16207)",
+        background: "linear-gradient(135deg, #ffc53d, #ab6400)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.domain,
@@ -102,7 +102,7 @@ export default memo(function DomainCardNode({ data }: any) {
             title: `Open the ${name} diagram`,
           }
         : {})}
-      className={`relative min-w-48 max-w-60 rounded-xl border-2 border-yellow-400 overflow-visible${navigable ? " cursor-pointer" : ""}`}
+      className={`relative min-w-48 max-w-60 rounded-xl border-2 border-[#e2a336] overflow-visible${navigable ? " cursor-pointer" : ""}`}
       style={CARD_STYLE}
     >
       <Handle
@@ -120,7 +120,7 @@ export default memo(function DomainCardNode({ data }: any) {
 
       {/* Floating type badge on the top-left border */}
       <div className="absolute -top-2.5 left-2.5 flex items-center gap-1.5 z-10">
-        <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-yellow-500">
+        <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-[#ffc53d]">
           <BoxesIcon className="w-2.5 h-2.5" strokeWidth={2.5} />
           {subdomain ? "Subdomain" : "Domain"}
         </span>
@@ -130,7 +130,7 @@ export default memo(function DomainCardNode({ data }: any) {
         <div className="flex items-baseline gap-1 min-w-0">
           <TruncatedResourceName
             value={name}
-            tooltipBorderColor="#eab308"
+            tooltipBorderColor="#ffc53d"
             className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
           >
             {name}
@@ -160,7 +160,7 @@ export default memo(function DomainCardNode({ data }: any) {
                 title={`${count} ${label}`}
                 className="flex items-center gap-1 text-[10px] text-[rgb(var(--ec-page-text-muted))]"
               >
-                <Icon className="w-3 h-3 text-yellow-500" strokeWidth={2} />
+                <Icon className="w-3 h-3 text-[#ffc53d]" strokeWidth={2} />
                 <span className="font-medium">{count}</span>
               </div>
             ))}

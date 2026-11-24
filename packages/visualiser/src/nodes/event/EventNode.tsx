@@ -39,7 +39,7 @@ const GlowHandle = memo(function GlowHandle({
         width: 12,
         height: 12,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #fb923c, #ea580c)",
+        background: "linear-gradient(135deg, #f76b15, #ef5f00)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...HANDLE_GLOW.event,
@@ -49,6 +49,9 @@ const GlowHandle = memo(function GlowHandle({
     />
   );
 });
+
+// The event's orange is Radix's orange scale (as Vercel's Geist palette): 9 #f76b15 for borders, the badge and the
+// handles, 10 #ef5f00, 8 #ec9455 and 7 #f5ae73 for lighter accents, 12 #582d1d for text on the post-it's paper
 
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(" ");
@@ -72,7 +75,7 @@ function PostItEvent(props: EventNode) {
     <div
       className={classNames(
         "relative min-w-44 max-w-56 min-h-[120px]",
-        props?.selected ? "ring-2 ring-orange-400/60 ring-offset-1" : "",
+        props?.selected ? "ring-2 ring-[#f76b15]/50 ring-offset-1" : "",
       )}
       style={nodeColor?.ring}
     >
@@ -96,14 +99,14 @@ function PostItEvent(props: EventNode) {
         style={{
           background:
             nodeColor?.paper ??
-            "linear-gradient(135deg, #fed7aa 0%, #fdba74 40%, #fb923c 100%)",
+            "linear-gradient(135deg, #ffdfb5 0%, #ffc182 40%, #ec9455 100%)",
           boxShadow:
             "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
           transform: "rotate(-1deg)",
           border: deprecated
-            ? "2px dashed rgba(239, 68, 68, 0.5)"
+            ? "2px dashed rgba(229, 72, 77, 0.5)"
             : draft
-              ? `2px dashed ${nodeColor?.paperDraftBorder ?? "rgba(251, 146, 60, 0.5)"}`
+              ? `2px dashed ${nodeColor?.paperDraftBorder ?? "rgba(247, 107, 21, 0.5)"}`
               : "none",
         }}
       >
@@ -118,7 +121,7 @@ function PostItEvent(props: EventNode) {
             height: 0,
             borderStyle: "solid",
             borderWidth: "18px 0 0 18px",
-            borderColor: `${nodeColor?.corner ?? "#f97316"} transparent transparent transparent`,
+            borderColor: `${nodeColor?.corner ?? "#ef5f00"} transparent transparent transparent`,
             opacity: 0.3,
           }}
         />
@@ -130,24 +133,24 @@ function PostItEvent(props: EventNode) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
             <Zap
-              className="w-3 h-3 text-orange-900/50"
+              className="w-3 h-3 text-[#582d1d]/50"
               strokeWidth={2.5}
               style={nodeColor?.muted}
             />
             <span
-              className="text-[8px] font-bold text-orange-900/50 uppercase tracking-widest"
+              className="text-[8px] font-bold text-[#582d1d]/50 uppercase tracking-widest"
               style={nodeColor?.muted}
             >
               {typeLabel}
             </span>
           </div>
           {draft && (
-            <span className="text-[8px] font-extrabold text-amber-900 bg-amber-100 border border-dashed border-amber-400 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[8px] font-extrabold text-[#4f3422] bg-[#fff7c2] border border-dashed border-[#e2a336] px-1.5 py-0.5 rounded uppercase">
               Draft
             </span>
           )}
           {deprecated && (
-            <span className="text-[7px] font-bold text-white bg-red-500 border border-red-600 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[7px] font-bold text-white bg-[#e5484d] border border-[#dc3e42] px-1.5 py-0.5 rounded uppercase">
               Deprecated
             </span>
           )}
@@ -169,16 +172,14 @@ function PostItEvent(props: EventNode) {
           <TruncatedResourceName
             as="div"
             value={name}
-            tooltipBorderColor={nodeColor?.tooltipBorder ?? "#f97316"}
+            tooltipBorderColor={nodeColor?.tooltipBorder ?? "#f76b15"}
             style={
               nodeColor &&
               (deprecated ? nodeColor.nameDeprecated : nodeColor.name)
             }
             className={classNames(
               "text-[13px] font-bold leading-snug min-w-0 truncate",
-              deprecated
-                ? "text-orange-950/40 line-through"
-                : "text-orange-950",
+              deprecated ? "text-[#582d1d]/40 line-through" : "text-[#582d1d]",
             )}
           >
             {name}
@@ -188,7 +189,7 @@ function PostItEvent(props: EventNode) {
         {/* Version */}
         {version && (
           <div
-            className="text-[9px] text-orange-900/40 font-semibold mt-0.5"
+            className="text-[9px] text-[#582d1d]/40 font-semibold mt-0.5"
             style={nodeColor?.version}
           >
             v{version}
@@ -198,7 +199,7 @@ function PostItEvent(props: EventNode) {
         {/* Summary */}
         {mode === "full" && summary && (
           <div
-            className="mt-2 pt-1.5 border-t border-orange-900/10 text-[9px] text-orange-950/60 leading-relaxed overflow-hidden"
+            className="mt-2 pt-1.5 border-t border-[#582d1d]/10 text-[9px] text-[#582d1d]/60 leading-relaxed overflow-hidden"
             style={
               nodeColor
                 ? { ...LINE_CLAMP_STYLE, ...nodeColor.summary }
@@ -240,22 +241,22 @@ function DefaultEvent(props: EventNode) {
   const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
-    ? "rgba(239,68,68,0.25)"
-    : "rgba(239,68,68,0.1)";
+    ? "rgba(229,72,77,0.25)"
+    : "rgba(229,72,77,0.1)";
   const draftStripe =
     nodeColor?.draftStripe ??
-    (isDark ? "rgba(251,146,60,0.25)" : "rgba(251,146,60,0.15)");
+    (isDark ? "rgba(247,107,21,0.25)" : "rgba(247,107,21,0.14)");
 
   return (
     <div
       className={classNames(
         "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
-        props?.selected ? "ring-2 ring-orange-400/60 ring-offset-2" : "",
+        props?.selected ? "ring-2 ring-[#f76b15]/50 ring-offset-2" : "",
         deprecated
-          ? "border-dashed border-red-500"
+          ? "border-dashed border-[#e5484d]"
           : draft
-            ? `border-dashed ${isDark ? "border-orange-400" : "border-orange-400/60"}`
-            : "border-orange-500",
+            ? `border-dashed ${isDark ? "border-[#ec9455]" : "border-[#ec9455]/70"}`
+            : "border-[#f76b15]",
       )}
       style={{
         background: deprecated
@@ -263,7 +264,7 @@ function DefaultEvent(props: EventNode) {
           : draft
             ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), var(--ec-event-node-bg, rgb(var(--ec-card-bg)))`
             : "var(--ec-event-node-bg, rgb(var(--ec-card-bg)))",
-        boxShadow: "0 2px 12px rgba(251, 146, 60, 0.15)",
+        boxShadow: "0 2px 12px rgba(247, 107, 21, 0.12)",
         ...(nodeColor && getNodeCardStyle(nodeColor, { deprecated, draft })),
       }}
     >
@@ -290,7 +291,7 @@ function DefaultEvent(props: EventNode) {
         <span
           className={classNames(
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
-            deprecated ? "bg-red-500" : "bg-orange-500",
+            deprecated ? "bg-[#e5484d]" : "bg-[#f76b15]",
           )}
           style={deprecated ? undefined : nodeColor?.badge}
         >
@@ -303,7 +304,7 @@ function DefaultEvent(props: EventNode) {
       {/* Schema badge top-right */}
       {schema && (
         <span
-          className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-orange-500 rounded-full px-1.5 py-0.5 uppercase tracking-wide"
+          className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-[#f76b15] rounded-full px-1.5 py-0.5 uppercase tracking-wide"
           style={{
             position: "absolute",
             top: -8,
@@ -341,7 +342,7 @@ function DefaultEvent(props: EventNode) {
             <div className="flex items-baseline gap-1 min-w-0">
               <TruncatedResourceName
                 value={name}
-                tooltipBorderColor={nodeColor?.tooltipBorder ?? "#f97316"}
+                tooltipBorderColor={nodeColor?.tooltipBorder ?? "#f76b15"}
                 className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
               >
                 {name}
@@ -349,7 +350,7 @@ function DefaultEvent(props: EventNode) {
               {version && (
                 <span
                   className="text-[10px] font-normal shrink-0"
-                  style={{ color: isDark ? "#dce3eb" : "#6b7280" }}
+                  style={{ color: isDark ? "#d4d4d4" : "#737373" }}
                 >
                   (v{version})
                 </span>
@@ -364,7 +365,7 @@ function DefaultEvent(props: EventNode) {
             className="mt-1.5 text-[9px] leading-relaxed overflow-hidden"
             style={{
               ...LINE_CLAMP_STYLE,
-              color: isDark ? "#f0f4f8" : "#374151",
+              color: isDark ? "#ededed" : "#404040",
             }}
             title={summary}
           >
@@ -381,9 +382,9 @@ function DefaultEvent(props: EventNode) {
         <div className="flex items-end justify-between">
           <OwnerIndicator
             owners={owners}
-            accentColor="bg-orange-400"
-            borderColor={nodeColor?.ownerBorder ?? "rgba(251,146,60,0.08)"}
-            iconClass="text-orange-300"
+            accentColor="bg-[#ec9455]"
+            borderColor={nodeColor?.ownerBorder ?? "rgba(247,107,21,0.08)"}
+            iconClass="text-[#f5ae73]"
             accentStyle={nodeColor?.ownerAccent}
             iconStyle={nodeColor?.ownerIcon}
           />

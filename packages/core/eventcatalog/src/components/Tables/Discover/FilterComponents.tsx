@@ -66,7 +66,7 @@ export const FilterDropdown = ({
               {selectedItems.map((item) => (
                 <span
                   key={item}
-                  className="inline-flex h-5 items-center gap-1 rounded bg-[rgb(var(--ec-page-text)/0.07)] pl-1.5 pr-1 text-xs text-[rgb(var(--ec-page-text))]"
+                  className="inline-flex h-5 items-center gap-1 rounded-[4px] bg-[rgb(var(--ec-page-text)/0.07)] pl-1.5 pr-1 text-[12px] text-[rgb(var(--ec-page-text))]"
                 >
                   {item}
                   {onRemoveItem && (
@@ -125,7 +125,7 @@ export const FilterDropdown = ({
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 z-20 mt-1.5 overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] shadow-[0_8px_30px_rgb(0_0_0/0.12)]">
+        <div className="absolute left-0 right-0 z-20 mt-1.5 overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] shadow-[0_4px_8px_-4px_rgb(0_0_0/0.06),0_16px_32px_-8px_rgb(0_0_0/0.14)]">
           <div className="max-h-64 overflow-y-auto p-1">{children}</div>
         </div>
       )}

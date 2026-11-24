@@ -25,32 +25,32 @@ import { usePortalContainer } from "../context/PortalContainerContext";
 import type { Note } from "../types";
 
 /* ------------------------------------------------------------------ */
-/*  Node type → icon + color mapping                                   */
+/*  Node type → icon + color mapping (the nodes' Radix colours)       */
 /* ------------------------------------------------------------------ */
 
 const NODE_TYPE_META: Record<
   string,
   { icon: LucideIcon; color: string; label: string }
 > = {
-  service: { icon: ServerIcon, color: "#ec4899", label: "Service" },
-  services: { icon: ServerIcon, color: "#ec4899", label: "Service" },
-  agent: { icon: Bot, color: "#0ea5e9", label: "Agent" },
-  agents: { icon: Bot, color: "#0ea5e9", label: "Agent" },
-  event: { icon: Zap, color: "#f97316", label: "Event" },
-  events: { icon: Zap, color: "#f97316", label: "Event" },
-  command: { icon: MessageSquare, color: "#3b82f6", label: "Command" },
-  commands: { icon: MessageSquare, color: "#3b82f6", label: "Command" },
-  query: { icon: Search, color: "#22c55e", label: "Query" },
-  queries: { icon: Search, color: "#22c55e", label: "Query" },
-  channel: { icon: ArrowRightLeft, color: "#6b7280", label: "Channel" },
-  channels: { icon: ArrowRightLeft, color: "#6b7280", label: "Channel" },
-  data: { icon: Database, color: "#3b82f6", label: "Data" },
-  "data-products": { icon: Package, color: "#6366f1", label: "Data Product" },
-  externalSystem: { icon: Globe, color: "#ec4899", label: "External System" },
-  actor: { icon: User, color: "#eab308", label: "Actor" },
-  view: { icon: MonitorIcon, color: "#8b5cf6", label: "View" },
-  domain: { icon: BoxesIcon, color: "#14b8a6", label: "Domain" },
-  domains: { icon: BoxesIcon, color: "#14b8a6", label: "Domain" },
+  service: { icon: ServerIcon, color: "#d6409f", label: "Service" },
+  services: { icon: ServerIcon, color: "#d6409f", label: "Service" },
+  agent: { icon: Bot, color: "#00a2c7", label: "Agent" },
+  agents: { icon: Bot, color: "#00a2c7", label: "Agent" },
+  event: { icon: Zap, color: "#f76b15", label: "Event" },
+  events: { icon: Zap, color: "#f76b15", label: "Event" },
+  command: { icon: MessageSquare, color: "#0090ff", label: "Command" },
+  commands: { icon: MessageSquare, color: "#0090ff", label: "Command" },
+  query: { icon: Search, color: "#30a46c", label: "Query" },
+  queries: { icon: Search, color: "#30a46c", label: "Query" },
+  channel: { icon: ArrowRightLeft, color: "#8d8d8d", label: "Channel" },
+  channels: { icon: ArrowRightLeft, color: "#8d8d8d", label: "Channel" },
+  data: { icon: Database, color: "#0090ff", label: "Data" },
+  "data-products": { icon: Package, color: "#3e63dd", label: "Data Product" },
+  externalSystem: { icon: Globe, color: "#8e4ec6", label: "External System" },
+  actor: { icon: User, color: "#ffc53d", label: "Actor" },
+  view: { icon: MonitorIcon, color: "#00a2c7", label: "View" },
+  domain: { icon: BoxesIcon, color: "#ffc53d", label: "Domain" },
+  domains: { icon: BoxesIcon, color: "#ffc53d", label: "Domain" },
 };
 
 function getNodeMeta(nodeType?: string) {
@@ -100,12 +100,12 @@ export function getNotesFromNode(
 
 const AMBER = {
   50: "#fffbeb",
-  100: "#fef3c7",
+  100: "#fff7c2",
   200: "#fde68a",
-  400: "#fbbf24",
-  500: "#f59e0b",
-  600: "#d97706",
-  700: "#b45309",
+  400: "#e2a336",
+  500: "#ffc53d",
+  600: "#ffba18",
+  700: "#ab6400",
   800: "#92400e",
 } as const;
 
@@ -115,36 +115,36 @@ const PRIORITY: Record<
 > = {
   high: {
     bg: "#fef2f2",
-    fg: "#b91c1c",
+    fg: "#ce2c31",
     border: "#fecaca",
     label: "High",
-    accent: "#ef4444",
+    accent: "#e5484d",
   },
   critical: {
     bg: "#fef2f2",
     fg: "#991b1b",
     border: "#fecaca",
     label: "Critical",
-    accent: "#dc2626",
+    accent: "#dc3e42",
   },
   low: {
     bg: "#f0fdf4",
-    fg: "#15803d",
-    border: "#bbf7d0",
+    fg: "#218358",
+    border: "#c4e8d1",
     label: "Low",
-    accent: "#22c55e",
+    accent: "#30a46c",
   },
 };
 
 const AVATAR_PALETTES = [
-  ["#7c3aed", "#a78bfa"],
-  ["#2563eb", "#60a5fa"],
-  ["#0891b2", "#22d3ee"],
-  ["#059669", "#34d399"],
-  ["#d97706", "#fbbf24"],
-  ["#dc2626", "#f87171"],
-  ["#db2777", "#f472b6"],
-  ["#4f46e5", "#818cf8"],
+  ["#654dc4", "#aa99ec"],
+  ["#0588f0", "#5eb1ef"],
+  ["#0797b9", "#3db9cf"],
+  ["#059669", "#56ba9f"],
+  ["#ffba18", "#e2a336"],
+  ["#dc3e42", "#eb8e90"],
+  ["#cf3897", "#dd93c2"],
+  ["#3358d4", "#8da4ef"],
 ];
 
 function hashStr(s: string): number {
@@ -307,7 +307,7 @@ function NoteCard({ note, index }: { note: Note; index: number }) {
         style={{
           fontSize: 13,
           lineHeight: 1.6,
-          color: "#334155",
+          color: "#646464",
           margin: 0,
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
@@ -433,7 +433,7 @@ export function AllNotesModal({
                 }}
               >
                 <MessageCircle
-                  style={{ width: 16, height: 16, color: "#64748b" }}
+                  style={{ width: 16, height: 16, color: "#8d8d8d" }}
                   strokeWidth={2.5}
                 />
               </div>
@@ -452,7 +452,7 @@ export function AllNotesModal({
                 <Dialog.Description
                   style={{
                     fontSize: 12,
-                    color: "#64748b",
+                    color: "#8d8d8d",
                     margin: 0,
                     marginTop: 1,
                   }}
@@ -474,7 +474,7 @@ export function AllNotesModal({
                     alignItems: "center",
                     justifyContent: "center",
                     cursor: "pointer",
-                    color: "#94a3b8",
+                    color: "#bbbbbb",
                     flexShrink: 0,
                   }}
                   aria-label="Close"
@@ -500,7 +500,7 @@ export function AllNotesModal({
                   const isActive = i === selectedIdx;
                   const meta = getNodeMeta(group.nodeType);
                   const IconComp = meta?.icon || MessageCircle;
-                  const iconColor = meta?.color || "#64748b";
+                  const iconColor = meta?.color || "#8d8d8d";
 
                   return (
                     <button
@@ -553,7 +553,7 @@ export function AllNotesModal({
                           style={{
                             fontSize: 12,
                             fontWeight: isActive ? 600 : 500,
-                            color: isActive ? "#0f172a" : "#475569",
+                            color: isActive ? "#0f172a" : "#838383",
                             lineHeight: 1.3,
                             overflow: "hidden",
                             textOverflow: "ellipsis",
@@ -565,7 +565,7 @@ export function AllNotesModal({
                         <div
                           style={{
                             fontSize: 10,
-                            color: "#94a3b8",
+                            color: "#bbbbbb",
                             lineHeight: 1.3,
                             overflow: "hidden",
                             textOverflow: "ellipsis",
@@ -583,7 +583,7 @@ export function AllNotesModal({
                         style={{
                           width: 14,
                           height: 14,
-                          color: isActive ? iconColor : "#cbd5e1",
+                          color: isActive ? iconColor : "#cecece",
                           flexShrink: 0,
                         }}
                         strokeWidth={2}
@@ -626,7 +626,7 @@ export function AllNotesModal({
                         {(() => {
                           const meta = getNodeMeta(selected.nodeType);
                           const Icon = meta?.icon || MessageCircle;
-                          const color = meta?.color || "#64748b";
+                          const color = meta?.color || "#8d8d8d";
                           return (
                             <div
                               style={{
@@ -665,7 +665,7 @@ export function AllNotesModal({
                           <div
                             style={{
                               fontSize: 11,
-                              color: "#94a3b8",
+                              color: "#bbbbbb",
                               marginTop: 2,
                             }}
                           >
@@ -689,7 +689,7 @@ export function AllNotesModal({
                           cursor: "pointer",
                           fontSize: 11,
                           fontWeight: 500,
-                          color: "#475569",
+                          color: "#838383",
                           transition: "all 0.12s",
                         }}
                         onMouseEnter={(e) => {
@@ -698,7 +698,7 @@ export function AllNotesModal({
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.borderColor = "#e2e8f0";
-                          e.currentTarget.style.color = "#475569";
+                          e.currentTarget.style.color = "#838383";
                         }}
                       >
                         <Locate style={{ width: 12, height: 12 }} />

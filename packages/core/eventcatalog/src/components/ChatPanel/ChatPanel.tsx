@@ -38,7 +38,7 @@ import {
   canvasRefIn,
   nodesInFocusLink,
 } from './assistant-events';
-import { getResourceReferenceColorName } from '@utils/resource-reference-colors';
+import { getResourceReferenceColorName, getResourceReferenceColors } from '@utils/resource-reference-colors';
 import { tailwind500RgbByColor } from '@utils/collection-colors';
 import { getResourceReferenceIcon } from '@utils/resource-reference-icons';
 
@@ -741,16 +741,14 @@ const FocusLink = ({ nodeIds, children }: { nodeIds: string[]; children: React.R
 
 /** Something on the canvas the assistant mentions: drawn like the docs' resource references (its type's icon and colour) */
 const CanvasRef = ({ type, nodeId, children }: { type: string; nodeId: string; children: React.ReactNode }) => {
-  const rgb = type ? tailwind500RgbByColor[getResourceReferenceColorName(type)] : undefined;
-  const style = {
-    '--ec-resource-ref-bg': rgb ? `rgb(${rgb} / 0.12)` : 'rgb(var(--ec-accent) / 0.12)',
-    '--ec-resource-ref-color': rgb ? `rgb(${rgb})` : 'rgb(var(--ec-accent))',
-  } as React.CSSProperties;
+  const rgb = type ? tailwind500RgbByColor[getResourceReferenceColorName(type)] : 'var(--ec-accent)';
+  // The same soft colours as the docs' references
+  const style = getResourceReferenceColors(rgb) as React.CSSProperties;
   return (
     <span style={style}>
       <CanvasLink
         go={() => focusCanvas([nodeId])}
-        className="inline-flex items-center gap-1 px-1 -mx-0.5 rounded font-medium underline decoration-dotted decoration-2 underline-offset-[3px] text-[var(--ec-resource-ref-color)] decoration-[var(--ec-resource-ref-color)] hover:bg-[var(--ec-resource-ref-bg)]"
+        className="inline-flex items-center gap-1 px-1 -mx-0.5 rounded font-medium underline decoration-dotted decoration-1 underline-offset-[3px] text-[var(--ec-resource-ref-color)] decoration-[var(--ec-resource-ref-decoration)] hover:bg-[var(--ec-resource-ref-bg)]"
       >
         <svg
           className="w-3.5 h-3.5 flex-shrink-0"

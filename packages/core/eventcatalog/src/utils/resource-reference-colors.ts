@@ -28,23 +28,25 @@ export const getResourceReferenceColorName = (type: string): CollectionColor => 
   return getColorForCollection(collection);
 };
 
-export const getResourceReferenceStyle = (type: string): string => {
-  if (type === 'doc') {
-    return [
-      '--ec-resource-ref-bg: rgb(var(--ec-accent) / 0.12)',
-      '--ec-resource-ref-color: rgb(var(--ec-accent))',
-      'color: var(--ec-resource-ref-color)',
-      'text-decoration-color: var(--ec-resource-ref-color)',
-    ].join('; ');
-  }
+/**
+ * A reference's colours, from its type's colour (`r g b`, or a theme variable such as `var(--ec-accent)`): soft, as
+ * Vercel's, so a sentence full of references still reads as text. The text and icon are the type's colour mixed with
+ * the page's text colour, by how much each theme takes (--ec-resource-ref-strength in tailwind.css: most of the colour
+ * on the light theme, where its near-black text would otherwise darken it to grey; a little less on the dark one), the
+ * dotted underline is the type's colour, faint, and the hover background fainter still.
+ */
+export const getResourceReferenceColors = (rgb: string) => ({
+  '--ec-resource-ref-bg': `rgb(${rgb} / 0.1)`,
+  '--ec-resource-ref-color': `color-mix(in srgb, rgb(${rgb}) var(--ec-resource-ref-strength, 80%), rgb(var(--ec-page-text)))`,
+  '--ec-resource-ref-decoration': `rgb(${rgb} / var(--ec-resource-ref-decoration-alpha, 0.5))`,
+});
 
-  const color = getResourceReferenceColorName(type);
-  const rgb = tailwind500RgbByColor[color];
+export const getResourceReferenceStyle = (type: string): string => {
+  const rgb = type === 'doc' ? 'var(--ec-accent)' : tailwind500RgbByColor[getResourceReferenceColorName(type)];
 
   return [
-    `--ec-resource-ref-bg: rgb(${rgb} / 0.12)`,
-    `--ec-resource-ref-color: rgb(${rgb})`,
+    ...Object.entries(getResourceReferenceColors(rgb)).map(([name, value]) => `${name}: ${value}`),
     'color: var(--ec-resource-ref-color)',
-    'text-decoration-color: var(--ec-resource-ref-color)',
+    'text-decoration-color: var(--ec-resource-ref-decoration)',
   ].join('; ');
 };

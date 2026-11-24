@@ -11,7 +11,7 @@ export default {
   validateConnection: () => false,
   getEdgeOptions: () => ({
     label: "contains",
-    markerEnd: { type: MarkerType.ArrowClosed, color: "#06b6d4" },
+    markerEnd: { type: MarkerType.ArrowClosed, color: "#00a2c7" },
   }),
   defaultData: { name: "New Field", type: "string", mode: "full" },
   editor: {

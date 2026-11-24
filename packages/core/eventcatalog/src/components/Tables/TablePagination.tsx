@@ -27,6 +27,10 @@ interface TablePaginationProps<TData> {
   paddingX?: string;
 }
 
+// Previous and next: small outlined square buttons, as Vercel's (and the schema explorer's pagination)
+const PAGE_BUTTON =
+  'inline-flex h-7 w-7 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)] hover:text-[rgb(var(--ec-page-text))] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[rgb(var(--ec-page-bg))]';
+
 /** Footer with the result count, page size picker and previous/next page controls. */
 export function TablePagination<TData>({ table, pageSize, onPageSizeChange, paddingX = 'px-6' }: TablePaginationProps<TData>) {
   const totalResults = table.getPrePaginationRowModel().rows.length;
@@ -48,7 +52,7 @@ export function TablePagination<TData>({ table, pageSize, onPageSizeChange, padd
           <select
             value={pageSize}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
-            className="cursor-pointer rounded bg-transparent px-1 py-0.5 font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] focus:bg-[rgb(var(--ec-content-hover))] focus:outline-none"
+            className="cursor-pointer rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-1.5 py-0.5 font-mono text-[11px] text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--ec-page-text)/0.15)]"
           >
             {PAGE_SIZE_OPTIONS.map((size) => (
               <option key={size} value={size}>
@@ -60,25 +64,20 @@ export function TablePagination<TData>({ table, pageSize, onPageSizeChange, padd
       </div>
       <div className="flex items-center gap-1.5">
         <button
-          className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className={PAGE_BUTTON}
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
           title="Previous page"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="h-3.5 w-3.5" />
         </button>
-        <span className="text-xs tabular-nums text-[rgb(var(--ec-page-text-muted))] min-w-[60px] text-center">
+        <span className="min-w-[52px] text-center font-mono text-[11px] tabular-nums text-[rgb(var(--ec-page-text-muted))]">
           <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getState().pagination.pageIndex + 1}</span>
           {' / '}
           <span>{table.getPageCount() || 1}</span>
         </span>
-        <button
-          className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-          title="Next page"
-        >
-          <ChevronRight className="w-4 h-4" />
+        <button className={PAGE_BUTTON} onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} title="Next page">
+          <ChevronRight className="h-3.5 w-3.5" />
         </button>
       </div>
     </div>

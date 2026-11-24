@@ -19,17 +19,17 @@ export function normalizeOwners(raw: any[] | undefined): string[] {
  * Compact owner indicator for the bottom of a node card.
  * Shows a small icon + primary owner name + overflow pill.
  *
- * @param accentColor - Tailwind color class for the pill, e.g. "bg-pink-400"
+ * @param accentColor - Tailwind color class for the pill, e.g. "bg-[#dd93c2]"
  * @param borderColor - CSS color string for the top border
- * @param iconClass   - Tailwind text color for the icon, e.g. "text-pink-300"
+ * @param iconClass   - Tailwind text color for the icon, e.g. "text-[#e7acd0]"
  * @param accentStyle - Inline style for the pill, for a node drawn in its resource's own colour
  * @param iconStyle   - Inline style for the icon, for a node drawn in its resource's own colour
  */
 export const OwnerIndicator = memo(function OwnerIndicator({
   owners,
-  accentColor = "bg-pink-400",
-  borderColor = "rgba(236,72,153,0.08)",
-  iconClass = "text-pink-300",
+  accentColor = "bg-[#dd93c2]",
+  borderColor = "rgba(214,64,159,0.08)",
+  iconClass = "text-[#e7acd0]",
   accentStyle,
   iconStyle,
 }: {

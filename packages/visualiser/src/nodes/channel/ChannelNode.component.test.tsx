@@ -63,7 +63,9 @@ describe("ChannelNode", () => {
     (style) => {
       renderChannel(true, style);
 
-      expect(container.querySelector(".border-indigo-500\\/70")).not.toBeNull();
+      expect(
+        container.querySelector(".border-\\[\\#3e63dd\\]\\/70"),
+      ).not.toBeNull();
       expect(container.textContent).toContain("Viewing");
     },
   );
@@ -71,7 +73,7 @@ describe("ChannelNode", () => {
   it("does not render the focused border for related channels", () => {
     renderChannel(false);
 
-    expect(container.querySelector(".border-indigo-500\\/70")).toBeNull();
+    expect(container.querySelector(".border-\\[\\#3e63dd\\]\\/70")).toBeNull();
     expect(container.textContent).not.toContain("Viewing");
   });
 
@@ -124,7 +126,7 @@ describe("ChannelNode", () => {
   it("marks a dead letter channel with a red border and a dark badge", () => {
     renderDeadLetterChannel();
 
-    expect(badge().style.background).toBe("rgb(17, 24, 39)");
+    expect(badge().style.background).toBe("rgb(32, 32, 32)");
     expect(card().style.borderColor).toBe("rgb(239, 68, 68)");
   });
 
@@ -132,7 +134,7 @@ describe("ChannelNode", () => {
     renderDeadLetterChannel(undefined, { node: { color: "blue" } });
 
     expect(card().style.borderColor).toBe("rgb(59, 130, 246)");
-    expect(badge().style.background).toBe("rgb(17, 24, 39)");
+    expect(badge().style.background).toBe("rgb(32, 32, 32)");
   });
 
   it("leaves a dead letter channel's address off its card", () => {

@@ -34,27 +34,27 @@ const SPEC_COLORS: Record<
 > = {
   openapi: {
     bg: "rgba(106,170,63,0.12)",
-    text: "#4d7c0f",
+    text: "#2a7e3b",
     darkBg: "rgba(106,170,63,0.2)",
-    darkText: "#a3e635",
+    darkText: "#65ba74",
   },
   asyncapi: {
     bg: "rgba(116,78,194,0.12)",
-    text: "#6d28d9",
+    text: "#6550b9",
     darkBg: "rgba(116,78,194,0.2)",
-    darkText: "#c4b5fd",
+    darkText: "#c2b5f5",
   },
   graphql: {
     bg: "rgba(229,53,171,0.12)",
-    text: "#be185d",
+    text: "#c2298a",
     darkBg: "rgba(229,53,171,0.2)",
-    darkText: "#f9a8d4",
+    darkText: "#e7acd0",
   },
   generic: {
-    bg: "rgba(100,116,139,0.12)",
-    text: "#475569",
-    darkBg: "rgba(100,116,139,0.2)",
-    darkText: "#cbd5e1",
+    bg: "rgba(141,141,141,0.12)",
+    text: "#838383",
+    darkBg: "rgba(141,141,141,0.2)",
+    darkText: "#cecece",
   },
 };
 
@@ -132,7 +132,7 @@ const MiniEnvelope = memo(function MiniEnvelope({
         width="13"
         height="9"
         rx="1.5"
-        fill="#9ca3af"
+        fill="#bbbbbb"
         opacity={0.85}
       />
       <path
@@ -193,8 +193,8 @@ const GlowHandle = memo(function GlowHandle({
         height: 12,
         borderRadius: "50%",
         background: external
-          ? "linear-gradient(135deg, #a855f7, #7e22ce)"
-          : "linear-gradient(135deg, #ec4899, #be185d)",
+          ? "linear-gradient(135deg, #8e4ec6, #8145b5)"
+          : "linear-gradient(135deg, #d6409f, #c2298a)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
         ...(external ? HANDLE_GLOW.external : HANDLE_GLOW.service),
@@ -228,36 +228,37 @@ type PostItPalette = {
 const POST_IT_SERVICE: PostItPalette = {
   Icon: ServerIcon,
   label: "Service",
-  gradient: "linear-gradient(135deg, #fbcfe8 0%, #f9a8d4 40%, #ec4899 100%)",
-  draftBorder: "rgba(236, 72, 153, 0.5)",
-  corner: "#db2777",
-  ring: "ring-2 ring-pink-400/60 ring-offset-1",
-  iconClass: "w-3 h-3 text-pink-900/50",
-  labelClass: "text-[8px] font-bold text-pink-900/50 uppercase tracking-widest",
-  nameText: "text-pink-950",
-  nameTextDeprecated: "text-pink-950/40 line-through",
-  versionClass: "text-[9px] text-pink-900/40 font-semibold mt-0.5",
+  gradient: "linear-gradient(135deg, #f6cee7 0%, #e7acd0 40%, #d6409f 100%)",
+  draftBorder: "rgba(214, 64, 159, 0.5)",
+  corner: "#cf3897",
+  ring: "ring-2 ring-[#dd93c2]/60 ring-offset-1",
+  iconClass: "w-3 h-3 text-[#651249]/50",
+  labelClass:
+    "text-[8px] font-bold text-[#651249]/50 uppercase tracking-widest",
+  nameText: "text-[#651249]",
+  nameTextDeprecated: "text-[#651249]/40 line-through",
+  versionClass: "text-[9px] text-[#651249]/40 font-semibold mt-0.5",
   summaryClass:
-    "mt-2 pt-1.5 border-t border-pink-900/10 text-[9px] text-pink-950/60 leading-relaxed overflow-hidden",
-  tooltipBorderColor: "#ec4899",
+    "mt-2 pt-1.5 border-t border-[#651249]/10 text-[9px] text-[#651249]/60 leading-relaxed overflow-hidden",
+  tooltipBorderColor: "#d6409f",
 };
 
 const POST_IT_EXTERNAL: PostItPalette = {
   Icon: Globe,
   label: "External System",
-  gradient: "linear-gradient(135deg, #e9d5ff 0%, #c084fc 40%, #a855f7 100%)",
-  draftBorder: "rgba(168, 85, 247, 0.5)",
-  corner: "#7e22ce",
-  ring: "ring-2 ring-purple-400/60 ring-offset-1",
-  iconClass: "w-3 h-3 text-purple-900/50",
+  gradient: "linear-gradient(135deg, #ead5f9 0%, #be93e4 40%, #8e4ec6 100%)",
+  draftBorder: "rgba(142, 78, 198, 0.5)",
+  corner: "#8145b5",
+  ring: "ring-2 ring-[#be93e4]/60 ring-offset-1",
+  iconClass: "w-3 h-3 text-[#402060]/50",
   labelClass:
-    "text-[8px] font-bold text-purple-900/50 uppercase tracking-widest",
-  nameText: "text-purple-950",
-  nameTextDeprecated: "text-purple-950/40 line-through",
-  versionClass: "text-[9px] text-purple-900/40 font-semibold mt-0.5",
+    "text-[8px] font-bold text-[#402060]/50 uppercase tracking-widest",
+  nameText: "text-[#402060]",
+  nameTextDeprecated: "text-[#402060]/40 line-through",
+  versionClass: "text-[9px] text-[#402060]/40 font-semibold mt-0.5",
   summaryClass:
-    "mt-2 pt-1.5 border-t border-purple-900/10 text-[9px] text-purple-950/60 leading-relaxed overflow-hidden",
-  tooltipBorderColor: "#a855f7",
+    "mt-2 pt-1.5 border-t border-[#402060]/10 text-[9px] text-[#402060]/60 leading-relaxed overflow-hidden",
+  tooltipBorderColor: "#8e4ec6",
 };
 
 type DefaultPalette = {
@@ -281,37 +282,37 @@ type DefaultPalette = {
 const DEFAULT_SERVICE: DefaultPalette = {
   Icon: ServerIcon,
   label: "Service",
-  ring: "ring-2 ring-pink-400/60 ring-offset-2",
-  borderSolid: "border-pink-500",
-  borderDraftDark: "border-dashed border-pink-400",
-  borderDraftLight: "border-dashed border-pink-400/60",
-  draftStripeDark: "rgba(236,72,153,0.25)",
-  draftStripeLight: "rgba(236,72,153,0.15)",
+  ring: "ring-2 ring-[#dd93c2]/60 ring-offset-2",
+  borderSolid: "border-[#d6409f]",
+  borderDraftDark: "border-dashed border-[#dd93c2]",
+  borderDraftLight: "border-dashed border-[#dd93c2]/60",
+  draftStripeDark: "rgba(214,64,159,0.25)",
+  draftStripeLight: "rgba(214,64,159,0.15)",
   nodeBgVar: "var(--ec-service-node-bg, rgb(var(--ec-card-bg)))",
-  shadowColor: "rgba(236, 72, 153, 0.15)",
-  badgeBg: "bg-pink-500",
-  ownerAccent: "bg-pink-400",
-  ownerBorder: "rgba(236,72,153,0.08)",
-  ownerIcon: "text-pink-300",
-  tooltipBorderColor: "#ec4899",
+  shadowColor: "rgba(214, 64, 159, 0.15)",
+  badgeBg: "bg-[#d6409f]",
+  ownerAccent: "bg-[#dd93c2]",
+  ownerBorder: "rgba(214,64,159,0.08)",
+  ownerIcon: "text-[#e7acd0]",
+  tooltipBorderColor: "#d6409f",
 };
 
 const DEFAULT_EXTERNAL: DefaultPalette = {
   Icon: Globe,
   label: "External System",
-  ring: "ring-2 ring-purple-400/60 ring-offset-2",
-  borderSolid: "border-purple-500",
-  borderDraftDark: "border-dashed border-purple-400",
-  borderDraftLight: "border-dashed border-purple-400/60",
-  draftStripeDark: "rgba(168,85,247,0.25)",
-  draftStripeLight: "rgba(168,85,247,0.15)",
+  ring: "ring-2 ring-[#be93e4]/60 ring-offset-2",
+  borderSolid: "border-[#8e4ec6]",
+  borderDraftDark: "border-dashed border-[#be93e4]",
+  borderDraftLight: "border-dashed border-[#be93e4]/60",
+  draftStripeDark: "rgba(142,78,198,0.25)",
+  draftStripeLight: "rgba(142,78,198,0.15)",
   nodeBgVar: "var(--ec-external-node-bg, rgb(var(--ec-card-bg)))",
-  shadowColor: "rgba(168, 85, 247, 0.15)",
-  badgeBg: "bg-purple-500",
-  ownerAccent: "bg-purple-400",
-  ownerBorder: "rgba(168,85,247,0.08)",
-  ownerIcon: "text-purple-300",
-  tooltipBorderColor: "#a855f7",
+  shadowColor: "rgba(142, 78, 198, 0.15)",
+  badgeBg: "bg-[#8e4ec6]",
+  ownerAccent: "bg-[#be93e4]",
+  ownerBorder: "rgba(142,78,198,0.08)",
+  ownerIcon: "text-[#d1afec]",
+  tooltipBorderColor: "#8e4ec6",
 };
 
 type ServiceNodeData = EventCatalogResource & {
@@ -370,7 +371,7 @@ function PostItService(props: ServiceNode) {
             "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
           transform: "rotate(1deg)",
           border: deprecated
-            ? "2px dashed rgba(239, 68, 68, 0.5)"
+            ? "2px dashed rgba(229, 72, 77, 0.5)"
             : draft
               ? `2px dashed ${nodeColor?.paperDraftBorder ?? p.draftBorder}`
               : "none",
@@ -406,12 +407,12 @@ function PostItService(props: ServiceNode) {
             </span>
           </div>
           {draft && (
-            <span className="text-[8px] font-extrabold text-amber-900 bg-amber-100 border border-dashed border-amber-400 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[8px] font-extrabold text-[#4f3422] bg-[#fff7c2] border border-dashed border-[#e2a336] px-1.5 py-0.5 rounded uppercase">
               Draft
             </span>
           )}
           {deprecated && (
-            <span className="text-[7px] font-bold text-white bg-red-500 border border-red-600 px-1.5 py-0.5 rounded uppercase">
+            <span className="text-[7px] font-bold text-white bg-[#e5484d] border border-[#dc3e42] px-1.5 py-0.5 rounded uppercase">
               Deprecated
             </span>
           )}
@@ -500,8 +501,8 @@ function DefaultService(props: ServiceNode) {
   const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
-    ? "rgba(239,68,68,0.25)"
-    : "rgba(239,68,68,0.1)";
+    ? "rgba(229,72,77,0.25)"
+    : "rgba(229,72,77,0.1)";
 
   const p = externalSystem ? DEFAULT_EXTERNAL : DEFAULT_SERVICE;
   const typeLabel = styles?.node?.label || p.label;
@@ -515,7 +516,7 @@ function DefaultService(props: ServiceNode) {
         "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
         props?.selected ? p.ring : "",
         deprecated
-          ? "border-dashed border-red-500"
+          ? "border-dashed border-[#e5484d]"
           : draft
             ? borderDraft
             : p.borderSolid,
@@ -563,7 +564,7 @@ function DefaultService(props: ServiceNode) {
         <span
           className={classNames(
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
-            deprecated ? "bg-red-500" : p.badgeBg,
+            deprecated ? "bg-[#e5484d]" : p.badgeBg,
           )}
           style={deprecated ? undefined : nodeColor?.badge}
         >
