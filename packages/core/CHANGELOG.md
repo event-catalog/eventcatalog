@@ -1,5 +1,64 @@
 # @eventcatalog/core
 
+## 5.18.0
+
+### Minor Changes
+
+- 2e32d22: feat(core): add links to the header, like a docs site, with `navigation.header` in eventcatalog.config.js. A link can go to a catalog page or another site, and an entry with `items` is a dropdown, with optional icons, descriptions and labelled sections. The link for the section you're in is highlighted. When the header is too narrow for its links, they move into the menu. New catalogs created from the default template come with header links, and their config sets `colorMode` (dark, with the toggle) so it is easy to change.
+
+  The sidebar's vertical navigation now treats links the same way: a `//host` link opens in a new tab, a link with a query or hash keeps its trailing slash in the right place, and an item whose href uses another scheme (such as `javascript:`) is left out.
+
+- ae660c8: feat(core): every theme (default, ocean, sapphire, sunset and forest) now uses Vercel's neutral greys for the page, header, sidebar, menus, inputs and buttons, with the theme's colour kept for accents (links, focus, selections). Badge colours are unchanged. A custom theme in `eventcatalog.styles.css` still overrides these as before.
+
+### Patch Changes
+
+- e32721f: fix(core): a resource's own icon (a technology's logo) shown in greys in the sidebar, search, breadcrumbs and the schema explorer is the same grey as the icons beside it, whatever its colours: a coloured logo (Node.js green, Go cyan) used to turn a darker mid grey than a black one
+- ae660c8: feat(core): restyle the default homepage: left aligned and monochrome, with a faint grid behind the search and the types in a grid of cells under it
+- ae660c8: feat(core): search is monochrome: the selected filter and highlighted result in neutral greys instead of the theme's accent, matches in bold, result icons on neutral chips (a resource's own icon in greys, as on the docs pages) and the footer's keys as keycaps
+- e32721f: feat(core): docs content (prose) is neutral in light mode too: body text a dark neutral grey (#4d4d4d), and headings, lists, quotes and table borders in Vercel's greys, in place of Tailwind Typography's blue-tinted defaults. In dark mode body text is a step brighter (#bdbdbd), for long reading
+- e32721f: feat(core): a page's actions (ask the assistant, copy or view the page as Markdown, copy its schemas, connect with MCP, the RSS feed, edit it) are in an outlined "Ask" split button at the top right of its title, as Vercel's and GitBook's, instead of a row of links under the summary. Its menu lists each action with a muted icon and a line on what it does, grouped and divided by hairlines. On resource, resource doc, custom documentation and diagram pages; the specification pages' menu gets the same look
+
+  The gap between a docs page's content and its right-hand sidebar is 10px wider.
+
+- e32721f: feat(core): a resource reference's hover card is redesigned, as Vercel's: a mono line with its type (on a chip in its colour), version and whether it's deprecated, its name larger beneath, its owners as small mono pills, links that underline rather than turn the accent colour, and its views (schema, diagram, repository) as small outlined buttons beside a filled "Open docs" button
+- e32721f: feat(core): resource references in docs (and `<ResourceLink>`, the ADR table and the assistant's answers) use softer colours, as Vercel's: the text and icon are the type's colour mixed with the page's text colour, by a strength each theme sets (most of the colour in both, a little softer on the dark one) instead of its full Tailwind colour, and the dotted underline is thinner and faint
+- e32721f: fix(core): a diagram laid out automatically (node graphs, flows, entity maps, the system context map) only uses its saved layout when that layout has a position for every node on it. A layout saved before nodes were added used to place the old nodes where they were saved and the new ones where the automatic layout put them, so they overlapped and edges ran through them; now the diagram is laid out automatically until the layout is saved again. Designs, whose nodes are placed by hand, keep their saved positions as before
+- e32721f: feat(core): the architecture graph matches the visualiser: its resources in the same Radix colours as the diagrams' nodes, its canvas a step off the page in dark mode (as the visualiser's), and its panels (the lens picker, search, "You are here" and the Resources legend) neutral, with quiet headings, grey hovers and selections, neutral sliders and inputs and a softer shadow, instead of the accent
+
+  The lens picker is tidied: its labels in one column, the lens as a compact outlined dropdown with its own chevron, and the detail (and a focused resource's depth) as a small segmented control (1 · 2 · 3 · All) instead of a slider.
+
+- ae660c8: feat(core): a quieter code theme for schemas, specifications and examples, from Vercel's palette: mostly the text colour, keys in blue, strings in green, keywords and numbers in pink, and no italics (line numbers included). One theme follows light and dark mode
+
+  The schema header is quieter too: the version in a small mono pill, the format's icon in greys, the selected tab underlined in the text colour instead of the accent, and a plain outlined Actions button.
+
+  The schema list matches: rows divided by hairlines, the selected one on a neutral grey with a bar down its left edge (not the accent), format icons in greys, and the search box, filter button, filters and pagination in neutral tones.
+
+- e32721f: feat(core): the discover tables are quieter, as Vercel's: each type's icon in a soft colour (as the docs' resource references) instead of its full Tailwind colour, badges as neutral outlined pills with their icon (when they set one) or a dot in their colour, as on the resource's page, instead of filled in it, an older version and "Subdomain" as small mono pills, and empty cells as a muted dash
+
+  The tables' pagination matches the schema explorer's: previous and next as small outlined square buttons, the page and the page size in mono, and the page size picker outlined.
+
+  Page subtitles (under a resource's or a table's title) are set as the homepage's: the same line height and slightly tighter letter spacing.
+
+  The tables' empty states are redesigned: the icon in a small outlined square, the heading in the text colour with a muted line under it, and "Clear all filters" as a small outlined button with a reset icon.
+
+  The filters read "All" when nothing's picked (not "Select producers…" in every field), with the result count in mono, squarer chips and a softer shadow on an open dropdown.
+
+- e32721f: feat(core): an entity's properties table is quieter, as Vercel's: a rounded frame, small header labels in normal case, thinner rows, names and types in mono (not in code boxes), enum values as small mono pills that wrap cleanly instead of a bulleted list, "required" as a neutral outlined pill instead of the accent and "optional" as muted text, and the reference as a mono pill
+- ae660c8: feat(visualiser): a node's card (on a diagram when a node is clicked, and in Studio) is quieter: its type in an outlined mono pill, the version in a mono pill, a lighter title and summary, "Open diagram" filled in the text colour and Docs outlined, connections on neutral chips with no colour (as search), greying on hover, and a softer shadow
+- ae660c8: feat(core): settings look like Vercel's: each page has its title, each setting is a card with a footer holding where it's saved and a filled Save button, and the settings sidebar marks the page you're on with a neutral grey
+- ae660c8: feat(core): `<Tile>` cards are quieter: an outline icon in the theme's colour in a small framed square on a faint neutral grid, square corners and an arrow on hover
+
+  fix(core): `<Tiles>` lays its tiles out in columns again (two by default, or `columns`), instead of stacking them in one
+
+- 11643a4: fix(core): Wardley maps (mermaid `wardley-beta`) now look right in dark mode. They sit on the page background instead of a grey box, and use the catalog's theme colours, so the stage lines, anchor labels, markers and notes that mermaid draws in black or white are readable.
+- Updated dependencies [e32721f]
+- Updated dependencies [e32721f]
+- Updated dependencies [ae660c8]
+- Updated dependencies [e32721f]
+- Updated dependencies [e32721f]
+- Updated dependencies [e32721f]
+  - @eventcatalog/visualiser@5.5.1
+
 ## 5.17.0
 
 ### Minor Changes

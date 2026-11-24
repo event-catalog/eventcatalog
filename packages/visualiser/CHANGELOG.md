@@ -1,5 +1,16 @@
 # @eventcatalog/visualiser
 
+## 5.5.1
+
+### Patch Changes
+
+- e32721f: feat(visualiser): edge labels are small neutral pills, as Vercel's: tighter, with a soft shadow, the first line (e.g. "publishes") in the text colour and the lines after it (the message, the rest of a route) muted instead of in italics. Flow edges' labels match
+- e32721f: feat(visualiser): every node's colours are Radix's scales (the palette Vercel's Geist colours are built on) in place of Tailwind's: events orange, services pink, commands and data stores blue, queries green, channels a neutral gray, actors and domains amber, external systems purple, data products indigo, views cyan, and the rest likewise, shade for shade. The legend, the minimap, the handles' glow, the node search's type icons, group nodes and Studio's node icons (and their lighter dark-theme shades) and team node match, and version and summary text on events is neutral grey. Custom nodes' colour palettes (their `color`) move to Radix too, each keeping its own scale (slate and gray, amber and yellow stay distinct). Colours set with `styles.node.color` and layouts are unchanged
+- ae660c8: feat(visualiser): a node's card (on a diagram when a node is clicked, and in Studio) is quieter: its type in an outlined mono pill, the version in a mono pill, a lighter title and summary, "Open diagram" filled in the text colour and Docs outlined, connections on neutral chips with no colour (as search), greying on hover, and a softer shadow
+- e32721f: feat(visualiser): the canvas uses Vercel's neutral greys: a #fafafa background with soft dots in light mode, and in dark mode a #111111 canvas (a step above the app's #0a0a0a pages) with #1c1c1c cards, #2e2e2e borders and neutral text in place of the blue-greys. Studio's canvas matches
+- e32721f: feat(visualiser): the tools around a diagram are neutral, as Vercel's: the title button and its menu (rounded rows, grey hovers), the bottom toolbar (the selected level or tool on a grey, not the accent; the zoom in mono), the zoom controls, the node search (a neutral focus ring and highlighted suggestion) and the legend (muted rows that come forward on hover), all with a softer shadow. Studio's canvas bar and menu match
+- e32721f: feat(visualiser): a flow's walkthrough is neutral, as Vercel's: Next and Finish filled in the text colour, the progress bar and play icon in the text colour, grey hovers, the step count in mono, and the numbered badges on the steps in the text colour (the one shown ringed in grey) instead of the accent. Its hover backgrounds, which never showed inside the visualiser, now do
+
 ## 5.5.0
 
 ### Minor Changes
