@@ -115,22 +115,7 @@ const catalogName = config?.logo?.text || config?.organizationName || config?.ti
 
 <script>
   import { buildUrl } from '@utils/url-builder';
-
-  // Pages under /docs that aren't resources
-  const NOT_RESOURCE_TYPES = new Set(['custom', 'llm']);
-
-  /** The resource a missing URL belongs to, e.g. /docs/services/OrderService/9.9.9 or /visualiser/services/OrderService */
-  const resourceFromPath = (pathname: string) => {
-    const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
-    const path = base && pathname.startsWith(base) ? pathname.slice(base.length) : pathname;
-    const match = path.match(/^\/(?:docs|visualiser|architecture)\/([^/]+)\/([^/]+)/);
-    if (!match || NOT_RESOURCE_TYPES.has(match[1])) return undefined;
-    try {
-      return { type: match[1], id: decodeURIComponent(match[2]) };
-    } catch {
-      return undefined;
-    }
-  };
+  import { getLatestVersionSuggestion } from '@utils/not-found';
 
   const bind = async () => {
     const page = document.querySelector<HTMLElement>('[data-not-found]');
@@ -157,10 +142,9 @@ const catalogName = config?.logo?.text || config?.organizationName || config?.ti
     }
 
     // /docs/{type}/{id} sends you to the resource's latest version, and is only there while the resource is
-    const resource = resourceFromPath(pathname);
-    if (!resource) return;
-    const latestHref = buildUrl(`/docs/${resource.type}/${encodeURIComponent(resource.id)}`);
-    if (new URL(latestHref, window.location.origin).pathname.replace(/\/$/, '') === pathname.replace(/\/$/, '')) return;
+    const latest = getLatestVersionSuggestion(pathname, import.meta.env.BASE_URL);
+    if (!latest) return;
+    const latestHref = buildUrl(latest.path);
 
     try {
       const response = await fetch(latestHref, { headers: { accept: 'text/html' } });
@@ -173,7 +157,7 @@ const catalogName = config?.logo?.text || config?.organizationName || config?.ti
     const name = suggestion?.querySelector<HTMLElement>('[data-not-found-suggestion-name]');
     if (!suggestion || !name) return;
     suggestion.href = latestHref;
-    name.textContent = resource.id;
+    name.textContent = latest.id;
     suggestion.hidden = false;
   };
 
@@ -182,8 +166,8 @@ const catalogName = config?.logo?.text || config?.organizationName || config?.ti
 
 <style is:global>
   /*
-   * A page of its own: the catalog's logo at the top, a large 404 in the middle over a faint grid. Monochrome like the rest of the catalog, all from the theme's variables, so it works
-   * light, dark and in custom themes
+   * A page of its own: the catalog's logo at the top, a large 404 in the middle over a faint grid. Monochrome like
+   * the rest of the catalog, all from the theme's variables, so it works light, dark and in custom themes
    */
   .ec-not-found {
     position: relative;
