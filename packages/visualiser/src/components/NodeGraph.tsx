@@ -2211,15 +2211,18 @@ const NodeGraphBuilder = ({
     window.dispatchEvent(new CustomEvent("eventcatalog:open-chat"));
   }, []);
 
+  // With messages hidden (L2) on a diagram that has more at L3, the nodes on show aren't the whole diagram. A saved
+  // layout must place every node to be used (applyLayoutToNodes), so saving here would write a file that's never
+  // applied. Diagrams with nothing more at L3 show every node at L2, so they can still be saved.
+  const showsPartialGraph = hideMessages && hasLevel3Detail && !isOverview;
+
   // Layout persistence handlers (dev mode only)
   const handleSaveLayout = useCallback(async (): Promise<boolean> => {
     if (!resourceKey || !onSaveLayout) return false;
     // Grouping is only a way of looking at the graph: grouped, nodes are
     // placed inside their groups, which a saved layout can't show
     if (swimlanesRef.current) return false;
-    // With messages hidden (L2) the nodes on show aren't the whole diagram, and a saved layout must place every
-    // node to be used (applyLayoutToNodes), so saving here would write a file that's never applied
-    if (hideMessages && !isOverview) return false;
+    if (showsPartialGraph) return false;
 
     const positions: Record<string, { x: number; y: number }> = {};
     nodesRef.current.forEach((node) => {
@@ -2231,7 +2234,7 @@ const NodeGraphBuilder = ({
     });
 
     return await onSaveLayout(resourceKey, positions);
-  }, [resourceKey, onSaveLayout, hideMessages, isOverview]);
+  }, [resourceKey, onSaveLayout, showsPartialGraph]);
 
   // What the diagram shows, for Studio to start a canvas from: the full graph (Studio shows the other levels itself),
   // the levels as the diagram draws them, and the level shown, for it to open at. Taken when Studio asks for it
@@ -2792,7 +2795,7 @@ const NodeGraphBuilder = ({
                     toggleFullScreen={toggleFullScreen}
                     isDevMode={isDevMode}
                     onSaveLayout={
-                      swimlanes || (hideMessages && !isOverview)
+                      swimlanes || showsPartialGraph
                         ? undefined
                         : handleSaveLayout
                     }
@@ -3019,7 +3022,7 @@ const NodeGraphBuilder = ({
             {isDevMode &&
               hasLayoutChanges &&
               !swimlanes &&
-              !(hideMessages && !isOverview) && (
+              !showsPartialGraph && (
                 <Panel
                   position="bottom-left"
                   style={
