@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Shared agent guidelines (federation checks, Studio verification, commit and PR rules) are in AGENTS.md:
+
+@AGENTS.md
+
 ## Project Overview
 
 EventCatalog is an open-source documentation tool for Event-Driven Architectures. It helps teams document events, commands, queries, services, domains, and flows in a discoverable catalog. Built with Astro, React, and TypeScript.
@@ -11,6 +15,13 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing the
 - `@eventcatalog/sdk` - SDK for programmatically interacting with EventCatalog
 - `@eventcatalog/create-eventcatalog` - CLI tool for scaffolding new EventCatalog projects
 - `@eventcatalog/visualiser` - Standalone React visualiser component (ReactFlow-based node graphs), and Studio's canvas (`@eventcatalog/visualiser/studio`)
+- `@eventcatalog/cli` - CLI for EventCatalog
+- `@eventcatalog/linter` - Validates frontmatter and resource references
+- `@eventcatalog/connectors` - Syncs external systems into EventCatalog collections
+- `@eventcatalog/exporters` - Exports a catalog to other formats (e.g. a single-file HTML architecture reference)
+- `@eventcatalog/fitness` - Architecture fitness functions, run locally or in CI
+- `@eventcatalog/diff` - Compares two catalog indexes and produces an ArchitectureDiff document
+- `@eventcatalog/breaking-changes` - Breaking schema change detection
 
 And one app:
 - `@eventcatalog/studio-web` (`apps/studio-web`, MIT) - Studio on the web: a public MCP server and canvas (no sign-in, stores nothing), deployed on its own
@@ -55,7 +66,7 @@ And one app:
     /scripts                 # Build and development scripts
   /sdk                       # @eventcatalog/sdk
     /src                     # SDK source code
-      /test                  # SDK tests (510 tests)
+      /test                  # SDK tests
     /dist                    # Built output (not committed)
   /create-eventcatalog       # @eventcatalog/create-eventcatalog
     /templates               # Project templates (default, asyncapi, openapi, etc.)
@@ -73,7 +84,7 @@ And one app:
   /studio-web                # Studio on the web (public MCP server and canvas)
 /examples
   /default                   # Default example catalog (used by start:catalog)
-  /e-commerce                # E-commerce example
+  /federation, /ssr, /ssr-auth, /perf-large  # Other example catalogs
 /.changeset                  # Changesets for versioning
 /.github/workflows           # CI/CD workflows
 ```
@@ -198,8 +209,8 @@ if (!isEventCatalogMCPEnabled()) {
 
 - Tests are colocated in `__tests__` directories (core) or `src/test` (SDK)
 - Test files use `.test.ts` or `.test.tsx` extension
-- Example catalogs for testing: `packages/core/eventcatalog/src/__tests__/example-catalog/`
-- SDK has 510 tests in `packages/sdk/src/test/`
+- Example catalogs for testing: `packages/core/src/__tests__/example-catalog/`
+- SDK tests are in `packages/sdk/src/test/`
 
 Don't run tests in watch mode.
 
@@ -298,7 +309,7 @@ When building features used by both AI Chat and MCP Server, add shared logic to 
 
 ### Working with Packages
 
-- **Core** depends on **SDK** and **Visualiser** via `workspace:*` references
+- **Core** depends on **SDK**, **Visualiser**, **Linter**, **Fitness** and **Exporters** via `workspace:` references
 - **Visualiser** is standalone (no internal workspace dependencies)
 - Changes to workspace dependencies are automatically picked up in development
 - Build commands run via Turbo (handles dependency ordering and caching)

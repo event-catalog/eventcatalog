@@ -1,6 +1,6 @@
 ---
 description: Audit the uncommited changes in the current branch
-allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git diff --staged:*), Bash(git branch:*), Bash(git rev-parse:*), Bash(git switch:*), Bash(git checkout:*), Bash(git add:*), Bash(git commit:*), Bash(git restore:*)
+allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git diff --staged:*), Bash(git log:*), Bash(git show:*)
 ---
 
 You will audit the uncommited changes in the current branch and make sure they follow these patterns:

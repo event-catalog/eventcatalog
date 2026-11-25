@@ -29,11 +29,10 @@ Issue format:
 - Title: Short, descriptive, imperative (e.g., "add support for X", "fix Y when Z")
 - Body:
   - Brief description of what is needed
-  - Context if necessary (1-2 sentences max)
+  - Context if necessary
   - No verbose templates or unnecessary sections
 
 Constraints:
 - Do not add sections that aren't needed (no "steps to reproduce" for features, etc.)
-- Keep the body under 200 words unless complexity requires more
 - Do not ask follow-up questions - use your judgment based on the request
 - After creating, output the issue URL

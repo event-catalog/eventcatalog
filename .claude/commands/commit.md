@@ -8,8 +8,8 @@ You are in a git repository that uses EventCatalog-style semantic commit message
 Goal:
 - Create a single commit with message format: `<type>(<scope>): <subject>` where scope is optional.
 - Message must be lowercase.
-- Allowed types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `misc`.
-- Pick a scope only if it clearly applies (short, kebab-case). Examples: `core`, `content-docs`, `theme-classic`.
+- Allowed types: `feat`, `fix`, `perf`, `docs`, `refactor`, `test`, `chore`, `misc`.
+- Pick a scope only if it clearly applies (short, kebab-case). Use the package or app name: `core`, `visualiser`, `studio-web`, `sdk`, `cli`.
 
 User hint (may be empty): $ARGUMENTS
 

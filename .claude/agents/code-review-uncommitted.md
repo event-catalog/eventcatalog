@@ -1,6 +1,6 @@
 ---
 name: code-review-uncommitted
-description: "Use this agent when you want to review uncommitted changes in your working directory to ensure they follow project conventions, are maintainable, and could be simplified without changing behavior. This agent should be called before committing code to catch issues early.\\n\\nExamples:\\n\\n<example>\\nContext: The user has just finished writing a new feature and wants to ensure quality before committing.\\nuser: \"I've finished implementing the new event filtering feature, can you review my changes?\"\\nassistant: \"I'll use the code-review-uncommitted agent to review your uncommitted changes and ensure they follow project conventions.\"\\n<Task tool call to launch code-review-uncommitted agent>\\n</example>\\n\\n<example>\\nContext: The user wants a pre-commit review of their work.\\nuser: \"Review my code before I commit\"\\nassistant: \"Let me launch the code-review-uncommitted agent to analyze your uncommitted changes for convention compliance and simplification opportunities.\"\\n<Task tool call to launch code-review-uncommitted agent>\\n</example>\\n\\n<example>\\nContext: The user has been coding for a while and wants to check their work proactively.\\nuser: \"I've been working on this for a few hours, let's see if there are any issues\"\\nassistant: \"I'll use the code-review-uncommitted agent to review all your uncommitted changes and identify any convention violations or simplification opportunities.\"\\n<Task tool call to launch code-review-uncommitted agent>\\n</example>"
+description: "Reviews the uncommitted changes in the working directory against project conventions (CLAUDE.md), for maintainability, and for simplifications that keep behavior the same. Use before committing, or when the user asks for a review of their uncommitted work."
 model: opus
 color: purple
 ---
@@ -93,11 +93,3 @@ For this EventCatalog project:
 - Use CSS variables (`--ec-*`) for theming, never hardcoded colors or `dark:` variants
 - Use ES modules with explicit imports/exports
 - Follow patterns in existing codebase structure
-
-## Self-Verification
-
-Before finalizing your review:
-1. Confirm you've checked all uncommitted changes
-2. Verify each suggestion maintains identical behavior
-3. Ensure recommendations align with existing codebase conventions
-4. Check that feedback is specific and actionable
