@@ -43,7 +43,7 @@ Workflow:
    **Date:** [YYYY-MM-DD]
    **Commits:** [number of commits]
 
-   ## What This PR Does
+   ## Motivation
 
    [2-4 sentences describing the purpose and goals of this PR. Focus on the "why" - what problem does this solve or what feature does it add?]
 

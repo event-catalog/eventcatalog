@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 This repository is a `pnpm` + Turborepo monorepo. Packages live in `packages/*`:
 - `packages/core`: main EventCatalog app (Astro + React) and local scripts.
-- `packages/cli`, `packages/sdk`, `packages/linter`, `packages/visualiser`, `packages/create-eventcatalog`.
+- `packages/cli`, `packages/sdk`, `packages/linter`, `packages/visualiser`, `packages/create-eventcatalog`, `packages/connectors`, `packages/exporters`, `packages/fitness`, `packages/diff`, `packages/breaking-changes`.
 
 Apps live in `apps/*`:
 - `apps/studio-web`: Studio on the web, a public MCP server and canvas (MIT, deployed on its own to Fly).
@@ -39,7 +39,6 @@ Vitest is the default test framework across packages. Tests are placed either ne
 - For CLI tests (especially under `packages/cli/src/test/import-export`), use descriptive, rule-style test names that read in plain English, for example: `when we import a domain that does not exist in the catalog, a domain resource is created`.
 - For CLI export tests, assert exact expected outputs and errors (prefer `toBe` with full strings) instead of partial-match assertions like `toContain`.
 - For multiline CLI export DSL assertions, use the shared `dsl` template tag with `toBe(...)` so expected blocks stay readable and indented in the test file.
-- For core/UI-impacting changes, also verify catalog build paths (`pnpm verify-build:catalog`).
 
 ## Federation Pipeline Checks
 
