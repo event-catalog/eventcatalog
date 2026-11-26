@@ -55,6 +55,8 @@ interface Props {
   showLensPicker?: boolean;
   showSearch?: boolean;
   showLegend?: boolean;
+  /** Show the "You are here" panel (the focused resource and its parents) */
+  showYouAreHere?: boolean;
   /** When off, plain scrolling over the canvas scrolls the page — zooming needs ctrl/cmd+scroll */
   zoomOnScroll?: boolean;
   /**
@@ -323,6 +325,7 @@ const CatalogForceGraph = ({
   openInGraphLabel,
   showSearch = true,
   showLegend = true,
+  showYouAreHere = true,
   zoomOnScroll = true,
 }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -1416,30 +1419,57 @@ const CatalogForceGraph = ({
         <div className="absolute right-3 top-3 z-20 flex flex-col gap-2 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs shadow-[0_1px_2px_rgb(0_0_0/0.06),0_8px_24px_-8px_rgb(0_0_0/0.18)]">
           {showSearch && (
             <div ref={searchContainerRef} className="relative">
-              <input
-                type="text"
-                placeholder="Search &amp; focus…"
-                value={searchValue}
-                onChange={(event) => {
-                  setSearchValue(event.target.value);
-                  setShowSuggestions(true);
-                  setSelectedSuggestionIndex(-1);
-                }}
-                onFocus={() => setShowSuggestions(true)}
-                onKeyDown={handleSearchKeyDown}
-                className="w-56 rounded-md border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] focus:border-[rgb(var(--ec-page-text)/0.4)] focus:outline-hidden py-1 pl-2 pr-7 text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-page-text-muted))] focus:shadow-[0_0_0_3px_rgb(var(--ec-page-text)/0.08)]"
-              />
-              {searchValue && (
-                <button
-                  type="button"
-                  onClick={() => setSearchValue('')}
-                  aria-label="Clear search"
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
-                >
-                  ×
-                </button>
+              {focusedNode ? (
+                // While a resource is focused the box holds it as a pill — clear it to search again
+                <div className="flex w-56 items-center gap-1.5 rounded-md border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] py-1 pl-2 pr-1.5 text-[rgb(var(--ec-page-text))]">
+                  <span
+                    className="inline-block h-2 w-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: nodeColor(focusedNode.collection) }}
+                  />
+                  <span className="min-w-0 truncate font-medium" title={focusedNode.label}>
+                    {focusedNode.label}
+                  </span>
+                  <span className="shrink-0 text-[10px] text-[rgb(var(--ec-page-text-muted))]">
+                    {COLLECTION_LABELS[focusedNode.collection] ?? focusedNode.collection}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFocusKey(null)}
+                    aria-label={`Clear focus on ${focusedNode.label}`}
+                    title="Clear focus"
+                    className="ml-auto shrink-0 rounded px-1 leading-none text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-page-text)/0.06)] hover:text-[rgb(var(--ec-page-text))]"
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Search &amp; focus…"
+                    value={searchValue}
+                    onChange={(event) => {
+                      setSearchValue(event.target.value);
+                      setShowSuggestions(true);
+                      setSelectedSuggestionIndex(-1);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onKeyDown={handleSearchKeyDown}
+                    className="w-56 rounded-md border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] focus:border-[rgb(var(--ec-page-text)/0.4)] focus:outline-hidden py-1 pl-2 pr-7 text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-page-text-muted))] focus:shadow-[0_0_0_3px_rgb(var(--ec-page-text)/0.08)]"
+                  />
+                  {searchValue && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchValue('')}
+                      aria-label="Clear search"
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
+                    >
+                      ×
+                    </button>
+                  )}
+                </>
               )}
-              {showSuggestions && searchSuggestions.length > 0 && (
+              {!focusedNode && showSuggestions && searchSuggestions.length > 0 && (
                 <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-lg">
                   {searchSuggestions.map((node, index) => {
                     const Icon = getIconForCollection(node.collection);
@@ -1476,19 +1506,22 @@ const CatalogForceGraph = ({
           )}
           {focusedNode && (
             <>
-              <button
-                type="button"
-                onClick={() => setFocusKey(null)}
-                className="flex items-center gap-1 self-start rounded-full border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-2 py-0.5 text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
-                title="Clear focus"
-              >
-                <span
-                  className="inline-block h-2 w-2 rounded-full"
-                  style={{ backgroundColor: nodeColor(focusedNode.collection) }}
-                />
-                Focused: {focusedNode.label}
-                <span aria-hidden="true">×</span>
-              </button>
+              {/* With search on, the focus lives in the search box as a token */}
+              {!showSearch && (
+                <button
+                  type="button"
+                  onClick={() => setFocusKey(null)}
+                  className="flex items-center gap-1 self-start rounded-full border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-2 py-0.5 text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-text)/0.05)]"
+                  title="Clear focus"
+                >
+                  <span
+                    className="inline-block h-2 w-2 rounded-full"
+                    style={{ backgroundColor: nodeColor(focusedNode.collection) }}
+                  />
+                  Focused: {focusedNode.label}
+                  <span aria-hidden="true">×</span>
+                </button>
+              )}
               <div className="flex items-center gap-3">
                 <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">Depth</span>
                 <Segmented
@@ -1502,7 +1535,7 @@ const CatalogForceGraph = ({
           )}
         </div>
       )}
-      {focusedNode && (
+      {showYouAreHere && focusedNode && (
         <div className="absolute bottom-3 left-3 z-10 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] p-3 text-xs shadow-[0_1px_2px_rgb(0_0_0/0.06),0_8px_24px_-8px_rgb(0_0_0/0.18)]">
           <div className="mb-1.5 px-1 text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))]">You are here</div>
           <ul className="space-y-1">

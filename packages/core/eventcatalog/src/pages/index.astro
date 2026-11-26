@@ -127,7 +127,8 @@ if (config.landingPage) {
               depth={graph.depth ? Number(graph.depth) : undefined}
               lens={graph.lens}
               showSearch={parseMdxBooleanProp(graph.search, true)}
-              showLegend={parseMdxBooleanProp(graph.legend, true)}
+              showLegend={parseMdxBooleanProp(graph.legend, false)}
+              showYouAreHere={parseMdxBooleanProp(graph.youAreHere, false)}
               showLensPicker={parseMdxBooleanProp(graph.lensPicker, false)}
               occurrenceIndex={occurrenceIndex}
               href={

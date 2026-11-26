@@ -23,6 +23,13 @@ export const getMDXComponentsByName = (document: string, componentName: string) 
       props[key] = value;
     }
 
+    // Boolean JSX expressions, e.g. legend={true}
+    const booleanPropsPattern = /(\w+)=\{\s*(true|false)\s*\}/g;
+    while ((propMatch = booleanPropsPattern.exec(propsString)) !== null) {
+      // @ts-ignore
+      props[propMatch[1]] = propMatch[2] === 'true';
+    }
+
     return props;
   });
 

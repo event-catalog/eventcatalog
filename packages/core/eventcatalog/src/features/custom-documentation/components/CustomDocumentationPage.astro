@@ -64,7 +64,8 @@ const architectureGraphs = (getMDXComponentsByName(props.body, 'ArchitectureGrap
   depth: graph.depth ? Number(graph.depth) : undefined,
   lens: graph.lens,
   search: parseMdxBooleanProp(graph.search, true),
-  legend: parseMdxBooleanProp(graph.legend, true),
+  legend: parseMdxBooleanProp(graph.legend, false),
+  youAreHere: parseMdxBooleanProp(graph.youAreHere, false),
   lensPicker: parseMdxBooleanProp(graph.lensPicker, false),
 }));
 
@@ -218,6 +219,7 @@ const editUrl =
                   lens={graph.lens}
                   showSearch={graph.search}
                   showLegend={graph.legend}
+                  showYouAreHere={graph.youAreHere}
                   showLensPicker={graph.lensPicker}
                   occurrenceIndex={occurrenceIndex}
                   href={

@@ -12,7 +12,10 @@ interface Props {
   /** Lens to render: all | domains | systems | services | teams | messages */
   lens?: string;
   showSearch?: boolean;
+  /** Off by default — set `legend` on the MDX tag to show the Resources legend */
   showLegend?: boolean;
+  /** Off by default — set `youAreHere` on the MDX tag to show the "You are here" panel */
+  showYouAreHere?: boolean;
   /** Off by default — embedded graphs pin a lens rather than offer the picker */
   showLensPicker?: boolean;
   // Position of this embed among the page's <ArchitectureGraph/> tags — pairs
@@ -30,7 +33,8 @@ const {
   depth = 2,
   lens,
   showSearch = true,
-  showLegend = true,
+  showLegend = false,
+  showYouAreHere = false,
   showLensPicker = false,
   occurrenceIndex = 0,
   href,
@@ -56,6 +60,7 @@ const focusKey =
   initialLens={lens}
   showSearch={showSearch}
   showLegend={showLegend}
+  showYouAreHere={showYouAreHere}
   showLensPicker={showLensPicker}
   href={href?.url}
   hrefLabel={href?.label}

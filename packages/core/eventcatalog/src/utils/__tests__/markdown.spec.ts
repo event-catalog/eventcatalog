@@ -11,6 +11,15 @@ describe('markdown', () => {
       const components = getMDXComponentsByName(markdown, 'SchemaViewer');
       expect(components).toEqual([{ id: 'test' }, { id: 'test2' }, {}]);
     });
+
+    it('reads boolean JSX expression props as booleans', () => {
+      const markdown = `
+        <ArchitectureGraph legend={true} />
+        <ArchitectureGraph id="Orders" legend={ false } search="false" />
+        `;
+      const components = getMDXComponentsByName(markdown, 'ArchitectureGraph');
+      expect(components).toEqual([{ legend: true }, { id: 'Orders', legend: false, search: 'false' }]);
+    });
   });
 
   describe('parseMdxBooleanProp', () => {
