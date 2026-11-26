@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 5.19.0
+
+### Minor Changes
+
+- ddecf58: Embedded `<ArchitectureGraph />` graphs now hide the Resources legend and the "You are here" panel by default. Add `legend={true}` and/or `youAreHere={true}` to show them. MDX component props now also accept `{true}` / `{false}` boolean expressions.
+
 ## 5.18.1
 
 ### Patch Changes
