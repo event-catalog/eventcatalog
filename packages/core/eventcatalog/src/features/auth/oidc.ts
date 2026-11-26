@@ -11,7 +11,8 @@ const DEFAULT_SCOPE = 'openid email profile';
 const DEFAULT_GROUPS_CLAIM = 'groups';
 const DEFAULT_ROLES_CLAIM = 'roles';
 
-// Any other Auth.js OIDC provider option (checks, authorization, client, ...) is passed through. The id is fixed.
+// Any other Auth.js OIDC provider option (checks, authorization, client, ...) is passed through. `checks` defaults
+// to PKCE and state; a value the catalog sets replaces that. The id is fixed.
 export interface OidcProviderOptions extends Omit<OIDCUserConfig<Record<string, any>>, 'id' | 'name' | 'issuer' | 'clientId'> {
   /** Shown on the login button ("Continue with <name>") and in the user menu. Defaults to "SSO". */
   name?: string;
@@ -32,10 +33,11 @@ export const getOidcProviderName = (options?: Pick<OidcProviderOptions, 'name'>)
 export const createOidcProvider = (options: OidcProviderOptions): OIDCConfig<Record<string, any>> => {
   // `id` and `type` can't be overridden: the login button, the callback URL and the groups and roles in auth.config.ts
   // all rely on the id being "oidc"
-  const { name, scope, groupsClaim, rolesClaim, authorization, id, type, ...authJsOptions } = options as OidcProviderOptions & {
-    id?: unknown;
-    type?: unknown;
-  };
+  const { name, scope, groupsClaim, rolesClaim, authorization, checks, id, type, ...authJsOptions } =
+    options as OidcProviderOptions & {
+      id?: unknown;
+      type?: unknown;
+    };
   // A catalog's own authorization params (e.g. `prompt`) are kept alongside the scope; a scope set there wins
   const authorizationOptions =
     typeof authorization === 'string'
@@ -46,6 +48,9 @@ export const createOidcProvider = (options: OidcProviderOptions): OIDCConfig<Rec
 
   return {
     ...authJsOptions,
+    // Auth.js sends only PKCE unless checks are set. Strict identity providers such as JumpCloud reject an
+    // authorize request that has no state, so both are sent unless the catalog sets its own checks.
+    checks: checks ?? ['pkce', 'state'],
     authorization: {
       ...authorizationOptions,
       params: { scope: scope || DEFAULT_SCOPE, ...authorizationOptions.params },

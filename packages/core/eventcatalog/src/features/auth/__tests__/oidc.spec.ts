@@ -21,6 +21,7 @@ describe('Generic OpenID Connect provider', () => {
         issuer: 'https://oauth.id.jumpcloud.com/',
         clientId: 'client-id',
         clientSecret: 'client-secret',
+        checks: ['pkce', 'state'],
         authorization: { params: { scope: 'openid email profile' } },
       });
     });
@@ -91,10 +92,16 @@ describe('Generic OpenID Connect provider', () => {
       });
     });
 
-    it('passes any other Auth.js provider option through unchanged, so a catalog can override the defaults', () => {
-      const provider = createOidcProvider({ issuer: 'https://idp.example.com', clientId: 'id', checks: ['pkce', 'state'] });
+    it('sends PKCE and state by default, so a strict identity provider such as JumpCloud accepts the authorize request', () => {
+      const provider = createOidcProvider({ issuer: 'https://idp.example.com', clientId: 'id' });
 
       expect(provider.checks).toEqual(['pkce', 'state']);
+    });
+
+    it('uses the checks the catalog sets instead of the default', () => {
+      const provider = createOidcProvider({ issuer: 'https://idp.example.com', clientId: 'id', checks: ['pkce'] });
+
+      expect(provider.checks).toEqual(['pkce']);
     });
   });
 
