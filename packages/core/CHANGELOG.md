@@ -1,5 +1,16 @@
 # @eventcatalog/core
 
+## 5.20.0
+
+### Minor Changes
+
+- 5cfefee: Sign in with any OpenID Connect provider (JumpCloud, Keycloak, PingIdentity, OneLogin, ...) by adding `providers.oidc` to `eventcatalog.auth.js` with its `issuer`, `clientId` and `clientSecret`. Give it a `name` for the login button, and set `groupsClaim` and `rolesClaim` to say which claims hold the user's groups and roles, for access rules in your middleware. The authorize request sends a `state` parameter as well as PKCE by default, so strict identity providers such as JumpCloud accept it; set `checks` to use a different set. New catalogs include a commented-out example.
+- 5cfefee: Give the sign-in page the catalog's monochrome, Vercel-style look: your logo at the top, "Sign in to {catalog}" with one full width button per provider over a faint grid, and the EventCatalog logo at the foot. It follows your theme, light and dark. After signing in, you now land on the page you were going to instead of the homepage, and the button you click shows that you're being redirected.
+
+### Patch Changes
+
+- b505c26: Fix broken links in static catalogs. Changelog pages are now generated for entities, channels, decision records and data products, which the sidebar already links to, and the llms.txt, llms-full.txt and RSS links no longer get a trailing slash when `trailingSlash` is on.
+
 ## 5.19.1
 
 ### Patch Changes
