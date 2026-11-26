@@ -368,7 +368,7 @@ export function CopyPageMenu({
         {availableActions.rssFeed && (
           <DropdownMenu.Item
             className="cursor-pointer rounded-lg outline-hidden transition-colors duration-150 data-[highlighted]:bg-[rgb(var(--ec-page-text)/0.05)]"
-            onSelect={() => window.open(buildUrl(`/rss/all/rss.xml`), '_blank')}
+            onSelect={() => window.open(buildUrl(`/rss/all/rss.xml`, true), '_blank')}
           >
             <MenuItemContent icon={RssIcon} title="RSS feed" description="Follow changes to the catalog" external={true} />
           </DropdownMenu.Item>

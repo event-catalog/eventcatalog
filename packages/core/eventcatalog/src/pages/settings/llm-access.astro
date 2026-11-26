@@ -13,10 +13,10 @@ const initial = {
 };
 
 const apiBase = buildUrl('/api/settings');
-const llmsTxtUrl = buildUrl('/llms.txt');
-const llmsFullTxtUrl = buildUrl('/llms-full.txt');
-const schemasTxtUrl = buildUrl('/docs/llm/schemas.txt');
-const ubiquitousLanguageTxtUrl = buildUrl('/docs/llm/ubiquitous-language.txt');
+const llmsTxtUrl = buildUrl('/llms.txt', true);
+const llmsFullTxtUrl = buildUrl('/llms-full.txt', true);
+const schemasTxtUrl = buildUrl('/docs/llm/schemas.txt', true);
+const ubiquitousLanguageTxtUrl = buildUrl('/docs/llm/ubiquitous-language.txt', true);
 ---
 
 <SettingsLayout title="LLM Access" active="llm-access">
