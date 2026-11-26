@@ -338,11 +338,12 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
           header.removeAttribute('data-nav-compact');
         }
       };
-      // The start block changes width on its own too, as the header's islands (theme toggle, environments) load
+      // The start block changes width on its own too, as the header's islands (theme toggle, environments) load.
+      // The observer also calls it once when it starts, after layout and before paint, so there's no first call here:
+      // measuring during the script would force a layout while the page is still loading
       const observer = new ResizeObserver(fitHeaderLinks);
       observer.observe(header);
       observer.observe(headerStart);
-      fitHeaderLinks();
     }
 
     if (menuToggle && mobileMenu) {

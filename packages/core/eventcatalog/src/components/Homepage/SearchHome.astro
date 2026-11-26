@@ -497,8 +497,8 @@ const types = [
     font-size: 12px;
     font-weight: 400;
     font-style: italic;
-    /* Barely there until you look for it: it only comes forward on hover */
-    color: rgb(var(--ec-page-text-muted) / 0.45);
+    /* Quiet (muted, small, no fill) until it's hovered, but still readable: fading it further fails WCAG contrast */
+    color: rgb(var(--ec-page-text-muted));
     transition:
       color 150ms,
       border-color 150ms,
