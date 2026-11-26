@@ -7,13 +7,16 @@ import { isAuthEnabled, isSSR } from '@utils/feature';
 import { buildUrl } from '@utils/url-builder';
 import { getSession } from '@utils/auth-astro/server';
 import { importCatalogModule } from '@utils/catalog-modules';
+import { getOidcProviderName } from '@features/auth/oidc';
 
 let hasAuthConfigurationFile = false;
 let providers: string[] = [];
+let oidcProviderName = getOidcProviderName();
 
 try {
   const authConfig = await importCatalogModule('eventcatalog.auth.js');
   providers = Object.keys(authConfig.default.providers);
+  oidcProviderName = getOidcProviderName(authConfig.default.providers?.oidc);
   hasAuthConfigurationFile = true;
 } catch (error) {
   hasAuthConfigurationFile = false;
@@ -91,6 +94,17 @@ const providerConfig = {
       <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
       <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
       <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+    </svg>`,
+  },
+  // Any other OpenID Connect provider, named by the catalog (e.g. JumpCloud)
+  oidc: {
+    name: oidcProviderName,
+    bgColor: 'bg-purple-600',
+    hoverBg: 'hover:bg-purple-700',
+    textColor: 'text-white',
+    icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/>
+      <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
     </svg>`,
   },
 };
@@ -251,7 +265,9 @@ const providerConfig = {
                       <span class="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm font-semibold">
                         2
                       </span>
-                      <span class="text-sm text-gray-700">Add at least one provider (GitHub, Google, Okta, etc.)</span>
+                      <span class="text-sm text-gray-700">
+                        Add at least one provider (GitHub, Google, Okta, or any OpenID Connect provider)
+                      </span>
                     </li>
                     <li class="flex items-start gap-3">
                       <span class="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm font-semibold">

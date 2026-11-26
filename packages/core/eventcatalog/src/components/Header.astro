@@ -58,7 +58,10 @@ const providerNames: Record<string, string> = {
   auth0: 'Auth0',
   'microsoft-entra-id': 'Microsoft Entra ID',
 };
-const providerName = user?.provider ? providerNames[user.provider] || user.provider : undefined;
+// An OpenID Connect provider carries the name the catalog gave it (e.g. JumpCloud)
+const providerName = user?.provider
+  ? (user as { providerName?: string }).providerName || providerNames[user.provider] || user.provider
+  : undefined;
 ---
 
 <nav

@@ -8,6 +8,7 @@ import Google from '@auth/core/providers/google';
 import Auth0 from '@auth/core/providers/auth0';
 import Entra from '@auth/core/providers/microsoft-entra-id';
 import jwt from 'jsonwebtoken';
+import { createOidcProvider, getOidcGroupsAndRoles, getOidcProviderName, OIDC_PROVIDER_ID } from '@features/auth/oidc';
 
 // Need to try and read the eventcatalog.auth.js file and get the auth providers from there
 const getAuthProviders = async () => {
@@ -90,6 +91,12 @@ const getAuthProviders = async () => {
       console.log('✅ Microsoft Entra ID provider configured');
     }
 
+    // Any other OpenID Connect provider (JumpCloud, Keycloak, ...)
+    if (authConfig.providers?.oidc) {
+      providers.push(createOidcProvider(authConfig.providers.oidc));
+      console.log(`✅ OpenID Connect provider configured (${getOidcProviderName(authConfig.providers.oidc)})`);
+    }
+
     if (providers.length === 0) {
       console.warn('⚠️ No auth providers configured');
     }
@@ -165,6 +172,15 @@ const getAuthConfig = async () => {
             } else if (account.provider === 'auth0') {
               token.groups = (profile as any)['https://eventcatalog.dev/groups'] || [];
               token.roles = (profile as any)['https://eventcatalog.dev/roles'] || [];
+            } else if (account.provider === OIDC_PROVIDER_ID) {
+              const oidcConfig = authConfig.providers?.oidc ?? {};
+              const { groups, roles } = getOidcGroupsAndRoles({
+                options: oidcConfig,
+                profile,
+                accessToken: account.access_token,
+              });
+              token.groups = groups;
+              token.roles = roles;
             }
 
             // Store access token for potential API calls
@@ -177,6 +193,11 @@ const getAuthConfig = async () => {
           // Add provider info to session
           if (token?.provider) {
             (session.user as any).provider = token.provider;
+          }
+          // The name the catalog gives its OpenID Connect provider, for the user menu. Read from the config on every
+          // request rather than stored in the token, so renaming the provider shows up without signing in again
+          if (token?.provider === OIDC_PROVIDER_ID) {
+            (session.user as any).providerName = getOidcProviderName(authConfig.providers?.oidc);
           }
           if (token?.login) {
             (session.user as any).username = token.login;

@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { findMatchingRule, getPublicRoutes, isMcpRoute, matchesPattern } from '../features/auth/middleware/middleware-auth';
+import {
+  findMatchingRule,
+  getPublicRoutes,
+  isMcpRoute,
+  matchesPattern,
+  normalizeUserData,
+} from '../features/auth/middleware/middleware-auth';
 
 // Note:
 describe('middleware-auth', () => {
@@ -163,6 +169,31 @@ describe('middleware-auth', () => {
       expect(isMcpRoute('/docs/mcp-anything')).toBe(false);
       expect(isMcpRoute('/docs/mcpany')).toBe(false);
       expect(isMcpRoute('/docs/mcp.v1')).toBe(false);
+    });
+  });
+
+  describe('normalizeUserData', () => {
+    it('marks a user who signed in with the generic OpenID Connect provider as an "oidc" user, with the groups and roles from their session', () => {
+      const user = normalizeUserData({
+        // What the session callback in auth.config.ts gives an OIDC user: no subject, so the id is their email
+        user: {
+          email: 'ada@example.com',
+          name: 'Ada',
+          provider: 'oidc',
+          providerName: 'JumpCloud',
+          groups: ['engineering'],
+          roles: ['admin'],
+        },
+      });
+
+      expect(user).toMatchObject({
+        id: 'ada@example.com',
+        email: 'ada@example.com',
+        name: 'Ada',
+        provider: 'oidc',
+        groups: ['engineering'],
+        roles: ['admin'],
+      });
     });
   });
 });
