@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 5.19.1
+
+### Patch Changes
+
+- 1651229: fix(core): make the homepage's "Customize this page" link readable (WCAG contrast) and stop the header forcing a layout while the page loads
+
 ## 5.19.0
 
 ### Minor Changes
