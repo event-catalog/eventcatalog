@@ -16,6 +16,7 @@ interface Props {
   initialFocusDepth?: number;
   showSearch?: boolean;
   showLegend?: boolean;
+  showYouAreHere?: boolean;
   showLensPicker?: boolean;
   /** Base URL of the standalone /visualiser/graph page — the graph renders an
    * "open full screen" link carrying its live view state (focus, depth, lens) */
