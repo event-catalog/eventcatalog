@@ -17,7 +17,7 @@ export interface NormalizedUser {
   permissions: string[];
   groups: string[];
   metadata: Record<string, any>;
-  provider: 'auth0' | 'okta' | 'microsoft' | 'google' | 'unknown';
+  provider: 'auth0' | 'okta' | 'microsoft' | 'google' | 'oidc' | 'unknown';
   raw: {
     user: any;
     token: any;
@@ -176,7 +176,7 @@ export const authMiddleware: MiddlewareHandler = async (context, next) => {
 };
 
 // Normalize user data from different providers
-function normalizeUserData(session: any): NormalizedUser {
+export function normalizeUserData(session: any): NormalizedUser {
   const user = session.user;
   const accessToken = session.accessToken;
   let decodedToken = null;
@@ -200,6 +200,9 @@ function normalizeUserData(session: any): NormalizedUser {
       return normalizeMicrosoftUser(user, decodedToken);
     case 'google':
       return normalizeGoogleUser(user, decodedToken);
+    case 'oidc':
+      // Groups and roles were read from the claims the catalog configured (see features/auth/oidc.ts)
+      return { ...normalizeGenericUser(user, decodedToken), provider: 'oidc' };
     default:
       return normalizeGenericUser(user, decodedToken);
   }
@@ -217,6 +220,7 @@ const issuerHost = (issuer: unknown) => {
 function detectProvider(session: any): string {
   const account = session.account;
   if (account?.provider) return account.provider;
+  if (session.user?.provider === 'oidc') return 'oidc';
 
   if (session.user?.sub?.startsWith('auth0|')) return 'auth0';
   const host = issuerHost(session.user?.iss);

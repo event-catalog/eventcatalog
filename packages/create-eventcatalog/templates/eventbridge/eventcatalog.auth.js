@@ -40,5 +40,13 @@
 //       clientSecret: process.env.AUTH_OKTA_CLIENT_SECRET,
 //       issuer: process.env.AUTH_OKTA_ISSUER,
 //     },
+//     // Any other OpenID Connect provider (JumpCloud, Keycloak, ...)
+//     // Register <your catalog URL>/api/auth/callback/oidc as the redirect URI
+//     oidc: {
+//       name: 'JumpCloud',
+//       issuer: process.env.AUTH_OIDC_ISSUER,
+//       clientId: process.env.AUTH_OIDC_CLIENT_ID,
+//       clientSecret: process.env.AUTH_OIDC_CLIENT_SECRET,
+//     },
 //   },
 // }
