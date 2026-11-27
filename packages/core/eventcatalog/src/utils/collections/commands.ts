@@ -60,7 +60,7 @@ export const getCommands = async ({ getAllVersions = true, hydrateServices = tru
     targetCommands.map(async (command) => {
       // Version info
       const commandVersions = commandMap.get(command.data.id) || [];
-      const latestVersion = commandVersions[0]?.data.version || command.data.version;
+      const latestVersion = commandVersions.find((v) => !v.data.draft)?.data.version || command.data.version;
       const versions = commandVersions.map((e) => e.data.version);
 
       // Find producers and consumers via reverse index
