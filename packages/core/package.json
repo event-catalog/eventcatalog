@@ -145,7 +145,7 @@
     "nanostores": "^1.1.0",
     "pagefind": "^1.5.2",
     "pako": "^2.1.0",
-    "parse5": "^7.3.0",
+    "parse5": "^8.1.1",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.4",
     "react": "^19.2.0",
